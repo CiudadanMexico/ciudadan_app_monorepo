@@ -1,0 +1,30 @@
+  /* Ajuste fino del tamaño del Logo */
+  @media (max-width: 480px) {
+
+  .logo-img {
+    width: 130px; /* Tamaño grande del logo, ajusta según sea necesario */
+    height: auto;
+    margin-bottom: 10px;
+  }
+
+
+  .nav-text {
+
+    display: none !important;
+  }
+
+  .nav-link {
+    font-size: 10px;
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+
+  
+
+  .boton-busca {
+    font-size: 21px; /* Tamaño del icono */
+    width: 30px; /* Ajusta el tamaño del botón */
+    height: 30px; /* Ajusta el tamaño del botón */
+  }
+
+}

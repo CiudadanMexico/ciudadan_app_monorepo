@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ciudadan.app</string>
+    <string name="title_activity_main">ciudadan.app</string>
+    <string name="package_name">com.ciudadan.org</string>
+    <string name="custom_url_scheme">com.ciudadan.org</string>
+</resources>

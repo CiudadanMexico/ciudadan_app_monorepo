@@ -1,0 +1,75 @@
+⚙️ Uso del NotificationsContext
+
+Este contexto maneja las notificaciones del usuario que vienen desde Strapi, filtradas por su email (obtenido desde Auth0).
+
+📥 Importar el hook
+import { useNotifications } from './NotificationsContext';
+
+🧠 Qué te da useNotifications()
+const {
+  notificaciones,
+  cargando,
+  notificationsNum,
+  refreshNotificaciones,
+} = useNotifications();
+
+Variable / Función	Tipo	Qué hace
+notificaciones	array	Lista de notificaciones del usuario en Strapi
+cargando	boolean	Indica si las notificaciones se están cargando
+notificationsNum()	función	Devuelve el número de notificaciones no leídas
+refreshNotificaciones()	función	Vuelve a consultar las notificaciones desde Strapi
+💡 Ejemplo rápido de uso
+import React, { useEffect } from 'react';
+import { useNotifications } from './NotificationsContext';
+
+export default function PanelNotificaciones() {
+  const {
+    notificaciones,
+    cargando,
+    notificationsNum,
+    refreshNotificaciones,
+  } = useNotifications();
+
+  useEffect(() => {
+    refreshNotificaciones(); // opcional, por si quieres recargar manualmente al montar
+  }, []);
+
+  if (cargando) return <p>Cargando notificaciones...</p>;
+
+  return (
+    <div>
+      <h2>🔔 Notificaciones ({notificationsNum()} sin leer)</h2>
+
+      <button onClick={refreshNotificaciones}>🔄 Refrescar</button>
+
+      {notificaciones.length === 0 ? (
+        <p>No tienes notificaciones</p>
+      ) : (
+        <ul>
+          {notificaciones.map(n => (
+            <li key={n.id}>
+              <strong>{n.attributes.titulo}</strong><br />
+              {n.attributes.mensaje}
+              {!n.attributes.leida && <span style={{ color: 'red' }}> ● Nueva</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+🔍 Cómo funciona internamente
+
+Al iniciar sesión en Auth0, el contexto busca automáticamente las notificaciones del usuario usando su email.
+
+Llama al endpoint:
+
+GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=<user.email>
+
+
+Guarda los resultados en notificaciones.
+
+notificationsNum() filtra solo las no leídas (leida: false).
+
+Puedes llamar a refreshNotificaciones() cuando quieras refrescar la lista (por ejemplo, tras marcar una como leída).

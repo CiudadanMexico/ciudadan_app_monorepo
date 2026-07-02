@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categorias_eventos",
+  "info": {
+    "singularName": "categoria-evento",
+    "pluralName": "categorias-eventos",
+    "displayName": "Categorias_Eventos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "nivel": {
+      "type": "integer"
+    },
+    "sup": {
+      "type": "integer"
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "activa": {
+      "type": "boolean"
+    }
+  }
+}

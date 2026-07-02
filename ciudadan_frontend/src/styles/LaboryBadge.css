@@ -1,0 +1,108 @@
+.labory-container {
+    position: relative;
+    display: inline-block;
+    width: 120px;
+    height: 160px;
+}
+
+.labory-image {
+    width: 83%;
+    height: auto;
+    animation: sway-logo 6s ease-in-out infinite;
+    transform-origin: center;
+    
+    /* 🔥 BRILLO SOLO AL PNG */
+    filter: drop-shadow(0px 0px 8px #fff200) drop-shadow(0px 0px 12px #fff200);
+}
+
+.labory-svg {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    width: 120px;
+    height: 160px;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* 🔴 Círculo rojo temporal para ver la posición */
+.labory-circle {
+    fill: transparent; /* Se verá como una marca roja */
+    opacity: 0.5; /* Transparente para que no tape todo */
+}
+
+.labory-text {
+    font-size: 34px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 900;
+    fill: white;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    z-index: 9999;
+}
+
+/* 🚀 Animación de giro */
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.labory-text-group {
+    animation: rotate 5s linear infinite;
+    transform-origin: center;
+}
+
+
+/* 🚀 Animación de vaivén para la moneda */
+@keyframes sway-logo {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-20deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(20deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* 🎯 Animación de giro para el texto */
+@keyframes rotate-text {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Contenedor principal */
+.labory-container {
+    position: relative;
+    display: inline-block;
+    width: 120px;
+    height: 160px;
+}
+
+/* Imagen del logo con vaivén */
+.labory-image {
+    width: 100%;
+    height: auto;
+    animation: sway-logo 6s ease-in-out infinite;
+    transform-origin: center;
+}
+
+/* SVG del texto */
+.labory-svg {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    width: 110px;
+    height: 200px;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Texto animado */
+.labory-text-group {
+    animation: rotate-text 8s linear infinite;
+    transform-origin: center;
+}

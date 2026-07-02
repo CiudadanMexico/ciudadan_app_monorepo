@@ -1,0 +1,11 @@
+export { default as VerificationHeader } from './VerificationHeader';
+export { default as VerificationSidebar } from './VerificationSidebar';
+export { default as DocumentCard } from './DocumentCard';
+export { default as DocumentGrid } from './DocumentGrid';
+export { default as BiometricComparison } from './BiometricComparison';
+export { default as VehicleDataCard } from './VehicleDataCard';
+export { default as PersonalDataCard } from './PersonalDataCard';
+export { default as OperativeChecklist } from './OperativeChecklist';
+export { default as ReviewerObservations } from './ReviewerObservations';
+export { default as ActivityTimeline } from './ActivityTimeline';
+export { default as FinalActions } from './FinalActions';

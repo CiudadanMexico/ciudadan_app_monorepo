@@ -1,0 +1,79 @@
+{
+  "collectionName": "components_carritos_producto_en_carritos",
+  "info": {
+    "displayName": "producto_en_carrito",
+    "icon": "shoppingCart",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "producto": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::producto.producto"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "precio_unitario": {
+      "type": "decimal"
+    },
+    "cantidad": {
+      "type": "integer"
+    },
+    "subtotal": {
+      "type": "decimal"
+    },
+    "envio": {
+      "type": "decimal"
+    },
+    "subtotal_volumetrico": {
+      "type": "decimal"
+    },
+    "esquema_impuestos": {
+      "type": "enumeration",
+      "enum": [
+        "sin_iva",
+        "con_iva",
+        "optativo"
+      ]
+    },
+    "cp": {
+      "type": "string"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "comisionStripe": {
+      "type": "decimal"
+    },
+    "comisionPlataforma": {
+      "type": "decimal"
+    },
+    "imagen_predeterminada": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "store": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store.store"
+    },
+    "calificado": {
+      "type": "boolean"
+    },
+    "fechacalificado": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}

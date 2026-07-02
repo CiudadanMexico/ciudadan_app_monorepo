@@ -1,0 +1,14 @@
+export { default as OnboardingIntro } from './OnboardingIntro';
+export { default as SaveStatusIndicator } from './SaveStatusIndicator';
+export { default as StepNavigation } from './StepNavigation';
+export { default as DocumentUploadField } from './DocumentUploadField';
+export { default as WizardHeader } from './WizardHeader';
+export { default as StepCuenta } from './steps/StepCuenta';
+export { default as StepVerificacion } from './steps/StepVerificacion';
+export { default as StepDatosPersonales } from './steps/StepDatosPersonales';
+export { default as StepDocumentosPersonales } from './steps/StepDocumentosPersonales';
+export { default as StepLicencia } from './steps/StepLicencia';
+export { default as StepVehiculo } from './steps/StepVehiculo';
+export { default as StepFotosVehiculo } from './steps/StepFotosVehiculo';
+export { default as StepCitaPresencial } from './steps/StepCitaPresencial';
+export { default as StepResumen } from './steps/StepResumen';

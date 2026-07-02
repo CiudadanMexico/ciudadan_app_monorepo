@@ -1,0 +1,151 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cursos",
+  "info": {
+    "singularName": "curso",
+    "pluralName": "cursos",
+    "displayName": "Cursos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "modalidad": {
+      "type": "enumeration",
+      "enum": [
+        "presencial",
+        "en línea tiempo real",
+        "en línea grabaciones",
+        "híbrido"
+      ]
+    },
+    "certificacion": {
+      "type": "string"
+    },
+    "precio": {
+      "type": "decimal"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "calendario_actividades": {
+      "type": "json"
+    },
+    "maestro": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "portada": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "calificacion": {
+      "type": "integer"
+    },
+    "calificaciones": {
+      "type": "integer"
+    },
+    "fecha_publicacion": {
+      "type": "datetime"
+    },
+    "temario": {
+      "type": "json"
+    },
+    "archivos": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "fecha_inicio": {
+      "type": "datetime"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::categoria-curso.categoria-curso"
+    },
+    "de_pago": {
+      "type": "boolean"
+    },
+    "enlace_reunion": {
+      "type": "string"
+    },
+    "enlaces_publicos": {
+      "type": "json"
+    },
+    "enlaces_privados": {
+      "type": "json"
+    },
+    "ubicacion": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "borrador",
+        "publicado",
+        "archivado",
+        "activo",
+        "ya_encurso",
+        "eliminado",
+        "bloqueado"
+      ]
+    },
+    "maestro_email": {
+      "type": "string"
+    },
+    "maestro_nombre": {
+      "type": "string"
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "resumen": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "string"
+    },
+    "restringido": {
+      "type": "boolean"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "cursos"
+    }
+  }
+}

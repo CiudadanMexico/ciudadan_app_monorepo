@@ -1,0 +1,61 @@
+{
+  "kind": "collectionType",
+  "collectionName": "direcciones",
+  "info": {
+    "singularName": "direccion",
+    "pluralName": "direcciones",
+    "displayName": "Direcciones",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "direccion": {
+      "type": "json"
+    },
+    "coords": {
+      "type": "json"
+    },
+    "cp": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string"
+    },
+    "store_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store.store"
+    },
+    "observaciones": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    },
+    "activa": {
+      "type": "boolean"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "predeterminada": {
+      "type": "boolean"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "usuario_email": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "kind": "collectionType",
+  "collectionName": "resenas",
+  "info": {
+    "singularName": "resena",
+    "pluralName": "resenas",
+    "displayName": "resenas",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "producto": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::producto.producto"
+    },
+    "comentario": {
+      "type": "text"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "carrito": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::carrito.carrito"
+    },
+    "curso_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "club_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "publicada",
+        "eliminada",
+        "bloqueada"
+      ]
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "evento_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "producto",
+        "club",
+        "curso",
+        "evento",
+        "enlace",
+        "recurso"
+      ]
+    }
+  }
+}

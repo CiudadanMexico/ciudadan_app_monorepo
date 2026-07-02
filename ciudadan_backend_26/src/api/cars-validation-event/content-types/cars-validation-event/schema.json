@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cars_validation_events",
+  "info": {
+    "singularName": "cars-validation-event",
+    "pluralName": "cars-validation-events",
+    "displayName": "Cars Validation Event",
+    "description": "Auditoría y trazabilidad del proceso de validación"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "validation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-validation.cars-validation",
+      "inversedBy": "events"
+    },
+    "evidence": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-evidence.cars-evidence"
+    },
+    "actor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "action": {
+      "type": "enumeration",
+      "enum": [
+        "validation_created",
+        "evidence_synced",
+        "evidence_approved",
+        "evidence_rejected",
+        "evidence_resub_requested",
+        "evidence_superseded",
+        "validation_started",
+        "validation_completed",
+        "validation_cancelled",
+        "driver_status_synced",
+        "observations_updated",
+        "checklist_updated",
+        "agenda_synced",
+        "validation_status_changed",
+        "resubmission_requested"
+      ]
+    },
+    "payload": {
+      "type": "json"
+    }
+  }
+}

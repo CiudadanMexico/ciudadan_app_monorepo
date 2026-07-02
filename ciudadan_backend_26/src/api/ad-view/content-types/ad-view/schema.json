@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ad_views",
+  "info": {
+    "singularName": "ad-view",
+    "pluralName": "ad-views",
+    "displayName": "ad-view",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "ad": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::ad.ad"
+    },
+    "tipo": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "contenido": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::contenido.contenido"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "link": {
+      "type": "string"
+    }
+  }
+}

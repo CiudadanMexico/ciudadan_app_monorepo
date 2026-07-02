@@ -1,0 +1,143 @@
+.animated-box{
+    margin-top: -3em;
+}
+
+/* Animaciones generales */
+.animated-box {
+  opacity: 0;
+  transform: translateY(5px) scale(0.98);
+  transition: all 0.9s ease-out;
+}
+
+.fade-zoom-left {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  animation: slideLeft 0.8s ease-out forwards;
+}
+
+.fade-zoom-right {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  animation: slideRight 0.8s ease-out forwards;
+}
+
+.fade-in-bottom {
+  animation: fadeBottom 1s ease-out forwards;
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-60px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(60px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes fadeBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Título principal */
+.section-title {
+  font-family: 'Segoe UI', sans-serif;
+  color: #2e7d32;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+/* Wrapper general */
+.clubs-wrapper {
+  background-color: #f4ffe2;
+  border-radius: 16px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 40px;
+}
+
+/* Contenedor imágenes + botón */
+.clubs-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Imagen estilo */
+.clubs-img {
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 560px;
+  object-fit: cover;
+}
+
+/* Contenedor imagen 2 para posicionar botón */
+.clubs-img-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  max-width: 560px;
+  width: 100%;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón en imagen 2 con borde y glow */
+.clubs-affiliate-btn {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #43a047;
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-size: 1rem;
+  text-transform: none;
+  border: 2px solid #fff200;
+  box-shadow: 0 0 15px #fff200cc, 0 4px 10px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.clubs-affiliate-btn:hover {
+  background-color: #388e3c;
+  box-shadow: 0 0 20px #fff200ee, 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Botón móvil directorio */
+.clubs-mobile-btn {
+  background-color: #66bb6a !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  margin: 16px 0 !important;
+  width: 100% !important;
+}

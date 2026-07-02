@@ -1,0 +1,70 @@
+[33m9714ca6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mnavbar[m[33m)[m se agregan eventos que carguen desde base de datos, se agregan juegos y florateca 2
+[33me294228[m se agregan eventos que carguen desde base de datos, se agregan juegos y florateca
+[33m2132e11[m[33m ([m[1;31morigin/navbar[m[33m)[m se agregan páginas de quiénes somos, faq, home se retoca al igual que eventos
+[33mf112084[m se agrega crud y búsqueda de sección Cursos
+[33m33833c3[m se agrega de nuevo agregar contenido, agregar tienda y producto falta lo del cp solamente
+[33mec80adf[m se agrega vista preguntas producto
+[33m5216630[m se agrega vista mis productos
+[33md6eaa7a[m se arreglan menús desplegable de usuario y que se cierren todos los menús sincronizadamente
+[33m924243d[m se completa la maquetación
+[33m6dd5db0[m se agrega efecto de botón activo de navbar al cargar desde cualquier ruta
+[33m4bc10d9[m se arregla asistente que se muestre al abrirse
+[33mc4e5bd6[m se arregla la navbar, pero ahora no sirve agregar contenidos
+[33mc03d82a[m se arreglan menús desplegables de la navbar, ya se muestran correctamente
+[33mf7bf75d[m se agregn estilos que se importan de /src/styles/ColoresBotones.jsx  para botones y otrs estilos en páginas Crear Contenido, Contenidos y Editar Contenido, se da estilos a botones y controles, se muetra la barra de categorías condicionalmente igual que los titulos
+[33m8eac65c[m se agrega categoría por defecto en agregar contenido, por defecto en publicada y se agrega contol de fecha hora en lugar de solo fecha, agrega videos restringidos correctamente
+[33m5b87ae2[m se muestran videos en galería restringida
+[33md2dc91c[m se muestran videos en galería libre
+[33m7f6e85f[m se identa Página Contenido
+[33m8aae675[m se termina de identar Editar Contenido
+[33mc616908[m se identa Editar Contenido
+[33mf71ada7[m en editar contenido ya muestra la imagen actual, al igual que las de las galerías, falta que en lugar de reemplazar en galerías cuando se hace click por segunda o sucesiva vez las agregue, así como que los campos de contenido restringido estén deshabilitados si el contenido no está con restringido activado
+[33ma7ceaac[m mejoras visuales en título de página agregar contenido , así como de botones agregar contenido y mis contenidos en la página de contenidos
+[33m3fa5b9c[m botones de agregar contenido y mis contenidos se hacen condicionales, de momento están hardcodeados con la constante editor=true
+[33m9113fa1[m se agrega componente de botón eliminar contenido, se crea página de eliminar contenido que por ahora solo muestra un título, se crean las rutas, se redirige adecuadamente en la página contenidos por el filtro eliminar y se agrega botón eliminar contenido en página de editar contenido
+[33m892ad6c[m  se agrega botón de editar contenido en componente de contenido individual, se muestra solo en los que el usuario es el autor
+[33m25490df[m botón editar contenido se muestra solo si usuario es el autor
+[33m39b7a8f[m se crea componente para botón editar contenido
+[33ma7ceb6d[m ya actualiza correctamente contenido al guardar en editar contenido
+[33mc553bbe[m se colocan campos del formulario para editar contenido, se pintan sus valores actuales, se pintan botones y componente muestra el contenido a editar
+[33mfd5ea4b[m se agrega botón editar contenido, por ahora hardcodeado, se agrega ruta y página por ahora hardcodeada con el mismo código de la página de mostrar contenido solo que con el título de Editar Contenido
+[33m19b6bf8[m filtra correctamente por usuario categoría y búsqueda
+[33ma0f0597[m se muestran correctamente mis-contenidos
+[33m6f13423[m se agrega buscar al presionar enter en contenidos, falta arreglar búsquedas vacías
+[33m99477b5[m se agrega render condicional a botones de mis contenidos y agregar contenido, por ahora está hardcodeado en el componente contenidos.jsx
+[33m3302733[m se agregan controles a wysywig de agregar contenido restringido
+[33ma4a1ba3[m se arregla componente de slider de categorías para que redirija a categorías de contenidos cuando sea llamado desde contenidos
+[33mcf8c181[m se muestran correctamente contenidos por categoría
+[33mad3f3d9[m se quitan los required innecesarios de agregar contenido
+[33mcc9aeb2[m guarda correctamente el nombre del autor en un nuevo campo de strapi ya que por relación no está funcionando bien
+[33m504f2fd[m se arregla el problema de orden invertido en paginación de contenidos
+[33mf2ba958[m se arregla paginación, sólo falta un detalle de que muestra las páginas invertidas, el grupo de las más recientes al final
+[33madf84bc[m se agrega paginación a contenidos
+[33m99de0ec[m regresando a mano
+[33m554c3bd[m merge
+[33m647c605[m identando y acomodando el control de contenido restringido
+[33mf99a4c9[m Merge branch 'master' of https://github.com/ciudadanmx/marihuanas_club_frontend
+[33m911814b[m regresando al wysywig que estaba bien
+[33m3166171[m haciendo el merge
+[33m8ad9b5f[m se agrega botón de html editor a editor wysywig pero no sirve
+[33mf477ce0[m componetizando el wysywig con errores!!
+[33m4819d8c[m se agregan todos los botones del Wysywig
+[33m2fe38cd[m se agrega botón para agregar imagen en el wysywig
+[33m60f2569[m se pasa la página de contenidos a un componente reutilizable y en su lugar en la página se toma la url para mostrar el componente con parámetros para contenidos del autor autenticado, búsqueda, categoría y sin parámetros muestra los últimos contenidos, falta cambiar el subtítulo en función de esto. Se agrega funcionalidad a botones buscar, mis contenidos y  agregar contenido, solo falta que al darle enter haga búsqueda y que muestre mis-contenidos
+[33md5cc3c4[m se agregan botones de agregar contenido y mis contenidos, así como de buscar en la página de contenido individual, se le da estilo y animaciones
+[33m6f62ddb[m página Contenido muestra correctamente imágenes de galería y de momento muestra indistintamente la parte restringida y pública del texto enriquecido y de las galerías
+[33m3716b3d[m se agrega página Contenido que muestra contenido individual, falta que se traiga la galería
+[33m7e031e4[m se agrega página Cursos, por ahora solo muestra las categorías de los cursos
+[33m4fb1932[m las cards de contenidos ya muestran la imagen y el autor
+[33m6638e42[m se empiezan a pintar las cards con los contenidos recientes en la página de contenidos
+[33m53efdf9[m se agrega página Contenidos y se muestra la slidebar con las categorías de contenidos reutilizando el componente de categorías al que se le agrega el parámetro tabla para volverlo reutilizable para todas las tablas de categorías
+[33m8d2e72c[m se agrega toast al aviso de éxito al guardar un post
+[33m121e838[m ya se trae correctamente las categorías del blog y agrega correctamente el post con su imagen de portada
+[33m26922c8[m se agrega hook UseMembresia UseRolEditor (éste se reemplazará por funciones del contexto de roles, pero por ahora está hardcodeado con éste) y useContenido para manejar los contenidos del blog, se agrega página para agregar contenido al blog, no se está trayendo bien las categorías
+[33m4157caf[m se depuran algunas carpetas
+[33m33ec739[m arreglando autenticación jwt con el backend, haciendo commit para poder integrar la clase
+[33m32ac7b6[m se crear ruta y página de mi-membresía, se edita el RolesContexts para empezar a trabajar con la tabla de strapi que se conecta con las membresías de stripe
+[33m504ced6[m ya se actualizan todas las cantidades del carrito tanto en local storage como en strapi para usuarios autenticados y no autenticados
+[33m98ff3c4[m ya se actualiza el badge del carrito de local storage al cambiar la cantidad de algún producto, solo falta que también lo actualice al borrar carrito
+[33ma2a0838[m se agrega evento para propagarse cuando se agregan items al carrito de local storage actualiza el badge del carrito, falta que lo actualice también al borrar carrito o mover la cantidad de algún producto
+[33m0aeb179[m carrito local de usuarios no autenticados ya mue

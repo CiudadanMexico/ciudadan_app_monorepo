@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "codigosreferidos",
+  "info": {
+    "singularName": "codigosreferido",
+    "pluralName": "codigosreferidos",
+    "displayName": "codigosreferido"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "prefijo": {
+      "type": "string"
+    },
+    "sufijo": {
+      "type": "string"
+    },
+    "descuento": {
+      "type": "decimal"
+    },
+    "fecha_creado": {
+      "type": "datetime"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "activo": {
+      "type": "boolean"
+    },
+    "comision": {
+      "type": "decimal"
+    }
+  }
+}

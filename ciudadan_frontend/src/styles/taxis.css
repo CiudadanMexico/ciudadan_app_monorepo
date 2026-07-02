@@ -1,0 +1,308 @@
+/* ===========================
+   taxis.css — versión final limpia
+   =========================== */
+
+/* Variables de tema */
+:root{
+  --brand-yellow: #fff200;
+  --brand-gray: #6d6e71;
+  --accent: #ff4081;
+  --success: #00C853;
+  --muted: #f4f5f7;
+  --card-bg: #ffffff;
+  --text: #222;
+  --surface-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  --radius: 10px;
+  --gap: 12px;
+  --header-height: 72px;
+  --max-width: 1100px;
+  --glass: rgba(255,255,255,0.85);
+}
+
+/* Base */
+html, body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--text);
+  background: #fff;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Contenedor principal */
+.taxis-container {
+  padding: 18px;
+  padding-top: calc(var(--header-height) + 2px);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  width: 100%;
+  margin-top: -42px; /* escritorio */
+}
+
+/* Ocultar título secundario si no se usa */
+.trip-title { display: none; }
+
+/* Inputs + swap */
+.inputs-row.improved-row {
+  display: flex;
+  gap: var(--gap);
+  align-items: center;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.input-wrap {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.label-small {
+  font-size: 13px;
+  color: #444;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+/* Inputs estilo moderno */
+.lugar-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  transition: border-color .12s ease, box-shadow .12s ease;
+  outline: none;
+}
+.lugar-input:focus {
+  border-color: var(--brand-gray);
+  box-shadow: 0 6px 20px rgba(109,110,113,0.06);
+}
+
+/* Swap botón */
+.swap-wrap {
+  flex: 0 0 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.swap-button {
+  width: 46px;
+  height: 46px;
+  background: var(--glass);
+  border: 2px solid rgba(0,0,0,0.06);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  box-shadow: 0 6px 18px rgba(52, 206, 14, 0.603);
+  transition: transform .12s ease, box-shadow .12s ease;
+  margin-left: 16px;
+}
+.swap-button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.08); }
+
+/* Controls (buscar + centrar) */
+.controls-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.buscar-taxistas {
+  flex: 1 1 auto;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: var(--surface-shadow);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s;
+}
+.buscar-taxistas[disabled] { opacity: 0.7; cursor: not-allowed; }
+.center-button {
+  flex: 0 0 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid #e6e7ea;
+  background: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.04);
+}
+
+/* Mapa */
+.taxis-map {
+  width: 100%;
+  height: 60vh;
+  min-height: 300px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f6f7f9, #fff);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+  position: relative;
+}
+.taxis-map > #map { width: 100%; height: 100%; display: block; }
+
+/* Cuadro de coordenadas */
+.cuadro-coordenadas {
+  background: linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.9));
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  display: inline-block;
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.3;
+  position: relative;
+  margin-top: 8px;
+}
+
+/* Travel cards */
+.travel-container {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 14px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 18px rgba(16,24,40,0.04);
+  margin: 14px 0;
+}
+.travel-header { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
+.travel-info-container { display:flex; flex-direction:column; gap:6px; flex:1 1 auto; }
+.travel-row { display:flex; gap:10px; align-items:center; }
+.travel-label { font-size:13px; font-weight:700; color:#333; width:48px; }
+.travel-info { font-size:14px; color:#444; flex:1; }
+.travel-price { min-width:140px; text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.price-amount { font-size:20px; font-weight:800; color:var(--success); }
+.travel-distance, .travel-time { font-size:12px; color:#7b7b7b; }
+
+/* Card buttons */
+.travel-buttons { display:flex; gap:10px; margin-top:8px; justify-content:center; }
+.change-button, .accept-button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.06);
+}
+.change-button { background:#fff176; color:#222; }
+.change-button:hover { background:#ffeb3b; }
+.accept-button { background:#4caf50; color:#fff; }
+.accept-button:hover { background:#388e3c; }
+
+/* Close button */
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #e53935;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+
+/* Esperando viaje overlay */
+.esperando-viaje {
+  position: fixed;
+  max-height: 120px;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  width: 320px;
+  padding: 16px;
+  background: var(--brand-yellow);
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+/* Responsive: tablet */
+@media (max-width: 900px) {
+  .taxis-container { padding: 14px; margin-top: 0; }
+  .travel-price { min-width: 110px; }
+  .price-amount { font-size: 18px; }
+}
+
+/* Responsive: mobile — inputs ocupan TODO el ancho disponible y mapa se superpone */
+@media (max-width: 600px) {
+    .taxis-map{
+        top: 78px; 
+    }
+  .taxis-container { padding-left: 12px; padding-right: 12px; margin-top: 0; position: relative; }
+
+  /* Inputs */
+  .inputs-row.improved-row { flex-direction: column; gap: 8px; align-items: stretch; z-index: 80; padding-top:6px; padding-bottom:6px; width:80%; margin-left:10%; }
+  .input-wrap { width: 100%; }
+
+  /* Swap: absolute, alineado con borde izquierdo del input */
+  .swap-wrap {
+    position: absolute;
+    left: -10%;
+    top: 18px;
+    z-index: 90;
+    flex: 0 0 auto;
+  }
+  .swap-button { 
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--glass);
+  border: 2px solid rgba(0,0,0,0.06);
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(52, 206, 14, 0.603);
+  transition: transform .12s ease, box-shadow .12s ease;
+  margin-left: -10%;
+   }
+
+  /* Controls */
+  .controls-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; position:relative; z-index:78; flex-direction:column; }
+  .buscar-taxistas { width:100%; flex:none; padding:10px 14px; order:2; }
+  .center-button { order:1; margin-bottom:6px; width:48px; height:48px; position:absolute; right:14px; top: calc(var(--header-height) + 8px); z-index:92; }
+
+  /* Mapa: superposición y expansión a la izquierda */
+  .taxis-map {
+    height: 50vh;
+    min-height: 220px;
+    margin-top: -90px;
+    margin-left: -14px;
+    width: calc(100% + 28px);
+    border-radius: 10px;
+    z-index: 10;
+    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  }
+  .taxis-map > #map { width:100%; height:100%; }
+
+  /* Coordenadas y cards */
+  .cuadro-coordenadas { position: relative; margin-top: 8px; z-index: 78; }
+  .travel-container { margin: 10px 0; padding: 12px; }
+}
+
+/* Utilidades pequeñas */
+.text-muted { color: #757575; font-size: 13px; }
+.small { font-size: 13px; }
+
+
+.esperando-viaje-alert {
+    margin-top: -100px;
+}

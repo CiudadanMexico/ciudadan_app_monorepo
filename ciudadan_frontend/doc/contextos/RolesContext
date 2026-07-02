@@ -1,0 +1,85 @@
+⚙️ Uso del RolesContext
+
+Este contexto maneja roles, membresías y datos del usuario en Strapi, basándose en el usuario autenticado con Auth0.
+
+📥 Importar el hook
+import { useRoles } from './RolesContext';
+
+🧠 Qué te da useRoles()
+const {
+  roles,
+  userData,
+  membresia,
+  fetchRolesYMembresia,
+  isEditor,
+  isAdmin,
+  isRoot,
+  isActivaMembresia,
+  setEditor,
+  setAdmin,
+  setRoot
+} = useRoles();
+
+Variable / Función	Tipo	Qué hace
+roles	array	Lista actual de roles del usuario (ej. ['usuario', 'editor'])
+userData	objeto o null	Datos completos del usuario en Strapi
+membresia	objeto o null	Membresía activa del usuario (si tiene)
+fetchRolesYMembresia()	función	Refresca manualmente los datos desde Strapi
+isEditor()	función	Devuelve true si el usuario tiene rol editor
+isAdmin()	función	Devuelve true si tiene rol admin
+isRoot()	función	Devuelve true si tiene rol root
+isActivaMembresia()	función	true si el usuario tiene una membresía vigente
+setEditor(enabled)	función	Activa o desactiva el rol editor
+setAdmin(enabled)	función	Activa o desactiva el rol admin
+setRoot(enabled)	función	Activa o desactiva el rol root
+💡 Ejemplo rápido
+import React from 'react';
+import { useRoles } from './RolesContext';
+
+export default function PanelRoles() {
+  const {
+    roles,
+    membresia,
+    isAdmin,
+    isEditor,
+    setEditor,
+    setAdmin,
+    fetchRolesYMembresia,
+  } = useRoles();
+
+  return (
+    <div>
+      <h2>Roles actuales:</h2>
+      <pre>{JSON.stringify(roles, null, 2)}</pre>
+
+      <p>Membresía activa: {membresia ? membresia.nombre : 'Ninguna'}</p>
+
+      <hr />
+
+      <button onClick={fetchRolesYMembresia}>🔄 Refrescar datos</button>
+
+      {isAdmin() && <p>✅ Eres administrador</p>}
+      {isEditor() && <p>📝 Eres editor</p>}
+
+      <button onClick={() => setEditor(true)}>Dar rol Editor</button>
+      <button onClick={() => setEditor(false)}>Quitar rol Editor</button>
+
+      <button onClick={() => setAdmin(true)}>Dar rol Admin</button>
+      <button onClick={() => setAdmin(false)}>Quitar rol Admin</button>
+    </div>
+  );
+}
+
+🔍 Notas rápidas
+
+Si el usuario no está logueado, su rol será automáticamente ['invitado'].
+
+Cuando se loguea, el contexto busca su usuario en Strapi:
+
+Si existe → carga sus roles, direcciones y membresías.
+
+Si no existe → lo crea con rol básico usuario.
+
+Las funciones setEditor, setAdmin, setRoot actualizan los roles directamente en Strapi.
+
+fetchRolesYMembresia() puede llamarse manualmente si quieres forzar una actualización (por ejemplo, después de editar el perfil).

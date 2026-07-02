@@ -1,0 +1,151 @@
+{
+  "kind": "collectionType",
+  "collectionName": "plantas",
+  "info": {
+    "singularName": "planta",
+    "pluralName": "plantas",
+    "displayName": "planta",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario_email": {
+      "type": "string"
+    },
+    "origen": {
+      "type": "enumeration",
+      "enum": [
+        "semilla",
+        "esqueje"
+      ]
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "linkvideos": {
+      "type": "string"
+    },
+    "qr_text": {
+      "type": "string"
+    },
+    "qr": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "color": {
+      "type": "enumeration",
+      "enum": [
+        "rojo",
+        "amarillo",
+        "verde",
+        "azul",
+        "rosa",
+        "plata"
+      ]
+    },
+    "fecha_inicia_vida": {
+      "type": "datetime"
+    },
+    "fecha_cortada": {
+      "type": "datetime"
+    },
+    "viva": {
+      "type": "boolean"
+    },
+    "semilla": {
+      "type": "boolean"
+    },
+    "clasificacion": {
+      "type": "json"
+    },
+    "actasemilla": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "codigo": {
+      "type": "string"
+    },
+    "cosecha": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::registrobitacora.registrobitacora"
+    },
+    "bitacora": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bitacora.bitacora",
+      "inversedBy": "plantas"
+    },
+    "secado": {
+      "type": "boolean"
+    },
+    "curado": {
+      "type": "boolean"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "fechasolicitada": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "string"
+    },
+    "gramos_cosechados": {
+      "type": "decimal"
+    },
+    "gramos_curandose": {
+      "type": "decimal"
+    },
+    "gramos_en_existencia": {
+      "type": "decimal"
+    },
+    "registrobitacora": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::registrobitacora.registrobitacora",
+      "inversedBy": "plantas"
+    },
+    "solicitudplanta": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::solicitudplanta.solicitudplanta",
+      "inversedBy": "plantas"
+    },
+    "entregada": {
+      "type": "boolean"
+    }
+  }
+}

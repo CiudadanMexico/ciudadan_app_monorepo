@@ -1,0 +1,83 @@
+{
+  "kind": "collectionType",
+  "collectionName": "viajes",
+  "info": {
+    "singularName": "viaje",
+    "pluralName": "viajes",
+    "displayName": "viaje",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "origencoords": {
+      "type": "json"
+    },
+    "destinocoords": {
+      "type": "json"
+    },
+    "conductorcoords": {
+      "type": "json"
+    },
+    "origendireccion": {
+      "type": "json"
+    },
+    "destinodireccion": {
+      "type": "json"
+    },
+    "pasajeromail": {
+      "type": "email"
+    },
+    "conductormail": {
+      "type": "email"
+    },
+    "solicitado": {
+      "type": "datetime"
+    },
+    "iniciado": {
+      "type": "datetime"
+    },
+    "concluido": {
+      "type": "datetime"
+    },
+    "travelid": {
+      "type": "string"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "costo": {
+      "type": "decimal"
+    },
+    "pagadoefectivo": {
+      "type": "decimal"
+    },
+    "pagadolabory": {
+      "type": "decimal"
+    },
+    "calificacionconductor": {
+      "type": "integer"
+    },
+    "calificacionpasajero": {
+      "type": "integer"
+    },
+    "track": {
+      "type": "json"
+    },
+    "status": {
+      "type": "string"
+    },
+    "pasajero": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "conductor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "kind": "collectionType",
+  "collectionName": "comentarios_publicaciones",
+  "info": {
+    "singularName": "comentario-publicacion",
+    "pluralName": "comentarios-publicaciones",
+    "displayName": "Comentarios_Publicaciones",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "comentario": {
+      "type": "text"
+    },
+    "autor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "publicacion_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::publicacion.publicacion"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "publicado",
+        "eliminado",
+        "bloqueado"
+      ]
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "respuesta": {
+      "type": "boolean"
+    },
+    "comentario_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::comentario-publicacion.comentario-publicacion"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "publicacion",
+        "articulo",
+        "enlace",
+        "herramienta",
+        "evento"
+      ]
+    }
+  }
+}

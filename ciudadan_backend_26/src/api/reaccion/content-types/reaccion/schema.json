@@ -1,0 +1,49 @@
+{
+  "kind": "collectionType",
+  "collectionName": "reacciones",
+  "info": {
+    "singularName": "reaccion",
+    "pluralName": "reacciones",
+    "displayName": "Reacciones"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "listado": {
+      "type": "json"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "publicacion",
+        "articulo",
+        "enlace",
+        "herramienta",
+        "evento"
+      ]
+    },
+    "comentario": {
+      "type": "boolean"
+    },
+    "respuesta": {
+      "type": "boolean"
+    },
+    "evento_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    },
+    "enlace_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::enlace.enlace"
+    },
+    "comentario_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::comentario-publicacion.comentario-publicacion"
+    }
+  }
+}

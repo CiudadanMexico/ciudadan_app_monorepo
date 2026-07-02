@@ -1,0 +1,78 @@
+{
+  "kind": "collectionType",
+  "collectionName": "registrosbitacoras",
+  "info": {
+    "singularName": "registrobitacora",
+    "pluralName": "registrosbitacoras",
+    "displayName": "registrobitacora",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario_email": {
+      "type": "string"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "texto": {
+      "type": "text"
+    },
+    "media": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "documentos": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "status": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string"
+    },
+    "codigoplanta": {
+      "type": "string"
+    },
+    "registrojardinero": {
+      "type": "boolean"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "plantas": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::planta.planta",
+      "mappedBy": "registrobitacora"
+    }
+  }
+}

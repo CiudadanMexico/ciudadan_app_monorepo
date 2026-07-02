@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "configuraciones_sistemas",
+  "info": {
+    "singularName": "configuracion-sistema",
+    "pluralName": "configuraciones-sistemas",
+    "displayName": "Configuraciones_Sistema",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "basic_set": {
+      "type": "json"
+    },
+    "datos_generales": {
+      "type": "json"
+    },
+    "parametro": {
+      "type": "string"
+    }
+  }
+}

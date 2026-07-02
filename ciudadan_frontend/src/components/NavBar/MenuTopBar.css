@@ -1,0 +1,132 @@
+.menu-topbar-wrapper {
+    position: relative;
+}
+
+.menu-topbar {
+    overflow: hidden;
+    transition: max-height 280ms ease, opacity 220ms ease;
+    max-height: 0;
+    opacity: 0;
+    background: #000;
+    border-bottom: 1px solid rgba(0, 255, 100, 0.2);
+    box-shadow: 0 0 12px rgba(0, 255, 100, 0.25);
+}
+
+.menu-topbar.open {
+    opacity: 1;
+    max-height: 600px;
+}
+
+.menu-topbar-desktop {
+    display: none;
+}
+.menu-topbar-mobile {
+    display: none;
+}
+
+@media (min-width: 1001px) {
+    .menu-topbar-desktop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 20px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .menu-topbar-mobile {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    padding: 20px;
+    text-align: center;
+    }
+
+    .menu-topbar-grid-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .menu-topbar-grid-label {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: #00ff88;
+    font-family: 'Share Tech Mono', monospace;
+    text-shadow: 0 0 6px #00ff88;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+}
+
+.menu-topbar-item,
+.menu-topbar-grid-item {
+    color: #00ff88;
+    font-family: 'Share Tech Mono', monospace;
+    text-decoration: none;
+    text-shadow: 0 0 8px #00ff88;
+    transition: all 0.2s ease-in-out;
+}
+
+.menu-topbar-item-content {
+    display: flex;
+    align-items: center; /* 🔹 Texto centrado vertical con icono */
+    gap: 12px;
+}
+
+.menu-topbar-item:hover,
+.menu-topbar-grid-item:hover {
+    color: #fff;
+    text-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88;
+    transform: scale(1.08);
+}
+
+.menu-topbar-svg,
+.menu-topbar-grid-svg {
+    width: 60px;
+    height: 60px;
+    filter: drop-shadow(0 0 4px #00ff88);
+}
+
+.menu-topbar-close,
+.menu-topbar-close-mobile {
+    background: transparent;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    font-size: 20px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px auto;
+    cursor: pointer;
+    text-shadow: 0 0 8px #ffffff;
+    transition: all 0.2s ease-in-out;
+}
+
+.menu-topbar-close:hover,
+.menu-topbar-close-mobile:hover {
+    background: #00ff88;
+    border-color: #00ff88;
+    color: #000;
+    box-shadow: 0 0 20px #00ff88;
+    transform: rotate(90deg);
+}
+
+
+/* Ajusta el breakpoint a tu preferencia (aquí 1000px como en tu código) */
+@media (max-width: 1000px) {
+  /* cuando body tiene esta clase, escondemos el logo */
+  body.menu-topbar-open #ciudadan-logo {
+    visibility: hidden !important;
+    pointer-events: none;
+    /* opcional: evitar que el layout cambie si usas visibility,
+       si quieres que ocupe 0 espacio usa display:none en su lugar */
+  }
+}

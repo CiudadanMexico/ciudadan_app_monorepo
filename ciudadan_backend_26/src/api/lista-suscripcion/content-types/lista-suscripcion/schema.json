@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "listas_suscripciones",
+  "info": {
+    "singularName": "lista-suscripcion",
+    "pluralName": "listas-suscripciones",
+    "displayName": "listas_suscripciones"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "suscritos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "curso",
+        "evento"
+      ]
+    },
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "evento": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    }
+  }
+}

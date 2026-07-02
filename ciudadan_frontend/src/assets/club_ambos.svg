@@ -1,0 +1,101 @@
+<svg
+  width="64"
+  height="64"
+  viewBox="0 0 512 512"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <!-- Glow verde neón pulsante -->
+    <filter id="pulseGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur">
+        <animate
+          attributeName="stdDeviation"
+          values="4;10;4"
+          dur="1.6s"
+          repeatCount="indefinite"
+        />
+      </feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Contorno casa -->
+  <path
+    d="M256 32 L64 176 V448 H448 V176 Z"
+    fill="#9fd3a3"
+    stroke="#00ff6a"
+    stroke-width="18"
+    filter="url(#pulseGlow)"
+  />
+
+  <!-- Hoja central -->
+  <path
+    d="M256 160
+       C236 120 216 96 256 64
+       C296 96 276 120 256 160 Z"
+    fill="#6fbf73"
+    stroke="#1f5e3a"
+    stroke-width="10"
+  />
+
+  <!-- Hojas laterales -->
+  <path
+    d="M216 176
+       C176 144 144 144 136 184
+       C176 208 200 216 216 200 Z"
+    fill="#6fbf73"
+    stroke="#1f5e3a"
+    stroke-width="10"
+  />
+
+  <path
+    d="M296 176
+       C336 144 368 144 376 184
+       C336 208 312 216 296 200 Z"
+    fill="#6fbf73"
+    stroke="#1f5e3a"
+    stroke-width="10"
+  />
+
+  <!-- Tallito -->
+  <rect
+    x="246"
+    y="200"
+    width="20"
+    height="80"
+    rx="10"
+    fill="#1f5e3a"
+  />
+
+  <!-- Maceta -->
+  <path
+    d="M176 280 H336 L312 368 H200 Z"
+    fill="#d9833a"
+    stroke="#1f5e3a"
+    stroke-width="14"
+  />
+
+  <!-- Joint -->
+  <path
+    d="M180 260
+       C260 240 340 240 380 248
+       L370 268
+       C300 260 220 268 180 280 Z"
+    fill="#f7f4e8"
+    stroke="#1f5e3a"
+    stroke-width="10"
+  />
+
+  <!-- Humo -->
+  <path
+    d="M140 240
+       C120 220 120 200 140 180"
+    fill="none"
+    stroke="#f0f6e8"
+    stroke-width="12"
+    stroke-linecap="round"
+  />
+</svg>

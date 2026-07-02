@@ -1,0 +1,13 @@
+[
+    { "code": "+1", "label": "Estados Unidos", "flag": "https://flagcdn.com/w40/us.png" },
+    { "code": "+52", "label": "México", "flag": "https://flagcdn.com/w40/mx.png" },
+    { "code": "+54", "label": "Argentina", "flag": "https://flagcdn.com/w40/ar.png" },
+    { "code": "+55", "label": "Brasil", "flag": "https://flagcdn.com/w40/br.png" },
+    { "code": "+57", "label": "Colombia", "flag": "https://flagcdn.com/w40/co.png" },
+    { "code": "+34", "label": "España", "flag": "https://flagcdn.com/w40/es.png" },
+    { "code": "+33", "label": "Francia", "flag": "https://flagcdn.com/w40/fr.png" },
+    { "code": "+49", "label": "Alemania", "flag": "https://flagcdn.com/w40/de.png" },
+    { "code": "+44", "label": "Reino Unido", "flag": "https://flagcdn.com/w40/gb.png" },
+    { "code": "+39", "label": "Italia", "flag": "https://flagcdn.com/w40/it.png" }
+  ]
+  

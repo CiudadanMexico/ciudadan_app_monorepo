@@ -1,0 +1,26 @@
+/* CuentaIcon.css */
+.cuenta-icon-container {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex; /* Cambia a inline-flex para evitar saltos de línea */
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .cuenta-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block; /* Asegura que la imagen ocupe el 100% del contenedor */
+  }
+  
+  /* Ajuste para móviles */
+  @media (max-width: 768px) {
+    .cuenta-icon-container {
+      width: 28px;
+      height: 28px;
+    }
+  }
+  

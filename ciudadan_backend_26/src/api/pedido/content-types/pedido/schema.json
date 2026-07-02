@@ -1,0 +1,137 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pedidos",
+  "info": {
+    "singularName": "pedido",
+    "pluralName": "pedidos",
+    "displayName": "pedidos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "item": {
+      "type": "component",
+      "repeatable": true,
+      "component": "carritos.producto-en-carrito"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "tienda",
+        "curso",
+        "evento",
+        "asesoria"
+      ]
+    },
+    "curso_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "evento_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    },
+    "timestamp_creacion": {
+      "type": "datetime"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "guia": {
+      "type": "string"
+    },
+    "proveedor": {
+      "type": "enumeration",
+      "enum": [
+        "Estafeta",
+        "FedEx",
+        "DHL",
+        "Redpack",
+        "Paquetexpress",
+        "Sendex",
+        "iVoy",
+        "Quiken",
+        "Carssa"
+      ]
+    },
+    "direccion_origen": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "direccion_destino": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "fecha_envio": {
+      "type": "datetime"
+    },
+    "fecha_entrega": {
+      "type": "datetime"
+    },
+    "total_volumetrico": {
+      "type": "decimal"
+    },
+    "monto_envio": {
+      "type": "decimal"
+    },
+    "monto_total": {
+      "type": "decimal"
+    },
+    "carrito_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::carrito.carrito"
+    },
+    "fecha_pagado": {
+      "type": "datetime"
+    },
+    "moneda": {
+      "type": "string"
+    },
+    "pago_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pago.pago"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "enviar",
+        "encamino",
+        "cancelado",
+        "devuelto",
+        "recibido",
+        "impagado"
+      ]
+    },
+    "finalizado": {
+      "type": "boolean"
+    },
+    "fecha_finalizado": {
+      "type": "datetime"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "calificado": {
+      "type": "boolean"
+    },
+    "store": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store.store"
+    },
+    "store_email": {
+      "type": "string"
+    }
+  }
+}

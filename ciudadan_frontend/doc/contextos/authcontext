@@ -1,0 +1,79 @@
+⚙️ Uso del AuthContext
+
+El contexto ya está configurado, así que solo necesitas importarlo y usarlo.
+
+📥 Importar el hook
+import { useAuthInfo } from './AuthContext';
+
+🧠 Variables y funciones disponibles
+
+Cuando llamas al hook:
+
+const {
+  auth0User,
+  strapiUser,
+  accessToken,
+  isAuthenticated,
+  loginWithRedirect,
+  logout,
+  isLoading,
+} = useAuthInfo();
+
+
+Tienes acceso a todo esto 👇
+
+Nombre	Tipo	Qué hace
+auth0User	objeto	Datos del usuario en Auth0 (nombre, email, foto, etc.)
+strapiUser	objeto o null	Usuario sincronizado en Strapi (ya verificado o creado)
+accessToken	string o null	Token JWT para hacer peticiones seguras a Strapi
+isAuthenticated	boolean	true si el usuario ha iniciado sesión
+loginWithRedirect()	función	Abre la pantalla de login de Auth0
+logout()	función	Cierra la sesión actual y limpia datos
+isLoading	boolean	Indica si Auth0 o Strapi siguen cargando / sincronizando
+💡 Ejemplo rápido
+import React from 'react';
+import { useAuthInfo } from './AuthContext';
+
+export default function Perfil() {
+  const {
+    auth0User,
+    strapiUser,
+    isAuthenticated,
+    loginWithRedirect,
+    logout,
+    isLoading,
+  } = useAuthInfo();
+
+  if (isLoading) return <p>Cargando...</p>;
+
+  if (!isAuthenticated)
+    return <button onClick={() => loginWithRedirect()}>Iniciar sesión</button>;
+
+  return (
+    <div>
+      <h2>Bienvenido {auth0User?.name}</h2>
+      <p>Email: {auth0User?.email}</p>
+
+      <h3>Usuario en Strapi:</h3>
+      <pre>{JSON.stringify(strapiUser, null, 2)}</pre>
+
+      <button onClick={() => logout({ returnTo: window.location.origin })}>
+        Cerrar sesión
+      </button>
+    </div>
+  );
+}
+
+🪄 Extra: cómo usar el token con fetch
+
+Si necesitas hacer una petición autenticada a Strapi:
+
+const { accessToken } = useAuthInfo();
+
+const res = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/posts`, {
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+  },
+});
+
+const data = await res.json();

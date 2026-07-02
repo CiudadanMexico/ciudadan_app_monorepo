@@ -1,0 +1,40 @@
+.slider-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.slider-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0.5rem;
+  scrollbar-width: none; /* Firefox */
+}
+
+.slider-scroll::-webkit-scrollbar {
+  display: none; /* Chrome */
+}
+
+.slider-item {
+  flex: 0 0 auto;
+}
+
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider-arrow.left {
+  left: 0;
+}
+
+.slider-arrow.right {
+  right: 0;
+}

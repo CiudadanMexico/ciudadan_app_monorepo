@@ -1,0 +1,45 @@
+<svg 
+  width="200" 
+  height="200" 
+  viewBox="0 0 64 64" 
+  fill="none" 
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!--
+    fill-rule="evenodd" permite “perforar” la silueta 
+    para que los faros sean transparentes o del color de fondo.
+  -->
+  <path
+    fill="#E91E63"
+    fill-rule="evenodd"
+    d="
+      M32,6 
+      C28,10 24,14 20,18 
+      L14,24 
+      C8,30 6,36 6,40 
+      L6,48 
+      C6,51 9,54 12,54 
+      L52,54 
+      C55,54 58,51 58,48 
+      L58,40 
+      C58,36 56,30 50,24 
+      L44,18 
+      C40,14 36,10 32,6 
+      Z
+
+      M18,39 
+      A4,4 0 0 1 22,43 
+      A4,4 0 0 1 18,47 
+      A4,4 0 0 1 14,43 
+      A4,4 0 0 1 18,39 
+      Z
+
+      M50,39 
+      A4,4 0 0 1 54,43 
+      A4,4 0 0 1 50,47 
+      A4,4 0 0 1 46,43 
+      A4,4 0 0 1 50,39 
+      Z
+    "
+  />
+</svg>

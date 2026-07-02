@@ -1,0 +1,64 @@
+{
+  "name": "ciudadan-backend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A Strapi application",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build",
+    "strapi": "strapi",
+    "deploy": "strapi deploy"
+  },
+  "dependencies": {
+    "@strapi/plugin-cloud": "4.25.9",
+    "@strapi/plugin-graphql": "^4.25.9",
+    "@strapi/plugin-i18n": "4.25.9",
+    "@strapi/plugin-users-permissions": "4.25.9",
+    "@strapi/strapi": "4.25.9",
+    "@vendure/admin-ui-plugin": "^3.3.0",
+    "@vendure/core": "^3.3.0",
+    "@vendure/payments-plugin": "^3.3.0",
+    "axios": "^1.9.0",
+    "faker": "^6.6.6",
+    "form-data": "^4.0.3",
+    "graphql": "15.0.0",
+    "graphql-upload": "^15.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0",
+    "mysql": "2.18.1",
+    "pg": "^8.16.3",
+    "raw-body": "^3.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "5.3.4",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "slugify": "^1.6.6",
+    "socket.io": "^4.8.1",
+    "sqlite3": "^5.1.7",
+    "strapi-plugin-content-export-import": "^1.0.0",
+    "strapi-plugin-import-export-entries": "^1.23.1",
+    "strapi-v5-http-only-auth": "^1.0.2",
+    "stripe": "^18.1.0",
+    "styled-components": "5.3.3"
+  },
+  "resolutions": {
+    "graphql": "^15.0.0"
+  },
+  "author": {
+    "name": "A Strapi developer"
+  },
+  "strapi": {
+    "uuid": "28a30c47-faa4-4e29-8c7a-127d035eea34"
+  },
+  "engines": {
+    "node": ">=18.0.0 <=20.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "npm-force-resolutions": "^0.0.10"
+  }
+}

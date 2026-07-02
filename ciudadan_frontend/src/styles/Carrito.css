@@ -1,0 +1,143 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f9f9f9;
+  color: #333;
+}
+
+.carrito-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
+  border: 1px solid #e0e0e0;
+}
+
+.carrito-container h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #1a1a1a;
+  text-shadow: 0 0 4px #7fffd4;
+}
+
+.carrito-vacio {
+  color: #555;
+  text-align: center;
+}
+
+.carrito-items {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.carrito-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #fcfcfc;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(0, 255, 170, 0.15);
+  border: 1px solid #eee;
+}
+
+.carrito-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #00e5b4;
+}
+
+.carrito-info h3 {
+  margin: 0;
+  color: #111;
+}
+
+.carrito-info p {
+  margin: 2px 0;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.item-total {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #00b894;
+  text-shadow: 0 0 4px #8ef6e4;
+}
+
+.carrito-cantidad {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.carrito-cantidad button {
+  background: #00ffcc;
+  border: none;
+  color: #000;
+  font-weight: bold;
+  padding: 5px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 0 8px #00ffcc;
+  transition: transform 0.1s ease;
+}
+
+.carrito-cantidad button:hover {
+  transform: scale(1.1);
+}
+
+.carrito-resumen {
+  margin-top: 30px;
+  text-align: right;
+}
+
+.carrito-resumen p {
+  font-size: 1.3rem;
+  color: #2e2e2e;
+}
+
+.carrito-resumen button {
+  margin-top: 10px;
+  background: #ff4081;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 12px #ff80ab;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.carrito-resumen button:hover {
+  background: #e91e63;
+  transform: scale(1.05);
+}
+
+.carrito-login {
+  padding: 40px;
+  text-align: center;
+  color: #555;
+}
+
+.carrito-login button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #00e5b4;
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 10px #00e5b4;
+  transition: transform 0.2s ease;
+}
+
+.carrito-login button:hover {
+  transform: scale(1.05);
+}

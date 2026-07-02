@@ -1,0 +1,107 @@
+{
+  "kind": "collectionType",
+  "collectionName": "bitacoras",
+  "info": {
+    "singularName": "bitacora",
+    "pluralName": "bitacoras",
+    "displayName": "bitacora"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "colaboradores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "bitacora"
+    },
+    "portada": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "imagenes": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "videos": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "archivos": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "fecha_inicio": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "string"
+    },
+    "rol": {
+      "type": "string"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "url": {
+      "type": "string"
+    },
+    "plantas": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::planta.planta",
+      "mappedBy": "bitacora"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "codigo": {
+      "type": "string"
+    }
+  }
+}

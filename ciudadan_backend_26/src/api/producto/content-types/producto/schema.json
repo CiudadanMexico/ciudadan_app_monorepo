@@ -1,0 +1,132 @@
+{
+  "kind": "collectionType",
+  "collectionName": "productos",
+  "info": {
+    "singularName": "producto",
+    "pluralName": "productos",
+    "displayName": "productos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "precio": {
+      "type": "decimal"
+    },
+    "marca": {
+      "type": "string"
+    },
+    "store_category": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store-categorie.store-categorie"
+    },
+    "imagenes": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "imagen_predeterminada": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "activo": {
+      "type": "boolean"
+    },
+    "destacado": {
+      "type": "boolean"
+    },
+    "store_id": {
+      "type": "string"
+    },
+    "store_email": {
+      "type": "string"
+    },
+    "store": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store.store"
+    },
+    "stripe_product_id": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "text"
+    },
+    "fecha_creacion": {
+      "type": "datetime"
+    },
+    "stock": {
+      "type": "float"
+    },
+    "calificacion": {
+      "type": "integer"
+    },
+    "calificaciones": {
+      "type": "integer"
+    },
+    "vendidos": {
+      "type": "integer"
+    },
+    "cp": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "largo": {
+      "type": "decimal"
+    },
+    "ancho": {
+      "type": "decimal"
+    },
+    "alto": {
+      "type": "decimal"
+    },
+    "peso": {
+      "type": "decimal"
+    },
+    "volumetrico": {
+      "type": "decimal"
+    },
+    "especificaciones": {
+      "type": "json"
+    },
+    "variaciones": {
+      "type": "json"
+    },
+    "localidad": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string"
+    },
+    "preguntas_productos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::pregunta-producto.pregunta-producto",
+      "mappedBy": "producto"
+    }
+  }
+}

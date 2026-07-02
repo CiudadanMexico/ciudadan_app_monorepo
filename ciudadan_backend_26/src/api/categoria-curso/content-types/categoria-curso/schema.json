@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categorias_cursos",
+  "info": {
+    "singularName": "categoria-curso",
+    "pluralName": "categorias-cursos",
+    "displayName": "categorias_cursos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string"
+    },
+    "nivel": {
+      "type": "integer"
+    },
+    "sup": {
+      "type": "integer"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "slug": {
+      "type": "string"
+    },
+    "activa": {
+      "type": "boolean"
+    }
+  }
+}

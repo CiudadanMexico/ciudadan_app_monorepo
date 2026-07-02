@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "agencias",
+  "info": {
+    "singularName": "agencia",
+    "pluralName": "agencias",
+    "displayName": "agencia",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "idx": {
+      "type": "uid"
+    },
+    "localidad": {
+      "type": "json"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "miembros": {
+      "type": "string"
+    },
+    "miembros_json": {
+      "type": "json"
+    },
+    "members": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "admin::user"
+    }
+  }
+}

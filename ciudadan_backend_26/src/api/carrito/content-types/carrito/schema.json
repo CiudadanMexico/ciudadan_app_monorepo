@@ -1,0 +1,57 @@
+{
+  "kind": "collectionType",
+  "collectionName": "carritos",
+  "info": {
+    "singularName": "carrito",
+    "pluralName": "carritos",
+    "displayName": "carritos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "productos": {
+      "type": "component",
+      "repeatable": true,
+      "component": "carritos.producto-en-carrito"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": [
+        "activo",
+        "pendiente_pago",
+        "pagado"
+      ]
+    },
+    "ultima_actualizacion": {
+      "type": "datetime"
+    },
+    "log": {
+      "type": "json"
+    },
+    "direccion": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "total_envios": {
+      "type": "decimal"
+    },
+    "agrupacion_de_envios": {
+      "type": "json"
+    },
+    "usuario_email": {
+      "type": "string"
+    }
+  }
+}

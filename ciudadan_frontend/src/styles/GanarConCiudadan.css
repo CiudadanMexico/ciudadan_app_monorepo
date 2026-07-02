@@ -1,0 +1,149 @@
+.ganar-con-ciudadan {
+    padding: 20px;
+    text-align: center;
+    max-width: 1200px; /* Ajusta el ancho máximo del contenedor según tus necesidades */
+    margin: 0 auto; /* Centra el contenedor horizontalmente */
+  }
+  
+  .opciones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  
+  .opcion-card {
+    /* Otros estilos */
+    position: relative;
+  }
+  
+  .opcion-card b {
+    color: #207a24;
+  }
+  
+  .opcion-monedas {
+    display: flex;
+    gap: 5px; /* Espacio entre monedas */
+    position: absolute;
+    top: 21px; /* Ajusta la posición según sea necesario */
+    right: 10px;  /* Ajusta la posición según sea necesario */
+  }
+  
+  .opcion-moneda {
+    width: 33px; /* Ajusta el tamaño según sea necesario */
+    height: 33px; /* Ajusta el tamaño según sea necesario */
+    /* box-shadow: 14px 14px 2px rgba(243, 233, 85, 0.849); */
+    filter: drop-shadow(7px 7px 14px rgba(243, 232, 85, 0.925) );
+  }
+  
+  .opcion-imagen {
+    max-width: 100%;
+    height: 210px;
+    margin-bottom: 10px;
+    position: relative; /* Asegura que los elementos posicionados absolutamente se alineen respecto a esta imagen */
+  }
+  
+  .opcion-imagen-ensanchada {
+    max-width: 100%;
+    width: 120%;
+    height: 210px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  
+  .opcion-imagen-ensanchada-redondeada {
+    max-width: 100%;
+    width: 120%;
+    height: 210px;
+    margin-bottom: 10px;
+    position: relative;
+    border-radius: 9%;
+  }
+  
+  /* Contenedor para las monedas */
+  .moneda-container {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px; /* Espacio entre las monedas */
+    z-index: 1; /* Asegura que las monedas estén encima de la imagen */
+  }
+  
+  /* Estilo general para las monedas */
+  .moneda {
+    width: 30px; /* Tamaño de las monedas */
+    height: 30px; /* Tamaño de las monedas */
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+  
+  /* Moneda MXN */
+  .mxn {
+    background-image: url('../assets/mxn.png');
+  }
+  
+  /* Moneda Labory */
+  .labory {
+    background-image: url('../assets/labory.png');
+  }
+  
+  .opcion-card h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+  
+  .opcion-card p {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+  }
+  
+  .opcion-card button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  
+  .opcion-card button:hover {
+    background-color: #0056b3;
+  }
+  
+  
+  
+  
+  /* Media Queries para pantallas más pequeñas */
+  @media (max-width: 768px) {
+    .opcion-card h3 {
+      font-size: 1em;
+    }
+  
+    .opcion-card p {
+      font-size: 0.8em;
+    }
+  
+    .opcion-card button {
+      padding: 8px 16px;
+      font-size: 0.8em;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .opcion-card h3 {
+      font-size: 0.9em;
+    }
+  
+    .opcion-card p {
+      font-size: 0.7em;
+    }
+  
+    .opcion-card button {
+      padding: 6px 12px;
+      font-size: 0.7em;
+    }
+  }
+  

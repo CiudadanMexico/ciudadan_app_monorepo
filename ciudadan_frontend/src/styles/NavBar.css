@@ -1,0 +1,802 @@
+.circular-image-sesion {
+  width: 50px; 
+  height: 50px; 
+  border-radius: 50%;
+  object-fit: cover; /* Asegura que la imagen se ajuste al contenedor sin distorsión */
+  border: 2px solid #ddd; /* Añade un borde opcional alrededor de la imagen */
+}
+
+.ciudadan-text {
+  display: none;
+}
+
+.ciudadan-svg {
+  display: none;
+}
+
+.en-home {
+  display: none !important;
+}
+
+
+/* Estilo general para la barra de navegación */
+.navbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #fff200;
+  margin-bottom: 0;
+  min-height: 70px;
+  height: auto;
+  flex-shrink: 0;
+  overflow: visible;
+  gap: 8px;
+  line-height: 1;
+}
+
+.columnax {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  height: 100%;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.columnas {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  gap: 2px;
+  min-width: auto;
+  height: auto;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* Al pasar el cursor, cambia a mano y crece suavemente */
+.logo:hover, .logo:focus {
+  cursor: pointer;
+  transform: scale(1.08); /* Efecto de crecimiento sutil */
+  filter: drop-shadow(0 0 16px #ff4dff); /* Glow más fuerte en hover */
+}
+
+/* Efecto clic sofisticado con un rebote elegante */
+.logo:active {
+  transform: scale(0.95); /* Ligero "rebote" al hacer clic */
+  filter: drop-shadow(0 0 20px #ff00ff); /* Glow más intenso momentáneo */
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  line-height: 1;
+  position: relative;
+  overflow: visible;
+}
+
+.logo-container::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 8%;
+  right: -4%;
+  width: 70%;
+  height: 80%;
+  background: linear-gradient(90deg, transparent 8%, rgba(138, 43, 226, 0.18) 30%, rgba(138, 43, 226, 0.42) 55%, rgba(206, 169, 255, 0.18) 100%);
+  filter: blur(16px);
+  opacity: 0.95;
+  mix-blend-mode: screen;
+}
+
+.logo-container::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  top: 0;
+  right: 0;
+  width: 56%;
+  height: 100%;
+  background: radial-gradient(circle at 100% 50%, rgba(138, 43, 226, 0.55), rgba(138, 43, 226, 0.15) 32%, transparent 62%);
+  filter: blur(12px);
+  opacity: 0.85;
+  mix-blend-mode: screen;
+}
+
+.logo-img {
+  width: 10vw;
+  max-width: 110px;
+  height: 60px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.3s ease-in-out;
+  display: block !important;
+  object-fit: contain;
+  filter: drop-shadow(10px 0 16px rgba(138, 43, 226, 0.85)) drop-shadow(20px 0 28px rgba(138, 43, 226, 0.55)) brightness(1.12);
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+}
+
+/* Logo más ancho en escritorio */
+@media (min-width: 768px) {
+  .logo-img {
+    width: 16vw;
+    max-width: 200px;
+    height: 65px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .logo-img {
+    width: 20vw;
+    max-width: 260px;
+    height: 68px;
+  }
+}
+
+@media (max-width: 767px) {
+  .logo-img {
+    width: 12vw;
+    max-width: 90px;
+    height: 55px;
+    margin: 0 !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 490px) {
+  .logo-img {
+    width: 14vw;
+    max-width: 75px;
+    height: 50px;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+  }
+}
+
+@media (max-width: 378px) {
+  .logo-img {
+    width: 18vw;
+    max-width: 65px;
+    height: 45px;
+    margin-right: 0 !important;
+  }
+}
+
+.logo-container:hover .logo-img,
+.logo-container:focus .logo-img {
+  transform: scale(1.06);
+}
+
+  /* Efecto para cuando el usuario está en Home o en /info/*** */
+  .logo.en-home {
+    filter: drop-shadow(0 0 12px #ff4dff); /* Glow rosa refinado */
+    transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+  }  
+
+.en-home {
+  
+  filter: drop-shadow(0px 0px 3px #ff69b4) drop-shadow(0px 0px 2px #ff69b4);
+  display: inline-block; /* Evita que el padding expanda la caja */
+  padding: 3px; /* Ajusta el espacio sin agrandar demasiado */
+  transition: all 0.3s ease-in-out;
+}
+
+.boton-ia {
+  
+  display: none !important;
+}
+
+/* éste es para los móviles */
+.boton-ia svg path {
+  stroke: #fff200; /* Amarillo brillante */
+  stroke-width: 10px; /* Ajusta el grosor del contorno */
+  filter: drop-shadow(0 0 5px #3bad4e); /* Efecto de brillo */
+  transition: filter 0.3s ease-in-out;
+}
+
+.boton-ia:hover svg path {
+  filter: drop-shadow(0 0 10px #359c32); /* Brillo más intenso al pasar el mouse */
+}
+
+
+
+
+.boton-busca {
+  position:relative;
+  
+  margin-left: -23px;
+  margin-right: -13%;
+  display: inline-flex;
+  width: 36px; /* Ajusta el tamaño del botón */
+  height: 36px; /* Ajusta el tamaño del botón */
+  top: 10px;
+  flex-wrap: wrap; /* Permite que los íconos y texto se envuelvan en múltiples líneas */
+  justify-content: center;  
+  font-size: 30px; /* Tamaño del icono */
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  background-color: #F4A261; /* Fondo negro */
+  border-radius: 50%; /* Para hacer el botón circular */
+  color: #fcf8fb; /* Color del icono (blanco) */
+  cursor: pointer; /* Cursor de mano al pasar sobre el botón */
+  border: none; /* Sin borde */
+  outline: none; /* Sin borde de enfoque */
+  transition: background-color 0.3s; /* Suaviza cambios de color */
+  font-weight: 900;
+  max-width: 7vw !important;
+  filter: drop-shadow(0 0 7px #b2c767); /* Glow más intenso momentáneo */
+}
+
+.boton-busca:hover {
+  color: white;
+  background-color: #c5287eea; /* Cambia el color al pasar el cursor */
+}
+
+.asistente-ia {
+  fill: rgb(244, 245, 244);
+}
+
+.asistente-ia-svg {
+  fill: white;
+  width: 80%;
+  left: auto;
+  top: 0px;
+  position: absolute;
+}
+
+.nav-input {
+  width: min(333px, 42vw);
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px; /* Añade padding para mejorar la apariencia */
+  border: 1px solid #ccc; /* Añade un borde para que sea más visible */
+  border-radius: 24px; /* Opcional: añade bordes redondeados */
+  box-sizing: border-box; /* Asegura que el padding y el borde se incluyan en el ancho total */
+  margin-top: -30px;
+  margin-left: 8px;
+}
+
+
+/* Íconos de la Fila Inferior de la NavBar */
+.small-icon {
+  font-size: 28px;
+  color: green
+}
+.big-icon {
+  font-size: 36px;
+  color: green;
+}
+
+.middium-icon {
+  font-size: 33px;
+  color: green;
+}
+
+/* acomodadno el botón de taki *** checar ************* */
+.taxi-subido {
+  margin-top: -7px !important;
+}
+
+
+.nav-links {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 2px;
+  height: auto;
+  line-height: 1;
+  overflow: hidden;
+}
+
+  /* texto de los botones */
+.nav-link {
+  text-align: center;
+  font-size: 14px;
+  color: rgb(3, 39, 3);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  height: auto;
+  line-height: 1;
+}
+
+.nav-text {
+  display: none;
+}
+
+.correte {
+  display: none !important;
+}
+  
+/* Agrupar los iconos en una sola línea para el primer grupo */
+.nav-linky {
+  text-align: center;
+  font-size: 22px;
+  color: #000;
+  margin: 0;
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  height: auto;
+  line-height: 1;
+}
+
+/* Mostrar el texto a la derecha del ícono en escritorio */
+.nav-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.nav-text {
+  display: block; /* Mostrar el texto debajo del ícono en escritorio */
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+
+/* Pestaña activa: contorno rosa estilizado y glow */
+.nav-link.active {
+  text-shadow: 0 0 8px #ff4dff;  /* Glow rosa refinado */
+  position: relative;             /* Para posicionar la raya inferior */
+}
+
+/* Glow solo en el icono */
+.nav-link.active .big-icon svg,
+.nav-link.active .middium-icon svg,
+.nav-link.active .small-icon svg {
+  filter: drop-shadow(0 0 8px #ff4dff);
+}
+
+/* Raya inferior en la pestaña activa */
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;                           
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;                          
+  height: 4px;                         
+  background-color: #ff4dff;  /* Mismo rosa estilizado */
+}
+
+
+.nav-link .message-count {
+  position: absolute;
+  top: -13px;
+  right: -25px;
+  
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  border-radius: 50%;
+  width: 13px;
+  height: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #D4A5A5; /* Rosa pastel */
+  border: 1px solid #B38282; /* Rosa más oscuro */
+  color: yellow; /* Negro para el número */
+  
+}
+
+
+/* 3 Columnas de la fila superrior de la NavBar */
+.columnas {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  min-width: 0;
+
+}
+
+.columna3 {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;
+  top: 0;
+  gap: 2px;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* Más espacio entre iconos en escritorio */
+@media (min-width: 1024px) {
+  .columna3 {
+    gap: 24px;
+  }
+}
+
+.columna2 {
+  position: relative;
+  top: 0;
+  max-width: 100%;
+  left: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wraper {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 2px;
+  box-sizing: border-box;
+  height: auto;
+  line-height: 1;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: #fff200;
+  padding: 4px 6px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 90;
+  height: auto;
+  overflow: hidden;
+}
+
+.bottom-bar.bottom-bar--hidden {
+  display: none;
+}
+
+.split-action-button {
+  position: fixed;
+  right: 14px;
+  width: 62px;
+  height: 62px;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #7b2cbf 49%, #9d4edd 49%, #9d4edd 100%);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 100;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 24px rgba(123, 44, 191, 0.35);
+  transition: bottom 200ms ease, transform 180ms ease;
+}
+
+.split-action-button:hover {
+  transform: translateY(-1px);
+}
+
+.split-action-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(123, 44, 191, 0.98) 48%, rgba(157, 78, 237, 0.98) 48%);
+}
+
+.split-button-part {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  z-index: 1;
+  padding: 0 4px;
+  line-height: 1.1;
+}
+
+.split-button-part.split-left {
+  top: 6px;
+  left: 4px;
+  justify-content: flex-start;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+.split-button-part.split-right {
+  bottom: 6px;
+  right: 4px;
+  justify-content: flex-end;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.right-sidebar {
+  position: fixed;
+  right: 14px;
+  width: 62px;
+  background: rgba(83, 45, 126, 0.96);
+  border-radius: 28px;
+  padding: 8px 6px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.22);
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(20px);
+  transition: opacity 220ms ease, transform 220ms ease, visibility 220ms ease;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.right-sidebar.right-sidebar--open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.sidebar-icon-button {
+  all: unset;
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.sidebar-icon-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(-2px);
+}
+
+.sidebar-icon-button--toggle-bottom {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.sidebar-icon-button svg {
+  font-size: 22px;
+}
+
+.sidebar-item--toggle-bottom {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* M E D I A  --  Q U E R Y S */
+/* Responsividad para tabletas */
+@media (max-width: 1268px) {
+
+  .nav-text {
+    display: block; /* Mostrar el texto debajo del ícono en escritorio */
+    margin-top: 5px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .nav-link {
+    font-size: 18px;
+    margin-left: 0px;
+    margin-right: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .navbar {
+    flex-direction: column;
+  }
+
+  .nav-links {
+    flex-direction: row; /* Mostrar los íconos en fila en móvil */
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .nav-link .nav-text {
+    display: block; /* Mostrar el texto debajo de cada ícono en móvil */
+  }
+
+  .nav-link {
+    margin-top: 21px;
+  }
+
+  .nav-link i {
+    font-size: 30px; /* Tamaño de los iconos en móvil */
+  }
+
+  .nav-linky {
+    text-align: center;
+    font-size: 24px;
+    color: #000;
+    margin: 0; /* Sin margen entre íconos en móvil */
+  }
+
+  .columna3 {
+    gap: 1.5vw !important;
+    margin-right: 0 !important;
+  }
+
+  .correte {
+    margin-top: -10px !important;
+    margin-left: 7px !important;
+  }
+
+  .boton-ia{
+    display: none;
+    max-width: 5vw !important;
+    max-height: 5vw !important;    
+  }
+
+}
+ 
+/* Dispositivos Móviles */
+@media (max-width: 800px) {
+  .correte {
+    display: none !important;
+  }
+
+  .boton-ia {
+    display: flex !important;
+    flex-direction: row;
+    justify-content: center;
+    font-size: 30px; /* Tamaño del icono */
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #F4A261; /* Fondo negro */
+    border-radius: 50%; /* Para hacer el botón circular */
+    
+    color: #fcf8fb; /* Color del icono (blanco) */
+    cursor: pointer; /* Cursor de mano al pasar sobre el botón */
+    border: none; /* Sin borde */
+    outline: none; /* Sin borde de enfoque */
+    transition: background-color 0.3s; /* Suaviza cambios de color */
+    font-weight: 900;
+    max-width: 9vw !important;
+    max-height: 9vw !important;
+    top: -3px;
+    left: -2vw;
+
+    filter: drop-shadow(0 0 4px #b2c767); /* Glow más intenso momentáneo */
+    
+    
+  }
+
+
+
+  /* Oculta los contadores individuales de cada sección */
+  .nav-link .message-count {
+    display: none;
+  }
+  .columna3 {
+    gap: 12px !important;
+  }
+
+}
+
+@media (max-width: 920px) {
+  .columna2 {
+    display: none;
+  }
+
+  .columnas {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 378px) {
+  /*íconos */
+  .nav-link {
+    font-size: 12px;
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+
+  .columna3 {
+    margin: 2px;
+    padding: 2px;
+    left: 10px;
+  }
+
+  .cuenta-icon-container {
+    position: relative;
+    
+    height: auto !important;
+    right: -1vw !important;
+    margin-left: -10px;
+  }
+}
+
+  /* Ajuste fino del tamaño del Logo */
+  @media (max-width: 490px) {
+  
+    .nav-links {
+      margin-top: 3px !important;
+    }
+  
+    .nav-text {
+  
+      display: none !important;
+    }
+  
+    .nav-link {
+      font-size: 10px;
+      margin-left: 0px;
+      margin-right: 0px;
+    }
+    
+
+    .ciudadan-text {
+      display: block
+    }
+    .ciudadan-svg {
+      display: block
+    }
+    
+  
+    .boton-busca {
+      display: block !important;
+      font-size: 21px !important; /* Tamaño del icono */
+      width: 30px !important; /* Ajusta el tamaño del botón */
+      height: 30px !important; /* Ajusta el tamaño del botón */
+    }
+  
+  }
+
+
+
+/* Aumento del tamaño de los iconos en escritorio */
+@media (min-width: 1024px) {
+  .nav-link .material-icons {
+    font-size: 36px;
+  }
+}
+
+@media (min-width: 420px) {
+  .boton-ia{
+    display: none;
+    max-width: 7vw !important;
+    max-height: 7vw !important;    
+  }
+}
+@media (min-width: 560px) {
+  .boton-ia{
+    display: none;
+    max-width: 5vw !important;
+    max-height: 5vw !important;    
+  }
+}

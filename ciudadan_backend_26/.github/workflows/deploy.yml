@@ -1,0 +1,30 @@
+name: Deploy Strapi Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Deploy
+        run: |
+          cd /var/www/apps/strapi-ciudadan-dev
+          git fetch origin
+          git reset --hard origin/main
+          npm install --legacy-peer-deps
+          sudo systemctl restart strapi-ciudadan-dev
+
+          cd /var/www/apps/strapi-ciudadan-prod
+          git fetch origin
+          git reset --hard origin/main
+          npm install --legacy-peer-deps
+          sudo systemctl restart strapi-ciudadan-prod
+
+          cd /var/www/apps/strapi-marihuanas
+          git fetch origin
+          git reset --hard origin/main
+          npm install --legacy-peer-deps
+          sudo systemctl restart strapi-marihuanas

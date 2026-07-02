@@ -1,0 +1,56 @@
+{
+  "kind": "collectionType",
+  "collectionName": "favoritos",
+  "info": {
+    "singularName": "favorito",
+    "pluralName": "favoritos",
+    "displayName": "favorito",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "usuario_email": {
+      "type": "email"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "producto",
+        "curso",
+        "contenido",
+        "club"
+      ]
+    },
+    "producto": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::producto.producto"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "curso": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "contenido": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::contenido.contenido"
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}

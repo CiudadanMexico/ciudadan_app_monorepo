@@ -1,0 +1,210 @@
+.padre {
+    position: relative; /* Añade esto al contenedor padre */
+}
+
+.account-menu-contenedor {
+    position: absolute;
+    top: 5vw; /* Alinea el menú justo debajo del ícono */
+    right: 2vw; /* Se adapta al tamaño del contenedor padre */
+    background-color: white;
+    display: none;
+
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 42vw;
+
+    z-index: 1000;
+    border-radius: 6%;
+
+}
+
+
+.account-menu-contenedor.open {
+    display: block;
+
+}
+
+
+.account-menu {
+    position: absolute;
+    top: 30%; /* Alinea el menú justo debajo del ícono */
+    right: 230px; /* Alínea a la derecha del contenedor */
+    margin-top: 5px;
+
+
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+    box-sizing: border-box; /* Asegura que el padding y borde se incluyan en el tamaño total */
+}
+
+
+
+.account-menu.open {
+    display: block; /* Muestra el menú cuando tenga la clase 'open' */
+}
+
+
+.account-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-menu li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.account-menu li:hover {
+    background-color: #f0f0f0;
+}
+
+
+
+
+.message-menu {
+    position: absolute;
+    top: 3%;
+    right: 28%;
+    display: none;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 50vw;
+    height:96vh;
+    z-index: 5000;
+}
+
+.message-menu.open {
+    display: block;
+}
+
+.message-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.message-menu li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.message li:hover {
+    background-color: #f0f0f0;
+}
+
+.account-dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: block; /* Asegúrate de que esté visible */
+}
+
+.account-dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Ajuste para móviles */
+@media (max-width: 768px) {
+    .account-menu {
+        right: 0; /* Alinea el menú a la derecha en dispositivos móviles */
+        left: auto; /* Asegúrate de que esté alineado a la derecha */
+        top: 100%; /* Alinea el menú justo debajo del ícono */
+        width: 100%; /* Ajusta el ancho del menú para ocupar el 100% del contenedor */
+        margin-top: 5px; /* Espacio entre el ícono y el menú */
+    }
+}
+
+
+
+
+
+
+
+
+/*##########
+
+/* Clase para la imagen del perfil */
+
+
+.profile-container {
+    min-width: 93%;
+    width: 93%;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.perfil-imagen {
+    max-width: 30px; /* Tamaño adecuado */
+    max-height: 30px; /* Tamaño adecuado */
+    border-radius: 50%; /* Efecto círculo */
+    margin-right: 10px; /* Espacio entre la imagen y el nombre */
+    object-fit: cover; /* Mantiene la imagen ajustada */
+    display: inline-block; /* Para mantenerla en la misma línea */
+  }
+
+  /* Clase para el nombre del usuario */
+  .usuario-nombre {
+    white-space: nowrap; /* Evita que el nombre se divida en varias líneas */
+    overflow: hidden; /* Oculta el texto que se sale del contenedor */
+    text-overflow: ellipsis; /* Muestra "..." si el texto se desborda */
+    display: inline-block; /* Hace que la imagen y el texto estén en la misma línea */
+    max-width: 180px; /* Limita el ancho máximo del nombre */
+    vertical-align: middle; /* Alineación vertical para centrar la imagen y el texto */
+  }
+
+
+  .account-menu.open {
+    display: block; /* Muestra el menú cuando tiene la clase 'open' */
+}
+
+
+@media (max-width: 799px) {
+    .account-menu-contenedor {
+        position: absolute;
+        top: 8vw; /* Alinea el menú justo debajo del ícono */
+        display: none;
+        right: -4vw;
+        margin-left: auto;
+        margin-right: auto;
+
+        border-radius: 4px;
+        width: 100vw;
+        padding: 4vw;
+
+        z-index: 1000;
+        min-height: 90vh;
+        border-radius: 2%;
+    }
+
+
+}
+
+
+@media (min-width: 1280px) {
+    .account-menu-contenedor {
+        position: absolute;
+        top: 3.2vw; /* Alinea el menú justo debajo del ícono */
+        display: none;
+        right: -5vw;
+        margin-left: auto;
+        margin-right: auto;
+
+        border-radius: 4px;
+        width: 13vw;
+        padding: 1.5vw;
+
+        z-index: 1000;
+        max-height: 90vh;
+        border-radius: 2%;
+    }
+
+
+}

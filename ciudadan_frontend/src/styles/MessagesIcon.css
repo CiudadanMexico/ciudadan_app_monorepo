@@ -1,0 +1,31 @@
+/* MessagesIcon.css */
+.message-icon-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .message-icon {
+    font-size: 36px; /* Ajusta el tamaño del ícono según tus necesidades */
+    color: #000; /* Color del ícono */
+    z-index: 999999 !important;
+  }
+  
+  .message-icon-small {
+    font-size: 33px; /* Ajusta el tamaño del ícono según tus necesidades */
+    color: #000; /* Color del ícono */
+    z-index: 999999 !important;
+  }
+
+  .message-count {
+    position: absolute;
+    top: -8px; /* Ajusta la posición vertical del contador */
+    right: -10px; /* Ajusta la posición horizontal del contador */
+    background-color: #FF4500; /* Color de fondo del contador */
+    color: #fff; /* Color del texto del contador */
+    border-radius: 50%;
+    padding: 4px 8px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 999 !important;
+  }
+  

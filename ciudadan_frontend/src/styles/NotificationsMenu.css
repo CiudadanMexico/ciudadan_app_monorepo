@@ -1,0 +1,339 @@
+.padre {
+    position: relative; /* Añade esto al contenedor padre */
+}
+
+.notifications-menu-contenedor {
+    position: absolute;
+    top: 33%; /* Alinea el menú justo debajo del ícono */
+    right: 20%; /* Se adapta al tamaño del contenedor padre */
+    background-color: white;
+    display: none;
+    
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 33vw;
+    
+    z-index: 1000;
+}
+
+
+.notifications-menu-contenedor.open {
+    display: block;
+
+}
+
+
+.notifications-menu {
+    position: absolute;
+
+    top: 30%; /* Alinea el menú justo debajo del ícono */
+    right: -90%;  /* Alínea a la izquierda */
+    right: 0; /* Alínea a la derecha */
+    margin-top: 5px;
+    
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 33vw;
+    display: none;
+    z-index: 1000;
+}
+
+.notifications-menu.open {
+    display: block;
+}
+
+.notifications-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.notifications-menu li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.notifications-menu li:hover {
+    background-color: #f0f0f0;
+}
+
+
+
+
+
+/* .dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: block;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+} */
+
+/* Ajuste para móviles */
+@media (max-width: 768px) {
+    .account-menu {
+        right: 0; /* Alinea el menú a la derecha en dispositivos móviles */
+        left: auto; /* Asegúrate de que esté alineado a la derecha */
+        top: 100%; /* Alinea el menú justo debajo del ícono */
+        width: 100%; /* Ajusta el ancho del menú para ocupar el 100% del contenedor */
+        margin-top: 5px; /* Espacio entre el ícono y el menú */
+    }
+}
+
+
+
+
+
+
+
+
+.notifications-menu-contenedor {
+  position: relative;
+  top: 33%; /* Alinea el menú justo debajo del ícono */
+  right: 20%; /* Se adapta al tamaño del contenedor padre */
+  /* background-color: white; */
+  display: none;
+
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(143, 218, 108, 0.753);
+  width: 33vw;
+
+  /*     z-index: 9000; */
+}
+
+.img.nitif-icon{
+  width: 50px;
+}
+
+.verde {
+  background-color: 'green' !important;
+}
+
+.margin-bot {
+  padding-bottom: 10px;
+  gap: 10px;
+}
+
+.notifications-menu-contenedor.open {
+  display: block;
+  background-color: #f0f0f0;
+  /* z-index: 99999 !important; */
+}
+
+.purple {
+  background-color: rgba(141, 7, 90, 0.932);
+  color: rgba(202, 247, 100, 0.959);
+  font-weight: 900;
+}
+
+.textoChico {
+  font-size: 0.6em;
+}
+
+.notifications-menu {
+  /* background-color: purple; */
+  top: 40px;
+  position: absolute;
+
+  right: -90%; /* Alínea a la izquierda */
+  right: 0; /* Alínea a la derecha */
+  margin-top: 5px;
+
+  /* background-color: white; */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100vw;
+  display: none;
+  /* z-index: 99000; */
+}
+
+.notifications-menu.open {
+  width: auto;
+  display: block;
+  overflow-y: visible;
+  /* z-index: 99999 !important; */
+}
+
+.notifications-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 27vw;
+}
+
+.notifications-menu li {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.notifications-menu li:hover {
+  background-color: #f0f0f0;
+}
+
+/* .dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: block;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+} */
+
+/* Ajuste para móviles */
+@media (max-width: 768px) {
+  .notifications-menu {
+    right: 0; /* Alinea el menú a la derecha en dispositivos móviles */
+    left: auto; /* Asegúrate de que esté alineado a la derecha */
+    top: 100%; /* Alinea el menú justo debajo del ícono */
+    width: 100%; /* Ajusta el ancho del menú para ocupar el 100% del contenedor */
+    margin-top: 5px; /* Espacio entre el ícono y el menú */
+  }
+
+  .notifications-menu-contenedor {
+  
+  width: 83vw;
+
+  /*     z-index: 9000; */
+}
+
+}
+
+
+
+
+
+
+
+
+.notif-grid {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: start;
+  gap: 6px;
+}
+
+.notif-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  margin-top: 2px;
+  border-radius: 4px;
+}
+
+.notif-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.notif-title {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.notif-message {
+  line-height: 1.1;
+  max-width: 230px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-date {
+  font-weight: 700;
+  font-size: 11px;
+  color: #777;
+}
+
+.notif-item {
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+ .notifications-menu {
+  /* width: 320px; */
+  /* max-height: 350px; */
+  overflow-y: auto;
+  /* background: #fff200;
+  border: 1px solid #6d6e71;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15); */
+  /* font-family: Arial, sans-serif; */
+  font-size: 14px;
+  padding: 0;
+} 
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-loading,
+.notif-empty {
+  padding: 1px;
+  text-align: center;
+  font-size: 14px;
+  color: #111111;
+}
+
+.notif-logout {
+  padding: 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: #6d6e71;
+  border-top: 1px solid #aaa;
+  cursor: pointer;
+}
+
+.notif-logout:hover {
+  background-color: #eee;
+}
+
+
+
+
+
+
+
+
+/* repetido */
+
+@media (max-width: 768px) {
+  .notifications-menu {
+    right: 0; /* Alinea el menú a la derecha en dispositivos móviles */
+    left: auto; /* Asegúrate de que esté alineado a la derecha */
+    top: 100%; /* Alinea el menú justo debajo del ícono */
+    width: 80vw; /* Ajusta el ancho del menú para ocupar el 100% del contenedor */
+    margin-top: 5px; /* Espacio entre el ícono y el menú */
+  }
+
+  .notifications-menu-contenedor {
+  
+  width: 83vw;
+
+  /*     z-index: 9000; */
+}
+
+
+.notifications-menu ul {
+  position: fixed;
+  width: 72vw;
+  left: -28vw;
+  right: 4vw;
+  background-color: rgb(163, 141, 163);
+  top: 6vh;
+}
+}

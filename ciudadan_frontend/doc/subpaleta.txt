@@ -1,0 +1,47 @@
+.noti-ganar {
+  background-color: #00A896; /* Verde esmeralda */
+  border: 2px solid #00796B; /* Verde más oscuro */
+  color: #FFFFFF; /* Blanco para el número */
+}
+
+.noti-cartera {
+  background-color: #3D7EFF; /* Azul suave */
+  border: 2px solid #2B5CC5; /* Azul más oscuro */
+  color: #FFFFFF; /* Blanco para el número */
+}
+
+.noti-taxis {
+  background-color: #F4A261; /* Naranja suave */
+  border: 2px solid #C67633; /* Naranja más oscuro */
+  color: #FFFFFF; /* Blanco para el número */
+}
+
+.noti-comida {
+  background-color: #E76F51; /* Rojo coral */
+  border: 2px solid #C0563D; /* Rojo más oscuro */
+  color: #FFFFFF; /* Blanco para el número */
+}
+
+.noti-market {
+  background-color: #8A5CF5; /* Morado vibrante */
+  border: 2px solid #6A3FCB; /* Morado más oscuro */
+  color: #FFFFFF; /* Blanco para el número */
+}
+
+.noti-oficina {
+  background-color: #2A9D8F; /* Verde azulado */
+  border: 2px solid #1F6F65; /* Verde más oscuro */
+  color: #FFFFFF; /* Blanco para el número */
+}
+
+.noti-academia {
+  background-color: #D4A5A5; /* Rosa pastel */
+  border: 2px solid #B38282; /* Rosa más oscuro */
+  color: #000000; /* Negro para el número */
+}
+
+.noti-comunidad {
+  background-color: #FFC300; /* Amarillo */
+  border: 2px solid #CC9A00; /* Amarillo más oscuro */
+  color: #000000; /* Negro para el número */
+}

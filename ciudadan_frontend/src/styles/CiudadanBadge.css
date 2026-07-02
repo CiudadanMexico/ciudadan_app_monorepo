@@ -1,0 +1,37 @@
+.ciudadan-text {
+    font-size: 24px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 900;
+    fill: rgb(122, 39, 111);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    z-index: 9999;
+    
+    transform-origin: center center; /* Ajuste del punto de giro */
+    overflow: visible; /* Evita recortes */
+}
+
+/* Ajuste del contenedor del texto */
+.ciudadan-svg {
+    position: absolute;
+    top: 8vw;
+    left: 6.5vw;
+    width: 18vw;
+    height: 17vw;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+    overflow: visible; /* Evita recortes */
+}
+
+/* Ajuste del logo */
+.ciudadan-container {
+    position: absolute;
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    left: 4vw;
+    top: 2px;
+}
+
+

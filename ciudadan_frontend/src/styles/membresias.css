@@ -1,0 +1,246 @@
+/* Estilos generales para animaciones suaves y refinamientos visuales */
+
+.material-icons {
+  transition: transform 0.3s ease-in-out;
+}
+
+.material-icons:hover {
+  transform: rotate(-5deg) scale(1.1);
+}
+
+/* Card de membresía destacada */
+.MembresiaDestacada {
+  animation: pulsoBrillo 2s ease-in-out infinite;
+}
+
+@keyframes pulsoBrillo {
+  0% {
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+  }
+}
+
+/* Botones */
+button {
+  transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.membresias-container {
+  padding: 2rem;
+  background: #edf7f1;
+  min-height: 100vh;
+}
+
+.membresias-titulo {
+  font-family: 'Righteous', cursive !important;
+  font-weight: 900;
+  color: #1b5e20; /* verde oscuro base */
+  letter-spacing: 3.3px !important;
+  text-align: center;
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  user-select: none;
+  
+  /* Capas de sombra superpuestas para brillo psicodélico */
+  text-shadow:
+    0 0 6px #a3d977cc,           /* brillo verde lima base */
+    3px 3px 14px #e6fb64cc,      /* destello amarillo lima grueso */
+    -3px -1px 10px #b388eb88,    /* destello morado sutil */
+    0 0 20px #d4f230cc;          /* brillo general amplio */
+
+  animation: gelatinaRespira 7s ease-in-out infinite, 
+             destelloDinamico 5s ease-in-out infinite alternate,
+             temblorSuave 4s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform, text-shadow;
+}
+
+/* 1. Movimiento gelatina (respira y escala) */
+@keyframes gelatinaRespira {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-2px, 1.8px) scale(1.04);
+  }
+  50% {
+    transform: translate(2px, -1.8px) scale(0.97);
+  }
+  75% {
+    transform: translate(-1.3px, 1.2px) scale(1.02);
+  }
+}
+
+/* 2. Destellos de brillo dinámicos que cambian tamaño y color */
+@keyframes destelloDinamico {
+  0% {
+    text-shadow:
+      0 0 6px #a3d977cc,
+      3px 3px 14px #e6fb64cc,
+      -3px -1px 10px #b388eb88,
+      0 0 20px #d4f230cc;
+  }
+  20% {
+    text-shadow:
+      0 0 10px #ccff33dd,
+      4px 4px 18px #f4ff6ecc,
+      -4px -2px 14px #bf94ff99,
+      0 0 25px #d9ff32dd;
+  }
+  40% {
+    text-shadow:
+      0 0 8px #a7dd55cc,
+      2px 2px 12px #d0fa5ecc,
+      -2px -1px 11px #a877efbb,
+      0 0 22px #c7ef32cc;
+  }
+  60% {
+    text-shadow:
+      0 0 11px #d7f844ff,
+      5px 5px 20px #eeff83ff,
+      -5px -3px 16px #c4a6f9cc,
+      0 0 28px #e3ff6aff;
+  }
+  80% {
+    text-shadow:
+      0 0 7px #98cc43bb,
+      3px 3px 15px #c9fa64cc,
+      -3px -1px 13px #9a63ffbb,
+      0 0 20px #b7e834cc;
+  }
+  100% {
+    text-shadow:
+      0 0 6px #a3d977cc,
+      3px 3px 14px #e6fb64cc,
+      -3px -1px 10px #b388eb88,
+      0 0 20px #d4f230cc;
+  }
+}
+
+/* 3. Temblor super suave para darle ese toque “gelatina extra” */
+@keyframes temblorSuave {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 #0000);
+  }
+  10% {
+    filter: drop-shadow(1px 0 1px #d4f230aa);
+  }
+  20% {
+    filter: drop-shadow(-1px 1px 1px #d9ff32bb);
+  }
+  30% {
+    filter: drop-shadow(1px -1px 2px #c7ef32cc);
+  }
+  40% {
+    filter: drop-shadow(-1px 1px 1px #e3ff6aff);
+  }
+  50% {
+    filter: drop-shadow(0 0 0 #0000);
+  }
+  60% {
+    filter: drop-shadow(1px 1px 1px #ccff33bb);
+  }
+  70% {
+    filter: drop-shadow(-1px -1px 2px #f4ff6ecc);
+  }
+  80% {
+    filter: drop-shadow(1px 0 1px #d4f230cc);
+  }
+  90% {
+    filter: drop-shadow(-1px 1px 1px #b7e834bb);
+  }
+}
+
+
+
+.membresias-subtitulo {
+  margin-bottom: 2rem;
+  color: #4A148C;
+}
+
+.membresia-card {
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-in-out;
+  position: relative;
+}
+
+.membresia-card:hover {
+  transform: scale(1.05);
+}
+
+.membresia-chip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.membresia-icono {
+  font-size: 50px;
+}
+
+.membresia-nombre {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.membresia-precio {
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #1b5e20;
+}
+
+.membresia-beneficios {
+  text-align: left;
+  padding: 0 1rem;
+  margin-bottom: 1.5rem;
+  list-style: none;
+}
+
+.membresia-beneficio {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.membresia-check-icon {
+  vertical-align: middle;
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+.boton-proximamente {
+  font-weight: bold;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+
+.boton-membresia {
+  font-weight: bold;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  color: #fff;
+  transition: all 0.3s ease-in-out;
+}
+
+
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .material-icons {
+    font-size: 36px !important;
+  }
+}

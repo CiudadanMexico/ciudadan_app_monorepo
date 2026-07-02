@@ -1,0 +1,75 @@
+{
+  "kind": "collectionType",
+  "collectionName": "agendas",
+  "info": {
+    "singularName": "agenda",
+    "pluralName": "agendas",
+    "displayName": "Agenda"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "colaboradores": {
+      "type": "json"
+    },
+    "portada": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": [
+        "pendiente",
+        "en_revision",
+        "resubir_archivos",
+        "completada",
+        "cancelada",
+        "expirada"
+      ],
+      "default": "pendiente"
+    },
+    "fecha_inicio": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "url": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "checked": {
+      "type": "boolean"
+    }
+  }
+}

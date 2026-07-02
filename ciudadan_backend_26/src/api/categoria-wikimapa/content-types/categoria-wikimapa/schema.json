@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categorias_wikimapa",
+  "info": {
+    "singularName": "categoria-wikimapa",
+    "pluralName": "categorias-wikimapa",
+    "displayName": "categoria-wikimapa"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "idx": {
+      "type": "uid"
+    },
+    "nivel": {
+      "type": "integer"
+    },
+    "sup": {
+      "type": "integer"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "enlace": {
+      "type": "string"
+    }
+  }
+}

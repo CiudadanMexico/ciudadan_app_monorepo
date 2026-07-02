@@ -1,0 +1,175 @@
+/* General layout */
+.agregar-producto-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: rgba(240, 255, 240, 0.2); /* verde translúcido */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0, 100, 0, 0.2);
+  animation: fadeInSlide 1.2s ease-in-out both;
+  border: 1px solid rgba(0, 128, 0, 0.2);
+}
+
+/* Título con animación, blur y energía */
+.titulo {
+  color: #004d00;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(0,128,0,0.3), rgba(0,255,128,0.15));
+  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  box-shadow: 0 0 15px rgba(0, 255, 128, 0.2);
+  animation: floatTitle 3s ease-in-out infinite alternate;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Formularios y campos con estilo */
+.agregar-producto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+    margin-top: 1.5rem;
+}
+
+.agregar-producto-form input,
+.agregar-producto-form textarea,
+.agregar-producto-form select {
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(0, 128, 0, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(3px);
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.agregar-producto-form input:focus,
+.agregar-producto-form textarea:focus,
+.agregar-producto-form select:focus {
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 255, 128, 0.5);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.input-text {
+  margin-bottom: 1rem;
+}
+
+/* Switch y stock */
+.agregar-producto-stock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.imagen-section {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.error-text {
+  margin-top: 1rem;
+  color: red;
+}
+
+.preview-imagen {
+  max-width: 100%;
+  height: auto;
+  margin-top: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.medidas-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* Imagen preview */
+.imagen-preview {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 128, 0, 0.3);
+  box-shadow: 0 0 5px rgba(0, 255, 128, 0.3);
+  transition: transform 0.3s ease-in-out;
+}
+
+.imagen-preview:hover {
+  transform: scale(1.05);
+}
+
+/* Botón de subida */
+.boton-subir {
+  background: #6d6e71;
+  color: white;
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.boton-subir:hover {
+  background: #4c4d4f;
+}
+
+/* Feedback */
+.mensaje-exito {
+  text-align: center;
+  color: #0a8a0a;
+  font-weight: bold;
+  font-size: 1.2rem;
+  animation: aparecer 1s ease-out both;
+}
+
+.mensaje-error {
+  color: #c00000;
+  background: rgba(255, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+/* Animaciones */
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes floatTitle {
+  from {
+    transform: translateY(0px);
+    box-shadow: 0 0 15px rgba(0, 255, 128, 0.2);
+  }
+  to {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 25px rgba(0, 255, 128, 0.4);
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "categorias_contenidos",
+  "info": {
+    "singularName": "categoria-contenido",
+    "pluralName": "categorias-contenidos",
+    "displayName": "Categorias_Contenidos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string"
+    },
+    "activa": {
+      "type": "boolean"
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "slug": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+.home-container {
+  position: relative;
+  min-height: 100vh;
+  padding: 3rem 2rem;
+  background: #f5f9f7; /* fondo claro */
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.leaves-overlay {
+  position: fixed;
+  top: -25%;
+  left: -25%;
+  width: 150%;
+  height: 150%;
+  background-repeat: repeat;
+  background-size: 100px 100px;
+  opacity: 0.1;
+  z-index: -1;
+}
+
+.content-wrapper {
+  position: relative;
+  z-index: 20;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+h1 {
+  font-weight: 900;
+  font-size: 2.5rem;
+  text-shadow: 0 0 5px #7dbb6f;
+}
+
+p {
+  font-size: 1.2rem;
+  line-height: 1.7;
+  text-align: justify;
+}

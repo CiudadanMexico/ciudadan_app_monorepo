@@ -1,0 +1,94 @@
+.menu-menu {
+    position: absolute;
+    top: 30%;
+    /* background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    width: 80vw; /* Fijamos el ancho a 400px */
+    
+    
+    /* margin: 0 auto; /* Centramos horizontalmente el contenedor */
+    /* top: 33px;
+    display: none;  */
+
+    right: -90%;  /* Alínea a la izquierda */
+    right: 0; /* Alínea a la derecha */
+    margin-top: 5px;
+    
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 200px;
+    display: none;
+    z-index: 5000;
+}
+
+menu-menu.open {
+    display: block;
+}
+
+.menu-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-menu li {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-menu li:hover {
+    background-color: #f0f0f0;
+}
+
+
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Grid 3x3 */
+    gap: 20px; /* Espaciado entre elementos */
+    justify-items: center; /* Centra los items horizontalmente */
+    align-items: center; /* Centra los items verticalmente */
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50vw;
+    margin-left: -20vw;
+}
+
+.grid-item {
+    text-align: center;
+}
+
+.grid-item img {
+    display: block;
+    margin: 0 auto 10px; /* Centra la imagen y agrega margen inferior */
+}
+
+.grid-item p {
+    font-size: 14px; /* Tamaño de texto más pequeño */
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    margin: 0;
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 768px) {
+    .account-menu {
+        width: 100%; /* Para pantallas más pequeñas, ocupará el 100% del ancho */
+    }
+
+    .grid-container {
+        grid-template-columns: repeat(2, 1fr); /* Cambia a 2 columnas en pantallas pequeñas */
+    }
+}
+
+@media (max-width: 480px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* Cambia a 1 columna en pantallas muy pequeñas */
+    }
+}

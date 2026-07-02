@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "postulaciones",
+  "info": {
+    "singularName": "postulacion",
+    "pluralName": "postulaciones",
+    "displayName": "postulacion"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "postulante": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "fecha_solicitud": {
+      "type": "datetime"
+    },
+    "posicion": {
+      "type": "string"
+    },
+    "whtasapp": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "archivos": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "revision": {
+      "type": "json"
+    },
+    "status": {
+      "type": "string"
+    },
+    "revisada": {
+      "type": "boolean"
+    },
+    "links": {
+      "type": "json"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "citada": {
+      "type": "boolean"
+    },
+    "rechazada": {
+      "type": "boolean"
+    },
+    "cita": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agenda.agenda"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "observacionesjson": {
+      "type": "json"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "kind": "collectionType",
+  "collectionName": "configuraciones_usuarios",
+  "info": {
+    "singularName": "configuracion-usuario",
+    "pluralName": "configuraciones-usuarios",
+    "displayName": "configuraciones_usuarios"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "email": {
+      "type": "email"
+    },
+    "configuraciones": {
+      "type": "json"
+    }
+  }
+}

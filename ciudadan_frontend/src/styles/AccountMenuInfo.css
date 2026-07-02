@@ -1,0 +1,100 @@
+.padre {
+  position: relative;
+}
+
+.account-menu-contenedor {
+  position: relative;
+  top: 5px;
+  right: 0;
+  background: rgb(90, 185, 82);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+/*   z-index: 999999; */
+  height: 50vh;
+}
+
+.account-menu.open {
+  display: block;
+  position: relative;
+/*   z-index: 999999; */
+    background: rgb(90, 185, 82);
+
+}
+
+.account-menu.closed {
+  display: none;
+}
+
+.account-menu .MuiMenuItem-root {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  transition: background 0.3s;
+}
+
+.account-menu .MuiMenuItem-root:hover {
+  background: #f0f0f0;
+}
+
+.account-menu .MuiListItemIcon-root {
+  min-width: 40px;
+}
+
+.account-menu .material-icons {
+  font-size: 24px;
+  color: #555;
+}
+
+.padre {
+  position: relative;
+}
+
+.account-menu-contenedor {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.account-menu.open {
+  display: block;
+}
+
+.account-menu.closed {
+  display: none;
+}
+
+.account-menu .MuiMenuItem-root {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  transition: background 0.3s;
+}
+
+.account-menu .MuiMenuItem-root:hover {
+  background: #f0f0f0;
+}
+
+.account-menu .MuiListItemIcon-root {
+  min-width: 40px;
+}
+
+.account-menu .material-icons {
+  font-size: 24px;
+  color: #555;
+}
+
+
+
+
+.cuenta-icon {
+  width: 42px;         /* o el tamaño que quieras */
+  height: 42px;
+  border-radius: 50%;  /* esto lo hace circular */
+  object-fit: cover;   /* para que no se deforme */
+}
