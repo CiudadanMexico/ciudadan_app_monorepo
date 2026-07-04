@@ -9,10 +9,12 @@ import {
   TextField,
   CircularProgress,
   Box,
-  Typography
+  Typography,
+  Autocomplete
 } from "@mui/material";
 import { useAuth0 } from "@auth0/auth0-react";
 import { slugify } from "../../utils/slugify.jsx";
+import { getBankByCLABE, validateCLABE, BANK_OPTIONS } from "../../utils/validacionesBanco.js";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 
@@ -21,7 +23,7 @@ const LIBRARIES = ["places"];
 
 const steps = [
   "Nombre de la tienda",
-  "Conectar Stripe",
+  "Datos bancarios  ",
   "Agregar dirección",
   "Verificar datos"
 ];
@@ -44,6 +46,11 @@ export default function RegisterStoreStepper() {
     ciudad: "",
     estado: ""
   });
+
+  const [beneficiaryName, setBeneficiaryName] = useState(user?.name ?? '');
+  const [bankCLABE, setBankCLABE] = useState('');
+  const [bank, setBank] = useState('');
+  const [unknownBank, setUnknownBank] = useState(true);
 
   const {
     createStore,
@@ -74,7 +81,7 @@ export default function RegisterStoreStepper() {
       }
     };
     init();
-  }, [isAuthenticated, getStoreByEmail, user]);
+  }, [isAuthenticated, user]);
 
   // Handlers de cada step
   const handleCheckAndCreate = async () => {
@@ -167,7 +174,8 @@ export default function RegisterStoreStepper() {
     value,
     setValue,
     suggestions: { status, data },
-    clearSuggestions
+    clearSuggestions,
+    init
   } = usePlacesAutocomplete({ requestOptions: { componentRestrictions: { country: "mx" } }, debounce: 300 });
 
   const handleSelect = async (address) => {
@@ -190,6 +198,59 @@ export default function RegisterStoreStepper() {
     }
   };
 
+
+  const handleChangeCLABE = (value) => {
+    setError(val => val ? '' : val); // Limpiar error en cambio
+    setBankCLABE(value);
+    if (!/^\d{18}$/.test(value)) {
+      setError("La CLABE debe tener exactamente 18 dígitos");
+    }
+  };
+
+  const handleChangeBank = (value) => {
+    setError(val => val ? '' : val); // Limpiar error en cambio
+    setBank(value)
+  };
+
+  const handleVerifyCLABE = () => {
+    setError("");
+    const auxBank = getBankByCLABE(bankCLABE);
+    setUnknownBank(auxBank === "Banco desconocido");
+    setBank(auxBank);
+    if (!validateCLABE(bankCLABE)) {
+      setError("Ingrese una CLABE válida");
+    }
+  };
+
+  const handleUpdateBankData = async () => {
+    if (!beneficiaryName) {
+      setError("Ingrese el nombre del beneficiario");
+      return;
+    }
+    if (!bankCLABE) {
+      setError("Ingrese una CLABE válida");
+      return;
+    }
+
+    if (!bank || bank === "Banco desconocido") {
+      setError("Ingrese un banco válido");
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      await updateStore(laTienda.id, { paso: 2, clabe_bancaria: bankCLABE, nombre_bancario: beneficiaryName, banco: bank });
+      setActiveStep(2);
+      init();
+    } catch (error) {
+      console.error("Error al establecer datos bancarios", error);
+      setError("Error al establecer datos bancarios");
+    } finally {
+      setLoading(false);
+    }
+
+  };
   if (!isAuthenticated)
     return (
       <Button variant="contained" onClick={loginWithRedirect}>
@@ -228,10 +289,45 @@ export default function RegisterStoreStepper() {
 
       {activeStep === 1 && (
         <Box mt={2}>
-          <Typography>Conectar Stripe</Typography>
+          <TextField
+            label="Nombre beneficiario"
+            value={beneficiaryName}
+            onChange={(e) => setBeneficiaryName(e.target.value)}
+            fullWidth
+            disabled={loading}
+            margin="normal"
+          />
+          <TextField
+            label="CLABE"
+            value={bankCLABE}
+            onChange={(e) => handleChangeCLABE(e.target.value)}
+            onBlur={() => handleVerifyCLABE()}
+            fullWidth
+            inputMode="numeric"
+            disabled={loading}
+            margin="normal"
+          />
+          <Autocomplete
+            options={BANK_OPTIONS}
+            value={bank}
+            onChange={(_, newValue) => handleChangeBank(newValue ?? "")}
+            onInputChange={(_, newInputValue) => handleChangeBank(newInputValue)}
+            readOnly={!unknownBank}
+            disabled={bankCLABE === ""}
+            fullWidth
+            freeSolo
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Banco"
+                margin="normal"
+                fullWidth
+              />
+            )}
+          />
           {error && <Typography color="error">{error}</Typography>}
-          <Button onClick={handleStripeConnect} disabled={loading} variant="contained" color="secondary" sx={{ mt: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Conectar con Stripe"}
+          <Button onClick={handleUpdateBankData} disabled={loading} variant="contained" sx={{ mt: 2 }}>
+            {loading ? <CircularProgress size={24} /> : "Siguiente"}
           </Button>
         </Box>
       )}
