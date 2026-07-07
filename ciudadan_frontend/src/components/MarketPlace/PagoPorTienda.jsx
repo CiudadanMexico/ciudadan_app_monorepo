@@ -477,6 +477,22 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
         >
           {uploaded ? "Comprobante subido ✓" : subiendo ? "Subiendo comprobante..." : "Subir comprobante"}
         </button>
+        {/* Botón de acción de transferir - falta lógica necesaria */}
+        <button
+          disabled
+          onClick={() => console.log("Action transferir")}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 6,
+            border: "none",
+            cursor: "pointer",
+            background: "#2e7d32",
+            color: "#fff",
+            opacity: subiendo ? 0.8 : 1,
+          }}
+        >
+          Pagar
+        </button>
       </div>
 
       {uploaded && (

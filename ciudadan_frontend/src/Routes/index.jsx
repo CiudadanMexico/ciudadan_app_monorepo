@@ -118,6 +118,7 @@ import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import TestToken from '../components/TestToken.jsx';
+import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -345,6 +346,10 @@ const Rutas = () => (
     <Route
       path='/productos/eliminar/:slug'
       element={<EliminarProductoWrapper />}
+    />
+    <Route
+      path='/market/comprar/:slug'
+      element={<FinalizarCompraProducto />}
     />
 
     {/* Cartera / OpWallet */}

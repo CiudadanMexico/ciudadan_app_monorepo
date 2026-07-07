@@ -1,0 +1,559 @@
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import React, { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom';
+import DireccionSelector from '../../components/MarketPlace/DireccionSelector';
+import { AnimatePresence, motion } from 'framer-motion';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import StarIcon from '@mui/icons-material/Star';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import GaleriaImagenesProducto from '../../components/MarketPlace/GaleriaImagenesProducto';
+import useProductos from '../../hooks/useProductos';
+import productoImg from '../../assets/placeholders/producto.png';
+import DetalleProducto from '../../components/MarketPlace/DetalleProducto';
+import { useAuth0 } from "@auth0/auth0-react";
+import { useCart } from "../../Contexts/CartContext";
+import PagoPorTienda from '../../components/MarketPlace/PagoPorTienda';
+
+const STRAPI = process.env.REACT_APP_STRAPI_URL;
+const steps = ["Producto", "Dirección", "Pago", "Confirmación"];
+
+const extractStore = (rawStore) => {
+  if (!rawStore) {
+    return { id: null, name: "Tienda sin nombre" };
+  }
+  const maybeData = rawStore?.data || rawStore;
+  const id = maybeData?.id || rawStore?.id || maybeData?.attributes?.id || null;
+  const name =
+    maybeData?.attributes?.name ||
+    maybeData?.attributes?.nombre ||
+    rawStore?.name ||
+    rawStore?.attributes?.name ||
+    "Tienda sin nombre";
+  const banco = maybeData?.attributes?.banco ?? rawStore?.banco ?? rawStore?.attributes?.banco ?? "";
+  const clabe_bancaria = maybeData?.attributes?.clabe_bancaria ?? rawStore?.clabe_bancaria ?? rawStore?.attributes?.clabe_bancaria ?? "";
+  const nombre_bancario = maybeData?.attributes?.nombre_bancario ?? rawStore?.nombre_bancario ?? rawStore?.attributes?.nombre_bancario ?? "";
+  return { id: id || null, name, banco, clabe_bancaria, nombre_bancario };
+};
+
+export default function FinalizarCompraProducto() {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+
+  const {
+    getProductoBySlug,
+    precotizacionTotal,
+    calcularPromedioRankingsPorProducto,
+    obtenerResenas,
+  } = useProductos();
+  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { precotizarPlataforma, precotizarMienvio, precotizarStripe } = useCart();
+
+
+  const [activeStep, setActiveStep] = useState(0);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [creatingPedidos, setCreatingPedidos] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
+  const [producto, setProducto] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [imagenIndex, setImagenIndex] = useState(0);
+  const [cantidad, setCantidad] = useState(1);
+  const [envioEstimado, setEnvioEstimado] = useState(null);
+  const [rankingInfo, setRankingInfo] = useState({ count: 0, avg5: null });
+  const [resenasData, setResenasData] = useState([]);
+
+  const [pedidoCreado, setPedidoCreado] = useState(null); // un solo pedido (no array)
+  const [carritoId, setCarritoId] = useState(null);
+
+  const handleConfirmAddress = useCallback((dir) => {
+    console.log("cart y emojis - dirección seleccionada:", dir);
+    setSelectedAddress(dir);
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchProducto = async () => {
+      setLoading(true);
+      setError(null);
+      setProducto(null);
+      setEnvioEstimado(null);
+      setRankingInfo({ count: 0, avg5: null });
+      setResenasData([]);
+
+      try {
+        const data = await getProductoBySlug(slug);
+        if (!mounted) return;
+
+        if (!data) {
+          setError('No se encontró el producto.');
+          return;
+        }
+
+        setProducto(data);
+        setImagenIndex(0);
+        setCantidad(1);
+
+        // enriquecimiento no bloqueante
+        (async () => {
+          try {
+            if (typeof calcularPromedioRankingsPorProducto === 'function') {
+              const res = await calcularPromedioRankingsPorProducto(data.id);
+              if (!mounted) return;
+              setRankingInfo({ count: res.count || 0, avg5: res.avg5 != null ? res.avg5 : null });
+            } else {
+              const attrs = data.attributes || {};
+              const numero = attrs.numero_calificaciones || 0;
+              const sumStars = attrs.calificacion || 0;
+              const avg = numero ? (sumStars / numero) : null;
+              if (!mounted) return;
+              setRankingInfo({ count: numero, avg5: avg });
+            }
+          } catch (err) {
+            console.error('[Producto] error calculando ranking:', err);
+          }
+        })();
+
+        (async () => {
+          try {
+            if (typeof obtenerResenas === 'function') {
+              const rez = await obtenerResenas(data.id);
+              if (!mounted) return;
+              setResenasData(rez || []);
+            } else {
+              const rel = data.attributes?.resenas || [];
+              if (!mounted) return;
+              setResenasData(Array.isArray(rel) ? rel : []);
+            }
+          } catch (err) {
+            console.error('[Producto] error cargando reseñas:', err);
+          }
+        })();
+
+        (async () => {
+          try {
+            const envioField = data.attributes?.envio;
+            if (envioField && String(envioField).trim() !== '') {
+              if (!mounted) return;
+              setEnvioEstimado(String(envioField));
+            } else {
+              if (typeof precotizacionTotal === 'function') {
+                const attrs = data.attributes || {};
+                const precioNum = Number(attrs.precio) || 0;
+                const candidato = {
+                  id: data.id,
+                  precio: precioNum,
+                  largo: attrs.largo,
+                  ancho: attrs.ancho,
+                  alto: attrs.alto,
+                  peso: attrs.peso,
+                  cp: attrs.cp || attrs.cp_origen || null,
+                };
+                const cpDestino = attrs?.cp_destino || attrs?.cp || '11560';
+                const total = await precotizacionTotal(candidato, cpDestino);
+                if (!mounted) return;
+                if (total != null && !isNaN(Number(total))) {
+                  const fmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(total));
+                  setEnvioEstimado(fmt);
+                } else {
+                  setEnvioEstimado('No disponible');
+                }
+              } else {
+                setEnvioEstimado('No disponible');
+              }
+            }
+          } catch (err) {
+            console.error('[Producto] error cotizando envío:', err);
+            if (mounted) setEnvioEstimado('Error al cotizar');
+          }
+        })();
+
+      } catch (err) {
+        console.error('[Producto] fetch error', err);
+        setError('Error cargando el producto.');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    if (slug) fetchProducto();
+    return () => { mounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, getProductoBySlug, precotizacionTotal, calcularPromedioRankingsPorProducto, obtenerResenas]);
+
+  const handleCantidadChange = (newCantidad) => {
+    if (newCantidad < 1) return;
+    const stockLocal = producto?.attributes?.stock;
+    if (typeof stockLocal === 'number' && newCantidad > stockLocal) return;
+    setCantidad(newCantidad);
+  };
+
+  // derivadas seguras (siempre antes de cualquier return)
+  const attrs = producto?.attributes || {};
+  const nombre = attrs.nombre || attrs.titulo || 'Sin título';
+  const descripcion = attrs.descripcion || '';
+  const imagenPredeterminada =
+    attrs?.imagen_predeterminada?.data?.[0]?.attributes?.formats?.medium?.url ||
+    attrs?.imagen_predeterminada?.data?.[0]?.attributes?.url ||
+    null;
+
+  const imagenesRel = Array.isArray(attrs?.imagenes?.data)
+    ? attrs.imagenes.data.map(i => `${process.env.REACT_APP_STRAPI_URL}${i.attributes.url}`)
+    : [];
+
+  const todasLasImagenes = [
+    ...(imagenPredeterminada ? [`${process.env.REACT_APP_STRAPI_URL}${imagenPredeterminada}`] : []),
+    ...imagenesRel,
+  ];
+  if (todasLasImagenes.length === 0) todasLasImagenes.push(productoImg);
+
+  const precioNum = Number(attrs.precio) || null;
+  const precioFmt = precioNum != null ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(precioNum) : 'Precio no disponible';
+
+  const stock = attrs.stock;
+  const vendidos = attrs.vendidos || 0;
+  const marca = attrs.marca || null;
+  const localidad = attrs.localidad || null;
+  const estado = attrs.estado || null;
+
+  const avg5 = rankingInfo.avg5 != null ? rankingInfo.avg5 : (attrs.numero_calificaciones ? ((attrs.calificacion || 0) / (attrs.numero_calificaciones * 1)) : null);
+  const numCalificaciones = rankingInfo.count || attrs.numero_calificaciones || 0;
+
+  // cálculo simple sin hooks para evitar HMR/hook-order issues
+  const estrellas = (() => {
+    const valor = avg5 != null && !isNaN(Number(avg5)) ? Math.round(Number(avg5)) : 0;
+    return Array.from({ length: 5 }).map((_, i) => i < valor);
+  })();
+
+  const envioMostrar = envioEstimado || (attrs.envio || null) || 'No disponible';
+
+  const handleCrearPedidos = async () => {
+    console.log("cart y emojis - handleCrearPedidos (producto) iniciado");
+
+    if (!isAuthenticated) {
+      await loginWithRedirect({ appState: { returnTo: `/producto/${slug}/finalizar` } });
+      return;
+    }
+
+    if (!selectedAddress) {
+      alert("Selecciona una dirección primero.");
+      return;
+    }
+
+    if (!producto) {
+      alert("Producto no disponible.");
+      return;
+    }
+
+    setCreatingPedidos(true);
+
+    try {
+      const storeInfo = extractStore(attrs.store);
+      const precio_unitario = precioNum || 0;
+      const subtotal = precio_unitario * cantidad;
+
+      const comisionPlataforma = precotizarPlataforma(subtotal);
+      const envio = await precotizarMienvio(
+        attrs.cp || attrs.cp_origen || "",
+        attrs.cp_destino || selectedAddress?.cp || "11560",
+        attrs.largo || 1,
+        attrs.ancho || 1,
+        attrs.alto || 1,
+        attrs.peso || 1,
+        cantidad
+      );
+      const comisionStripe = precotizarStripe(subtotal, envio, comisionPlataforma);
+      const total = parseFloat(
+        (subtotal + envio + comisionPlataforma + comisionStripe).toFixed(2)
+      );
+
+      // Item mapeado igual que mapItemToComponent en FinalizarCompra.jsx
+      const item = {
+        producto: producto.id,
+        nombre: nombre || "Sin nombre",
+        precio_unitario,
+        cantidad,
+        subtotal,
+        envio,
+        subtotal_volumetrico: 0,
+        esquema_impuestos: "sin_iva",
+        cp: attrs.cp || null,
+        total,
+        comisionStripe,
+        comisionPlataforma,
+        store: storeInfo.id,
+        calificado: false,
+        status: "pendiente",
+      };
+
+      console.log("cart y emojis - item único mapeado:", item);
+
+      // ----------------------------
+      // 1) CREAR / ACTUALIZAR CARRITO (aunque sea 1 solo producto)
+      // ----------------------------
+      const carritoPayload = {
+        data: {
+          productos: [item],
+          total: subtotal,
+          total_envios: envio,
+          estado: "activo",
+          ultima_actualizacion: new Date().toISOString(),
+          usuario_email: user?.email || "unknown",
+        },
+      };
+
+      const carritoRes = await fetch(
+        `${STRAPI}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(
+          user?.email || ""
+        )}&filters[estado][$eq]=activo`
+      );
+
+      if (!carritoRes.ok) {
+        throw new Error("Error buscando carrito");
+      }
+
+      const carritoJson = await carritoRes.json();
+      let carritoCreatedId = null;
+
+      if (carritoJson?.data?.length > 0) {
+        carritoCreatedId = carritoJson.data[0].id;
+        const upd = await fetch(`${STRAPI}/api/carritos/${carritoCreatedId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(carritoPayload),
+        });
+        if (!upd.ok) throw new Error("Error actualizando carrito");
+      } else {
+        const newCarrito = await fetch(`${STRAPI}/api/carritos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(carritoPayload),
+        });
+        if (!newCarrito.ok) throw new Error("Error creando carrito");
+        const newJson = await newCarrito.json();
+        carritoCreatedId = newJson?.data?.id;
+      }
+
+      setCarritoId(carritoCreatedId);
+
+      // ----------------------------
+      // 2) CREAR PEDIDO (una sola tienda)
+      // ----------------------------
+      const payloadPedido = {
+        data: {
+          item: [item],
+          tipo: "tienda",
+          timestamp_creacion: new Date().toISOString(),
+          monto_envio: envio,
+          monto_total: total,
+          status: "enviar",
+          carrito_id: carritoCreatedId,
+          direccion_destino: selectedAddress.id,
+          metadata: { usuario_email: user?.email || "unknown" },
+        },
+      };
+
+      const res = await fetch(`${STRAPI}/api/pedidos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payloadPedido),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("cart y emojis - error creando pedido:", text);
+        throw new Error("Error creando pedido");
+      }
+
+      const created = await res.json();
+      const createdData = created?.data || null;
+      const attributes = { ...(createdData?.attributes || {}), store: storeInfo };
+
+      const normalized = {
+        id: createdData?.id || null,
+        attributes,
+        pago: attributes?.pago || attributes?.pago_id || null,
+        _raw: created,
+      };
+
+      console.log("cart y emojis - pedido único normalizado:", normalized);
+      setPedidoCreado(normalized);
+
+      if (normalized.id) {
+        setActiveStep(2);
+      } else {
+        alert("No se pudo crear el pedido. Revisa la consola.");
+      }
+    } catch (err) {
+      console.error("cart y emojis - error en handleCrearPedidos (producto):", err);
+      alert("Error creando el pedido. Revisa la consola.");
+    } finally {
+      setCreatingPedidos(false);
+    }
+  };
+
+  const handleNextStep = () => setActiveStep(1);
+
+  return (
+    <Box sx={{ maxWidth: 980, margin: "0 auto", p: 2 }}>
+      <Typography variant="h4" sx={{ mb: 1 }}>
+        Finalizar compra
+      </Typography>
+      <Divider sx={{ my: 2 }} />
+      <Stepper activeStep={activeStep} sx={{ mb: 2 }}>
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+
+      <AnimatePresence mode="wait">
+        {activeStep === 0 && (
+          <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Paper sx={{ p: 2 }}>
+              <Grid container spacing={4}>
+                <Grid item xs={12} md={6}>
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                    <GaleriaImagenesProducto
+                      imagenes={todasLasImagenes}
+                      nombre={nombre}
+                      imagenIndex={imagenIndex}
+                      setImagenIndex={setImagenIndex}
+                    />
+                  </motion.div>
+
+                  <Box display="flex" gap={1} alignItems="center" mt={2}>
+                    <LocalShippingIcon sx={{ color: '#6d6e71' }} />
+                    <Typography variant="body2" color="text.secondary">Envío estimado:</Typography>
+                    <Typography variant="subtitle2" fontWeight={700}>{envioMostrar}</Typography>
+                  </Box>
+
+                  {typeof stock === 'number' && (
+                    <Box mt={1}>
+                      <Chip label={stock === 0 ? 'Agotado' : `Disponibles: ${stock}`} color={stock === 0 ? 'error' : 'default'} />
+                    </Box>
+                  )}
+                </Grid>
+
+                <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Box mb={1}>
+                    <Typography variant="h5" fontWeight={900}>{precioFmt}</Typography>
+
+                    <Box display="flex" gap={2} alignItems="center" mt={1}>
+                      {marca && <Typography variant="body2" color="text.secondary">Marca: <strong>{marca}</strong></Typography>}
+                    </Box>
+
+                    <Box display="flex" alignItems="center" gap={1} mt={1}>
+                      <Box display="flex" alignItems="center">
+                        {estrellas.map((filled, i) => (
+                          <StarIcon key={i} fontSize="small" sx={{ color: filled ? '#f7b500' : '#e6e6e6' }} />
+                        ))}
+                      </Box>
+                      <Typography variant="body2" fontWeight={700}>
+                        {avg5 != null ? Number(avg5).toFixed(1) : '—'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">({numCalificaciones})</Typography>
+                    </Box>
+                  </Box>
+
+                  {/* DetalleProducto contiene ahora todas las acciones (agregar, favoritos, comprar) */}
+                  <DetalleProducto
+                    producto={producto}
+                    precio={precioNum}
+                    marca={marca}
+                    stock={stock}
+                    vendidos={vendidos}
+                    localidad={localidad}
+                    estado={estado}
+                    cantidad={cantidad}
+                    handleCantidadChange={handleCantidadChange}
+                    enableActions={false}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </motion.div>
+        )}
+        {activeStep === 1 && (
+          <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Paper sx={{ p: 2 }}>
+              <DireccionSelector onConfirm={handleConfirmAddress} />
+            </Paper>
+          </motion.div>
+        )}
+
+        {activeStep === 2 && (
+          <motion.div key="pagos" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Paper sx={{ p: 2 }}>
+              {/* Si no hay pedidos, mostramos mensaje */}
+              {pedidoCreado == null ? (
+                <Typography sx={{ mb: 2 }}>
+                  No hay pedidos creados. Vuelve a intentar crear los pedidos.
+                </Typography>
+              ) : (
+                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={() => console.log("Pago Subido")} />
+              )}
+            </Paper>
+          </motion.div>
+        )}
+
+        {activeStep === 3 && (
+          <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Paper sx={{ p: 4, textAlign: "center" }}>
+              <Typography variant="h5">¡Pedido enviado!</Typography>
+              <Button
+                variant="contained"
+                sx={{ mt: 2 }}
+                onClick={() => {
+                  console.log("cart y emojis - navegando a /mis-compras");
+                  navigate("/mis-compras");
+                }}
+              >
+                Ver mis compras
+              </Button>
+            </Paper>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Box mt={3} display="flex" justifyContent={activeStep > 0 && activeStep < 2 ? "space-between" : "flex-end"}>
+        {
+          activeStep > 0 && activeStep < 2 && (
+            <Button disabled={activeStep < 1} onClick={() => setActiveStep((s) => s - 1)}>
+              Volver
+            </Button>
+          )
+        }
+
+        {activeStep === 0 && (
+          <Button
+            variant="contained"
+            onClick={handleNextStep}
+          >
+            Siguiente
+          </Button>
+        )}
+        {activeStep === 1 && (
+          <Button
+            variant="contained"
+            disabled={!selectedAddress || creatingPedidos}
+            onClick={handleCrearPedidos}
+          >
+            {creatingPedidos ? <CircularProgress size={18} /> : "Crear pedido"}
+          </Button>
+        )}
+
+        {activeStep === 2 && (
+          <Button
+            variant="contained"
+            onClick={() => console.log("Click button Finalizar")}
+            disabled={finalizing}
+          >
+            {finalizing ? <CircularProgress size={18} /> : "Finalizar"}
+          </Button>
+        )}
+      </Box>
+    </Box>
+  )
+}
