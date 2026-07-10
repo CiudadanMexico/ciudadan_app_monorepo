@@ -491,7 +491,7 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
             opacity: subiendo ? 0.8 : 1,
           }}
         >
-          Pagar
+          Pagar pedido
         </button>
       </div>
 
