@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import DireccionSelector from '../../components/MarketPlace/DireccionSelector';
@@ -227,9 +227,7 @@ export default function FinalizarCompraProducto() {
 
   const envioMostrar = envioEstimado || (attrs.envio || null) || 'No disponible';
 
-  const handleCrearPedidos = async () => {
-    console.log("cart y emojis - handleCrearPedidos (producto) iniciado");
-
+  const handleCrearPedido = async (callback = () => { }) => {
     if (!isAuthenticated) {
       await loginWithRedirect({ appState: { returnTo: `/producto/${slug}/finalizar` } });
       return;
@@ -350,6 +348,7 @@ export default function FinalizarCompraProducto() {
           carrito_id: carritoCreatedId,
           direccion_destino: selectedAddress.id,
           metadata: { usuario_email: user?.email || "unknown" },
+          usuario: user,
         },
       };
 
@@ -379,8 +378,8 @@ export default function FinalizarCompraProducto() {
       console.log("cart y emojis - pedido único normalizado:", normalized);
       setPedidoCreado(normalized);
 
-      if (normalized.id) {
-        setActiveStep(2);
+      if (normalized.id && callback) {
+        callback();
       } else {
         alert("No se pudo crear el pedido. Revisa la consola.");
       }
@@ -393,6 +392,12 @@ export default function FinalizarCompraProducto() {
   };
 
   const handleNextStep = () => setActiveStep(1);
+  const handleNextStep2 = () => setActiveStep(2);
+  const handleSaveLater = () => {
+    setTimeout(() => navigate("/market"), 500);
+  };
+
+  console.log("Usuario on finalizar producto:", user)
 
   return (
     <Box sx={{ maxWidth: 980, margin: "0 auto", p: 2 }}>
@@ -517,42 +522,68 @@ export default function FinalizarCompraProducto() {
         )}
       </AnimatePresence>
 
-      <Box mt={3} display="flex" justifyContent={activeStep > 0 && activeStep < 2 ? "space-between" : "flex-end"}>
+      <Box mt={1} display="flex" justifyContent={activeStep > 0 && activeStep < 2 ? "space-between" : "flex-end"}>
         {
-          activeStep > 0 && activeStep < 2 && (
-            <Button disabled={activeStep < 1} onClick={() => setActiveStep((s) => s - 1)}>
-              Volver
-            </Button>
+          user ? (
+            <>
+              {
+                activeStep > 0 && activeStep < 2 && (
+                  <Button disabled={activeStep < 1} onClick={() => setActiveStep((s) => s - 1)}>
+                    Volver
+                  </Button>
+                )
+              }
+
+              {activeStep === 0 && (
+                <Button
+                  variant="contained"
+                  onClick={handleNextStep}
+                >
+                  Siguiente
+                </Button>
+              )}
+              {activeStep === 1 && (
+                <>
+                  <Box display='flex' gap={2} justifyContent='center'>
+                    <Tooltip title="Continuar con el pago del pedido">
+                      <Button
+                        variant="contained"
+                        disabled={!selectedAddress || creatingPedidos}
+                        onClick={() => handleCrearPedido(handleNextStep2)}
+                      >
+                        {creatingPedidos ? <CircularProgress size={18} /> : "Pagar"}
+                      </Button>
+                    </Tooltip>
+                    <Tooltip title="Continuar con el pago del pedido más tarde">
+                      <Button
+                        color="secondary"
+                        disabled={!selectedAddress || creatingPedidos}
+                        onClick={() => handleCrearPedido(handleSaveLater)}
+                      >
+                        {creatingPedidos ? <CircularProgress size={18} /> : "Guardar"}
+                      </Button>
+                    </Tooltip>
+                  </Box>
+                </>
+              )}
+              {activeStep === 2 && (
+                <Button
+                  variant="contained"
+                  onClick={() => console.log("Click button Finalizar")}
+                  disabled={finalizing}
+                >
+                  {finalizing ? <CircularProgress size={18} /> : "Finalizar"}
+                </Button>
+              )}
+            </>
           )
+            : (
+              <div className="carrito-login">
+                <button onClick={() => loginWithRedirect()}>Iniciar sesión</button>
+              </div>
+            )
         }
 
-        {activeStep === 0 && (
-          <Button
-            variant="contained"
-            onClick={handleNextStep}
-          >
-            Siguiente
-          </Button>
-        )}
-        {activeStep === 1 && (
-          <Button
-            variant="contained"
-            disabled={!selectedAddress || creatingPedidos}
-            onClick={handleCrearPedidos}
-          >
-            {creatingPedidos ? <CircularProgress size={18} /> : "Crear pedido"}
-          </Button>
-        )}
-
-        {activeStep === 2 && (
-          <Button
-            variant="contained"
-            onClick={() => console.log("Click button Finalizar")}
-            disabled={finalizing}
-          >
-            {finalizing ? <CircularProgress size={18} /> : "Finalizar"}
-          </Button>
-        )}
       </Box>
     </Box>
   )
