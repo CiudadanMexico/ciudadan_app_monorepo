@@ -1,5 +1,5 @@
 // src/helpers/validacionesProducto.js
-export const textoValido = /^[\w\s.,¡!¿?()\-'"áéíóúüÁÉÍÓÚÜñÑ]+$/;
+export const textoValido = /^[\w\s.,:¡!¿?()\-'"%/áéíóúüÁÉÍÓÚÜñÑ]+$/;
 
 export const validarPaso1 = (formData) => {
   const nombre = formData.nombre?.trim() ?? '';
