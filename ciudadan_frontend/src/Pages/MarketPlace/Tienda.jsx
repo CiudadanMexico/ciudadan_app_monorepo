@@ -12,15 +12,17 @@ import PedidosEntregados from './PedidosEntregados';
 import PagosTienda from './PagosTienda';
 import ConfiguracionTienda from './ConfiguracionTienda';
 import ActivaTuMembresia from '../../components/Membresias/ActivaTuMembresia';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 const Tienda = () => {
   const { slug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isLoading } = useAuth0();
-  const { isActivaMembresia} = useRoles();
+  const { isActivaMembresia } = useRoles();
   console.log('🔎🔎🔎🔎🔎🔎🔎🔎🔎🔎🔽🔽🔽 tienda es activa membresia', isActivaMembresia);
-  
+
 
   const [tabIndex, setTabIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -106,6 +108,19 @@ const Tienda = () => {
     fetchProductos();
   }, [user]);
 
+  const handleChange = (event, newValue) => {
+    const selectedTab = tabs.at(newValue);
+    if(selectedTab){
+      handleTabClick(newValue,selectedTab.path);
+    }
+  };
+
+  const a11yProps = (index) => ({
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  });
+
+
   if (isLoading) return <p>Cargando...</p>;
 
   // ---------- RETORNO TEMPRANO: si la membresía está presente y NO está activa,
@@ -158,7 +173,14 @@ const Tienda = () => {
 
       {/* Columna derecha */}
       <div style={{ flex: '1 1 65%' }}>
-        <div
+        <Tabs value={tabIndex} onChange={handleChange} aria-label="basic tabs example">
+          {
+            tabs.map(({ label, path }, index) => (
+              <Tab key={`item-tab-${index}`} label={label} {...a11yProps(0)} />
+            ))
+          }
+        </Tabs>
+        {/* <div
           style={{
             borderBottom: '1px solid #ccc',
             marginBottom: '16px',
@@ -167,16 +189,17 @@ const Tienda = () => {
             gap: '4px'
           }}
         >
-          {tabs.map(({ label, path }, index) => (
-            <button
-              key={label}
-              onClick={() => handleTabClick(index, path)}
-              className={`tab-button ${tabIndex === index ? 'active' : ''}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+          {
+            tabs.map(({ label, path }, index) => (
+              <button
+                key={label}
+                onClick={() => handleTabClick(index, path)}
+                className={`tab-button ${tabIndex === index ? 'active' : ''}`}
+              >
+                {label}
+              </button>
+            ))}
+        </div> */}
 
         <div>
           {tabIndex === 0 && <PedidosPendientes />}
