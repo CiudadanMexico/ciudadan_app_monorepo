@@ -112,6 +112,9 @@ const useProductos = ({ paginado } = {}) => {
   const [error, setError] = useState(null);
   const [producto, setProducto] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(10);
+
 
   const API_ROOT = process.env.REACT_APP_STRAPI_URL + '/api';
   const API_URL_PRODUCTOS = `${API_ROOT}/productos`;
@@ -514,8 +517,6 @@ const useProductos = ({ paginado } = {}) => {
         const {
           filtros,
           parametros,
-          pagina,
-          porPagina,
           precio_min,
           precio_max,
           marca,
@@ -534,7 +535,7 @@ const useProductos = ({ paginado } = {}) => {
         if (filtros === 'categoria' && parametros) {
           params = {
             ...params,
-            'filters[categoria][slug][$eq]': parametros,
+            'filters[store_category][slug][$eq]': parametros,
           };
         }
 
@@ -572,7 +573,7 @@ const useProductos = ({ paginado } = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [API_URL_PRODUCTOS, setProductosNormalized]);
+  }, [API_URL_PRODUCTOS, setProductosNormalized, pagina, porPagina]);
 
   const getProductosPorCategoria = useCallback(async (categoriaId) => {
     setLoading(true);
@@ -683,6 +684,10 @@ const useProductos = ({ paginado } = {}) => {
     contadorRankings,
     calcularPromedioRankingsPorProducto, // { count, avg100, avg5 }
     actualizarCalificacionProducto,     // actualiza producto en Strapi con numero_calificaciones y calificacion (suma de estrellas)
+    pagina,
+    setPagina,
+    porPagina,
+    setPorPagina
   };
 };
 
