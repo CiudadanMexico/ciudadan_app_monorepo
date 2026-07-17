@@ -19,6 +19,8 @@ const Buscador = ({
   onChangePriceRange = (priceRange = [0, 10]) => console.log("default onChangePriceRange:", priceRange),
   onChangeSelectedBrand = (selectedBrand = '') => console.log("default onChangeSelectedBrand:", selectedBrand),
   onChangeSelectedStore = (selectedStore = '') => console.log("default onChangeSelectedStore:", selectedStore),
+  flagEnableClearSearch,
+  initializeClearSearch,
 }) => {
   const [busqueda, setBusqueda] = useState(search);
   const [marcas, setMarcas] = useState([]);
@@ -28,6 +30,7 @@ const Buscador = ({
   const [selectedLocalTienda, setSelectedLocalTienda] = useState(advanceFilters.selectedStore);
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [precioMaximo, setPrecioMaximo] = useState(500);
+  const [localFiltersApplied, setLocalFiltersApplied] = useState(false);
 
   const navigate = useNavigate();
 
@@ -185,13 +188,24 @@ const Buscador = ({
     setLocalPrecio([0, 100]);
     setSelectedLocalMarca('');
     setSelectedLocalTienda('');
+    setLocalFiltersApplied(false);
     onChangeAdvanceFilters({ applied: false, priceRange: [0, 100], selectedBrand: '', selectedStore: '' });
   };
 
-  const handleApplyAdvanceFilters = () => onChangeAdvanceFilters({ applied: true, priceRange: localPrecio, selectedBrand: selectedLocalMarca, selectedStore: selectedLocalTienda });
+  const handleApplyAdvanceFilters = () => {
+    setLocalFiltersApplied(true);
+    onChangeAdvanceFilters({ applied: true, priceRange: localPrecio, selectedBrand: selectedLocalMarca, selectedStore: selectedLocalTienda })
+  };
+
+  useEffect(() => {
+    if (flagEnableClearSearch) {
+      setBusqueda('')
+      initializeClearSearch();
+    }
+  }, [flagEnableClearSearch]);
 
   return (
-    <Box mt={3} textAlign="center">
+    <Box mt={2} textAlign="center">
       <Box
         display="flex"
         justifyContent="center"
@@ -307,10 +321,11 @@ const Buscador = ({
                   value={selectedLocalMarca}
                   label="Marca"
                   onChange={(e) => handleChangeBrand(e.target.value)}
+                  sx={{textAlign:'left'}}
                 >
                   <MenuItem value="">Todas</MenuItem>
                   {loadingOptions ? (
-                    <MenuItem disabled>Cargando...</MenuItem>
+                    <MenuItem  disabled>Cargando...</MenuItem>
                   ) : (
                     marcas.map((m) => (
                       <MenuItem key={m} value={m}>{m}</MenuItem>
@@ -325,6 +340,7 @@ const Buscador = ({
                   value={selectedLocalTienda}
                   label="Tienda"
                   onChange={(e) => handleChangeStore(e.target.value)}
+                  sx={{textAlign:'left'}}
                 >
                   <MenuItem value="">Todas</MenuItem>
                   {loadingOptions ? (
@@ -337,17 +353,12 @@ const Buscador = ({
                 </Select>
               </FormControl>
               <Box display='flex' justifyContent='flex-end' gap={5}>
-                {
-                  advanceFilters.applied ? (
-                    <Button onClick={handleClearAdvanceFilters} color='error'>
-                      Retirar filtros
-                    </Button>
-                  ) : (
-                    <Button onClick={handleApplyAdvanceFilters}>
-                      Aplicar filtros
-                    </Button>
-                  )
-                }
+                <Button disabled={!localFiltersApplied} onClick={handleClearAdvanceFilters} color='error'>
+                  Retirar filtros
+                </Button>
+                <Button onClick={handleApplyAdvanceFilters}>
+                  Aplicar filtros
+                </Button>
               </Box>
             </Box>
           </AccordionDetails>

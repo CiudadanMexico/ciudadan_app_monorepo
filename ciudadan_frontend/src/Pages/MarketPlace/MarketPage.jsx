@@ -58,6 +58,7 @@ export default function MarketPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({ applied: false, priceRange: [0, 100], selectedBrand: '', selectedStore: '' });
+  const [enableClearSearch, setEnableClearSearch] = useState(false);
 
   // Refs
   const itemRefs = useRef(new Map()); // id -> element
@@ -140,7 +141,7 @@ export default function MarketPage() {
           requestParams['filters[marca][$eq]'] = selectedBrand;
         }
         if (selectedStore) {
-          requestParams['filters[tienda][name][$eq]'] = selectedStore;
+          requestParams['filters[store][name][$eq]'] = selectedStore;
         }
       }
 
@@ -169,6 +170,7 @@ export default function MarketPage() {
   const handlerClearSearch = () => {
     setSelectedCategory(prev => prev ? '' : prev);
     setSearch('');
+    setEnableClearSearch(true);
   }
   const filtersKey = useMemo(() => JSON.stringify(advancedFilters), [advancedFilters]);
   // Cargar categorías (una vez)
@@ -289,6 +291,8 @@ export default function MarketPage() {
             onChangePriceRange={handleChangePriceRange}
             onChangeSelectedBrand={handleChangeSelectedBrand}
             onChangeSelectedStore={handleChangeSelectedStore}
+            flagEnableClearSearch={enableClearSearch}
+            initializeClearSearch={() => setEnableClearSearch(false)}
           />
         </Box>
       </Box>
@@ -337,7 +341,7 @@ export default function MarketPage() {
           </Box>
         )
       }
-      <Grid container spacing={3} mt={3}>
+      <Grid container mt={3} p={1} alignContent={'center'}>
         {
           (loadingProducts && products.length === 0) && Array.from({ length: isDesktop ? 8 : 4 }).map((_, i) => (
             <Grid key={`skel-${i}`} item xs={12} sm={6} md={3}>

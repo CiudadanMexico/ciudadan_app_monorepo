@@ -668,7 +668,7 @@ const useProductos = ({ paginado, porPaginaDefault = 50 } = {}) => {
     try {
       setLoading(true);
       setError(null);
-      const queryParams = new URLSearchParams({ populate: '*', 'pagination[pageSize]': 50, 'pagination[page]': 1, ...requestParams });
+      const queryParams = new URLSearchParams({ populate: '*', 'pagination[pageSize]': 50, 'pagination[page]': 1, 'sort[0]':'precio:asc', ...requestParams });
       const query = queryParams.toString();
       const response = await fetch(`${API_URL_PRODUCTOS}?${query}`);
       const data = await response.json();
