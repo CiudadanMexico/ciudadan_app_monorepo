@@ -104,8 +104,9 @@ const precotizacionTotal = async (producto, cpDestino) => {
  * useProductos
  * @param {Object} options
  * @param {boolean} options.paginado - si true, el hook devolverá productos en forma { data: [], meta: {} }
+ * @param {number|undefined} options.porPaginaDefault
  */
-const useProductos = ({ paginado } = {}) => {
+const useProductos = ({ paginado, porPaginaDefault = 50 } = {}) => {
   const isPaginado = Boolean(paginado);
   const [productos, setProductos] = useState(isPaginado ? { data: [], meta: {} } : []);
   const [loading, setLoading] = useState(false);
@@ -113,7 +114,7 @@ const useProductos = ({ paginado } = {}) => {
   const [producto, setProducto] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const [pagina, setPagina] = useState(1);
-  const [porPagina, setPorPagina] = useState(10);
+  const [porPagina, setPorPagina] = useState(porPaginaDefault);
 
 
   const API_ROOT = process.env.REACT_APP_STRAPI_URL + '/api';
@@ -245,7 +246,6 @@ const useProductos = ({ paginado } = {}) => {
           'pagination[pageSize]': pageSize,
           populate: '*',
         },
-        withCredentials: true,
       });
       return res?.data?.data || [];
     } catch (err) {
@@ -652,6 +652,41 @@ const useProductos = ({ paginado } = {}) => {
     }
   }, [API_URL_PRODUCTOS]);
 
+  const obtenerPrecioMaximo = (productos = []) => {
+    if (!Array.isArray(productos) || productos.length === 0) return null;
+
+    const precios = productos
+      .map((p) => Number(p?.attributes?.precio))
+      .filter((precio) => !isNaN(precio));
+
+    if (precios.length === 0) return null;
+    const maxPrecio = Math.max(...precios);
+    return Math.round(maxPrecio + 1);
+  };
+
+  const getProducts = async (requestParams = {}, onSuccess, onError) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const queryParams = new URLSearchParams({ populate: '*', 'pagination[pageSize]': 50, 'pagination[page]': 1, ...requestParams });
+      const query = queryParams.toString();
+      const response = await fetch(`${API_URL_PRODUCTOS}?${query}`);
+      const data = await response.json();
+      if (onSuccess)
+        onSuccess();
+      return data;
+
+    } catch (error) {
+      setError(error);
+      console.error('fetchProductos error', error);
+      if (onError)
+        onError(error);
+      return { data: [], meta: {} };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     productos,
     loading,
@@ -687,7 +722,9 @@ const useProductos = ({ paginado } = {}) => {
     pagina,
     setPagina,
     porPagina,
-    setPorPagina
+    setPorPagina,
+    obtenerPrecioMaximo,
+    getProducts
   };
 };
 
