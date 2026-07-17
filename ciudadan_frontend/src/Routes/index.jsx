@@ -119,6 +119,7 @@ import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
+import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -272,11 +273,11 @@ const Rutas = () => (
     {/* Market / Marketplace / MarketRoute */}
     <Route
       path='/market'
-      element={<MarketPlace />}
+      element={<MarketPage />}
     />
     <Route
       path='/marketplaces'
-      element={<MarketPlace />}
+      element={<MarketPage />}
     />
     <Route
       path='/market/producto/:slug'
