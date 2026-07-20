@@ -81,7 +81,14 @@ const CursorClickAnimation = ({ isMobile }) => {
         }}
       >
         <svg width="28" height="36" viewBox="0 0 28 36">
-          <path d="M2 2 L22 18 L14 20 L24 34 L16 36 L6 22 L2 2 Z" fill="#fff" stroke="#000" strokeWidth="0.6" />
+          <path
+            d="M3 2 L22 18 L15 19.5 L24 33 L18 34 L10.5 21 L5 24 Z"
+            fill="#fff"
+            stroke="#000"
+            strokeWidth="0.8"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
         </svg>
       </motion.div>
 
@@ -173,7 +180,7 @@ const EnviosBanner = () => {
       }}
     >
 
-        {/* patrón sutil */}
+      {/* patrón sutil */}
       <Box
         sx={{
           position: "absolute",
