@@ -14,6 +14,7 @@ import ConfiguracionTienda from './ConfiguracionTienda';
 import ActivaTuMembresia from '../../components/Membresias/ActivaTuMembresia';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 
 const Tienda = () => {
   const { slug } = useParams();
@@ -21,7 +22,10 @@ const Tienda = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth0();
   const { isActivaMembresia } = useRoles();
+  const theme = useTheme();
+  const isMobileDevice = useMediaQuery(theme.breakpoints.down('md'));
   console.log('🔎🔎🔎🔎🔎🔎🔎🔎🔎🔎🔽🔽🔽 tienda es activa membresia', isActivaMembresia);
+  console.log('Es dispositivo móvil', isMobileDevice);
 
 
   const [tabIndex, setTabIndex] = useState(0);
@@ -110,8 +114,8 @@ const Tienda = () => {
 
   const handleChange = (event, newValue) => {
     const selectedTab = tabs.at(newValue);
-    if(selectedTab){
-      handleTabClick(newValue,selectedTab.path);
+    if (selectedTab) {
+      handleTabClick(newValue, selectedTab.path);
     }
   };
 
@@ -133,75 +137,92 @@ const Tienda = () => {
   const filtros = 'mios';
 
   return (
-    <div
-      style={{
+    <Box
+      sx={{
         display: 'flex',
-        flexDirection: isMobile ? 'column-reverse' : 'row',
-        padding: '24px',
-        gap: '32px',
-        flexWrap: 'wrap'
+        flexDirection: { xs: 'column', md: 'row' },
+        p: { xs: 1.5, sm: 3 },
+        gap: 4,
+        flexWrap: 'wrap',
+        width: '100%',
+        boxSizing: 'border-box',
+        overflowX: 'hidden'
       }}
     >
       {/* Columna izquierda */}
-      <div style={{ flex: '0 0 30%', textAlign: 'center' }}>
-        <img
+      <Box
+        sx={{
+          flex: { xs: '1 1 100%', md: '0 0 30%' },
+          maxWidth: { xs: '100%', md: '30%' },
+          textAlign: 'center'
+        }}
+      >
+        <Box
+          component="img"
           src={storeImageURL || StoreImagePlaceholder}
           alt="Tienda"
-          style={{
-            width: '100%',
+          sx={{
+            width: { xs: '55%', sm: '40%', md: '100%' },
+            maxWidth: 260,
             aspectRatio: '1 / 1',
             borderRadius: '16px',
             boxShadow: '0px 4px 10px rgba(0,0,0,0.1)',
-            objectFit: 'cover'
+            objectFit: 'cover',
+            mx: 'auto',
+            display: 'block'
           }}
         />
-        <h1 style={{ marginTop: '16px', marginBottom: '8px', fontSize: '2rem', fontWeight: 'bold' }}>
+        <Typography
+          component="h1"
+          sx={{ mt: 2, mb: 1, fontSize: { xs: '1.4rem', sm: '1.7rem', md: '2rem' }, fontWeight: 'bold' }}
+        >
           {slug}
-        </h1>
-        <p>Productos: <strong>{productos.length}</strong> &nbsp;&nbsp; Ventas: <strong>700</strong></p>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '8px' }}>
+        </Typography>
+        <Typography sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>
+          Productos: <strong>{productos.length}</strong> &nbsp;&nbsp; Ventas: <strong>700</strong>
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 1, flexWrap: 'wrap' }}>
           <i className="material-icons" style={{ color: '#FFC107' }}>star</i>
           <i className="material-icons" style={{ color: '#FFC107' }}>star</i>
           <i className="material-icons" style={{ color: '#FFC107' }}>star</i>
           <i className="material-icons" style={{ color: '#FFC107' }}>star_half</i>
           <i className="material-icons" style={{ color: '#ccc' }}>star_border</i>
-          <span style={{ marginLeft: '8px' }}>325 calificaciones</span>
-        </div>
-        <p style={{ marginTop: '8px' }}>201 reseñas</p>
-        <p>Usuario Auth0: {user.email}</p>
-      </div>
+          <Typography component="span" sx={{ ml: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>325 calificaciones</Typography>
+        </Box>
+        <Typography sx={{ mt: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>201 reseñas</Typography>
+        <Typography sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' }, wordBreak: 'break-word' }}>
+          Usuario Auth0: {user.email}
+        </Typography>
+      </Box>
 
       {/* Columna derecha */}
-      <div style={{ flex: '1 1 65%' }}>
-        <Tabs value={tabIndex} onChange={handleChange} aria-label="basic tabs example">
+      <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 65%' }, minWidth: 0, width: '100%', mt: 3 }}>
+        <Tabs
+          value={tabIndex}
+          onChange={handleChange}
+          aria-label="basic tabs example"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          sx={{
+            minHeight: { xs: 40, sm: 48 },
+            '& .MuiTab-root': {
+              minHeight: { xs: 40, sm: 48 },
+              minWidth: { xs: 'auto', sm: 90 },
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              px: { xs: 1.25, sm: 2 },
+              whiteSpace: 'nowrap'
+            }
+          }}
+        >
           {
             tabs.map(({ label, path }, index) => (
               <Tab key={`item-tab-${index}`} label={label} {...a11yProps(0)} />
             ))
           }
         </Tabs>
-        {/* <div
-          style={{
-            borderBottom: '1px solid #ccc',
-            marginBottom: '16px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '4px'
-          }}
-        >
-          {
-            tabs.map(({ label, path }, index) => (
-              <button
-                key={label}
-                onClick={() => handleTabClick(index, path)}
-                className={`tab-button ${tabIndex === index ? 'active' : ''}`}
-              >
-                {label}
-              </button>
-            ))}
-        </div> */}
 
-        <div>
+        <Box sx={{ mt: { xs: 1.5, sm: 2 }, width: '100%', overflowX: 'hidden' }}>
           {tabIndex === 0 && <PedidosPendientes />}
           {tabIndex === 1 && <PedidosEntregados />}
           {tabIndex === 2 && <MisProductos filtros={filtros} />}
@@ -209,9 +230,9 @@ const Tienda = () => {
           {tabIndex === 4 && <PreguntasProducto />}
           {tabIndex === 5 && <PagosTienda />}
           {tabIndex === 6 && <ConfiguracionTienda />}
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

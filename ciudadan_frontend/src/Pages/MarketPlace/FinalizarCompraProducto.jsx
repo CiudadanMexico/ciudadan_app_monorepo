@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import DireccionSelector from '../../components/MarketPlace/DireccionSelector';
@@ -38,6 +38,8 @@ const extractStore = (rawStore) => {
 export default function FinalizarCompraProducto() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const {
     getProductoBySlug,
@@ -349,6 +351,8 @@ export default function FinalizarCompraProducto() {
           direccion_destino: selectedAddress.id,
           metadata: { usuario_email: user?.email || "unknown" },
           usuario: user,
+          store: storeInfo.id,
+          store_email: attrs.store.email,
         },
       };
 
@@ -397,7 +401,143 @@ export default function FinalizarCompraProducto() {
     setTimeout(() => navigate("/market"), 500);
   };
 
-  console.log("Usuario on finalizar producto:", user)
+  const handlePagoSubido = useCallback((pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl = null) => {
+    console.log("cart y emojis - handlePagoSubido (producto) llamado:", {
+      pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl,
+    });
+
+    if (!pedidoId) {
+      console.warn("cart y emojis - handlePagoSubido: pedidoId inválido, abortando");
+      return;
+    }
+
+    const pedidoIdStr = String(pedidoId);
+
+    setPedidoCreado((prev) => {
+      if (!prev || String(prev.id) !== pedidoIdStr) {
+        console.warn("cart y emojis - handlePagoSubido: pedidoId no coincide con pedidoCreado, se ignora");
+        return prev;
+      }
+
+      const attributes = { ...(prev.attributes || {}) };
+
+      if (pagoId) {
+        attributes.pago_id = pagoId;
+      }
+
+      if (fileId) {
+        attributes.comprobante = {
+          data: { id: fileId, attributes: { url: fileUrl || null } },
+        };
+      }
+
+      attributes.status = attributes.status || "enviar";
+
+      const updated = {
+        ...prev,
+        attributes,
+        pago: pagoId || prev.pago || attributes.pago,
+      };
+
+      console.log("cart y emojis - handlePagoSubido actualizando pedidoCreado:", {
+        pedidoId: prev.id,
+        updatedAttributes: attributes,
+      });
+
+      return updated;
+    });
+  }, []);
+
+  const handleFinalizar = async () => {
+    console.log("cart y emojis - handleFinalizar (producto) iniciado");
+
+    if (!pedidoPagado) {
+      alert("Falta el pago.");
+      return;
+    }
+
+    if (!pedidoCreado?.id) {
+      console.warn("cart y emojis - pedidoCreado sin id, no se puede finalizar");
+      alert("No hay un pedido válido para finalizar.");
+      return;
+    }
+
+    setFinalizing(true);
+
+    try {
+      console.log("cart y emojis - marcando pedido como pagado, id:", pedidoCreado.id);
+
+      const upd = await fetch(`${STRAPI}/api/pedidos/${pedidoCreado.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            status: "enviar",
+            fecha_pagado: new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (!upd.ok) {
+        console.error("cart y emojis - error actualizando pedido:", await upd.text());
+      } else {
+        console.log("cart y emojis - pedido actualizado correctamente id:", pedidoCreado.id);
+      }
+
+      if (carritoId) {
+        console.log("cart y emojis - marcando carrito como pagado id:", carritoId);
+        const updCar = await fetch(`${STRAPI}/api/carritos/${carritoId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            data: { estado: "pagado" },
+          }),
+        });
+
+        if (!updCar.ok) {
+          console.error("cart y emojis - error actualizando carrito:", await updCar.text());
+        } else {
+          console.log("cart y emojis - carrito actualizado a pagado:", carritoId);
+        }
+      }
+
+      setActiveStep(3);
+    } catch (err) {
+      console.error("cart y emojis - error en handleFinalizar (producto):", err);
+      alert("Ocurrió un error al finalizar. Revisa la consola.");
+    } finally {
+      setFinalizing(false);
+    }
+  };
+
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const detail = e?.detail;
+        if (!detail) return;
+        console.log("cart y emojis - FinalizarCompraProducto evento cart:paymentUploaded recibido:", detail);
+        const { pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl } = detail;
+        handlePagoSubido(pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl);
+      } catch (err) {
+        console.warn("cart y emojis - FinalizarCompraProducto handler error:", err);
+      }
+    };
+
+    window.addEventListener("cart:paymentUploaded", handler);
+    return () => window.removeEventListener("cart:paymentUploaded", handler);
+  }, [handlePagoSubido]);
+
+
+
+  const pedidoPagado = Boolean(
+    pedidoCreado &&
+    (
+      Boolean(pedidoCreado?.pago) ||
+      Boolean(pedidoCreado?.attributes?.pago) ||
+      Boolean(pedidoCreado?.attributes?.pago_id) ||
+      Boolean(pedidoCreado?.attributes?.pagoId)
+    )
+  );
 
   return (
     <Box sx={{ maxWidth: 980, margin: "0 auto", p: 2 }}>
@@ -408,7 +548,7 @@ export default function FinalizarCompraProducto() {
       <Stepper activeStep={activeStep} sx={{ mb: 2 }}>
         {steps.map((label) => (
           <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+            <StepLabel>{isMobile ? '' : label}</StepLabel>
           </Step>
         ))}
       </Stepper>
@@ -497,7 +637,7 @@ export default function FinalizarCompraProducto() {
                   No hay pedidos creados. Vuelve a intentar crear los pedidos.
                 </Typography>
               ) : (
-                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={() => console.log("Pago Subido")} />
+                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido} />
               )}
             </Paper>
           </motion.div>
@@ -569,7 +709,7 @@ export default function FinalizarCompraProducto() {
               {activeStep === 2 && (
                 <Button
                   variant="contained"
-                  onClick={() => console.log("Click button Finalizar")}
+                  onClick={handleFinalizar}
                   disabled={finalizing}
                 >
                   {finalizing ? <CircularProgress size={18} /> : "Finalizar"}
