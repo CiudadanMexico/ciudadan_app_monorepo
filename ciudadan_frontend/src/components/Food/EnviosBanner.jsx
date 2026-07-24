@@ -49,7 +49,7 @@ const CursorClickAnimation = ({ isMobile }) => {
   // posiciones aproximadas donde está el link "Afilia tu Restaurante"
   const desktopStart = "20%";
   const desktopMid = "26%";
-  const mobileStart = "12px";
+  const mobileStart = "16px";
   const mobileMid = "60px";
 
   const startX = isMobile ? mobileStart : desktopStart;
@@ -97,7 +97,7 @@ const CursorClickAnimation = ({ isMobile }) => {
         component="div"
         sx={{
           position: "absolute",
-          left: { xs: "6px", md: "20%" },
+          left: { xs: "12px", md: "20%" },
           top: "50%",
           transform: "translate(-50%,-50%)",
           width: { xs: 140, md: 260 },
@@ -196,7 +196,7 @@ const EnviosBanner = () => {
       <Box
         sx={{
           position: "absolute",
-          left: { xs: "6px", md: "20%" },
+          left: { xs: "10px", md: "20%" },
           top: "50%",
           transform: "translateY(-50%)",
           zIndex: 6,
@@ -204,7 +204,7 @@ const EnviosBanner = () => {
           maxWidth: { xs: 120, md: 260 },
         }}
         component={Link}
-        to="/comida/afiliate"
+        to="/comida/afiliar-restaurante"
         style={{ textDecoration: "none" }}
       >
         <AnimatePresence mode="wait">

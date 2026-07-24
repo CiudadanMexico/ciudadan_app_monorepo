@@ -120,6 +120,8 @@ import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
+import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
+import Restaurant from '../Pages/Food/Restaurant.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -264,6 +266,14 @@ const Rutas = () => (
     <Route
       path='/comida'
       element={<Food />}
+    />
+    <Route
+      path='/comida/afiliar-restaurante'
+      element={<RegistroRestaurante />}
+    />
+    <Route
+      path='/comida/restaurante/:slug/*'
+      element={<Restaurant />}
     />
     <Route
       path='/restaurantes'

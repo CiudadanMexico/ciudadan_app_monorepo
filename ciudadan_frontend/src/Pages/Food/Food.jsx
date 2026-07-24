@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import Buscador from '../../components/Food/Buscador.jsx';
 import ProductoCard from '../../components/MarketPlace/ProductoCard.jsx';
 import CategoriasSlider from '../../components/MarketPlace/CategoriasSlider.jsx';
-import { useCategorias } from '../../hooks/useCategorias.jsx';
 import { useUbicacion } from '../../hooks/useUbicacion.jsx';
 import useProductos from '../../hooks/useProductos.jsx';
 import EnviosBanner from '../../components/Food/EnviosBanner.jsx';
@@ -27,6 +26,7 @@ import {
 import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import { useFoodCategories } from '../../hooks/food/useFoodCategories.jsx';
 
 const Food = ({ filtros = '', parametros = '' }) => {
   // colores y constantes de UI
@@ -51,7 +51,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
   };
 
   // hooks y datos
-  const { getCategorias, loading: loadingCategorias } = useCategorias();
+  const { getCategories, loading: loadingCategories } = useFoodCategories();
   const { ubicacion } = useUbicacion();
   const prodHook = useProductos();
   const {
@@ -109,9 +109,10 @@ const Food = ({ filtros = '', parametros = '' }) => {
     let mounted = true;
     (async () => {
       try {
-        const cats = await getCategorias();
+        const cats = await getCategories();
         if (!mounted) return;
         setCategorias(cats || []);
+        console.log("Categorias food:", cats);
       } catch (e) {
         safeLogError('Error cargando categorías', e);
         if (mounted) setCategorias([]);
@@ -120,113 +121,113 @@ const Food = ({ filtros = '', parametros = '' }) => {
     return () => {
       mounted = false;
     };
-  }, [getCategorias]);
+  }, []);
 
-  // cargar productos
-  useEffect(() => {
-    if (filtros) return;
-    let mounted = true;
-    const fetchAll = async () => {
-      let data = [];
-      try {
-        try {
-          const raw = await getProductos();
-          if (Array.isArray(raw)) data = raw;
-          else if (raw && Array.isArray(raw.data)) data = raw.data;
-          else data = raw?.data ?? [];
-        } catch (errInner) {
-          safeLogError('getProductos falló', errInner);
-          data = [];
-        }
-        if (!data || !Array.isArray(data)) data = [];
+  // // cargar productos
+  // useEffect(() => {
+  //   if (filtros) return;
+  //   let mounted = true;
+  //   const fetchAll = async () => {
+  //     let data = [];
+  //     try {
+  //       try {
+  //         const raw = await getProductos();
+  //         if (Array.isArray(raw)) data = raw;
+  //         else if (raw && Array.isArray(raw.data)) data = raw.data;
+  //         else data = raw?.data ?? [];
+  //       } catch (errInner) {
+  //         safeLogError('getProductos falló', errInner);
+  //         data = [];
+  //       }
+  //       if (!data || !Array.isArray(data)) data = [];
 
-        const enriched = await Promise.all(
-          data.map(async (p) => {
-            if (!p) return null;
-            const attr = p.attributes || {};
-            const cpDestino = ubicacion?.codigoPostal || '11560';
-            const cpOrigen = attr.cp || '11590';
-            if (!cpOrigen || !cpDestino) return null;
-            try {
-              const envio = await precotizarMienvio(cpOrigen, cpDestino, attr.largo, attr.ancho, attr.alto, attr.peso);
-              const total = await precotizacionTotal(p, cpDestino);
-              const img = await obtenerImagenProducto?.(p.id);
-              return {
-                ...p,
-                envio,
-                total,
-                imagen: img,
-                calificacion: calificacionPromedio?.(p),
-                numCalificaciones: obtenerNumeroCalificaciones?.(p),
-              };
-            } catch (errProd) {
-              safeLogError(`Error enriqueciendo producto id=${p?.id}`, errProd);
-              return null;
-            }
-          })
-        );
-        if (!mounted) return;
-        setProductos(enriched.filter(Boolean));
-      } catch (errOuter) {
-        safeLogError('fetchAll general error', errOuter);
-        if (mounted) setProductos([]);
-      }
-    };
-    if (ubicacion?.codigoPostal) fetchAll();
-    return () => {
-      mounted = false;
-    };
-  }, [
-    ubicacion,
-    filtros,
-    getProductos,
-    precotizarMienvio,
-    precotizacionTotal,
-    obtenerImagenProducto,
-    calificacionPromedio,
-    obtenerNumeroCalificaciones,
-  ]);
+  //       const enriched = await Promise.all(
+  //         data.map(async (p) => {
+  //           if (!p) return null;
+  //           const attr = p.attributes || {};
+  //           const cpDestino = ubicacion?.codigoPostal || '11560';
+  //           const cpOrigen = attr.cp || '11590';
+  //           if (!cpOrigen || !cpDestino) return null;
+  //           try {
+  //             const envio = await precotizarMienvio(cpOrigen, cpDestino, attr.largo, attr.ancho, attr.alto, attr.peso);
+  //             const total = await precotizacionTotal(p, cpDestino);
+  //             const img = await obtenerImagenProducto?.(p.id);
+  //             return {
+  //               ...p,
+  //               envio,
+  //               total,
+  //               imagen: img,
+  //               calificacion: calificacionPromedio?.(p),
+  //               numCalificaciones: obtenerNumeroCalificaciones?.(p),
+  //             };
+  //           } catch (errProd) {
+  //             safeLogError(`Error enriqueciendo producto id=${p?.id}`, errProd);
+  //             return null;
+  //           }
+  //         })
+  //       );
+  //       if (!mounted) return;
+  //       setProductos(enriched.filter(Boolean));
+  //     } catch (errOuter) {
+  //       safeLogError('fetchAll general error', errOuter);
+  //       if (mounted) setProductos([]);
+  //     }
+  //   };
+  //   if (ubicacion?.codigoPostal) fetchAll();
+  //   return () => {
+  //     mounted = false;
+  //   };
+  // }, [
+  //   ubicacion,
+  //   filtros,
+  //   getProductos,
+  //   precotizarMienvio,
+  //   precotizacionTotal,
+  //   obtenerImagenProducto,
+  //   calificacionPromedio,
+  //   obtenerNumeroCalificaciones,
+  // ]);
 
-  useEffect(() => {
-    if (!filtros) return;
-    try {
-      fetchProductosFiltros({ filtros, parametros });
-    } catch (e) {
-      safeLogError('fetchProductosFiltros falló', e);
-    }
-  }, [pagina, porPagina, filtros, parametros, fetchProductosFiltros]);
+  // useEffect(() => {
+  //   if (!filtros) return;
+  //   try {
+  //     fetchProductosFiltros({ filtros, parametros });
+  //   } catch (e) {
+  //     safeLogError('fetchProductosFiltros falló', e);
+  //   }
+  // }, [pagina, porPagina, filtros, parametros, fetchProductosFiltros]);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            const id = e.target.getAttribute('data-id');
-            if (!id) return;
-            setVisible((v) => ({ ...v, [id]: true }));
-            try {
-              observer.unobserve(e.target);
-            } catch (e) {}
-          }
-        });
-      },
-      { threshold: 0.18 }
-    );
-    const lista = filtros ? productosFiltrados?.data ?? [] : productos;
-    if (Array.isArray(lista)) {
-      lista.forEach((prod) => {
-        try {
-          const id = prod?.id;
-          if (!id) return;
-          const el = document.querySelector(`[data-id='${id}']`);
-          if (el) observer.observe(el);
-        } catch (e) {
-          safeLogError('Observer error', e);
-        }
-      });
-    }
-    return () => observer.disconnect();
-  }, [filtros ? productosFiltrados : productos]);
+  // useEffect(() => {
+  //   const observer = new IntersectionObserver(
+  //     (entries) => {
+  //       entries.forEach((e) => {
+  //         if (e.isIntersecting) {
+  //           const id = e.target.getAttribute('data-id');
+  //           if (!id) return;
+  //           setVisible((v) => ({ ...v, [id]: true }));
+  //           try {
+  //             observer.unobserve(e.target);
+  //           } catch (e) {}
+  //         }
+  //       });
+  //     },
+  //     { threshold: 0.18 }
+  //   );
+  //   const lista = filtros ? productosFiltrados?.data ?? [] : productos;
+  //   if (Array.isArray(lista)) {
+  //     lista.forEach((prod) => {
+  //       try {
+  //         const id = prod?.id;
+  //         if (!id) return;
+  //         const el = document.querySelector(`[data-id='${id}']`);
+  //         if (el) observer.observe(el);
+  //       } catch (e) {
+  //         safeLogError('Observer error', e);
+  //       }
+  //     });
+  //   }
+  //   return () => observer.disconnect();
+  // }, [filtros ? productosFiltrados : productos]);
 
   const listToRender = filtros ? productosFiltrados?.data ?? [] : productos;
 
@@ -302,7 +303,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
           </Stack>
 
           {/* CATEGORÍAS */}
-          {(!loadingCategorias && categorias.length > 0 && mostrarCategorias) && (
+          {(!loadingCategories && categorias.length > 0 && mostrarCategorias) && (
             <Box sx={{ mb: 3 }}>
               <Paper
                 elevation={1}
@@ -351,7 +352,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
                   categorias={categorias.map((c) => ({
                     nombre: c.attributes?.nombre,
                     slug: c.attributes?.slug,
-                    imagen: `${process.env.REACT_APP_STRAPI_URL}${c.attributes?.imagen?.data?.attributes?.url || ''}`,
+                    imagen: c?.attributes?.imagen?.urls?.thumbnail ?? c?.attributes?.imagen?.urls?.small ?? c?.attributes?.imagen?.urls?.original ?? '',
                   }))}
                   onClick={(slug) => handleCategoriaClick(slug)}
                 />
