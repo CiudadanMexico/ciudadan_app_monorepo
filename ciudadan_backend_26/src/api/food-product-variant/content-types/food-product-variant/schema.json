@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_product_variants",
+  "info": {
+    "singularName": "food-product-variant",
+    "pluralName": "food-product-variants",
+    "displayName": "Food Product Variants",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "precio": {
+      "type": "decimal",
+      "required": true
+    },
+    "peso": {
+      "type": "decimal"
+    },
+    "calorias": {
+      "type": "integer"
+    },
+    "stock": {
+      "type": "integer"
+    },
+    "usa_stock": {
+      "type": "boolean",
+      "default": false
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "orden": {
+      "type": "integer",
+      "default": 0
+    },
+    "food_product": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::food-product.food-product",
+      "inversedBy": "food_product_variants"
+    },
+    "porciones": {
+      "type": "decimal"
+    },
+    "ingredientes": {
+      "type": "json"
+    },
+    "alergenos": {
+      "type": "json"
+    },
+    "imagen_predeterminada": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "imagenes": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": true
+    }
+  }
+}
