@@ -1280,7 +1280,7 @@ export interface ApiCarroCarro extends Schema.CollectionType {
     > &
       Attribute.DefaultTo<'indiferente'>;
     musica: Attribute.Enumeration<
-      ['sin_musica', 'musica_suave', 'pasajero_elige', 'indiferente']
+    ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
     > &
       Attribute.DefaultTo<'indiferente'>;
     tipo_musica: Attribute.JSON;
@@ -2316,6 +2316,7 @@ export interface ApiConfiguracionUsuarioConfiguracionUsuario
     singularName: 'configuracion-usuario';
     pluralName: 'configuraciones-usuarios';
     displayName: 'configuraciones_usuarios';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -2328,6 +2329,7 @@ export interface ApiConfiguracionUsuarioConfiguracionUsuario
     >;
     email: Attribute.Email;
     configuraciones: Attribute.JSON;
+    pago_labory: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

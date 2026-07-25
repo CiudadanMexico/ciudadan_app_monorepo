@@ -3,7 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 const { calculateFareFromMetersSeconds } = require('../lib/fareServer');
-
+const { getUserRating } = require('../lib/calcRating');
 
 const normalizeAddress = (addr) => {
   if (!addr) return null;
@@ -159,6 +159,7 @@ router.post('/send-trip', async (req, res) => {
 
     // Redondeo de distancia al STEP_METERS
     const roundedDistanceMeters = suggested && suggested.distanceMeters ? roundToStep(suggested.distanceMeters, STEP_METERS) : STEP_METERS;
+    const userRating = payload.userEmail ? await getUserRating(payload.userEmail) : null;
 
     // Añadimos campos al payload
     payload.suggestedPrice = suggested ? suggested.fare : null;
@@ -166,6 +167,7 @@ router.post('/send-trip', async (req, res) => {
     payload.distanceMeters = suggested ? suggested.distanceMeters : null;
     payload.durationSeconds = suggested ? suggested.durationSeconds : null;
     payload.roundedDistanceMeters = roundedDistanceMeters;
+    payload.userRating = userRating;
     payload.meta.suggested = {
       price: payload.suggestedPrice,
       priceFormatted: payload.suggestedPriceFormatted,

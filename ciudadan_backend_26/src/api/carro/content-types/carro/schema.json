@@ -12,11 +12,9 @@
   },
   "pluginOptions": {},
   "attributes": {
-
     "conductoremail": {
       "type": "email"
     },
-
     "imagen": {
       "type": "media",
       "multiple": false,
@@ -28,50 +26,41 @@
         "audios"
       ]
     },
-
     "conductor": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
     },
-
     "fecharegistro": {
       "type": "datetime"
     },
-
     "marca": {
       "type": "string",
       "minLength": 2,
       "maxLength": 40
     },
-
     "nombre": {
       "type": "string",
       "minLength": 2,
       "maxLength": 40
     },
-
     "modelo": {
       "type": "integer",
       "min": 1980,
       "max": 2035
     },
-
     "puertas": {
       "type": "integer",
       "min": 2,
       "max": 8
     },
-
     "caracteristicas": {
       "type": "json"
     },
-
     "observaciones": {
       "type": "text",
       "maxLength": 500
     },
-
     "charla": {
       "type": "enumeration",
       "enum": [
@@ -82,90 +71,73 @@
       ],
       "default": "indiferente"
     },
-
     "musica": {
       "type": "enumeration",
       "enum": [
-        "sin_musica",
-        "musica_suave",
-        "pasajero_elige",
+        "sin música",
+        "música suave",
+        "pasajero elige",
         "indiferente"
       ],
       "default": "indiferente"
     },
-
     "tipo_musica": {
       "type": "json"
     },
-
     "wifi": {
       "type": "boolean",
       "default": false
     },
-
     "agua": {
       "type": "boolean",
       "default": false
     },
-
     "cargador": {
       "type": "boolean",
       "default": false
     },
-
     "snacks": {
       "type": "boolean",
       "default": false
     },
-
     "portabici": {
       "type": "boolean",
       "default": false
     },
-
     "accesibilidad": {
       "type": "boolean",
       "default": false
     },
-
     "mascotas": {
       "type": "boolean",
       "default": false
     },
-
     "fumadores": {
       "type": "boolean",
       "default": false
     },
-
     "aire_acondicionado": {
       "type": "boolean",
       "default": false
     },
-
     "rockola": {
       "type": "boolean",
       "default": false
     },
-
     "ambiente_inclusivo": {
       "type": "boolean",
       "default": false
     },
-
     "otro_genero": {
       "type": "boolean",
       "default": false
     },
-
     "ultimaverificacion": {
       "type": "datetime"
     },
-
     "verificaciones": {
       "type": "json"
     },
-
     "status": {
       "type": "enumeration",
       "enum": [
@@ -176,12 +148,10 @@
       ],
       "default": "pendiente"
     },
-
     "agencia": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::agencia.agencia"
     }
-
   }
 }

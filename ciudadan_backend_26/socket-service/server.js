@@ -53,12 +53,15 @@ app.set("io", io);
 
 // Importar rutas existentes (ajusta si faltan)
 const priceCalculatingRoute = require("./routes/priceCalculating");
+const ratingCalculatingRoute = require("./routes/calcRating");
 const sendMessageRoute = require("./routes/trip-request");
 const wikiRoute = require("./routes/wiki");
 const notificaRoute = require("./routes/notifica");
 const testTrip = require('./routes/testTrip');
 const calculateFare = require('./routes/calculateFare');
 const aceptarViajeRoute = require('./routes/aceptarViaje');
+
+const { getUserRating } = require('./lib/calcRating');
 
 let openpayRoute;
 try {
@@ -70,6 +73,7 @@ if (openpayRoute) app.use("/api", openpayRoute);
 
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);
+app.use("/", ratingCalculatingRoute);
 app.use("/", sendMessageRoute);
 app.use("/wiki", wikiRoute);
 app.use("/notifica", notificaRoute);
@@ -113,7 +117,7 @@ io.on("connection", (socket) => {
     io.emit("speakTTS", message);
   });
 
-  socket.on('ofertaviaje', (payload, ack) => {
+  socket.on('ofertaviaje', async (payload, ack) => {
     console.log('evento oferta taxista recibido');
     try {
       const id = payload && (payload.id || payload.travelId || payload.travelid);
@@ -124,11 +128,14 @@ io.on("connection", (socket) => {
         if (typeof ack === 'function') ack({ ok: false, error: 'payload inválido: coordinates lat/lng requeridos' });
         return;
       }
+      const userRating = payload.driverId ? await getUserRating(payload.driverId, true) : null;
+      console.log('userRating obtenido para driverId', payload.driverId, ':', userRating);
       const out = {
         fromSocketId: socket.id,
         coordinates: { lat: Number(coords.lat), lng: Number(coords.lng) },
         driverId: payload.driverId || null,
         price,
+        userRating,
         meta: payload.meta || null,
         timestamp: new Date().toISOString(),
       };
@@ -146,6 +153,7 @@ io.on("connection", (socket) => {
         console.error('Error en actualizandoUbicacion: payload inválido');
         return;
       }
+      //console.log(payload.payload);
       io.emit('driver-location', payload.payload);
     } catch (e) {
       console.error('Error en actualizandoUbicacion:', e);
@@ -158,6 +166,7 @@ io.on("connection", (socket) => {
         console.error('Error en trip-update: payload inválido o falta travelId');
         return;
       }
+      console.log('trip-update recibido:', JSON.stringify(payload, null, 2));
       io.emit('trip-update', payload);
     } catch (e) {
       console.error('Error en trip-update:', e);
