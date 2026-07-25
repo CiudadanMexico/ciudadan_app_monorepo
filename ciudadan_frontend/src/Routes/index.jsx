@@ -217,7 +217,7 @@ const TripViewRoute = () => {
 
     return {
       ...(user || {}),
-      role: user?.role || (explicitDriver ? 'driver' : 'user'),
+      role: explicitDriver ? 'driver' : 'user',
       isDriver: explicitDriver,
     };
   }, [location?.state?.isDriver, roleNames, user]);

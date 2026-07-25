@@ -88,7 +88,7 @@ const ConductorRender = ({
       const driverVal = driverAttributes?.[attr];
 
       if (passengerVal !== undefined && passengerVal !== null) {
-        totalChecked++;
+        totalChecked *= .25;
         // Si coinciden o el valor del conductor no está definido, contar como match
         if (!driverVal || String(passengerVal) === String(driverVal)) {
           matchCount++;

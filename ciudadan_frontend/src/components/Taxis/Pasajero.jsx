@@ -1,6 +1,6 @@
 // src/components/Taxis/Pasajero.jsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Button, Typography, Box } from '@mui/material';
+import { Button, Typography, Box, Switch, TextField, MenuItem, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import io from 'socket.io-client';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,48 @@ import taxiIcon from '../../assets/taxi_marker.png';
 
 const DEFAULT_FROM = { lat: 19.432608, lng: -99.133209 };
 //const DEFAULT_TO = { lat: 19.432608, lng: -99.133209 };
+
+const DEFAULT_PREFERENCES = {
+  marca: '',
+  nombre: '',
+  modelo: '',
+  puertas: '',
+  charla: 'indiferente',
+  musica: 'indiferente',
+  tipo_musica: [],
+  wifi: false,
+  agua: false,
+  cargador: false,
+  snacks: false,
+  portabici: false,
+  accesibilidad: false,
+  mascotas: false,
+  fumadores: false,
+  aire_acondicionado: false,
+  rockola: false,
+  ambiente_inclusivo: false,
+  otro_genero: false,
+};
+
+const ENUM_OPTIONS = {
+  charla: ['indiferente', 'silencio', 'ligera', 'social'],
+  musica: ['indiferente', 'sin música', 'música suave', 'pasajero elige'],
+};
+
+const BOOLEAN_OPTIONS = [
+  { label: 'WiFi', value: 'wifi' },
+  { label: 'Agua', value: 'agua' },
+  { label: 'Cargador', value: 'cargador' },
+  { label: 'Snacks', value: 'snacks' },
+  { label: 'Portabici', value: 'portabici' },
+  { label: 'Accesibilidad', value: 'accesibilidad' },
+  { label: 'Mascotas', value: 'mascotas' },
+  { label: 'Fumadores', value: 'fumadores' },
+  { label: 'Aire Acondicionado', value: 'aire_acondicionado' },
+  { label: 'Rócola', value: 'rockola' },
+  { label: 'Ambiente Inclusivo', value: 'ambiente_inclusivo' },
+  { label: 'Otro Género', value: 'otro_genero' }
+];
 
 const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
@@ -30,6 +72,10 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [error, setError] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [sheetState, setSheetState] = useState('collapsed');
+  const [preferencesModalOpen, setPreferencesModalOpen] = useState(false);
+  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [paymentLabory, setPaymentLabory] = useState(false);
 
   const { mapRef, fromMarkerRef, toMarkerRef } = useGoogleMaps(
     fromCoordinates,
@@ -81,6 +127,122 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         .replace(/^ws:\/\//i, 'http://');
     } catch (e) {
       return null;
+    }
+  };
+
+  const normalizePreferences = useCallback((prefs = {}) => {
+    const base = { ...DEFAULT_PREFERENCES, ...(prefs || {}) };
+    return {
+      ...base,
+      marca: base.marca ?? '',
+      nombre: base.nombre ?? '',
+      modelo: base.modelo ?? '',
+      puertas: base.puertas ?? '',
+      charla: base.charla ?? 'indiferente',
+      musica: base.musica ?? 'indiferente',
+      tipo_musica: Array.isArray(base.tipo_musica)
+        ? base.tipo_musica.filter(Boolean).map((item) => String(item).trim()).filter(Boolean)
+        : typeof base.tipo_musica === 'string'
+          ? base.tipo_musica.split(',').map((item) => item.trim()).filter(Boolean)
+          : [],
+      wifi: Boolean(base.wifi),
+      agua: Boolean(base.agua),
+      cargador: Boolean(base.cargador),
+      snacks: Boolean(base.snacks),
+      portabici: Boolean(base.portabici),
+      accesibilidad: Boolean(base.accesibilidad),
+      mascotas: Boolean(base.mascotas),
+      fumadores: Boolean(base.fumadores),
+      aire_acondicionado: Boolean(base.aire_acondicionado),
+      rockola: Boolean(base.rockola),
+      ambiente_inclusivo: Boolean(base.ambiente_inclusivo),
+      otro_genero: Boolean(base.otro_genero),
+    };
+  }, []);
+
+  const loadUserPreferences = useCallback(async () => {
+    if (!user?.email || !strapiUrl) return;
+
+    try {
+      const url = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las preferencias');
+      }
+
+      const userData = await response.json();
+      const savedSettings = userData?.data?.[0]?.attributes?.configuraciones || {};
+      const paymentLabory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      setPreferences(normalizePreferences(savedSettings));
+      setPaymentLabory(paymentLabory);
+    } catch (err) {
+      console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
+      setPreferences(DEFAULT_PREFERENCES);
+    }
+  }, [normalizePreferences, strapiToken, strapiUrl, user?.email]);
+
+  useEffect(() => {
+    loadUserPreferences();
+  }, [loadUserPreferences]);
+
+  const handlePreferenceFieldChange = (field, value) => {
+    setPreferences((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePaymentLaboryChange = (field, value) => {
+    setPaymentLabory(value);
+  };
+
+  const saveUserPreferences = async () => {
+    if (!user?.email) return;
+
+    setPreferencesSaving(true);
+    try {
+      const normalized = normalizePreferences(preferences);
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const findUrl = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const findResponse = await fetch(findUrl, { headers });
+      const findData = await findResponse.json();
+      const existing = findData?.data?.[0];
+      const body = {
+        data: {
+          email: user.email,
+          configuraciones: normalized,
+          pago_labory: paymentLabory
+        },
+      };
+
+      const endpoint = existing?.id
+        ? `${strapiUrl}/api/configuraciones-usuarios/${existing.id}`
+        : `${strapiUrl}/api/configuraciones-usuarios`;
+      const method = existing?.id ? 'PUT' : 'POST';
+
+      const response = await fetch(endpoint, {
+        method,
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'No se pudieron guardar las preferencias');
+      }
+
+      setPreferencesModalOpen(false);
+    } catch (err) {
+      console.error('[Pasajero] error guardando preferencias:', err);
+      setError(err.message || 'No se pudieron guardar las preferencias');
+    } finally {
+      setPreferencesSaving(false);
     }
   };
 
@@ -155,7 +317,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       }
 
       try {
-        const { coordinates, price, id, driverId } = offer;
+        const { coordinates, price, id, driverId, driverRating } = offer;
         const position = new window.google.maps.LatLng(
           coordinates.lat,
           coordinates.lng,
@@ -221,7 +383,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
         // Listener en marker: al click abrir modal y seleccionar oferta
         const markerClickListener = marker.addListener('click', () => {
-          setSelectedOffer({ id, coordinates, price, driverId });
+          setSelectedOffer({ id, coordinates, price, driverId, driverRating });
           setIsModalOpen(true);
         });
 
@@ -236,7 +398,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               elem.style.cursor = 'pointer';
               if (!elem._hasClick) {
                 elem.addEventListener('click', () => {
-                  setSelectedOffer({ id, coordinates, price, driverId });
+                  setSelectedOffer({ id, coordinates, price, driverId, driverRating });
                   setIsModalOpen(true);
                 });
                 elem._hasClick = true;
@@ -256,7 +418,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
         setOffers((prev) => [
           ...prev,
-          { id, coordinates, price, timestamp: offer.timestamp },
+          { id, coordinates, price, driverId, driverRating, timestamp: offer.timestamp },
         ]);
       } catch (e) {
         console.warn('[Pasajero] error creando marker para oferta', e);
@@ -359,7 +521,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         try {
           const coordinates =
             payload.coordinates || payload.coords || payload.location || null;
-          const price = payload.precio ?? payload.price ?? null;
+          const price = payload.precio || payload.price || null;
+          const driverRating = payload.userRating || null;
           if (
             !coordinates ||
             typeof coordinates.lat !== 'number' ||
@@ -383,6 +546,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               lng: Number(coordinates.lng),
             },
             price,
+            driverRating,
             timestamp: new Date().toISOString(),
             raw: payload,
           };
@@ -622,6 +786,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     setLoadingSearch(true);
 
     const userEmail = user?.email ?? null;
+    const preferenceSettings = normalizePreferences(preferences);
     const payload = {
       userEmail,
       originCoordinates: fromCoordinates || null,
@@ -629,6 +794,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       originAddress: fromAddress || null,
       destinationAddress: toAddress || null,
       timestamp: new Date().toISOString(),
+      settings: preferenceSettings,
     };
     console.log('[buscarTaxistas] payload:', safeStringify(payload, 2000));
 
@@ -647,8 +813,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       }
 
       const userData = await response.json();
-      const settings = userData?.data?.[0]?.attributes?.configuraciones || {};
       const userId = userData?.data?.[0]?.attributes?.usuario?.data?.id || null;
+      const settings = preferenceSettings;
       console.log("[AcceptTrip] configuraciones del usuario:", settings);
 
       // 1) Intentar POST a /test/send-trip (backend)
@@ -901,6 +1067,20 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           >
             {loadingSearch ? 'Buscando taxistas...' : 'Buscar Conductores'}
           </button>
+          {!loadingSearch && (
+            <Button
+              variant='outlined'
+              onClick={() => setPreferencesModalOpen(true)}
+              sx={{
+                minWidth: 140,
+                borderColor: '#1d3be2',
+                color: '#1d3be2',
+                ml: 1,
+              }}
+            >
+              Preferencias
+            </Button>
+          )}
           {loadingSearch && (
             <button
               onClick={cancelarBusqueda}
@@ -937,6 +1117,59 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
                 : JSON.stringify(error)}
           </div>
         )}
+
+        <Dialog open={preferencesModalOpen} onClose={() => setPreferencesModalOpen(false)} maxWidth='sm' fullWidth>
+          <DialogTitle>Preferencias de viaje</DialogTitle>
+          <DialogContent dividers>
+            <Box sx={{ display: 'grid', gap: 2 }}>
+              <Typography variant='body2' color='text.secondary'>
+                Ajusta tus preferencias para que los conductores puedan ver si encajan contigo antes de aceptar el viaje.
+              </Typography>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                <TextField label='Marca' value={preferences.marca || ''} onChange={(e) => handlePreferenceFieldChange('marca', e.target.value)} fullWidth />
+                <TextField label='Nombre' value={preferences.nombre || ''} onChange={(e) => handlePreferenceFieldChange('nombre', e.target.value)} fullWidth />
+                <TextField label='Modelo' type='number' value={preferences.modelo || ''} onChange={(e) => handlePreferenceFieldChange('modelo', e.target.value)} fullWidth />
+                <TextField label='Puertas' type='number' value={preferences.puertas || ''} onChange={(e) => handlePreferenceFieldChange('puertas', e.target.value)} fullWidth />
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                <TextField select label='Charla' value={preferences.charla || 'indiferente'} onChange={(e) => handlePreferenceFieldChange('charla', e.target.value)} fullWidth>
+                  {ENUM_OPTIONS.charla.map((option) => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </TextField>
+                <TextField select label='Música' value={preferences.musica || 'indiferente'} onChange={(e) => handlePreferenceFieldChange('musica', e.target.value)} fullWidth>
+                  {ENUM_OPTIONS.musica.map((option) => (
+                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+
+              <TextField
+                label='Tipo de música'
+                value={Array.isArray(preferences.tipo_musica) ? preferences.tipo_musica.join(', ') : ''}
+                onChange={(e) => handlePreferenceFieldChange('tipo_musica', e.target.value.split(',').map((item) => item.trim()).filter(Boolean))}
+                placeholder='rock, electrónica, salsa'
+                fullWidth
+              />
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>
+                {BOOLEAN_OPTIONS.map((option) => (
+                  <FormControlLabel control={<Switch checked={Boolean(preferences[option.value])} onChange={(e) => handlePreferenceFieldChange(option.value, e.target.checked)} />} label={option.label} />
+                ))}
+                <FormControlLabel control={<Switch checked={Boolean(paymentLabory)} onChange={(e) => handlePaymentLaboryChange('pago_labory', e.target.checked)} />} label='Pagar hasta el 10% con Labory' />
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setPreferencesModalOpen(false)} disabled={preferencesSaving}>Cancelar</Button>
+            <Button variant='contained' onClick={saveUserPreferences} disabled={preferencesSaving}>
+              {preferencesSaving ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         <div
           className='taxis-map formulario-pasajero'
           style={{

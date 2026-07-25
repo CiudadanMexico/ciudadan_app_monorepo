@@ -241,6 +241,10 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
           </div>
           <div style={{ fontSize: 15 }}>{destination}</div>
 
+          <div style={{ fontSize: 14, color: '#333', marginTop: 10 }}>
+            <strong>Calificación del pasajero:</strong> {travel.userRating ? `${travel.userRating} ⭐` : '—'}
+          </div>
+          
           <div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
             {travel.roundedDistanceMeters ? ` • ${travel.roundedDistanceMeters} m` : ''}
