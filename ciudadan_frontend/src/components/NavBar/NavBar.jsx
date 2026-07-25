@@ -386,7 +386,8 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
         </div>
 
         {/* fila inferior: botones del menú */}
-        <div className={`nav-links wraper bottom-bar${isBottomBarVisible ? '' : ' bottom-bar--hidden'}`}>
+        <div className={`nav-links wraper bottom-bar${isBottomBarVisible ? '' : ' bottom-bar--hidden'}`}
+        style={{ zIndex: 1400 }}>
           {menuSections.map((section) => {
             const serverCount = (contadorNotificaciones && contadorNotificaciones[section]) ? Number(contadorNotificaciones[section]) : 0;
             const optimistic = optimisticByType?.[section] || 0;
@@ -408,7 +409,7 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
       <button
         className="split-action-button"
         type="button"
-        style={{ bottom: isBottomBarVisible ? '72px' : '12px' }}
+        style={{ bottom: isBottomBarVisible ? '72px' : '12px', zIndex: 1500 }}
         aria-label="Acciones rápidas"
       >
         <span

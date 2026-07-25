@@ -8,8 +8,8 @@ const BottomSheet = ({
   children,
   initialState = 'collapsed',
   onStateChange,
-  collapsedHeight = 90,
-  mediumHeight = 380,
+  collapsedHeight = 150,
+  mediumHeight = 350,
   fullHeight = window.innerHeight - 50,
 }) => {
   const [mounted, setMounted] = useState(false);

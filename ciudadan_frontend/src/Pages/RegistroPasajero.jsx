@@ -173,7 +173,8 @@ const RegistroPasajero = ({ onRegister = () => {} }) => {
         "Content-Type": "application/json",
       };
 
-      const strapiJwt = localStorage.getItem("strapi_jwt");
+      //const strapiJwt = localStorage.getItem("strapi_jwt");
+      const strapiJwt = process.env.REACT_APP_STRAPI_TOKEN || '';
       if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
       else {
         try {
@@ -182,7 +183,7 @@ const RegistroPasajero = ({ onRegister = () => {} }) => {
           });
           if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
         } catch (err) {
-          // no pasa nada si Auth0 no devuelve token
+          console.error("Error obteniendo token de Auth0:", err);
         }
       }
 
@@ -219,6 +220,7 @@ const RegistroPasajero = ({ onRegister = () => {} }) => {
       if (foundUser && (foundUser.id || (foundUser.attributes && foundUser.attributes.id))) {
         const id = foundUser.id || foundUser.attributes.id;
         const updateUrl = `${STRAPI_BASE}/api/users/${id}`;
+        console.log('Roles a enviar: ', rolesParaEnviar);
         const updateBody = { data: { ...payloadBase, roles: rolesParaEnviar } };
 
         const updateResp = await fetch(updateUrl, {

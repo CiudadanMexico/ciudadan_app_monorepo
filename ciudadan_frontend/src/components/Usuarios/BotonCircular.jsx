@@ -10,7 +10,8 @@ function BotonCircular({ clase, mediaQ, onClick, searchText }) {
     console.log("Intentando conectar al socket...");
 
     // Conectar al socket en el servidor de localhost
-    socketRef.current = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:3033"); // Ajusta la URL según tu servidor
+    console.log("Conectando a socket en: ", process.env.REACT_APP_SOCKET_URL);
+    socketRef.current = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:33035"); // Ajusta la URL según tu servidor
 
     // Si la conexión es exitosa
     socketRef.current.on("connect", () => {

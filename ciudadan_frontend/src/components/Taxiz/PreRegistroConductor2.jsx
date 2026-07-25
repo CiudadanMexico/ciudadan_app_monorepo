@@ -356,11 +356,18 @@ const normalizeUserFromStrapi = (item) => {
 const fetchStrapiUserByEmail = async (email) => {
   if (!email) return null;
 
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  const strapiJwt = process.env.REACT_APP_STRAPI_TOKEN || '';
+  if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
+
   const url = `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(
     email
   )}&populate[ine_frente]=*&populate[ine_tras]=*&populate[foto_credencial]=*&populate[files]=*`;
 
-  const res = await fetch(url, { credentials: "include" });
+  const res = await fetch(url, { credentials: "include", headers });
   const text = await res.text();
 
   if (!res.ok) {
@@ -376,8 +383,8 @@ const fetchStrapiUserByEmail = async (email) => {
 
   const raw =
     Array.isArray(json) ? json[0] :
-    Array.isArray(json?.data) ? json.data[0] :
-    json?.data?.[0] || json?.data || null;
+      Array.isArray(json?.data) ? json.data[0] :
+        json?.data?.[0] || json?.data || null;
 
   return normalizeUserFromStrapi(raw);
 };
@@ -449,82 +456,89 @@ const PreregistroConductor2 = () => {
 
   const extraDocsCount = Array.isArray(currentDocs.files) ? currentDocs.files.length : 0;
 
-useEffect(() => {
-  const bootstrap = async () => {
-    if (!userEmail) {
-      setLoadingBootstrap(false);
-      setError("No encontramos tu email de usuario.");
-      return;
-    }
+  const headers = {
+    "Content-Type": "application/json",
+  };
 
-    setLoadingBootstrap(true);
-    setError("");
+  const strapiJwt = process.env.REACT_APP_STRAPI_TOKEN || '';
+  if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
 
-    try {
-      const realUser = await fetchStrapiUserByEmail(userEmail);
-
-      if (!realUser?.id) {
+  useEffect(() => {
+    const bootstrap = async () => {
+      if (!userEmail) {
         setLoadingBootstrap(false);
-        setError(`No se encontró usuario en Strapi con el email: ${userEmail}`);
+        setError("No encontramos tu email de usuario.");
         return;
       }
 
-      setStrapiUser(realUser);
-      setExistingUser(realUser);
+      setLoadingBootstrap(true);
+      setError("");
 
-      setForm({
-        nombre_completo:
-          realUser?.nombre_completo ||
-          realUser?.username ||
-          userData?.nombre_completo ||
-          userData?.username ||
-          "",
-        telefono: realUser?.telefono || userData?.telefono || "",
-        fecha_nacimiento: realUser?.fecha_nacimiento
-          ? String(realUser.fecha_nacimiento).slice(0, 10)
-          : "",
-        ciudad: realUser?.ciudad || userData?.ciudad || "",
-        curp: realUser?.curp || userData?.curp || "",
-        rfc: realUser?.rfc || userData?.rfc || "",
-      });
+      try {
+        const realUser = await fetchStrapiUserByEmail(userEmail);
 
-      const agendaRes = await fetch(
-        `${STRAPI_URL}/api/agendas?filters[usuario][id][$eq]=${realUser.id}&filters[descripcion][$containsi]=Preregistro conductor&sort=fecha_inicio:desc&pagination[pageSize]=1&populate[usuario]=*`,
-        { credentials: "include" }
-      );
-
-      const agendaJson = agendaRes.ok ? await agendaRes.json() : { data: [] };
-      const agendaItem = Array.isArray(agendaJson?.data) && agendaJson.data.length ? agendaJson.data[0] : null;
-
-      if (agendaItem) {
-        const attrs = agendaItem.attributes || {};
-        const normalizedAgenda = {
-          id: agendaItem.id,
-          ...attrs,
-        };
-
-        setExistingAgenda(normalizedAgenda);
-        setFecha(String(normalizedAgenda.fecha_inicio || "").slice(0, 10));
-
-        const dt = normalizedAgenda.fecha_inicio ? new Date(normalizedAgenda.fecha_inicio) : null;
-        if (dt && !Number.isNaN(dt.getTime())) {
-          const hh = String(dt.getHours()).padStart(2, "0");
-          const mm = String(dt.getMinutes()).padStart(2, "0");
-          setHora(`${hh}:${mm}`);
+        if (!realUser?.id) {
+          setLoadingBootstrap(false);
+          setError(`No se encontró usuario en Strapi con el email: ${userEmail}`);
+          return;
         }
 
-        setNotice("Ya encontramos una cita previa de conductor en tu cuenta.");
-      }
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "No pudimos cargar tus datos iniciales.");
-    } finally {
-      setLoadingBootstrap(false);
-    }
-  };
+        setStrapiUser(realUser);
+        setExistingUser(realUser);
 
-  bootstrap();
-}, [userEmail]);
+        setForm({
+          nombre_completo:
+            realUser?.nombre_completo ||
+            realUser?.username ||
+            userData?.nombre_completo ||
+            userData?.username ||
+            "",
+          telefono: realUser?.telefono || userData?.telefono || "",
+          fecha_nacimiento: realUser?.fecha_nacimiento
+            ? String(realUser.fecha_nacimiento).slice(0, 10)
+            : "",
+          ciudad: realUser?.ciudad || userData?.ciudad || "",
+          curp: realUser?.curp || userData?.curp || "",
+          rfc: realUser?.rfc || userData?.rfc || "",
+        });
+
+        const agendaRes = await fetch(
+          `${STRAPI_URL}/api/agendas?filters[usuario][id][$eq]=${realUser.id}&filters[descripcion][$containsi]=Preregistro conductor&sort=fecha_inicio:desc&pagination[pageSize]=1&populate[usuario]=*`,
+          { credentials: "include", headers }
+        );
+
+        const agendaJson = agendaRes.ok ? await agendaRes.json() : { data: [] };
+        const agendaItem = Array.isArray(agendaJson?.data) && agendaJson.data.length ? agendaJson.data[0] : null;
+
+        if (agendaItem) {
+          const attrs = agendaItem.attributes || {};
+          const normalizedAgenda = {
+            id: agendaItem.id,
+            ...attrs,
+          };
+
+          setExistingAgenda(normalizedAgenda);
+          setFecha(String(normalizedAgenda.fecha_inicio || "").slice(0, 10));
+
+          const dt = normalizedAgenda.fecha_inicio ? new Date(normalizedAgenda.fecha_inicio) : null;
+          if (dt && !Number.isNaN(dt.getTime())) {
+            const hh = String(dt.getHours()).padStart(2, "0");
+            const mm = String(dt.getMinutes()).padStart(2, "0");
+            setHora(`${hh}:${mm}`);
+          }
+
+          setNotice("Ya encontramos una cita previa de conductor en tu cuenta.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "No pudimos cargar tus datos iniciales.");
+      } finally {
+        setLoadingBootstrap(false);
+      }
+    };
+
+    bootstrap();
+  }, [userEmail]);
 
   useEffect(() => {
     if (!fecha || readOnlyMode) return;
@@ -538,7 +552,7 @@ useEffect(() => {
 
         const url = `${STRAPI_URL}/api/agendas?filters[descripcion][$containsi]=Preregistro conductor&filters[fecha_inicio][$gte]=${start}&filters[fecha_inicio][$lte]=${end}&sort=fecha_inicio:asc&pagination[pageSize]=100`;
 
-        const res = await fetch(url, { credentials: "include" });
+        const res = await fetch(url, { credentials: "include", headers });
         const json = await res.json();
 
         const ocupadas = (json?.data || []).map((item) => {
@@ -587,9 +601,13 @@ useEffect(() => {
     const formData = new FormData();
     formData.append("files", file);
 
+    const uploadHeaders = { ...headers };
+    delete uploadHeaders["Content-Type"];
+
     const res = await fetch(`${STRAPI_URL}/api/upload`, {
       method: "POST",
       credentials: "include",
+      headers: uploadHeaders,
       body: formData,
     });
 
@@ -612,7 +630,7 @@ useEffect(() => {
   };
 
   const buildExistingIds = () => {
-    const current = existingUser || strapiUser ||userData || {};
+    const current = existingUser || strapiUser || userData || {};
     return {
       ine_frente_id: getSingleMediaId(current?.ine_frente),
       ine_tras_id: getSingleMediaId(current?.ine_tras),
@@ -681,9 +699,7 @@ useEffect(() => {
       const userRes = await fetch(`${STRAPI_URL}/api/users/${strapiUser.id}`, {
         method: "PUT",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({ data: userPayload }),
       });
 
@@ -746,9 +762,7 @@ useEffect(() => {
       const agendaRes = await fetch(`${STRAPI_URL}/api/agendas`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({ data: agendaPayload }),
       });
 
@@ -771,7 +785,7 @@ useEffect(() => {
       setNotice("Tu cita quedó agendada correctamente.");
 
       if (typeof fetchRolesYMembresia === "function") {
-        fetchRolesYMembresia(true).catch(() => {});
+        fetchRolesYMembresia(true).catch(() => { });
       }
     } catch (err) {
       console.error(err);
@@ -1260,7 +1274,7 @@ useEffect(() => {
               value={existingUser?.observaciones || ""}
               disabled={readOnlyMode}
               helperText="Escribe aquí algo que el validador deba saber antes de tu cita."
-              onChange={() => {}}
+              onChange={() => { }}
               sx={{
                 "& .MuiInputBase-root": { backgroundColor: "#fff" },
               }}

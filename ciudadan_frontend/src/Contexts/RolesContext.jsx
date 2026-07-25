@@ -130,12 +130,18 @@ export const RolesProvider = ({ children }) => {
 
       // Creamos la promesa y la guardamos para coalescer
       const fetchPromise = (async () => {
+        const headers = {
+          "Content-Type": "application/json",
+        };
+        const strapiJwt = process.env.REACT_APP_STRAPI_TOKEN || '';
+        if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
+
         try {
           // 1) Obtener usuario Strapi por email (con populate necesario)
           const url = `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(
             email
           )}&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*`;
-          const res = await fetch(url, { credentials: 'include' });
+          const res = await fetch(url, { credentials: 'include', headers });
           const json = await res.json();
           const users = Array.isArray(json) ? json : json.data || [];
 
@@ -172,7 +178,7 @@ export const RolesProvider = ({ children }) => {
 
           // 2) Obtener membresias activas para el user by email
           const membUrl = `${STRAPI_URL}/api/membresias?filters[usuarioemail][$eq]=${email}&filters[activa][$eq]=true`;
-          const membRes = await fetch(membUrl, { credentials: 'include' });
+          const membRes = await fetch(membUrl, { credentials: 'include', headers });
 
           let selectedMembresia = null;
           if (membRes.ok) {
