@@ -66,11 +66,16 @@ async function fetchTarifaConfig() {
     `${base}/api/configuraciones-sistema?populate=basic_set`,
   ];
 
+  // Estrategia por si STRAPI_TOKEN no existe
+  let strapi_token = process.env.STRAPI_TOKEN;
+  if (!strapi_token)
+    strapi_token = process.env.STRAPI_API_TOKEN;
   // opciones axios comunes
   const axiosOptsBase = {
     timeout: 15000,
     headers: {
       Accept: 'application/json, text/plain, */*',
+      Authorization: `Bearer ${strapi_token}`,
       'User-Agent': 'ciudadan-backend/1.0 (+https://ciudadan.org)',
       // opcionalmente agrega Origin si Cloudflare lo requiere:
       // Origin: 'https://ciudadan.org'
@@ -153,7 +158,7 @@ async function fetchTarifaConfig() {
   }
 
   // normalizar numéricos
-  const expected = ['baseFare','perKm','perMin','surge','minFare','roundTo'];
+  const expected = ['baseFare', 'perKm', 'perMin', 'surge', 'minFare', 'roundTo'];
   const normalized = {};
   expected.forEach(k => {
     if (basic[k] !== undefined) {
@@ -207,7 +212,21 @@ router.post('/calculate-fare', async (req, res) => {
 
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(originParam)}&destination=${encodeURIComponent(destParam)}&key=${encodeURIComponent(GEOCODING_KEY)}`;
 
-    const r = await axios.get(url, { timeout: 10000 });
+
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    // si hay token, lo usamos; si no, no pasa nada
+    if (process.env.STRAPI_TOKEN || process.env.STRAPI_API_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.STRAPI_TOKEN}`;
+    }
+    // fallback con STRAPI_API_TOKEN por si STRAPI_TOKEN no existe
+    if (process.env.STRAPI_API_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.STRAPI_TOKEN}`;
+    }
+
+    const r = await axios.get(url, { headers, timeout: 10000 });
     if (!r.data || r.data.status !== 'OK' || !r.data.routes || !r.data.routes.length) {
       // fallback: intentamos aproximar distancia por Haversine si vienen coords
       try {

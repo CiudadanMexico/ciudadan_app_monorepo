@@ -116,8 +116,10 @@ io.on("connection", (socket) => {
   socket.on('ofertaviaje', (payload, ack) => {
     console.log('evento oferta taxista recibido');
     try {
+      const id = payload && (payload.id || payload.travelId || payload.travelid);
       const coords = payload && (payload.coordinates || payload.coords || payload.location);
       const price = payload && (payload.price ?? payload.precio ?? null);
+      console.log('ofertaviaje payload:', JSON.stringify(payload, null, 2));
       if (!coords || typeof coords.lat !== 'number' || typeof coords.lng !== 'number') {
         if (typeof ack === 'function') ack({ ok: false, error: 'payload inválido: coordinates lat/lng requeridos' });
         return;
@@ -125,6 +127,7 @@ io.on("connection", (socket) => {
       const out = {
         fromSocketId: socket.id,
         coordinates: { lat: Number(coords.lat), lng: Number(coords.lng) },
+        driverId: payload.driverId || null,
         price,
         meta: payload.meta || null,
         timestamp: new Date().toISOString(),
@@ -134,6 +137,30 @@ io.on("connection", (socket) => {
     } catch (e) {
       console.error('Error manejando ofertaviaje:', e);
       if (typeof ack === 'function') ack({ ok: false, error: String(e) });
+    }
+  });
+
+  socket.on('actualizandoUbicacion', (payload) => {
+    try {
+      if (!payload || !payload.payload) {
+        console.error('Error en actualizandoUbicacion: payload inválido');
+        return;
+      }
+      io.emit('driver-location', payload.payload);
+    } catch (e) {
+      console.error('Error en actualizandoUbicacion:', e);
+    }
+  });
+
+  socket.on('trip-update', (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en trip-update: payload inválido o falta travelId');
+        return;
+      }
+      io.emit('trip-update', payload);
+    } catch (e) {
+      console.error('Error en trip-update:', e);
     }
   });
 

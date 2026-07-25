@@ -18,6 +18,9 @@ router.post('/aceptar-viaje', async (req, res) => {
   try {
     const {
       userEmail,
+      driverId,
+      origencoords,
+      destinocoords,
       conductorcoords,
       travelid,
       travelId,
@@ -27,9 +30,18 @@ router.post('/aceptar-viaje', async (req, res) => {
     } = req.body || {};
 
     const travelIdFinal = travelid || travelId;
+    console.log(`[aceptar-viaje] travelId: ${travelIdFinal}`);
+    console.log(`[aceptar-viaje] userEmail: ${userEmail}`);
+    console.log(`[aceptar-viaje] driverId: ${driverId}`);
+    console.log(`[aceptar-viaje] origencoords: ${JSON.stringify(origencoords)}`);
+    console.log(`[aceptar-viaje] destinocoords: ${JSON.stringify(destinocoords)}`);
 
     if (!userEmail) {
       return res.status(400).json({ ok: false, error: 'userEmail es requerido' });
+    }
+
+    if (!driverId) {
+      return res.status(400).json({ ok: false, error: 'driverId es requerido' });
     }
 
     if (!travelIdFinal) {
@@ -47,8 +59,10 @@ router.post('/aceptar-viaje', async (req, res) => {
       `${STRAPI_URL}/api/viajes?filters[travelid][$eq]=${encodeURIComponent(travelIdFinal)}`,
       { headers: buildStrapiHeaders(), timeout: 10000 }
     );
+    console.log(`[aceptar-viaje] findResp.data:`, findResp.data);
 
     const existing = findResp.data?.data?.[0];
+    console.log(`[aceptar-viaje] viaje encontrado: ${existing ? existing : 'no encontrado'}`);
 
     if (!existing) {
       return res.status(404).json({ ok: false, error: 'Viaje no encontrado' });
@@ -58,13 +72,21 @@ router.post('/aceptar-viaje', async (req, res) => {
        2️⃣ Preparar SOLO los campos a actualizar
     ====================================================== */
     const updateData = {
-      conductormail: userEmail,
+      conductormail: driverId,
       status: 'iniciando',
       iniciado: new Date().toISOString(),
     };
 
     if (conductorcoords) {
       updateData.conductorcoords = conductorcoords;
+    }
+
+    if (origencoords) {
+      updateData.origencoords = origencoords;
+    }
+
+    if (destinocoords) {
+      updateData.destinocoords = destinocoords;
     }
 
     if (typeof costo === 'number') {
@@ -82,6 +104,7 @@ router.post('/aceptar-viaje', async (req, res) => {
     /* ======================================================
        3️⃣ Update REAL del viaje (NO POST)
     ====================================================== */
+    
     const updateResp = await axios.put(
       `${STRAPI_URL}/api/viajes/${existing.id}`,
       { data: updateData },

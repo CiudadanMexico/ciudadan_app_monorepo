@@ -18,7 +18,7 @@ const normalizeAddress = (addr) => {
 // === helper para guardar viaje en Strapi v4 ===
 async function saveTripToStrapi(data) {
   const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
-
+  console.log('[testTrip] saveTripToStrapi STRAPI_URL:', STRAPI_URL, 'data:', data);
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -93,13 +93,16 @@ router.post('/send-trip', async (req, res) => {
       driverId: body.driverId || null,
       candidateDrivers: Array.isArray(body.candidateDrivers) ? body.candidateDrivers : [],
       createdAt: new Date().toISOString(),
-      userEmail: body.userEmail,
+      userEmail: body.userEmail || null,
+      userId: body.userId || null,
+      settings: body.settings || {},
       meta: body.meta || {}
     };
+    console.log('[testTrip] send-trip payload:', payload);
 
     // Intentar llamar al endpoint de cálculo de tarifa (interno HTTP)
-    const base = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3033}`;
-    const calcUrl = `${base.replace(/\/$/, '')}/calculataxi/calculate-fare`;
+    const base = process.env.BASE_URL || `http://localhost:${process.env.SOCKET_PORT || 3033}`;
+    const calcUrl = `${base.replace(/\/$/, '')}/api/calculate-fare`;
 
     let suggested = null;
     try {
@@ -177,6 +180,7 @@ router.post('/send-trip', async (req, res) => {
       origendireccion: normalizeAddress(payload.originAdress) || null,
       destinodireccion: normalizeAddress(payload.destinationAdress) || null,
       pasajeromail: payload.userEmail || null,
+      pasajero: payload.userId || null,
       solicitado: payload.createdAt,
       status: 'solicitado',
       travelid: payload.id, // útil para correlación futura
