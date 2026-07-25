@@ -129,10 +129,13 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     }
 
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
+    const userId = travel?.userEmail ?? travel?.id ?? null;
+    console.log('[TravelCard] driverId:', userId);
 
     const payload = {
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
+      driverId: userId,
       meta: {
         from: 'conductor',
         travelId: resolvedTravelId,

@@ -279,20 +279,25 @@ const Conductor = ({
           if (!data) return;
           // criterio: si viene driverId y coincide, o viene broadcast/nearby o candidateDrivers incluye userId
           const addressed =
-            data.driverId &&
-            userId &&
+            data.driverId ||
+            userId ||
             data.driverId.toString() === userId.toString();
+          console.log('trip-request addressed:', addressed);
           const broadcast = data.broadcast === true || data.target === 'nearby';
           const included =
-            Array.isArray(data.candidateDrivers) &&
-            userId &&
+            Array.isArray(data.candidateDrivers) ||
+            userId ||
             data.candidateDrivers.map(String).includes(String(userId));
+          console.log('trip-request broadcast:', broadcast, 'included:', included);
           if (addressed || broadcast || included) {
             // añadir al arreglo de viajes
+            console.log('[Conductor] trip-request dirigido a este conductor, agregando a travelData');
             setTravelData((prev) => {
-              const next = [...prev, data];
+              const next = [...prev, userId ? { ...data, userEmail: userId } : data];
               return next;
             });
+            console.log('[Conductor] trip-request agregado a travelData, total:', travelData.length + 1);
+            console.log('[Conductor] conductores:', travelData);
             setIsWaiting(false);
 
             // Añadir marcador del origen al mapa (si vienen coords)
@@ -368,14 +373,14 @@ const Conductor = ({
         markersRef.current.forEach((m) => {
           try {
             m.setMap(null);
-          } catch (e) {}
+          } catch (e) { }
         });
         markersRef.current = [];
       }
       if (pickupMarkerRef.current) {
         try {
           pickupMarkerRef.current.setMap(null);
-        } catch (e) {}
+        } catch (e) { }
         pickupMarkerRef.current = null;
       }
     };
@@ -472,9 +477,9 @@ const Conductor = ({
                 title: 'Conductor',
                 icon: taxiIcon
                   ? {
-                      url: taxiIcon,
-                      scaledSize: new window.google.maps.Size(40, 40),
-                    }
+                    url: taxiIcon,
+                    scaledSize: new window.google.maps.Size(40, 40),
+                  }
                   : undefined,
               });
             }
@@ -484,9 +489,9 @@ const Conductor = ({
             const pickupPos = leg
               ? leg.start_location
               : {
-                  lat: Number(pickupCoords.lat),
-                  lng: Number(pickupCoords.lng),
-                };
+                lat: Number(pickupCoords.lat),
+                lng: Number(pickupCoords.lng),
+              };
             if (pickupMarkerRef.current) {
               pickupMarkerRef.current.setPosition(pickupPos);
               pickupMarkerRef.current.setMap(mapRef.current);
@@ -611,7 +616,7 @@ const Conductor = ({
         const pos = driverMarkerRef.current.getPosition().toJSON();
         mapRef.current.setCenter(pos);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // finalmente limpiar la vista de "detalle"
     setConsultedTravel(null);
@@ -625,7 +630,7 @@ const Conductor = ({
     markersRef.current.forEach((m) => {
       try {
         m.setMap(null);
-      } catch (e) {}
+      } catch (e) { }
     });
     markersRef.current = [];
   };
@@ -668,7 +673,7 @@ const Conductor = ({
     markersRef.current.forEach((m) => {
       try {
         m.setMap(null);
-      } catch (e) {}
+      } catch (e) { }
     });
     markersRef.current = [];
   };
@@ -676,6 +681,7 @@ const Conductor = ({
   const handleAcceptTrip = async (index) => {
     const idx = typeof index === 'number' ? index : consultedTravel;
     const travel = travelData[idx];
+    console.log('handleAcceptTrip idx:', index, consultedTravel, 'travel:', travel);
     if (!travel)
       return console.error('No hay viaje para aceptar en index', idx);
 
@@ -773,7 +779,7 @@ const Conductor = ({
       <BottomSheet
         initialState='collapsed'
         onStateChange={setSheetState}
-        collapsedHeight={90}
+        collapsedHeight={150}
         mediumHeight={350}
         fullHeight={window.innerHeight - 50}
       >

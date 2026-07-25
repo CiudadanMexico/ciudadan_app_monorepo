@@ -1,6 +1,7 @@
 import { normalizeEntity, parseJsonSafe } from '../../utils/preRegisterForSteps/helpers';
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || '';
+const STRAPI_TOKEN = process.env.REACT_APP_STRAPI_TOKEN || '';
 
 export const getDriverDetails = async (id) => {
   const url = `${STRAPI_URL}/api/drivers/${id}?populate=*`;
@@ -28,7 +29,15 @@ export const getValidationReviewBundle = async (validationId) => {
 
 export const resolveValidationByAgendaId = async (agendaId) => {
   const url = `${STRAPI_URL}/api/cars-validations/resolve?agendaId=${encodeURIComponent(agendaId)}`;
-  const res = await fetch(url, { credentials: 'include' });
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (STRAPI_TOKEN) {
+    headers.Authorization = `Bearer ${STRAPI_TOKEN}`;
+  }
+
+  const res = await fetch(url, { headers, credentials: 'include' });
+  console.log('resolveValidationByAgendaId response:', res);
   const data = await parseJsonSafe(res);
 
   if (!res.ok) {
