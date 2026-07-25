@@ -13,7 +13,7 @@ import taxiIcon from '../../assets/taxi_marker.png';
 const DEFAULT_FROM = { lat: 19.432608, lng: -99.133209 };
 //const DEFAULT_TO = { lat: 19.432608, lng: -99.133209 };
 
-const Pasajero = ({ onFoundDrivers = () => {} }) => {
+const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
   const navigate = useNavigate();
 
@@ -58,6 +58,9 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
   // Selected offer for modal
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
+  const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
 
   // Util: stringify safe
   const safeStringify = (obj, max = 2000) => {
@@ -502,7 +505,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
       if (directionsRendererRef.current) {
         try {
           directionsRendererRef.current.setMap(null);
-        } catch (e) {}
+        } catch (e) { }
       }
     };
   }, [mapRef, googleMapsLoaded]);
@@ -630,6 +633,23 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
     console.log('[buscarTaxistas] payload:', safeStringify(payload, 2000));
 
     try {
+      const url = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}&populate=*`;
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error("Error buscando usuario en Strapi");
+      }
+
+      const userData = await response.json();
+      const settings = userData?.data?.[0]?.attributes?.configuraciones || {};
+      console.log("[AcceptTrip] configuraciones del usuario:", settings);
+
       // 1) Intentar POST a /test/send-trip (backend)
       const backendBase =
         process.env.REACT_APP_SOCKET_URL ||
@@ -644,6 +664,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               userEmail,
+              settings,
               originCoordinates: payload.originCoordinates,
               destinationCoordinates: payload.destinationCoordinates,
               originAdress: payload.originAddress,

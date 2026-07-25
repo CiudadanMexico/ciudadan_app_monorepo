@@ -56,7 +56,176 @@ const ConductorRender = ({
     }
   });
 
-  // Normalizador de id para cada travel (coincide con la clave usada en el map original)
+  // Estado para cachear preferencias de conductores
+  const [conductorPrefsCache, setConductorPrefsCache] = useState({});
+
+  // Función para comparar preferencias del pasajero con las del conductor
+  const comparePreferences = useCallback((passengerSettings, driverVehicle) => {
+    if (!passengerSettings || !driverVehicle) return false;
+
+    const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');
+    const driverAttributes = driverVehicle?.attributes || driverVehicle;
+
+    // Lista de atributos booleanos
+    const booleanAttrs = [
+      'wifi', 'agua', 'cargador', 'snacks', 'portabici',
+      'accesibilidad', 'mascotas', 'fumadores', 'aire_acondicionado',
+      'rockola', 'ambiente_inclusivo', 'otro_genero'
+    ];
+
+    // Lista de atributos simples que deben coincidir
+    const simpleAttrs = ['marca', 'nombre', 'modelo', 'puertas'];
+
+    // Atributos de enum que pueden ser "indiferente"
+    const enumAttrs = ['charla', 'musica'];
+
+    let matchCount = 0;
+    let totalChecked = 0;
+
+    // Verificar atributos simples
+    simpleAttrs.forEach((attr) => {
+      const passengerVal = passengerSettings[attr];
+      const driverVal = driverAttributes?.[attr];
+
+      if (passengerVal !== undefined && passengerVal !== null) {
+        totalChecked++;
+        // Si coinciden o el valor del conductor no está definido, contar como match
+        if (!driverVal || String(passengerVal) === String(driverVal)) {
+          matchCount++;
+        }
+      }
+    });
+
+    // Verificar atributos booleanos
+    // Si el pasajero pide true, el conductor debe tener true
+    // Si el pasajero pide false, es flexible
+    booleanAttrs.forEach((attr) => {
+      const passengerVal = passengerSettings[attr];
+      const driverVal = driverAttributes?.[attr];
+
+      if (passengerVal !== undefined && passengerVal !== null) {
+        totalChecked++;
+        if (passengerVal === true) {
+          // Si el pasajero pide true, el conductor debe tener true
+          const isDriverTrue = driverVal === true || driverVal === 1 || driverVal === 'true';
+          if (isDriverTrue) {
+            matchCount++;
+          }
+        } else {
+          // Si el pasajero pide false, cualquier cosa va (flexible)
+          matchCount++;
+        }
+      }
+    });
+
+    // Verificar tipo_musica (array)
+    if (Array.isArray(passengerSettings.tipo_musica) && passengerSettings.tipo_musica.length > 0) {
+      totalChecked++;
+      const driverMusicArray = driverAttributes?.tipo_musica;
+      if (Array.isArray(driverMusicArray) && driverMusicArray.length > 0) {
+        // Verificar si hay al menos una intersección
+        const hasIntersection = passengerSettings.tipo_musica.some((music) =>
+          driverMusicArray.includes(music)
+        );
+        if (hasIntersection) {
+          matchCount++;
+        }
+      }
+    }
+
+    // Verificar enums (charla, musica)
+    enumAttrs.forEach((attr) => {
+      const passengerVal = passengerSettings[attr];
+      const driverVal = driverAttributes?.[attr];
+
+      if (passengerVal !== undefined && passengerVal !== null) {
+        totalChecked++;
+        // Si el conductor tiene "indiferente", siempre coincide
+        if (driverVal === 'indiferente' || driverVal === 'flexible') {
+          matchCount++;
+        } else if (String(passengerVal) === String(driverVal)) {
+          matchCount++;
+        }
+      }
+    });
+
+    // Retornar true si al menos el 70% de los atributos coinciden
+    if (totalChecked === 0) return true; // Si no hay preferencias, permitir
+    const matchPercentage = (matchCount / totalChecked) * 100;
+    console.log(`[ConductorRender] Comparación de preferencias: ${matchPercentage.toFixed(0)}% (${matchCount}/${totalChecked})`);
+    return matchPercentage >= 70;
+  }, []);
+
+  // Función para obtener las preferencias del conductor desde Strapi
+  const fetchConductorPreferences = useCallback(async (driverEmail) => {
+    if (!driverEmail) return null;
+
+    // Verificar si ya está en cache
+    if (conductorPrefsCache[driverEmail]) {
+      return conductorPrefsCache[driverEmail];
+    }
+
+    try {
+      const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');
+      const STRAPI_TOKEN = process.env.REACT_APP_STRAPI_TOKEN || '';
+
+      if (!STRAPI_URL) return null;
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (STRAPI_TOKEN) headers.Authorization = `Bearer ${STRAPI_TOKEN}`;
+
+      const url = `${STRAPI_URL}/api/carros?filters[conductoremail][$eq]=${encodeURIComponent(
+        driverEmail
+      )}&populate=*`;
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      console.log(`[ConductorRender] preferencias obtenidas para ${driverEmail}:`, data);
+      const vehicles = data?.data || [];
+      const vehicle = Array.isArray(vehicles) ? vehicles[0] : vehicles;
+
+      if (!vehicle) return null;
+
+      // Cachear el resultado
+      setConductorPrefsCache((prev) => ({
+        ...prev,
+        [driverEmail]: vehicle,
+      }));
+
+      return vehicle;
+    } catch (err) {
+      console.warn(`[ConductorRender] Error obteniendo preferencias del conductor ${driverEmail}:`, err);
+      return null;
+    }
+  }, [conductorPrefsCache]);
+
+  // Efecto para pre-cargar preferencias de conductores únicos
+  useEffect(() => {
+    if (!Array.isArray(travelData) || travelData.length === 0) return;
+
+    // Obtener emails únicos de conductores
+    const uniqueEmails = new Set();
+    travelData.forEach((travel) => {
+      if (travel?.userEmail) {
+        uniqueEmails.add(travel.userEmail);
+      }
+    });
+
+    // Fetch preferencias en paralelo
+    const fetchAll = async () => {
+      const promises = Array.from(uniqueEmails).map((email) =>
+        fetchConductorPreferences(email).catch((err) => {
+          console.warn(`[ConductorRender] Error en promise para ${email}:`, err);
+          return null;
+        })
+      );
+      await Promise.all(promises);
+    };
+
+    fetchAll();
+  }, [travelData, fetchConductorPreferences]);
   const normalizeTravelId = useCallback((travel, fallbackIndex = null) => {
     if (!travel) {
       return fallbackIndex !== null ? String(fallbackIndex) : null;
@@ -414,15 +583,35 @@ const ConductorRender = ({
     return s;
   }, [rejectedIds]);
 
-  // Filtrar travelData para ocultar rechazados inmediatamente (y persistir aunque recargue)
+  // Filtrar travelData para ocultar rechazados y por coincidencia de preferencias
   const visibleTravelData = useMemo(() => {
     if (!Array.isArray(travelData)) return [];
     return travelData.filter((t, idx) => {
       const tid = normalizeTravelId(t, idx);
-      if (!tid) return true; // si no hay id, no lo consideramos rechazado por id (se podría mejorar)
-      return !rejectedSet.has(tid);
+      if (!tid) return true;
+
+      // Filtrar rechazados
+      if (rejectedSet.has(tid)) return false;
+
+      // Filtrar por coincidencia de preferencias
+      const driverEmail = t?.userEmail;
+      const passengerSettings = t?.settings;
+
+      if (driverEmail && passengerSettings && conductorPrefsCache[driverEmail]) {
+        const driverVehicle = conductorPrefsCache[driverEmail];
+        const preferencesMatch = comparePreferences(passengerSettings, driverVehicle);
+
+        if (!preferencesMatch) {
+          console.log(
+            `[ConductorRender] Viaje ${tid} filtrado: preferencias no coinciden (conductor: ${driverEmail})`
+          );
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [travelData, normalizeTravelId, rejectedSet]);
+  }, [travelData, normalizeTravelId, rejectedSet, conductorPrefsCache, comparePreferences]);
 
   return (
     <ConductorContainer>
@@ -495,28 +684,28 @@ const ConductorRender = ({
         </div>
       )}
 
-{/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
-<div
-  className="taxis-map"
-  style={{
-    width: '100%',
-    height: '60vh',    // ajusta a 50vh / 70vh o a '450px' según prefieras
-    minHeight: 320,    // evita ser demasiado pequeño
-    maxHeight: '95vh',
-    boxSizing: 'border-box',
-    position: 'relative',
-    overflow: 'visible'
-  }}
->
-  <div
-    id="map"
-    style={{
-      width: '100%',
-      height: '100%',
-      display: 'block'
-    }}
-  />
-</div>
+      {/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
+      <div
+        className="taxis-map"
+        style={{
+          width: '100%',
+          height: '60vh',    // ajusta a 50vh / 70vh o a '450px' según prefieras
+          minHeight: 320,    // evita ser demasiado pequeño
+          maxHeight: '95vh',
+          boxSizing: 'border-box',
+          position: 'relative',
+          overflow: 'visible'
+        }}
+      >
+        <div
+          id="map"
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block'
+          }}
+        />
+      </div>
 
 
       {!showTabs && !hideTabs ? (

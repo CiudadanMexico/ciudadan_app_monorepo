@@ -252,7 +252,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
 
         {vehiclePhotos.length > 0 && (
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Fotos del vehículo</div>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Imágenes del vehículo</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {vehiclePhotos.length > 2 && (
                 <button
@@ -303,6 +303,122 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
             </div>
             <div style={{ textAlign: "center", fontSize: 12, color: "#666", marginTop: 6 }}>
               {vehiclePhotoIndex + 1} / {Math.max(1, vehicleSlides.length)}
+            </div>
+          </div>
+        )}
+
+        {/* Preferencias de viaje del conductor */}
+        {vehicles.length > 0 && (
+          <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid #e0e0e0" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Preferencias de viaje</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {/* Atributos simples (azules) */}
+              {vehicle?.marca && vehicle?.nombre && vehicle?.modelo && (
+                <span style={{
+                  display: "inline-block",
+                  padding: "6px 12px",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}>
+                  {vehicle.marca} {vehicle.nombre} {vehicle.modelo}
+                </span>
+              )}
+              {vehicle?.puertas && (
+                <span style={{
+                  display: "inline-block",
+                  padding: "6px 12px",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}>
+                  {vehicle.puertas} puertas
+                </span>
+              )}
+
+              {/* tipo_musica (array) */}
+              {vehicle?.tipo_musica && Array.isArray(vehicle.tipo_musica) && vehicle.tipo_musica.length > 0 && (
+                <>
+                  {vehicle.tipo_musica.map((musica, index) => (
+                    <span key={index} style={{
+                      display: "inline-block",
+                      padding: "6px 12px",
+                      background: "#e3f2fd",
+                      color: "#1976d2",
+                      borderRadius: 20,
+                      fontSize: 12,
+                      fontWeight: 500,
+                    }}>
+                      🎵 {musica}
+                    </span>
+                  ))}
+                </>
+              )}
+
+              {/* Enums: charla, musica */}
+              {vehicle?.charla && (
+                <span style={{
+                  display: "inline-block",
+                  padding: "6px 12px",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}>
+                  Charla: {vehicle.charla}
+                </span>
+              )}
+              {vehicle?.musica && (
+                <span style={{
+                  display: "inline-block",
+                  padding: "6px 12px",
+                  background: "#e3f2fd",
+                  color: "#1976d2",
+                  borderRadius: 20,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}>
+                  Música: {vehicle.musica}
+                </span>
+              )}
+
+              {/* Atributos booleanos (verde si true, rojo si false) */}
+              {[
+                { key: "wifi", label: "WiFi" },
+                { key: "agua", label: "Agua" },
+                { key: "cargador", label: "Cargador" },
+                { key: "snacks", label: "Snacks" },
+                { key: "portabici", label: "Portabici" },
+                { key: "accesibilidad", label: "Accesibilidad" },
+                { key: "mascotas", label: "Mascotas" },
+                { key: "fumadores", label: "Fumadores" },
+                { key: "aire_acondicionado", label: "Aire acondicionado" },
+                { key: "rockola", label: "Rócola" },
+                { key: "ambiente_inclusivo", label: "Ambiente inclusivo" },
+                { key: "otro_genero", label: "Otro género" },
+              ].map(({ key, label }) => {
+                const value = vehicle?.[key];
+                if (value === undefined || value === null) return null;
+                const isTrue = value === true || value === 1 || value === "true" || value === "1";
+                return (
+                  <span key={key} style={{
+                    display: "inline-block",
+                    padding: "6px 12px",
+                    background: isTrue ? "#c8e6c9" : "#ffcdd2",
+                    color: isTrue ? "#2e7d32" : "#c62828",
+                    borderRadius: 20,
+                    fontSize: 12,
+                    fontWeight: 500,
+                  }}>
+                    {label} {isTrue ? "✓" : "✗"}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
