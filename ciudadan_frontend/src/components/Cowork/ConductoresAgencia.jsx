@@ -52,14 +52,21 @@ const ConductoresAgencia = () => {
   const navigate = useNavigate();
 
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
+  const STRAPI_TOKEN = process.env.REACT_APP_STRAPI_TOKEN;
 
   const fetchConductores = useCallback(
     async ({ showLoading = false } = {}) => {
       if (showLoading) setLoading(true);
       try {
         const url = `${STRAPI_URL}/api/agendas?filters[descripcion][$containsi]=Preregistro conductor&filters[$or][0][estado][$eq]=pendiente&filters[$or][1][estado][$eq]=en_revision&filters[$or][2][estado][$eq]=resubir_archivos&sort=createdAt:desc`;
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (STRAPI_TOKEN) {
+          headers.Authorization = `Bearer ${STRAPI_TOKEN}`;
+        }
 
-        const res = await fetch(url);
+        const res = await fetch(url, { headers });
         const json = await res.json();
 
         setData(json.data || []);

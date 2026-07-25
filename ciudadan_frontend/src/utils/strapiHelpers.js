@@ -64,3 +64,30 @@ export async function ensureUsuarioId({ user, userData }) {
 
   return usuarioId;
 }
+
+export const transformImageStrapi = (object = {}) => {
+  const { data } = object;
+  if (!data) return ({});
+  const { id, attributes } = data;
+  const { formats, name, width, height, hash, ext, mime, size, url, ...rest } = attributes;
+  const { thumbnail, small, medium, large } = formats;
+  const transformedFormats = {
+    original: `${STRAPI_URL}${url}`,
+    thumbnail: thumbnail ? `${STRAPI_URL}${thumbnail.url}` : null,
+    small: small ? `${STRAPI_URL}${small.url}` : null,
+    medium: medium ? `${STRAPI_URL}${medium.url}` : null,
+    large: large ? `${STRAPI_URL}${large.url}` : null,
+  };
+  const auxObjet = {
+    id,
+    name,
+    hash,
+    width,
+    height,
+    ext,
+    mime,
+    size,
+    urls: transformedFormats
+  };
+  return auxObjet;
+};

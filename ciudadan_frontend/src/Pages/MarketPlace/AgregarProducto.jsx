@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  Box, Typography, Button, Paper, Divider, Fade, Slide, Stepper, Step, StepLabel 
+  Box, Typography, Button, Paper, Divider, Fade, Slide, Stepper, Step, StepLabel
 } from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
 import '../../styles/AgregarProducto.css';
@@ -50,6 +50,7 @@ const AgregarProducto = () => {
     handleBack,
     imagenError,
     setFormSubmitted,
+    initializeStep
   } = usePasoProducto(formData, imagenPredeterminada);
 
   const { volumetrico, pesoCobrado } = useVolumetrico({
@@ -150,13 +151,24 @@ const AgregarProducto = () => {
       setImagenPredeterminada(null);
       setPreviewImagenPredeterminada(null);
       setGuardado(true);
+      setTimeout(() => handleClearForm(), 4300);
     } catch (err) {
       setEnviando(false);
       console.error('Error al guardar producto:', err.response?.data || err);
       alert(`Error al guardar producto: ${err.response?.data?.error?.message || 'ver consola'}`);
+    } finally {
+      setEnviando(false);
     }
   };
 
+  const handleClearForm = () => {
+    setFormData({ nombre: '', descripcion: '', precio: '', marca: '', categoria: '', stockEnabled: false, stock: '' });
+    eliminarImagenPredeterminada();
+    eliminarImagen();
+    setEnviando(false);
+    initializeStep();
+    setGuardado(false);
+  };
   if (!isAuthenticated) return <p className="mensaje-sesion">Debes iniciar sesión para agregar productos.</p>;
   if (guardado) return <Fade in><p className="mensaje-exito">✅ Producto guardado con éxito.</p></Fade>;
   if (!storeId) return <p className="mensaje-sesion">No se encontró ninguna tienda asociada</p>;
@@ -208,21 +220,21 @@ const AgregarProducto = () => {
 
             {/* Paso 3: Imagen predeterminada */}
             {activeStep === 2 && (
-            <Paso3
-              handleImagenPredeterminada={handleImagenPredeterminada}
-              eliminarImagenPredeterminada={eliminarImagenPredeterminada}
-              previewImagenPredeterminada={previewImagenPredeterminada}
-              imagenError={imagenError}
-            />
+              <Paso3
+                handleImagenPredeterminada={handleImagenPredeterminada}
+                eliminarImagenPredeterminada={eliminarImagenPredeterminada}
+                previewImagenPredeterminada={previewImagenPredeterminada}
+                imagenError={imagenError}
+              />
             )}
 
             {/* Paso 4: Galería de imágenes */}
             {activeStep === 3 && (
-            <Paso4
-              handleImagenes={handleImagenes}
-              eliminarImagen={eliminarImagen}
-              previewImages={previewImages}
-            />
+              <Paso4
+                handleImagenes={handleImagenes}
+                eliminarImagen={eliminarImagen}
+                previewImages={previewImages}
+              />
             )}
 
             {/* Paso 5: Confirmar */}

@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_modifier_groups",
+  "info": {
+    "singularName": "food-modifier-group",
+    "pluralName": "food-modifier-groups",
+    "displayName": "Food Modifier Group"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "requerido": {
+      "type": "boolean",
+      "default": false
+    },
+    "orden": {
+      "type": "integer",
+      "default": 0
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "food_restaurant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::food-restaurant.food-restaurant",
+      "inversedBy": "food_modifier_groups"
+    },
+    "food_modifiers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-modifier.food-modifier",
+      "mappedBy": "food_modifier_group"
+    }
+  }
+}

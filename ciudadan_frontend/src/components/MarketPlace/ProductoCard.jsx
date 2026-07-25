@@ -293,7 +293,7 @@ export default function ProductoCard({
           </Button>
 
           <Button
-            onClick={(e) => { e.stopPropagation(); navigate(`/product/compra/${slug || ''}`); }}
+            onClick={(e) => { e.stopPropagation(); navigate(`/market/comprar/${slug || ''}`); }}
             variant="outlined"
             fullWidth
             sx={{

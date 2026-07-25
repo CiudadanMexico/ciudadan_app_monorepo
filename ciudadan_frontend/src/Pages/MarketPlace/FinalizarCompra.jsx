@@ -91,7 +91,9 @@ export default function FinalizarCompra() {
   const [finalizing, setFinalizing] = useState(false);
 
   useEffect(() => {
+    console.log(`<${'-'.repeat(20)}>`);
     console.log("cart y emojis - useEffect itemsContext changed:", itemsContext);
+    console.log(`<${'-'.repeat(20)}>`);
     if (Array.isArray(itemsContext) && itemsContext.length > 0) {
       setItems(itemsContext);
       const grouped = groupByStore(itemsContext);
@@ -273,8 +275,9 @@ export default function FinalizarCompra() {
           usuario_email: user?.email || "unknown",
         },
       };
-
+      console.log("-".repeat(10));
       console.log("cart y emojis - payload carrito:", carritoPayload);
+      console.log("-".repeat(10));
 
       // Buscar carrito activo del usuario
       const carritoRes = await fetch(
@@ -364,7 +367,8 @@ export default function FinalizarCompra() {
           };
 
           console.log("cart y emojis - payloadPedido:", payloadPedido);
-
+          
+          // Request para registro de pedidos
           const res = await fetch(`${STRAPI}/api/pedidos`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -467,8 +471,9 @@ export default function FinalizarCompra() {
     }
 
 
-    
+      console.log("-".repeat(15))
       console.log("cart y emojis - pedidos creados y normalizados:", pedidos);
+      console.log("-".repeat(15))
 
       // Avanzar al paso de pagos si hay al menos 1 pedido creado
       if (pedidos.length > 0) {
@@ -632,10 +637,14 @@ export default function FinalizarCompra() {
         )}
       </AnimatePresence>
 
-      <Box mt={3} display="flex" justifyContent="space-between">
-        <Button disabled={activeStep === 0} onClick={() => setActiveStep((s) => s - 1)}>
-          Volver
-        </Button>
+      <Box mt={3} display="flex" justifyContent={activeStep < 1 ? "space-between" : "flex-end"}>
+        {
+          activeStep < 1 && (
+            <Button disabled={activeStep === 0} onClick={() => setActiveStep((s) => s - 1)}>
+              Volver
+            </Button>
+          )
+        }
 
         {activeStep === 0 && (
           <Button

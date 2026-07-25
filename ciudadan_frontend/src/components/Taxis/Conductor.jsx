@@ -8,6 +8,7 @@ import BottomSheet from '../BottomSheet.jsx';
 import ConductorRender from './ConductorRender.jsx'; // tu render (el UI que pegaste)
 import taxiIcon from '../../assets/taxi_marker.png'; // si está en otra ruta ajusta
 import userIcon from '../../assets/user_marker.png'; // si está en otra ruta ajusta
+import { isWithinDistanceKm } from '../../utils/geo';
 // NOTA: asegúrate de tener REACT_APP_GOOGLE_MAPS_API_KEY y REACT_APP_SOCKET_URL en .env
 
 const ZOCALO = { lat: 19.432607, lng: -99.133209 };
@@ -279,20 +280,43 @@ const Conductor = ({
           if (!data) return;
           // criterio: si viene driverId y coincide, o viene broadcast/nearby o candidateDrivers incluye userId
           const addressed =
-            data.driverId &&
-            userId &&
+            data.driverId ||
+            userId ||
             data.driverId.toString() === userId.toString();
+          console.log('userCoords', userCoords);
+          console.log('trip-request addressed:', addressed);
           const broadcast = data.broadcast === true || data.target === 'nearby';
           const included =
-            Array.isArray(data.candidateDrivers) &&
-            userId &&
+            Array.isArray(data.candidateDrivers) ||
+            userId ||
             data.candidateDrivers.map(String).includes(String(userId));
-          if (addressed || broadcast || included) {
+
+          const driverCoords =
+            userCoords && userCoords.lat && userCoords.lng
+              ? { lat: Number(userCoords.lat), lng: Number(userCoords.lng) }
+              : null;
+          const pickupCoords = data.originCoordinates
+            ? {
+                lat: Number(data.originCoordinates.lat),
+                lng: Number(data.originCoordinates.lng),
+              }
+            : null;
+          const withinDistance =
+            driverCoords && pickupCoords
+              ? isWithinDistanceKm(driverCoords, pickupCoords, 7)
+              : true;
+
+          const shouldShowRequest = (addressed || broadcast || included) && withinDistance;
+
+          if (shouldShowRequest) {
             // añadir al arreglo de viajes
+            console.log('[Conductor] trip-request dirigido a este conductor, agregando a travelData');
             setTravelData((prev) => {
-              const next = [...prev, data];
+              const next = [...prev, userId ? { ...data, userEmail: userId } : data];
               return next;
             });
+            console.log('[Conductor] trip-request agregado a travelData, total:', travelData.length + 1);
+            console.log('[Conductor] conductores:', travelData);
             setIsWaiting(false);
 
             // Añadir marcador del origen al mapa (si vienen coords)
@@ -316,6 +340,11 @@ const Conductor = ({
                 console.warn('No se pudo crear pickup marker manual:', e);
               }
             }
+          } else if (addressed || broadcast || included) {
+            console.log('[Conductor] viaje fuera del rango de 7 km, ignorando solicitud', {
+              driverCoords,
+              pickupCoords,
+            });
           } else {
             // mensaje no dirigido a este conductor: ignorarlo
             // console.log('trip-request no dirigido a este conductor, ignorando');
@@ -356,7 +385,7 @@ const Conductor = ({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]); // reconectará si cambia userId
+  }, [userId, userCoords]); // reconectará si cambia userId
 
   /* --------------------------
      Limpiar marcadores cuando se desmonta o cuando se vacía travelData
@@ -368,14 +397,14 @@ const Conductor = ({
         markersRef.current.forEach((m) => {
           try {
             m.setMap(null);
-          } catch (e) {}
+          } catch (e) { }
         });
         markersRef.current = [];
       }
       if (pickupMarkerRef.current) {
         try {
           pickupMarkerRef.current.setMap(null);
-        } catch (e) {}
+        } catch (e) { }
         pickupMarkerRef.current = null;
       }
     };
@@ -386,6 +415,8 @@ const Conductor = ({
    Reemplaza el useEffect antiguo con este
    -------------------------- */
   useEffect(() => {
+    console.log('[Conductor] useEffect dibujar ruta: consultedTravel, travelData, userCoords',
+      { consultedTravel, travelData, userCoords });
     if (consultedTravel === null) return;
     const travel = travelData[consultedTravel];
     if (!travel) return;
@@ -398,12 +429,18 @@ const Conductor = ({
     const driverCoords =
       userCoords ||
       (mapRef.current.getCenter ? mapRef.current.getCenter().toJSON() : null);
+      
+    console.log('[Conductor] dibujando ruta: driver -> pickup -> destination', {
+      driverCoords,
+      pickupCoords,
+      destinationCoords,
+    });
 
     if (!pickupCoords || !destinationCoords || !driverCoords) {
       console.warn('[Conductor] coords insuficientes para dibujar ruta', {
         driverCoords,
         pickupCoords,
-        destinationCoords,
+        destinationCoords
       });
       return;
     }
@@ -472,9 +509,9 @@ const Conductor = ({
                 title: 'Conductor',
                 icon: taxiIcon
                   ? {
-                      url: taxiIcon,
-                      scaledSize: new window.google.maps.Size(40, 40),
-                    }
+                    url: taxiIcon,
+                    scaledSize: new window.google.maps.Size(40, 40),
+                  }
                   : undefined,
               });
             }
@@ -484,9 +521,9 @@ const Conductor = ({
             const pickupPos = leg
               ? leg.start_location
               : {
-                  lat: Number(pickupCoords.lat),
-                  lng: Number(pickupCoords.lng),
-                };
+                lat: Number(pickupCoords.lat),
+                lng: Number(pickupCoords.lng),
+              };
             if (pickupMarkerRef.current) {
               pickupMarkerRef.current.setPosition(pickupPos);
               pickupMarkerRef.current.setMap(mapRef.current);
@@ -611,7 +648,7 @@ const Conductor = ({
         const pos = driverMarkerRef.current.getPosition().toJSON();
         mapRef.current.setCenter(pos);
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // finalmente limpiar la vista de "detalle"
     setConsultedTravel(null);
@@ -625,7 +662,7 @@ const Conductor = ({
     markersRef.current.forEach((m) => {
       try {
         m.setMap(null);
-      } catch (e) {}
+      } catch (e) { }
     });
     markersRef.current = [];
   };
@@ -668,7 +705,7 @@ const Conductor = ({
     markersRef.current.forEach((m) => {
       try {
         m.setMap(null);
-      } catch (e) {}
+      } catch (e) { }
     });
     markersRef.current = [];
   };
@@ -676,6 +713,7 @@ const Conductor = ({
   const handleAcceptTrip = async (index) => {
     const idx = typeof index === 'number' ? index : consultedTravel;
     const travel = travelData[idx];
+    console.log('handleAcceptTrip idx:', index, consultedTravel, 'travel:', travel);
     if (!travel)
       return console.error('No hay viaje para aceptar en index', idx);
 
@@ -773,7 +811,7 @@ const Conductor = ({
       <BottomSheet
         initialState='collapsed'
         onStateChange={setSheetState}
-        collapsedHeight={90}
+        collapsedHeight={150}
         mediumHeight={350}
         fullHeight={window.innerHeight - 50}
       >

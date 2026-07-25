@@ -126,6 +126,9 @@ export const CartProvider = ({ children }) => {
               storeObj = {
                 id: storeData.id,
                 name: storeData.attributes.name,
+                banco: storeData.attributes.banco,
+                clabe_bancaria: storeData.attributes.clabe_bancaria,
+                nombre_bancario: storeData.attributes.nombre_bancario,
               };
             }
 
@@ -201,6 +204,9 @@ export const CartProvider = ({ children }) => {
         storeObjFromProd = {
           id: storeData.id,
           name: storeData.attributes.name,
+          banco: storeData.attributes.banco,
+          clabe_bancaria: storeData.attributes.clabe_bancaria,
+          nombre_bancario: storeData.attributes.nombre_bancario,
         };
       }
       console.log("addToCart - imagenId obtenida:", imagenId);
@@ -256,6 +262,9 @@ export const CartProvider = ({ children }) => {
             storeObj = {
               id: storeData.id,
               name: storeData.attributes.name,
+              banco: storeData.attributes.banco,
+              clabe_bancaria: storeData.attributes.clabe_bancaria,
+              nombre_bancario: storeData.attributes.nombre_bancario,
             };
           }
 
@@ -290,6 +299,9 @@ export const CartProvider = ({ children }) => {
             storeObj = {
               id: storeData.id,
               name: storeData.attributes.name,
+              banco: storeData.attributes.banco,
+              clabe_bancaria: storeData.attributes.clabe_bancaria,
+              nombre_bancario: storeData.attributes.nombre_bancario,
             };
           }
 

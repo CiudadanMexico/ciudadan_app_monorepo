@@ -129,10 +129,13 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     }
 
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
+    const userId = travel?.userEmail ?? travel?.id ?? null;
+    console.log('[TravelCard] driverId:', userId);
 
     const payload = {
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
+      driverId: userId,
       meta: {
         from: 'conductor',
         travelId: resolvedTravelId,
@@ -159,7 +162,7 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     } catch (e) {
       console.warn('[TravelCard] onAccept lanzó error:', e);
     } finally {
-      setSending(true);
+      setSending(false);
     }
   };
 
@@ -238,6 +241,10 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
           </div>
           <div style={{ fontSize: 15 }}>{destination}</div>
 
+          <div style={{ fontSize: 14, color: '#333', marginTop: 10 }}>
+            <strong>Calificación del pasajero:</strong> {travel.userRating ? `${travel.userRating} ⭐` : '—'}
+          </div>
+          
           <div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
             {travel.roundedDistanceMeters ? ` • ${travel.roundedDistanceMeters} m` : ''}
