@@ -1,6 +1,9 @@
 // src/routes/Rutas.jsx
-import React from 'react';
-import { Routes, Route, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import io from 'socket.io-client';
+import { Routes, Route, useParams, useLocation } from 'react-router-dom';
+import { useRoles } from '../Contexts/RolesContext';
 
 import Probador from '../components/Testers/Probador.jsx';
 
@@ -177,6 +180,57 @@ const WikiLayout = ({ children }) => (
   </>
 );
 
+const TripViewRoute = () => {
+  const { user } = useAuth0();
+  const location = useLocation();
+  const { roles: roleNames = [] } = useRoles();
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const socketUrl = process.env.REACT_APP_SOCKET_URL;
+    if (!socketUrl) return undefined;
+
+    const client = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+    });
+
+    setSocket(client);
+
+    return () => {
+      client.disconnect();
+      setSocket(null);
+    };
+  }, []);
+
+  const strapiConfig = useMemo(() => ({
+    baseUrl: process.env.REACT_APP_STRAPI_URL || '',
+    token: process.env.REACT_APP_STRAPI_TOKEN || '',
+  }), []);
+
+  const tripUser = useMemo(() => {
+    const normalizedRoles = Array.isArray(roleNames) ? roleNames : [];
+    const roleValues = normalizedRoles.map((role) => String(role || '').toLowerCase());
+    console.log('TripViewRoute: isDriver', location?.state?.isDriver);
+    const explicitDriver = Boolean(
+      location?.state?.isDriver
+    );
+
+    return {
+      ...(user || {}),
+      role: user?.role || (explicitDriver ? 'driver' : 'user'),
+      isDriver: explicitDriver,
+    };
+  }, [location?.state?.isDriver, roleNames, user]);
+
+  return (
+    <TripView
+      user={tripUser}
+      socket={socket}
+      strapiConfig={strapiConfig}
+    />
+  );
+};
+
 const Rutas = () => (
   <Routes>
     {/* RUTAS NORMALES */}
@@ -246,7 +300,7 @@ const Rutas = () => (
     />
     <Route
       path='/taxis/viaje/:travelId'
-      element={<TripView />}
+      element={<TripViewRoute />}
     />
 
     <Route

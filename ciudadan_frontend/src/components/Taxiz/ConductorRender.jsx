@@ -178,7 +178,7 @@ const ConductorRender = ({
           if (!STRAPI_URL) {
             console.warn('[ConductorRender] REACT_APP_STRAPI_URL no configurada. No se actualizará Strapi, navegando igual.');
             // navegar aún si no se pudo actualizar
-            navigate(`/taxis/viaje/${travelId}`);
+            navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
             return;
           }
 

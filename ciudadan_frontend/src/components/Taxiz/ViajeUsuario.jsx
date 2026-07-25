@@ -17,24 +17,46 @@ const normalizeCoord = (c) => {
   }
 };
 
-const ViajeUsuario = ({ viaje, socket, userCoords, setUserCoords, mapRef, setConsultedTravel }) => {
-    console.log('viajando usuario', viaje);
-    console.log('viajando coords', viaje?.attributes?.origencoords);
-    console.log('viajando direccion', viaje?.attributes?.origendireccion?.label);
+const ViajeUsuario = ({ viaje, driverData, socket, userCoords, setUserCoords, mapRef, setConsultedTravel }) => {
+  console.log('driverData en ViajeUsuario', driverData);
+  console.log('viajando usuario', viaje);
+  console.log('viajando coords', viaje?.attributes?.origencoords);
+  console.log('viajando direccion', viaje?.attributes?.origendireccion?.label);
+
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
 
   // normalizamos todo ANTES de usarlo
   const pickupNorm = viaje?.attributes?.origendireccion?.label;
   //const destNorm   = normalizeCoord(viaje?.attributes?.destination);
-  const destNorm   = viaje?.attributes?.destinodireccion?.label;
-  const destiNorm   = normalizeCoord(viaje?.attributes?.destination);
-  const taxiNorm   = normalizeCoord(userCoords);
+  const destNorm = viaje?.attributes?.destinodireccion?.label;
+  const price = viaje?.attributes?.costo || null;
+  const destiNorm = normalizeCoord(viaje?.attributes?.destination);
+  const taxiNorm = normalizeCoord(userCoords);
 
   const [expanded, setExpanded] = useState(true);
   const status = viaje?.attributes?.status || 'esperando';
   const routeInfo = viaje?.attributes?._routeInfo || null;
 
-  const formatDistance = (m) => (m ? `${(m/1000).toFixed(2)} km` : '—');
-  const formatDuration = (s) => (s ? `${Math.ceil(s/60)} min` : '—');
+  const driverName =
+    [driverData?.firstname, driverData?.middlename, driverData?.lastname]
+      .filter(Boolean)
+      .join(" ") || "No disponible";
+
+  let driverPhoto = null;
+  const profilePicThumbnail = driverData?.profile_pic?.data?.attributes?.formats?.thumbnail?.url || null;
+  if (profilePicThumbnail) {
+    // Usar thumbnail si disponible (más pequeño y rápido)
+    driverPhoto = `${strapiUrl}${profilePicThumbnail}`;
+  }
+
+  const vehicleLabel =
+    [driverData?.vehicle_brand, driverData?.vehicle_model, driverData?.license_plate]
+      .filter(Boolean)
+      .join(" ") || "Vehículo no disponible";
+  //const vehicleExtras = [vehicleModel, vehicleColor, vehiclePlate].filter(Boolean);
+
+  const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
+  const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
 
   useEffect(() => {
     if (!socket || !viaje?.id) return;
@@ -50,12 +72,12 @@ const ViajeUsuario = ({ viaje, socket, userCoords, setUserCoords, mapRef, setCon
       // podrías actualizar viaje local si hace falta
     };
 
-    try { socket.emit('join', { channel, client: { type: 'passenger' } }); } catch (e) {}
+    try { socket.emit('join', { channel, client: { type: 'passenger' } }); } catch (e) { }
     socket.on('driver-location', onDriverLocation);
     socket.on('trip-update', onTripUpdate);
 
     return () => {
-      try { socket.emit('leave', { channel, client: { type: 'passenger' } }); } catch (e) {}
+      try { socket.emit('leave', { channel, client: { type: 'passenger' } }); } catch (e) { }
       socket.off('driver-location', onDriverLocation);
       socket.off('trip-update', onTripUpdate);
     };
@@ -90,29 +112,64 @@ const ViajeUsuario = ({ viaje, socket, userCoords, setUserCoords, mapRef, setCon
         <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}>
-              <div><strong>Taxi</strong></div>
-              <div style={{ fontSize: 13 }}>
-                {taxiNorm ? `${taxiNorm}` : 'No disponible aún'}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                {driverPhoto ? (
+                  <img
+                    src={driverPhoto}
+                    alt={`Foto de ${driverName}`}
+                    style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '1px solid #ddd' }}
+                  />
+                ) : (
+                  <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#f2f2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                    🚕
+                  </div>
+                )}
+                <div>
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>
+                    <strong>Conductor</strong>
+                  </div>
+                  <div style={{ fontWeight: 600, color: '#444', fontSize: 16 }}>
+                    {driverName}
+                  </div>
+                  {vehicleLabel !== "Vehículo no disponible" ? (
+                    <div style={{ color: '#666', fontSize: 16 }}>
+                      {vehicleLabel}
+                    </div>
+                  ) : (
+                    <div style={{ color: '#666', fontSize: 16 }}>Sin datos de vehículo</div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div style={{ flex: 1 }}>
-              <div><strong>Pickup</strong></div>
-              <div style={{ fontSize: 13 }}>
-                {pickupNorm ? `${pickupNorm}` : 'Sin pickup'}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <div><strong>Pickup</strong></div>
+                <div style={{ fontSize: 13 }}>
+                  {pickupNorm ? `${pickupNorm}` : 'Sin pickup'}
+                </div>
               </div>
-            </div>
 
-            <div style={{ flex: 1 }}>
-              <div><strong>Destino</strong></div>
-              <div style={{ fontSize: 13 }}>
-                {destNorm ? `${destNorm}` : 'Sin destino'}
+              <div style={{ flex: 1 }}>
+                <div><strong>Destino</strong></div>
+                <div style={{ fontSize: 13 }}>
+                  {destNorm ? `${destNorm}` : 'Sin destino'}
+                </div>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div><strong>Precio</strong></div>
+                <div style={{ fontSize: 13 }}>
+                  <strong>
+                    {price ? `$${price.toFixed(2)} MXN` : 'Sin precio'}
+                  </strong>
+                </div>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             <button
               onClick={() => {
                 const center = pickupNorm || taxiNorm;
@@ -128,7 +185,7 @@ const ViajeUsuario = ({ viaje, socket, userCoords, setUserCoords, mapRef, setCon
 
             <button
               onClick={() => {
-                try { socket?.emit('trip-action', { viajeId: viaje.id, action: 'request-status' }); } catch (e) {}
+                try { socket?.emit('trip-action', { viajeId: viaje.id, action: 'request-status' }); } catch (e) { }
               }}
               style={{ padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', flex: 1 }}
             >

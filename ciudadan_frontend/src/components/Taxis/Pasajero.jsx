@@ -648,6 +648,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const userData = await response.json();
       const settings = userData?.data?.[0]?.attributes?.configuraciones || {};
+      const userId = userData?.data?.[0]?.attributes?.usuario?.data?.id || null;
       console.log("[AcceptTrip] configuraciones del usuario:", settings);
 
       // 1) Intentar POST a /test/send-trip (backend)
@@ -664,6 +665,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               userEmail,
+              userId,
               settings,
               originCoordinates: payload.originCoordinates,
               destinationCoordinates: payload.destinationCoordinates,
@@ -748,6 +750,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       // Payload: llenamos los campos que solicitaste en Strapi
       const body = {
         userEmail: user?.email ?? null,
+        driverId: selectedOffer.driverId ?? null,
         origencoords: fromCoordinates ?? null,
         destinocoords: toCoordinates ?? null,
         conductorcoords: selectedOffer.coordinates ?? null,
@@ -820,10 +823,11 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       // navegar a la ruta del viaje usando travelId retornado por tu endpoint
       if (travelIdReturned) {
-        navigate(`/taxis/viaje/${travelIdReturned}`);
+        navigate(`/taxis/viaje/${travelIdReturned}`, { state: { isDriver: false } });
+        console.log('[acceptOffer] navegando a /taxis/viaje/' + travelIdReturned);
       } else {
         // fallback: si no retornaron travelId, intenta con selectedOffer.id
-        navigate(`/taxis/viaje/${selectedOffer.id}`);
+        navigate(`/taxis/viaje/${selectedOffer.id}`, { state: { isDriver: false } });
       }
     } catch (e) {
       console.error('[acceptOffer] error general:', e);

@@ -347,7 +347,7 @@ const ConductorRender = ({
           if (!STRAPI_URL) {
             console.warn('[ConductorRender] REACT_APP_STRAPI_URL no configurada. No se actualizará Strapi, navegando igual.');
             // navegar aún si no se pudo actualizar
-            navigate(`/taxis/viaje/${travelId}`);
+            navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
             return;
           }
 
@@ -381,16 +381,18 @@ const ConductorRender = ({
           let strapiUserId = null;
           try {
             if (user && user.email) {
-              const usersUrl = `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(user.email)}&pagination[pageSize]=1`;
+              const usersUrl = `${STRAPI_URL}/api/users?filters[email][$eq]=${user.email}&pagination[pageSize]=1`;
               console.log('[ConductorRender] buscando usuario en Strapi por email ->', usersUrl);
               const respU = await fetch(usersUrl, { headers });
+              //console.log('[ConductorRender] respuesta GET users en Strapi:', respU);
               if (!respU.ok) {
                 const txt = await respU.text().catch(() => null);
                 console.warn('[ConductorRender] GET users en Strapi no ok:', respU.status, txt);
               } else {
                 const ju = await respU.json().catch(() => null);
-                if (ju && ju.data && Array.isArray(ju.data) && ju.data.length > 0) {
-                  strapiUserId = ju.data[0].id;
+                console.log('[ConductorRender] respuesta JSON de GET users en Strapi:', ju.data);
+                if (ju || ju.data || Array.isArray(ju.data) || ju.data.length > 0) {
+                  strapiUserId = ju[0].id;
                   console.log('[ConductorRender] strapiUserId obtenido:', strapiUserId);
                 } else {
                   console.warn('[ConductorRender] no se encontró usuario Strapi con email:', user.email);
@@ -440,7 +442,7 @@ const ConductorRender = ({
 
           // Finalmente navegar a la página del viaje
           try {
-            navigate(`/taxis/viaje/${travelId}`);
+            navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
           } catch (navErr) {
             console.warn('[ConductorRender] error navegando a viaje:', navErr);
           }
@@ -449,7 +451,7 @@ const ConductorRender = ({
           // aun así intentar navegar si payload tiene travelId
           try {
             const travelId = payload && (payload.travelId || payload.travelid);
-            if (travelId) navigate(`/taxis/viaje/${travelId}`);
+            if (travelId) navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
           } catch (e) {
             // noop
           }

@@ -162,7 +162,7 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     } catch (e) {
       console.warn('[TravelCard] onAccept lanzó error:', e);
     } finally {
-      setSending(true);
+      setSending(false);
     }
   };
 

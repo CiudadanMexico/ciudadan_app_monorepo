@@ -16,17 +16,26 @@ const ViajeConductor = ({
   handleCloseButtonClick,
   handleAcceptTrip,
   mapRef,
+  onStatusChange,
 }) => {
   const [expanded, setExpanded] = useState(true);
-  const status = viaje?.attributes?.status || 'pending';
+  const [status, setStatus] = useState(viaje?.attributes?.status || 'pending');
+  console.log('viajando status', status);
   const routeInfo = viaje?.attributes?._routeInfo || null;
+
+  useEffect(() => {
+    setStatus(viaje?.attributes?.status || 'pending');
+  }, [viaje?.attributes?.status]);
 
   const formatDistance = (m) => (m ? `${(m/1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s/60)} min` : '—');
 
   const iniciarViaje = async () => {
+    setStatus('in_progress');
+    if (typeof onStatusChange === 'function') onStatusChange('in_progress');
     try {
       socket?.emit('trip-action', { viajeId: viaje?.id, action: 'start', ts: new Date().toISOString() });
+      //socket?.emit('trip-update', { travelid: viaje?.attributes?.travelid || viaje?.id, status: 'in_progress' });
     } catch (e) {}
     if (strapiConfig?.baseUrl && viaje?.id) {
       try {
@@ -40,7 +49,12 @@ const ViajeConductor = ({
   };
 
   const terminarViaje = async () => {
-    try { socket?.emit('trip-action', { viajeId: viaje?.id, action: 'finish', ts: new Date().toISOString() }); } catch (e) {}
+    setStatus('finished');
+    if (typeof onStatusChange === 'function') onStatusChange('finished');
+    try {
+      socket?.emit('trip-action', { viajeId: viaje?.id, action: 'finish', ts: new Date().toISOString() });
+      //socket?.emit('trip-update', { travelid: viaje?.attributes?.travelid || viaje?.id, status: 'finished' });
+    } catch (e) {}
     if (strapiConfig?.baseUrl && viaje?.id) {
       try {
         await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viajes/${viaje.id}`, {
@@ -86,18 +100,18 @@ const ViajeConductor = ({
             </div>
             <div style={{ flex: 1 }}>
               <div><strong>Pickup</strong></div>
-              <div style={{ fontSize: 13 }}>{viaje?.attributes?.pickup ? `${viaje.attributes.pickup.lat.toFixed(6)}, ${viaje.attributes.pickup.lng.toFixed(6)}` : 'Sin pickup'}</div>
+              <div style={{ fontSize: 13 }}>{viaje?.attributes?.origendireccion?.label}</div>
             </div>
             <div style={{ flex: 1 }}>
               <div><strong>Destino</strong></div>
-              <div style={{ fontSize: 13 }}>{viaje?.attributes?.destination ? `${viaje.attributes.destination.lat.toFixed(6)}, ${viaje.attributes.destination.lng.toFixed(6)}` : 'Sin destino'}</div>
+              <div style={{ fontSize: 13 }}>{viaje?.attributes?.destinodireccion?.label}</div>
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
-            {status !== 'in_progress' && <button onClick={iniciarViaje} style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}>Iniciar viaje</button>}
-            <button onClick={() => { if (mapRef?.current && userCoords) { mapRef.current.setCenter(userCoords); mapRef.current.setZoom(16); } }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>Centrar en mi</button>
-            <button onClick={terminarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>Terminar viaje</button>
+            {status !== 'in_progress' && status !== 'finished' && <button onClick={iniciarViaje} style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}>Iniciar viaje</button>}
+            <button onClick={() => { if (mapRef?.current && userCoords) { mapRef.current.setCenter(userCoords); mapRef.current.setZoom(16); } }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>Centrar en mí</button>
+            {status === 'in_progress' && <button onClick={terminarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>Terminar viaje</button>}
           </div>
         </div>
       )}
