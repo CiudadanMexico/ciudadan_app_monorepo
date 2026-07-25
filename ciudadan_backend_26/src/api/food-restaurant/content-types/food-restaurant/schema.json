@@ -1,0 +1,83 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_restaurants",
+  "info": {
+    "singularName": "food-restaurant",
+    "pluralName": "food-restaurants",
+    "displayName": "Food Restaurants"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "terminado": {
+      "type": "boolean",
+      "default": false
+    },
+    "slug": {
+      "type": "string",
+      "required": true
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "direccion": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "cp": {
+      "type": "string"
+    },
+    "localidad": {
+      "type": "string"
+    },
+    "esquema_impuestos": {
+      "type": "enumeration",
+      "enum": [
+        "sin_iva",
+        "con_iva",
+        "optativo"
+      ]
+    },
+    "imagen": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "paso": {
+      "type": "integer",
+      "default": 0,
+      "max": 4,
+      "min": 0
+    },
+    "nombre_bancario": {
+      "type": "string"
+    },
+    "clabe_bancaria": {
+      "type": "string"
+    },
+    "banco": {
+      "type": "string"
+    },
+    "food_modifier_groups": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-modifier-group.food-modifier-group",
+      "mappedBy": "food_restaurant"
+    }
+  }
+}

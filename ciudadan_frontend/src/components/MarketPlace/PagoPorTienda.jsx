@@ -141,9 +141,9 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
         // ---------------- 1) Crear el recurso 'pago' en Strapi ----------------
         const montoNumeric = Number(
           pedido?.attributes?.monto_total ??
-            pedido?.attributes?.monto ??
-            pedido?.attributes?.total ??
-            0
+          pedido?.attributes?.monto ??
+          pedido?.attributes?.total ??
+          0
         );
 
         const pagoPayload = {
@@ -412,7 +412,7 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
       console.error("cart y emojis - Hubo un error en handleSubirComprobante:", err);
       setError(
         "Hubo un problema al subir el comprobante. Intenta de nuevo. " +
-          (err?.message ? `Detalle: ${err.message}` : "")
+        (err?.message ? `Detalle: ${err.message}` : "")
       );
     } finally {
       console.log("cart y emojis - handleSubirComprobante finalizado, limpiando estado subiendo");
@@ -422,7 +422,48 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
 
   // ----------------- Render / JSX -----------------
   return (
-    <div className="pago-tienda" style={{ border: "1px solid #e0e0e0", padding: 12, borderRadius: 8 }}>
+    <div className="pago-tienda">
+      {/* Estilos responsivos embebidos: evitan depender de una hoja externa
+        y resuelven el desborde en pantallas angostas */}
+      <style>{`
+        .pago-tienda {
+          border: 1px solid #e0e0e0;
+          padding: 12px;
+          border-radius: 8px;
+          box-sizing: border-box;
+          max-width: 100%;
+        }
+        .pago-tienda * {
+          box-sizing: border-box;
+        }
+        .pago-tienda .subir-comprobante {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+        }
+        .pago-tienda .subir-comprobante input[type="file"] {
+          flex: 1 1 100%;
+          max-width: 100%;
+          min-width: 0;
+        }
+        .pago-tienda .subir-comprobante button {
+          flex: 1 1 auto;
+          min-width: 0;
+          white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+          .pago-tienda .subir-comprobante input[type="file"] {
+            font-size: 13px;
+          }
+          .pago-tienda .subir-comprobante button {
+            flex: 1 1 100%;
+            width: 100%;
+          }
+        }
+      `}
+      </style>
+
       <h3 style={{ marginTop: 0 }}>Pago a {store?.name || "Tienda sin nombre"}</h3>
 
       <div className="datos-bancarios" style={{ marginBottom: 12 }}>
@@ -442,15 +483,15 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
             $
             {Number(
               pedido?.attributes?.monto_total ??
-                pedido?.attributes?.monto ??
-                pedido?.attributes?.total ??
-                0
+              pedido?.attributes?.monto ??
+              pedido?.attributes?.total ??
+              0
             ).toFixed(2)}
           </strong>
         </p>
       </div>
 
-      <div className="subir-comprobante" style={{ display: "flex", gap: 12, alignItems: "center" }}>
+      <div className="subir-comprobante">
         <input
           type="file"
           accept="image/*,.pdf"
@@ -477,6 +518,22 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
         >
           {uploaded ? "Comprobante subido ✓" : subiendo ? "Subiendo comprobante..." : "Subir comprobante"}
         </button>
+        {/* Botón de acción de transferir - falta lógica necesaria
+        <button
+          disabled
+          onClick={() => console.log("Action transferir")}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 6,
+            border: "none",
+            cursor: "pointer",
+            background: "#2e7d32",
+            color: "#fff",
+            opacity: subiendo ? 0.8 : 1,
+          }}
+        >
+          Pagar pedido
+        </button> */}
       </div>
 
       {uploaded && (

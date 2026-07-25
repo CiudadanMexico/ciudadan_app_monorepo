@@ -117,7 +117,7 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
   // Responsivo para logo y ajuste topBar
   useEffect(() => {
     const handleResize = () => {
-      setLogoSrc(window.innerWidth < 490 ? "/logo193.png" : "/ciudadan_logo.png");
+      setLogoSrc(window.innerWidth < 490 ? "/_logo192.png" : "/ciudadan_logo.png");
       if (topBarRef.current && topBarOpen) {
         topBarRef.current.style.maxHeight = topBarRef.current.scrollHeight + 'px';
       }

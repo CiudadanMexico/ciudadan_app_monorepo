@@ -5,6 +5,8 @@ import Buscador from '../../components/MarketPlace/Buscador';
 import ProductoCard from '../../components/MarketPlace/ProductoCard';
 import CategoriasSlider from '../../components/MarketPlace/CategoriasSlider';
 import PreCargador from '../../components/PreCargador.jsx';
+import IconButton from '@mui/material/IconButton'; // o agrégalo al import de @mui/material que ya tienes
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // hooks
 import { useCategorias } from '../../hooks/useCategorias';
@@ -417,9 +419,21 @@ const MarketPlace = ({ filtros = '', parametros = '' }) => {
       )}
 
       {titulo && (
-        <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-          <u className="productos-titulo">{titulo}</u>
-        </Typography>
+        // <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+        //   <u className="productos-titulo">{titulo}</u>
+        // </Typography>
+        <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
+          <IconButton
+            onClick={() => navigate("/market")}
+            aria-label="volver"
+            size="small"
+          >
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h6" fontWeight={700} sx={{ m: 0 }}>
+            <u className="productos-titulo">{titulo}</u>
+          </Typography>
+        </Box>
       )}
 
       {(!ubicacion?.codigoPostal && !filtros) && (

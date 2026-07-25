@@ -121,6 +121,10 @@ import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import TestToken from '../components/TestToken.jsx';
+import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
+import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
+import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
+import Restaurant from '../Pages/Food/Restaurant.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -318,6 +322,14 @@ const Rutas = () => (
       element={<Food />}
     />
     <Route
+      path='/comida/afiliar-restaurante'
+      element={<RegistroRestaurante />}
+    />
+    <Route
+      path='/comida/restaurante/:slug/*'
+      element={<Restaurant />}
+    />
+    <Route
       path='/restaurantes'
       element={<RestaurantesRoute />}
     />
@@ -325,11 +337,11 @@ const Rutas = () => (
     {/* Market / Marketplace / MarketRoute */}
     <Route
       path='/market'
-      element={<MarketPlace />}
+      element={<MarketPage />}
     />
     <Route
       path='/marketplaces'
-      element={<MarketPlace />}
+      element={<MarketPage />}
     />
     <Route
       path='/market/producto/:slug'
@@ -399,6 +411,10 @@ const Rutas = () => (
     <Route
       path='/productos/eliminar/:slug'
       element={<EliminarProductoWrapper />}
+    />
+    <Route
+      path='/market/comprar/:slug'
+      element={<FinalizarCompraProducto />}
     />
 
     {/* Cartera / OpWallet */}

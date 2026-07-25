@@ -38,6 +38,7 @@ export default function DetalleProducto({
   estado,
   cantidad,
   handleCantidadChange,
+  enableActions = true
 }) {
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
   const navigate = useNavigate();
@@ -244,39 +245,42 @@ export default function DetalleProducto({
             +
           </Button>
         </Stack>
+        {/* Habilitar acciones de componente */}
+        {
+          enableActions && (
+            <Stack spacing={1.5} mt={3}>
+              <MotionButton
+                fullWidth
+                variant="contained"
+                startIcon={adding ? <CircularProgress size={18} /> : <AddShoppingCartIcon />}
+                onClick={added ? () => navigate('/carrito') : handleAddToCart}
+                sx={{
+                  backgroundColor: '#fff200',
+                  color: '#000',
+                  fontWeight: 700,
+                  borderRadius: 2,
+                  '&:hover': { backgroundColor: '#e6d700' },
+                }}
+              >
+                {added ? 'Ir al carrito' : 'Agregar al carrito'}
+              </MotionButton>
 
-        {/* acciones */}
-        <Stack spacing={1.5} mt={3}>
-          <MotionButton
-            fullWidth
-            variant="contained"
-            startIcon={adding ? <CircularProgress size={18} /> : <AddShoppingCartIcon />}
-            onClick={added ? () => navigate('/market/carrito') : handleAddToCart}
-            sx={{
-              backgroundColor: '#fff200',
-              color: '#000',
-              fontWeight: 700,
-              borderRadius: 2,
-              '&:hover': { backgroundColor: '#e6d700' },
-            }}
-          >
-            {added ? 'Ir al carrito' : 'Agregar al carrito'}
-          </MotionButton>
-
-          <MotionButton
-            fullWidth
-            variant="contained"
-            startIcon={<BoltIcon />}
-            onClick={handleBuy}
-            sx={{
-              backgroundColor: '#6d6e71',
-              fontWeight: 700,
-              borderRadius: 2,
-            }}
-          >
-            Comprar ahora
-          </MotionButton>
-        </Stack>
+              <MotionButton
+                fullWidth
+                variant="contained"
+                startIcon={<BoltIcon />}
+                onClick={handleBuy}
+                sx={{
+                  backgroundColor: '#6d6e71',
+                  fontWeight: 700,
+                  borderRadius: 2,
+                }}
+              >
+                Comprar ahora
+              </MotionButton>
+            </Stack>
+          )
+        }
       </CardContent>
     </Card>
   );
