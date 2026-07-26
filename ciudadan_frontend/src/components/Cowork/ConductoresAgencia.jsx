@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import { resolveValidationByAgendaId } from '../../services/driverVerification/gettters';
 import {
@@ -50,16 +51,30 @@ const ConductoresAgencia = () => {
   const [loading, setLoading] = useState(true);
   const [resolvingId, setResolvingId] = useState(null);
   const navigate = useNavigate();
+  const { getAccessTokenSilently } = useAuth0();
 
-  const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
+  const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
+
+  const getToken = useCallback(async () => {
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: 'https://api.ciudadan.org' },
+      });
+    } catch (e) {
+      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+      return null;
+    }
+  }, [getAccessTokenSilently]);
 
   const fetchConductores = useCallback(
     async ({ showLoading = false } = {}) => {
       if (showLoading) setLoading(true);
       try {
+        const token = await getToken();
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const url = `${STRAPI_URL}/api/agendas?filters[descripcion][$containsi]=Preregistro conductor&filters[$or][0][estado][$eq]=pendiente&filters[$or][1][estado][$eq]=en_revision&filters[$or][2][estado][$eq]=resubir_archivos&sort=createdAt:desc`;
 
-        const res = await fetch(url);
+        const res = await fetch(url, { headers });
         const json = await res.json();
 
         setData(json.data || []);
@@ -69,7 +84,7 @@ const ConductoresAgencia = () => {
         if (showLoading) setLoading(false);
       }
     },
-    [STRAPI_URL]
+    [STRAPI_URL, getToken]
   );
 
   useEffect(() => {

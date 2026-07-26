@@ -1,9 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import {
+  Box,
+  Paper,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Slider,
+  Checkbox,
+  FormControlLabel,
+  Button,
+} from '@mui/material';
 import useTodos from '../../hooks/useTodos';
 import { useNavigate } from 'react-router-dom';
 
-const STRAPI = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
+const STRAPI = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
 const getAttributes = (item) => item?.attributes || item || {};
 
@@ -21,11 +35,11 @@ const getAreaParentId = (area) => {
 const isParentArea = (area) => {
   const attrs = getAttributes(area);
 
-  return Number(attrs.nivel ?? 0) === 0 && !getAreaParentId(area);
+  return Number(attrs.level ?? attrs.nivel ?? 0) === 0 && !getAreaParentId(area);
 };
 
 export default function AgregarTarea() {
-  const { user } = useAuth0();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const navigate = useNavigate();
   const { createTodo } = useTodos();
 
@@ -51,14 +65,28 @@ export default function AgregarTarea() {
   const [vence, setVence] = useState(false);
   const [fechaEntrega, setFechaEntrega] = useState('');
 
+  const getToken = useCallback(async () => {
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: 'https://api.ciudadan.org' },
+      });
+    } catch (e) {
+      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+      return null;
+    }
+  }, [getAccessTokenSilently]);
+
   // ---------------------
   // CARGAR AREAS
   // ---------------------
 
   useEffect(() => {
     async function fetchAreas() {
+      const token = await getToken();
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await fetch(
-        `${STRAPI}/api/areas?populate[parent_area]=*&pagination[limit]=1000&sort[0]=nombre:asc`
+        `${STRAPI}/api/areas?populate[parent_area]=*&pagination[limit]=1000&sort[0]=name:asc`,
+        { headers }
       );
 
       const json = await res.json();
@@ -73,7 +101,7 @@ export default function AgregarTarea() {
     }
 
     fetchAreas();
-  }, []);
+  }, [getToken]);
 
   // ---------------------
   // CARGAR SUBAREAS
@@ -100,9 +128,29 @@ export default function AgregarTarea() {
     e.preventDefault();
 
     try {
+      if (!isAuthenticated) {
+        throw new Error('Debes iniciar sesión para crear tareas');
+      }
+
       if (!areaSeleccionada) {
         throw new Error('Selecciona un área principal.');
       }
+
+      console.log('Creando tarea con:', {
+        titulo,
+        descripcion,
+        tipo,
+        ambito,
+        nivel,
+        recurrencia,
+        minutos_desarrollo: minutos,
+        reward_laborys: laborys,
+        reward_cash: efectivo,
+        areas: [areaSeleccionada],
+        subareas: subareaSeleccionada ? [subareaSeleccionada] : [],
+        user_email: user?.email,
+        user_sub: user?.sub,
+      });
 
       await createTodo({
         titulo,
@@ -115,8 +163,8 @@ export default function AgregarTarea() {
 
         minutos_desarrollo: minutos,
 
-        pagos_laborys: laborys,
-        pagos_efectivo: efectivo,
+        reward_laborys: laborys,
+        reward_cash: efectivo,
 
         vence,
         fecha_entrega: vence ? fechaEntrega : null,
@@ -124,7 +172,7 @@ export default function AgregarTarea() {
         areas: [areaSeleccionada],
         subareas: subareaSeleccionada ? [subareaSeleccionada] : [],
 
-        creador: user?.sub || null,
+        creador: user?.email || null,
 
         status: 'publicada',
 
@@ -134,199 +182,191 @@ export default function AgregarTarea() {
       alert('Tarea creada');
       navigate('/coowork?tab=generales');
     } catch (err) {
+      console.error('Error creando tarea:', err);
       alert(err.message || 'No se pudo crear la tarea');
     }
   };
 
   return (
-    <div style={styles.wrap}>
-      <div style={styles.card}>
-        <h2 style={styles.title}>Agregar Tarea</h2>
+    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+      <Paper
+        elevation={3}
+        sx={{
+          bgcolor: '#013b0c',
+          p: 4,
+          borderRadius: 3,
+          width: '100%',
+          maxWidth: 520,
+        }}
+      >
+        <Typography variant="h5" color="white" gutterBottom>
+          Agregar Tarea
+        </Typography>
 
-        <form onSubmit={submit} style={styles.form}>
-          <input
-            style={styles.input}
-            placeholder="Título"
+        <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            label="Título"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
+            fullWidth
+            sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
 
-          <textarea
-            style={styles.textarea}
-            placeholder="Descripción"
+          <TextField
+            label="Descripción"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
+            multiline
+            minRows={3}
+            fullWidth
+            sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
 
           {/* AREA */}
-
-          <select
-            style={styles.input}
-            value={areaSeleccionada || ''}
-            onChange={(e) => {
-              setAreaSeleccionada(e.target.value);
-              setSubareaSeleccionada(null);
-            }}
-          >
-            <option value="">Área</option>
-
-            {areas.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.attributes.nombre}
-              </option>
-            ))}
-          </select>
+          <FormControl fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
+            <InputLabel>Área</InputLabel>
+            <Select
+              value={areaSeleccionada || ''}
+              label="Área"
+              onChange={(e) => {
+                setAreaSeleccionada(e.target.value);
+                setSubareaSeleccionada(null);
+              }}
+            >
+              <MenuItem value="">Área</MenuItem>
+              {areas.map((a) => (
+                <MenuItem key={a.id} value={a.id}>
+                  {getAttributes(a).name || getAttributes(a).nombre}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
 
           {/* SUBAREA */}
-
           {subareas.length > 0 && (
-            <select
-              style={styles.input}
-              value={subareaSeleccionada || ''}
-              onChange={(e) => setSubareaSeleccionada(e.target.value)}
-            >
-              <option value="">Subárea</option>
-
-              {subareas.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.attributes.nombre}
-                </option>
-              ))}
-            </select>
+            <FormControl fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
+              <InputLabel>Subárea</InputLabel>
+              <Select
+                value={subareaSeleccionada || ''}
+                label="Subárea"
+                onChange={(e) => setSubareaSeleccionada(e.target.value)}
+              >
+                <MenuItem value="">Subárea</MenuItem>
+                {subareas.map((s) => (
+                  <MenuItem key={s.id} value={s.id}>
+                    {getAttributes(s).name || getAttributes(s).nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           )}
 
           {/* ENUMS */}
+          <FormControl fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
+            <InputLabel>Tipo</InputLabel>
+            <Select value={tipo} label="Tipo" onChange={(e) => setTipo(e.target.value)}>
+              <MenuItem value="tarea">Tarea</MenuItem>
+              <MenuItem value="subtarea">Subtarea</MenuItem>
+            </Select>
+          </FormControl>
 
-          <select style={styles.input} value={tipo} onChange={(e) => setTipo(e.target.value)}>
-            <option value="tarea">Tarea</option>
-            <option value="subtarea">Subtarea</option>
-          </select>
+          <FormControl fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
+            <InputLabel>Ámbito</InputLabel>
+            <Select value={ambito} label="Ámbito" onChange={(e) => setAmbito(e.target.value)}>
+              <MenuItem value="privada">Privada</MenuItem>
+              <MenuItem value="plataforma">Plataforma</MenuItem>
+            </Select>
+          </FormControl>
 
-          <select style={styles.input} value={ambito} onChange={(e) => setAmbito(e.target.value)}>
-            <option value="privada">Privada</option>
-            <option value="plataforma">Plataforma</option>
-          </select>
+            <FormControl fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
+            <InputLabel>Nivel</InputLabel>
+            <Select value={nivel} label="Nivel" onChange={(e) => setNivel(e.target.value)}>
+              <MenuItem value="general">General</MenuItem>
+              <MenuItem value="becario">Becario</MenuItem>
+              <MenuItem value="especialidad">Especialidad</MenuItem>
+              <MenuItem value="experto">Experto</MenuItem>
+              <MenuItem value="personalizada">Personalizada</MenuItem>
+            </Select>
+          </FormControl>
 
-          <select style={styles.input} value={nivel} onChange={(e) => setNivel(e.target.value)}>
-            <option value="general">General</option>
-            <option value="becarios">Becarios</option>
-            <option value="especialidad">Especialidad</option>
-            <option value="experto">Experto</option>
-            <option value="personalizada">Personalizada</option>
-          </select>
-
-          <select
-            style={styles.input}
-            value={recurrencia}
-            onChange={(e) => setRecurrencia(e.target.value)}
-          >
-            <option value="unica">Única</option>
-            <option value="abierta">Abierta</option>
-            <option value="periodica">Periódica</option>
-          </select>
+          <FormControl fullWidth sx={{ bgcolor: 'white', borderRadius: 1 }}>
+            <InputLabel>Recurrencia</InputLabel>
+            <Select
+              value={recurrencia}
+              label="Recurrencia"
+              onChange={(e) => setRecurrencia(e.target.value)}
+            >
+              <MenuItem value="unica">Única</MenuItem>
+              <MenuItem value="abierta">Abierta</MenuItem>
+              <MenuItem value="periodica">Periódica</MenuItem>
+            </Select>
+          </FormControl>
 
           {/* MINUTOS */}
-
-          <label style={styles.label}>Minutos desarrollo: {minutos}</label>
-
-          <input
-            type="range"
-            min="0"
-            max="240"
-            value={minutos}
-            onChange={(e) => setMinutos(e.target.value)}
-          />
+          <Box>
+            <Typography color="white" variant="body2" gutterBottom>
+              Minutos desarrollo: {minutos}
+            </Typography>
+            <Slider
+              min={0}
+              max={240}
+              value={Number(minutos)}
+              onChange={(e, v) => setMinutos(v)}
+              sx={{ color: '#00ff99' }}
+            />
+          </Box>
 
           {/* PAGOS */}
-
-          <input
-            style={styles.input}
-            placeholder="Pago Laborys"
+          <TextField
+            label="Pago Laborys"
             value={laborys}
             onChange={(e) => setLaborys(e.target.value)}
+            fullWidth
+            sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
 
-          <input
-            style={styles.input}
-            placeholder="Pago efectivo"
+          <TextField
+            label="Pago efectivo"
             value={efectivo}
             onChange={(e) => setEfectivo(e.target.value)}
+            fullWidth
+            sx={{ bgcolor: 'white', borderRadius: 1 }}
           />
 
           {/* FECHA */}
-
-          <label style={styles.label}>
-            <input type="checkbox" checked={vence} onChange={() => setVence(!vence)} />
-            {' '}
-            Tiene fecha de entrega
-          </label>
+          <FormControlLabel
+            control={<Checkbox checked={vence} onChange={() => setVence(!vence)} />}
+            label="Tiene fecha de entrega"
+            sx={{ color: 'white' }}
+          />
 
           {vence && (
-            <input
+            <TextField
               type="date"
-              style={styles.input}
+              label="Fecha de entrega"
+              value={fechaEntrega}
               onChange={(e) => setFechaEntrega(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              sx={{ bgcolor: 'white', borderRadius: 1 }}
             />
           )}
 
-          <button style={styles.button}>CREAR TAREA</button>
-        </form>
-      </div>
-    </div>
+          <Button
+            type="submit"
+            variant="contained"
+            sx={{
+              bgcolor: '#fff200',
+              color: '#000',
+              fontWeight: 'bold',
+              py: 1.5,
+              '&:hover': { bgcolor: '#ffea00' },
+            }}
+          >
+            CREAR TAREA
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 }
-
-const styles = {
-  wrap: {
-    display: 'flex',
-    justifyContent: 'center',
-    padding: 20,
-  },
-
-  card: {
-    background: '#013b0c',
-    padding: 30,
-    borderRadius: 12,
-    width: '100%',
-    maxWidth: 520,
-  },
-
-  title: {
-    color: 'white',
-    marginBottom: 20,
-  },
-
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-  },
-
-  input: {
-    padding: 12,
-    borderRadius: 8,
-    border: '1px solid #ccc',
-    background: 'white',
-  },
-
-  textarea: {
-    padding: 12,
-    borderRadius: 8,
-    border: '1px solid #ccc',
-    background: 'white',
-    minHeight: 90,
-  },
-
-  label: {
-    color: 'white',
-    fontSize: 14,
-  },
-
-  button: {
-    background: '#fff200',
-    padding: 14,
-    border: 'none',
-    borderRadius: 8,
-    fontWeight: 'bold',
-  },
-};

@@ -6,8 +6,9 @@
 
 import { useState, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { validateTaskStatusTransition } from "../utils/cowork.helpers";
 
-const STRAPI_BASE = process.env.REACT_APP_STRAPI_URL || "http://localhost:1337";
+const STRAPI_BASE = process.env.REACT_APP_STRAPI_URL || "http://localhost:33032";
 
 function buildHeaders(token) {
   const headers = {
@@ -46,7 +47,12 @@ export default function useTodos() {
   const getToken = async () => {
     try {
       if (!isAuthenticated) return null;
-      return await getAccessTokenSilently();
+      return await getAccessTokenSilently({
+        authorizationParams: {
+          audience: 'https://api.ciudadan.org',
+          scope: 'openid profile email offline_access',
+        },
+      });
     } catch {
       return null;
     }
@@ -67,11 +73,10 @@ const findStrapiUserIdByEmail = async (email, token = null) => {
     if (!res.ok) return null;
 
     const json = await res.json();
+    const users = Array.isArray(json) ? json : Array.isArray(json.data) ? json.data : [];
 
-    // users endpoint devuelve ARRAY, no {data:[]}
-    if (!Array.isArray(json) || json.length === 0) return null;
-
-    return json[0].id;
+    if (users.length === 0) return null;
+    return users[0].id;
 
   } catch (err) {
     return null;
@@ -82,16 +87,28 @@ const findStrapiUserIdByEmail = async (email, token = null) => {
   const preparePayloadForStrapi = async (payload = {}) => {
     const data = { ...payload };
 
-    // relationships arrays: areas, subareas
+    // relationships arrays: areas, subareas, skills
     const areas = normalizeRelationArray(payload.areas);
     if (areas) data.areas = areas;
 
     const subareas = normalizeRelationArray(payload.subareas);
     if (subareas) data.subareas = subareas;
 
+    const skills = normalizeRelationArray(payload.skills);
+    if (skills) data.skills = skills;
+
     // numeric fields
-    if (payload.pagos_laborys !== undefined) data.pagos_laborys = toNumberIfPossible(payload.pagos_laborys);
-    if (payload.pagos_efectivo !== undefined) data.pagos_efectivo = toNumberIfPossible(payload.pagos_efectivo);
+    // Fix C (cleanup aliases legacy): los campos oficiales son reward_laborys
+    // y reward_cash. Los aliases pagos_laborys/pagos_efectivo del `todo`
+    // (decimal) fueron removidos del schema backend — ya no es necesario
+    // mapearlos aquí. `recompensa` se mantiene como alias de lectura de
+    // documentos previos al cleanup (algunos registros antiguos lo usan).
+    if (payload.reward_laborys !== undefined) {
+      data.reward_laborys = toNumberIfPossible(payload.reward_laborys);
+    }
+    if (payload.reward_cash !== undefined) {
+      data.reward_cash = toNumberIfPossible(payload.reward_cash);
+    }
     if (payload.minutos_desarrollo !== undefined) data.minutos_desarrollo = toNumberIfPossible(payload.minutos_desarrollo);
     if (payload.recompensa !== undefined) data.recompensa = toNumberIfPossible(payload.recompensa);
 
@@ -170,11 +187,15 @@ if (typeof maybeNum === "number" && maybeNum > 0) {
       setError(null);
       try {
         const token = await getToken();
+        console.log('Create todo - Token:', token ? 'presente' : 'ausente', 'Payload:', payload);
 
         const data = await preparePayloadForStrapi(payload);
 
         // asegurar fecha_publicacion si no viene
         if (!data.fecha_publicacion) data.fecha_publicacion = new Date().toISOString();
+
+        console.log('Data enviada a Strapi:', data);
+        console.log('Headers:', buildHeaders(token));
 
         const res = await fetch(`${STRAPI_BASE}/api/todos`, {
           method: "POST",
@@ -203,31 +224,50 @@ if (typeof maybeNum === "number" && maybeNum > 0) {
   // ---------------------------
   // UPDATE TODO
   // ---------------------------
-  const updateTodo = useCallback(async (id, updates = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = await getToken();
-      const data = await preparePayloadForStrapi(updates);
-      const res = await fetch(`${STRAPI_BASE}/api/todos/${id}`, {
-        method: "PUT",
-        headers: buildHeaders(token),
-        body: JSON.stringify({ data }),
+const updateTodo = useCallback(async (id, updates = {}) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = await getToken();
+    console.log("Update todo - ID:", id, "Token:", token ? "presente" : "ausente", "Updates:", updates);
+    const data = await preparePayloadForStrapi(updates);
+    const headers = buildHeaders(token);
+    console.log("Headers enviados:", headers);
+    console.log("Body enviado:", JSON.stringify({ data }));
+    
+    // Validar transición de estado si se está cambiando
+    if (updates.status) {
+      const getCurrentRes = await fetch(`${STRAPI_BASE}/api/todos/${id}`, {
+        headers: headers,
       });
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Error actualizando todo: ${res.status} ${txt}`);
+      if (!getCurrentRes.ok) throw new Error('No se pudo obtener tarea actual');
+      const currentJson = await getCurrentRes.json();
+      const currentStatus = currentJson.data.attributes.status;
+      
+      if (!validateTaskStatusTransition(currentStatus, updates.status)) {
+        throw new Error(`Transición de estado inválida: ${currentStatus} -> ${updates.status}`);
       }
-      const json = await res.json();
-      setTodos((prev) => prev.map((t) => (t.id === json.data.id ? json.data : t)));
-      return json.data;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
     }
-  }, []);
+    
+    const res = await fetch(`${STRAPI_BASE}/api/todos/${id}`, {
+      method: "PUT",
+      headers: headers,
+      body: JSON.stringify({ data }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Error actualizando todo: ${res.status} ${txt}`);
+    }
+    const json = await res.json();
+    setTodos((prev) => prev.map((t) => (t.id === json.data.id ? json.data : t)));
+    return json.data;
+  } catch (err) {
+    handleError(err);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   // ---------------------------
   // DELETE TODO
@@ -330,62 +370,124 @@ if (typeof maybeNum === "number" && maybeNum > 0) {
   );
 
   // ---------------------------
-  // CALIFICAR TAREA
-  // ---------------------------
-  const rateTask = useCallback(async (tareaId, rating = {}) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = await getToken();
-      const getRes = await fetch(`${STRAPI_BASE}/api/tareas/${tareaId}`, {
-        headers: buildHeaders(token),
-      });
-      if (!getRes.ok) throw new Error(`No se pudo leer tarea`);
-      const getJson = await getRes.json();
-      const current = getJson.data.attributes || {};
-      const califs = Array.isArray(current.calificaciones) ? current.calificaciones : [];
-      const next = [...califs, { ...rating, fecha: rating.fecha || new Date().toISOString() }];
-      const upd = await fetch(`${STRAPI_BASE}/api/tareas/${tareaId}`, {
-        method: "PUT",
-        headers: buildHeaders(token),
-        body: JSON.stringify({ data: { calificaciones: next } }),
-      });
-      if (!upd.ok) throw new Error(`Error al calificar tarea`);
-      const updJson = await upd.json();
-      return updJson.data;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // ---------------------------
   // PAGAR TAREA
   // ---------------------------
-  const payTask = useCallback(async (tareaId, payment = {}) => {
+  // ⚠️ LEGACY: este método existe por compatibilidad pero en el MVP NO debe
+  // usarse para registrar pagos manuales. El flujo canónico es `rateTask`
+  // (controller `calificar.js`) que acredita laborys atómicamente en la
+  // cartera del usuario. El spec documento-off.md línea 128 dice: "No hay
+  // pagos en efectivo en este MVP". Aquí bloqueamos explícitamente la rama
+  // `metodo:'efectivo'` para que no deje rastro residual en `pagos_efectivo`.
+  // Si necesitas re-habilitar efectivo fuera del MVP, sacar este guardia.
+const payTask = useCallback(async (tareaId, payment = {}) => {
+  if (payment && payment.metodo === 'efectivo') {
+    throw new Error(
+      "El pago en efectivo no está habilitado en el MVP. Use `rateTask` para calificar y pagar en laborys."
+    );
+  }
+  setLoading(true);
+  setError(null);
+  try {
+    const token = await getToken();
+    const getRes = await fetch(`${STRAPI_BASE}/api/tareas/${tareaId}?populate=todo`, {
+      headers: buildHeaders(token),
+    });
+    if (!getRes.ok) throw new Error(`No se pudo leer tarea`);
+    const getJson = await getRes.json();
+    const current = getJson.data.attributes || {};
+    // Pago manual en laborys: si se usa, se registra en pagos_laborys (no efectivo).
+    const field = 'pagos_laborys';
+    const arr = Array.isArray(current[field]) ? current[field] : [];
+    const next = [...arr, { ...payment, fecha: payment.fecha || new Date().toISOString() }];
+
+    const updateData = {
+      [field]: next,
+      payment_status: 'procesado',
+      status: 'pagada',
+    };
+
+    const upd = await fetch(`${STRAPI_BASE}/api/tareas/${tareaId}`, {
+      method: 'PUT',
+      headers: buildHeaders(token),
+      body: JSON.stringify({ data: updateData }),
+    });
+
+    if (!upd.ok) throw new Error(`Error registrando pago`);
+    const updJson = await upd.json();
+
+    const todoId = current.todo?.data?.id;
+    if (todoId) {
+      await updateTodo(todoId, { status: 'pagada' });
+    }
+
+    return updJson.data;
+  } catch (err) {
+    handleError(err);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, [updateTodo]);
+
+  // ---------------------------
+  // CALIFICAR TAREA (con pago automático de laborys en backend)
+  // ---------------------------
+const rateTask = useCallback(async (tareaId, rating = {}) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const token = await getToken();
+
+    // Llama al endpoint backend /tareas/calificar que:
+    //   - valida permisos (socio/admin)
+    //   - guarda la calificación
+    //   - acredita laborys en la cartera del usuario
+    //   - marca tarea como pagada
+    //   - actualiza el todo a pagada
+    const res = await fetch(`${STRAPI_BASE}/api/tareas/calificar`, {
+      method: 'POST',
+      headers: buildHeaders(token),
+      body: JSON.stringify({
+        tareaId,
+        score: rating.score,
+        notes: rating.notes || '',
+      }),
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Error al calificar tarea: ${res.status} ${txt}`);
+    }
+
+    const json = await res.json();
+    return json.data;
+  } catch (err) {
+    handleError(err);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+  // ---------------------------
+  // CORREGIR TAREA (verificador solicita corrección)
+  // ---------------------------
+  const corregirTarea = useCallback(async (tareaId, notes = '') => {
     setLoading(true);
     setError(null);
     try {
       const token = await getToken();
-      const getRes = await fetch(`${STRAPI_BASE}/api/tareas/${tareaId}`, {
+      const res = await fetch(`${STRAPI_BASE}/api/tareas/corregir`, {
+        method: 'POST',
         headers: buildHeaders(token),
+        body: JSON.stringify({ tareaId, notes }),
       });
-      if (!getRes.ok) throw new Error(`No se pudo leer tarea`);
-      const getJson = await getRes.json();
-      const current = getJson.data.attributes || {};
-      const field = payment.metodo === "efectivo" ? "pagos_efectivo" : "pagos_laborys";
-      const arr = Array.isArray(current[field]) ? current[field] : [];
-      const next = [...arr, { ...payment, fecha: payment.fecha || new Date().toISOString() }];
-      const upd = await fetch(`${STRAPI_BASE}/api/tareas/${tareaId}`, {
-        method: "PUT",
-        headers: buildHeaders(token),
-        body: JSON.stringify({ data: { [field]: next } }),
-      });
-      if (!upd.ok) throw new Error(`Error registrando pago`);
-      const updJson = await upd.json();
-      return updJson.data;
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Error al marcar tarea para corregir: ${res.status} ${txt}`);
+      }
+      const json = await res.json();
+      return json.data || json;
     } catch (err) {
       handleError(err);
       throw err;
@@ -406,5 +508,6 @@ if (typeof maybeNum === "number" && maybeNum > 0) {
     assignToUser,
     rateTask,
     payTask,
+    corregirTarea,
   };
 }

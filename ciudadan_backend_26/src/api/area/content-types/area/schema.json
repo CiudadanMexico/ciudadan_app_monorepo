@@ -12,10 +12,11 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "nombre": {
-      "type": "string"
+    "name": {
+      "type": "string",
+      "required": true
     },
-    "nivel": {
+    "level": {
       "type": "integer",
       "default": 0,
       "required": true
