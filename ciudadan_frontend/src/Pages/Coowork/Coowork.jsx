@@ -43,6 +43,7 @@ import { getGeneralTodos, getCartera, getTareasPendientesCalificacion } from '..
 import { resolverTarea } from '../../services/cowork/mutationsServices.js';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
 import useTodos from '../../hooks/useTodos.jsx';
+import { normalizeTask } from '../../utils/cowork.helpers.js';
 
 // Colores base
 const neonGreen = '#00ff99';
@@ -193,21 +194,7 @@ const CooWork = () => {
       const json = await getGeneralTodos(token);
       setGeneralTodos(
         (json.data || [])
-          .map((item) => {
-            const attrs = item.attributes || item;
-            return {
-              id: item.id,
-              titulo: attrs.titulo || 'Sin título',
-              descripcion: attrs.descripcion || '',
-              tiempoMin: attrs.minutos_desarrollo || 0,
-              labory: attrs.reward_laborys ?? attrs.recompensa ?? 0,
-              efectivo: attrs.reward_cash ?? 0,
-              fechaEntrega: attrs.fecha_entrega || null,
-              status: attrs.status,
-              nivel: attrs.nivel,
-              recurrencia: attrs.recurrencia,
-            };
-          })
+          .map(normalizeTask)
           .filter((todo) => todo.status === 'publicada' && todo.nivel === 'general')
       );
     } catch (err) {

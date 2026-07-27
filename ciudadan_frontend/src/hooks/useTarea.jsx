@@ -91,8 +91,7 @@ export function useTarea() {
                 id: todo.id,
                 titulo: todo.attributes?.titulo || todo.titulo,
                 status: todo.attributes?.status || todo.status,
-                reward_laborys: todo.attributes?.reward_laborys ?? todo.reward_laborys
-                  ?? todo.attributes?.pagos_laborys ?? todo.pagos_laborys ?? 0,
+                reward_laborys: todo.attributes?.reward_laborys ?? todo.reward_laborys ?? 0,
               }
             : null,
           usuario: usuario
