@@ -1,5 +1,5 @@
 // src/pages/MarketPlace/Food.jsx
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Buscador from '../../components/Food/Buscador.jsx';
 import ProductoCard from '../../components/MarketPlace/ProductoCard.jsx';
@@ -27,6 +27,8 @@ import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import { useFoodCategories } from '../../hooks/food/useFoodCategories.jsx';
+import useProductsRestaurant from '../../hooks/food/useProductsRestaurant.jsx';
+import FoodProductCard from '../../components/Food/FoodProductCard.jsx';
 
 const Food = ({ filtros = '', parametros = '' }) => {
   // colores y constantes de UI
@@ -53,47 +55,34 @@ const Food = ({ filtros = '', parametros = '' }) => {
   // hooks y datos
   const { getCategories, loading: loadingCategories } = useFoodCategories();
   const { ubicacion } = useUbicacion();
-  const prodHook = useProductos();
-  const {
-    getProductos,
-    precotizarMienvio,
-    precotizacionTotal,
-    calificacionPromedio,
-    obtenerNumeroCalificaciones,
-    obtenerImagenProducto,
-  } = prodHook;
+  const { getProducts, page, pagination, setPage, loading: loadingProducts, } = useProductsRestaurant();
 
   const [productos, setProductos] = useState([]);
-  const pagHook = useProductos({ paginado: true });
-  const {
-    productos: productosFiltrados = { data: [] },
-    loading: loadingFiltros,
-    pagina,
-    setPagina,
-    porPagina,
-    setPorPagina,
-    fetchProductos: fetchProductosFiltros,
-    totalItems,
-  } = pagHook;
 
   const [categorias, setCategorias] = useState([]);
   const [busqueda, setBusqueda] = useState('');
   const [visible, setVisible] = useState({});
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const itemRefs = useRef(new Map()); // id -> element
+  const observerRef = useRef(null);
+  const lastProductRef = useRef(null);
+  const loadMoreObserver = useRef(null);
+  const isNewSearchRef = useRef(false); // Flag para distinguir si cuando cambian filtros
+  const requestingNextPage = useRef(false); // Flag para prevenir solicitar 2 páginas a la vez
 
   // títulos
-  let titulo = '';
-  let mostrarCategorias = true;
-  if (filtros === 'busqueda') {
-    titulo = `Resultados de Búsqueda «${parametros.charAt(0).toUpperCase() + parametros.slice(1)}»`;
-    mostrarCategorias = false;
-  } else if (filtros === 'categoria') {
-    titulo = `Platillos en «${parametros.charAt(0).toUpperCase() + parametros.slice(1)}»`;
-    mostrarCategorias = false;
-  } else if (filtros === 'mis-productos') {
-    titulo = '»» Tus Productos ««';
-    mostrarCategorias = false;
-  }
+  const { showCategories, title } = useMemo(() => {
+    if (busqueda)
+      return ({ showCategories: false, title: `Resultados de Búsqueda «${(busqueda).charAt(0).toUpperCase() + (busqueda).slice(1)}»` });
+    if (selectedCategory)
+      return ({ showCategories: false, title: `Platillos en Categoría «${(selectedCategory).charAt(0).toUpperCase() + (selectedCategory).slice(1)}»` });
+    return ({ showCategories: true, title: '' });
+  }, [busqueda, selectedCategory]);
 
+  const hasMore = useMemo(() => {
+    return (pagination?.page < pagination?.pageCount);
+  }, [pagination]);
   // handlers
   const handleBuscar = () => {
     const slug = busqueda.trim().toLowerCase().replace(/\s+/g, '-');
@@ -101,8 +90,23 @@ const Food = ({ filtros = '', parametros = '' }) => {
     navigate(`/productos/busqueda/${slug}`);
   };
   const handleCategoriaClick = (slug) => navigate(`/productos/categoria/${slug}`);
-  const handleOfertas = () => navigate('/food-ofertas');
+  const handleOfertas = () => navigate('/comida-ofertas');
   const handleEnvios = () => navigate('/comida/envios');
+
+  const handleGetProducts = async (search = '', category = '') => {
+    const fetchParams = {};
+    if (search) {
+      fetchParams['filters[$or][0][nombre][$containsi]'] = search;
+      fetchParams['filters[$or][1][descripcion][$containsi]'] = search;
+    }
+    if (category) {
+      fetchParams['filters[food_categories][slug][$eq]'] = category;
+    }
+
+    const products = await getProducts(fetchParams);
+    setProductos(products);
+
+  };
 
   // cargar categorias
   useEffect(() => {
@@ -123,70 +127,81 @@ const Food = ({ filtros = '', parametros = '' }) => {
     };
   }, []);
 
-  // // cargar productos
-  // useEffect(() => {
-  //   if (filtros) return;
-  //   let mounted = true;
-  //   const fetchAll = async () => {
-  //     let data = [];
-  //     try {
-  //       try {
-  //         const raw = await getProductos();
-  //         if (Array.isArray(raw)) data = raw;
-  //         else if (raw && Array.isArray(raw.data)) data = raw.data;
-  //         else data = raw?.data ?? [];
-  //       } catch (errInner) {
-  //         safeLogError('getProductos falló', errInner);
-  //         data = [];
-  //       }
-  //       if (!data || !Array.isArray(data)) data = [];
+  useEffect(() => {
+    setProductos([]);
+    setPage(v => v !== 1 ? 1 : v);
+    setVisible({});
+  }, [busqueda, selectedCategory])
 
-  //       const enriched = await Promise.all(
-  //         data.map(async (p) => {
-  //           if (!p) return null;
-  //           const attr = p.attributes || {};
-  //           const cpDestino = ubicacion?.codigoPostal || '11560';
-  //           const cpOrigen = attr.cp || '11590';
-  //           if (!cpOrigen || !cpDestino) return null;
-  //           try {
-  //             const envio = await precotizarMienvio(cpOrigen, cpDestino, attr.largo, attr.ancho, attr.alto, attr.peso);
-  //             const total = await precotizacionTotal(p, cpDestino);
-  //             const img = await obtenerImagenProducto?.(p.id);
-  //             return {
-  //               ...p,
-  //               envio,
-  //               total,
-  //               imagen: img,
-  //               calificacion: calificacionPromedio?.(p),
-  //               numCalificaciones: obtenerNumeroCalificaciones?.(p),
-  //             };
-  //           } catch (errProd) {
-  //             safeLogError(`Error enriqueciendo producto id=${p?.id}`, errProd);
-  //             return null;
-  //           }
-  //         })
-  //       );
-  //       if (!mounted) return;
-  //       setProductos(enriched.filter(Boolean));
-  //     } catch (errOuter) {
-  //       safeLogError('fetchAll general error', errOuter);
-  //       if (mounted) setProductos([]);
-  //     }
-  //   };
-  //   if (ubicacion?.codigoPostal) fetchAll();
-  //   return () => {
-  //     mounted = false;
-  //   };
-  // }, [
-  //   ubicacion,
-  //   filtros,
-  //   getProductos,
-  //   precotizarMienvio,
-  //   precotizacionTotal,
-  //   obtenerImagenProducto,
-  //   calificacionPromedio,
-  //   obtenerNumeroCalificaciones,
-  // ]);
+
+  // cargar productos
+  useEffect(() => {
+    if (filtros) return;
+    let mounted = true;
+    handleGetProducts(busqueda, selectedCategory);
+    return () => {
+      mounted = false;
+    };
+  }, [busqueda, selectedCategory, page]);
+
+  useEffect(() => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = e.target.getAttribute('data-id');
+          if (id) {
+            setVisible(v => ({ ...v, [id]: true }));
+            try { observer.unobserve(e.target); } catch (_) { }
+          }
+        }
+      });
+    }, { threshold: 0.2 });
+
+    observerRef.current = observer;
+    itemRefs.current.forEach(el => {
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, [productos]);
+
+  useEffect(() => {
+    if (loadMoreObserver.current) {
+      loadMoreObserver.current.disconnect();
+    }
+
+    loadMoreObserver.current = new IntersectionObserver(
+      entries => {
+        const first = entries[0];
+        if (first.isIntersecting && !loadingProducts && hasMore && !requestingNextPage.current) {
+          requestingNextPage.current = true;
+          setPage(prev => prev + 1);
+        }
+      },
+      {
+        threshold: 0.5
+      }
+    );
+
+    if (lastProductRef.current) {
+      loadMoreObserver.current.observe(lastProductRef.current);
+    }
+
+    return () => {
+      loadMoreObserver.current?.disconnect();
+    };
+
+  }, [productos, loadingProducts, hasMore]);
 
   // useEffect(() => {
   //   if (!filtros) return;
@@ -229,7 +244,6 @@ const Food = ({ filtros = '', parametros = '' }) => {
   //   return () => observer.disconnect();
   // }, [filtros ? productosFiltrados : productos]);
 
-  const listToRender = filtros ? productosFiltrados?.data ?? [] : productos;
 
   return (
     <>
@@ -303,7 +317,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
           </Stack>
 
           {/* CATEGORÍAS */}
-          {(!loadingCategories && categorias.length > 0 && mostrarCategorias) && (
+          {(!loadingCategories && categorias.length > 0 && showCategories) && (
             <Box sx={{ mb: 3 }}>
               <Paper
                 elevation={1}
@@ -361,104 +375,56 @@ const Food = ({ filtros = '', parametros = '' }) => {
           )}
 
           {/* TITULO */}
-          {titulo && (
+          {title && (
             <Typography variant="h6" fontWeight={900} sx={{ mb: 2, color: '#d35400' }}>
-              {titulo}
+              {title}
             </Typography>
           )}
 
           {/* GRID DE PRODUCTOS */}
           <Grid container spacing={3}>
-            {Array.isArray(listToRender) && listToRender.length === 0 && (
+            {productos.length === 0 && (
               <Grid item xs={12}>
                 <Typography textAlign="center" color="text.secondary">
                   {filtros
-                    ? loadingFiltros
-                      ? 'Cargando platillos...'
-                      : 'No hay platillos.'
+                    ? 'Cargando platillos...'
                     : 'Aún no hay platillos publicados.'}
                 </Typography>
               </Grid>
             )}
 
-            {Array.isArray(listToRender) &&
-              listToRender.map((prod) => (
-                <Grid
-                  key={prod?.id ?? Math.random()}
-                  item
-                  xs={12}
-                  sm={6}
-                  md={3}
-                  data-id={prod?.id ?? ''}
-                  sx={{
-                    opacity: visible[prod?.id] ? 1 : 0,
-                    transform: visible[prod?.id] ? 'translateY(0)' : 'translateY(18px)',
-                    transition: 'all 0.55s cubic-bezier(.2,.9,.3,1)',
-                  }}
-                >
-                  <Box sx={{ position: 'relative', borderRadius: 2, overflow: 'visible' }}>
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: -8,
-                        left: -8,
-                        zIndex: 3,
-                        display: 'flex',
-                        gap: 1,
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Paper
-                        elevation={2}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          px: 1,
-                          py: 0.4,
-                          borderRadius: 1,
-                          backgroundColor: '#fff',
-                        }}
-                      >
-                        <AccessTimeIcon sx={{ fontSize: 14, color: SEARCH_ORANGE }} />
-                        <Typography variant="caption" fontWeight={700} sx={{ color: '#333' }}>
-                          ~ 30-45 min
-                        </Typography>
-                      </Paper>
-                      <Paper elevation={2} sx={{ px: 1, py: 0.4, borderRadius: 1, backgroundColor: '#fff' }}>
-                        <Typography variant="caption" fontWeight={700} sx={{ color: '#333' }}>
-                          Pago justo
-                        </Typography>
-                      </Paper>
-                    </Box>
-
-                    <ProductoCard
-                      titulo={prod?.attributes?.nombre}
-                      slug={prod?.attributes?.slug}
-                      imagenes={prod?.attributes?.imagenes}
-                      descripcion={prod?.attributes?.descripcion}
-                      imagen={prod?.imagen}
-                      precio={prod?.attributes?.precio}
-                      envioAprox={prod?.envio?.costo ? `$${prod.envio.costo} aprox.` : null}
-                      localidad={prod?.attributes?.localidad}
-                      estado={prod?.attributes?.estado}
-                      calificacion={prod?.calificacion}
-                      numeroCalificaciones={prod?.numCalificaciones}
-                      vendidos={prod?.attributes?.vendidos}
-                      total={prod?.total && `$${prod.total}`}
-                    />
-                  </Box>
-                </Grid>
-              ))}
+            {productos.map(({id, ...prod}, idx) => (
+              <Grid
+                key={id ?? Math.random()}
+                item
+                xs={12}
+                sm={6}
+                md={3}
+                data-id={id ?? ''}
+                ref={(el) => {
+                  if (el) itemRefs.current.set(id, el);
+                  else itemRefs.current.delete(id);
+                  if (idx === (productos.length - 1))
+                    lastProductRef.current = el;
+                }}
+                sx={{
+                  opacity: visible[id] ? 1 : 0,
+                  transform: visible[id] ? 'translateY(0)' : 'translateY(18px)',
+                  transition: 'all 0.55s cubic-bezier(.2,.9,.3,1)',
+                }}
+              >
+                <FoodProductCard producto={prod} />
+              </Grid>
+            ))}
           </Grid>
 
           {/* PAGINACIÓN */}
-          {filtros && Array.isArray(productosFiltrados?.data) && productosFiltrados.data.length > porPagina && (
+          {/* {filtros && Array.isArray(productosFiltrados?.data) && productosFiltrados.data.length > porPagina && (
             <Box mt={3} display="flex" justifyContent="center" alignItems="center">
               <Pagination
                 count={Math.ceil(totalItems / porPagina)}
                 page={pagina}
-                onChange={(_, v) => setPagina(v)}
+                onChange={(_, v) => setPage(v)}
                 color="primary"
               />
               <TextField
@@ -474,7 +440,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
                 <option value={25}>25</option>
               </TextField>
             </Box>
-          )}
+          )} */}
         </Container>
       </Box>
     </>

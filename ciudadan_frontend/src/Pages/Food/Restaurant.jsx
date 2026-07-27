@@ -16,10 +16,10 @@ const TABS = [
   { label: 'Productos', path: 'productos' },
   { label: 'Agregar producto', path: 'agregar-producto' },
   { label: 'Pedidos a entregar', path: '' },
-  { label: 'Entregados', path: 'entregados' },
-  { label: 'Pagos', path: 'pagos' },
-  { label: 'Configuración', path: 'configuracion' }
 ];
+// { label: 'Entregados', path: 'entregados' },
+// { label: 'Pagos', path: 'pagos' },
+// { label: 'Configuración', path: 'configuracion' }
 
 const Restaurant = () => {
   const { slug } = useParams();
@@ -71,10 +71,10 @@ const Restaurant = () => {
   };
 
   useEffect(() => {
-    if (!slug) return;
-    fetchStoreData(slug, user?.email ?? '');
     handleInitializeSection();
-  }, [slug]);
+    if (!slug || !user?.email) return;
+    fetchStoreData(slug, user?.email ?? '');
+  }, [slug, user?.email]);
 
   const a11yProps = (index) => ({
     id: `simple-tab-${index}`,

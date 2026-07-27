@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { generateSlug, generateTempSlug } from "../../utils/slugify";
+import { transformImageStrapi } from "../../utils/strapiHelpers";
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
 const PRODUCTS_URL = `${STRAPI_URL}/api/food-products`;
@@ -12,20 +13,45 @@ export default function useProductsRestaurant() {
   const [perPage, setPerPage] = useState(5);
   const [pagination, setPagination] = useState({});
 
-  const getProducts = async (restaurantId = 0) => {
+  const getProducts = async (params = {}) => {
+    try {
+      setLoading(true);
+      const populateStr = `populate[0]=imagen_predeterminada&populate[1]=food_categories`;
+      const filterPagination = `pagination[page]=${page}&pagination[pageSize]=${perPage}`;
+      const extraParamsString = new URLSearchParams(params).toString();
+      const response = await fetch(`${PRODUCTS_URL}?${populateStr}&${filterPagination}${extraParamsString ? `&${extraParamsString}` : ''}`);
+      const { data, meta } = await response.json();
+      setPagination(meta?.pagination ?? {});
+      return data.map(({ id, attributes }) => {
+        const imagen_predeterminada = transformImageStrapi(attributes.imagen_predeterminada);
+        return ({ id, attributes: { ...attributes, imagen_predeterminada } })
+      });
+
+    } catch (error) {
+      console.error("--- Error on getProducts :", error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }
+  const getProductsByRestaurant = async (restaurantId = 0, params = {}) => {
     try {
       setLoading(true);
       const filterRestaurant = `filters[food_restaurant][id][$eq]=${restaurantId}`;
       const populateStr = `populate[0]=imagen_predeterminada&populate[1]=food_categories`;
       const filterPagination = `pagination[page]=${page}&pagination[pageSize]=${perPage}`;
-      const response = await fetch(`${PRODUCTS_URL}?${filterRestaurant}&${populateStr}&${filterPagination}`);
+      const extraParamsString = new URLSearchParams(params).toString();
+      const response = await fetch(`${PRODUCTS_URL}?${filterRestaurant}&${populateStr}&${filterPagination}${extraParamsString ? `&${extraParamsString}` : ''}`);
       const { data, meta } = await response.json();
       setPagination(meta?.pagination ?? {});
-      return data;
+      return data.map(({ id, attributes }) => {
+        const imagen_predeterminada = transformImageStrapi(attributes.imagen_predeterminada);
+        return ({ id, attributes: { ...attributes, imagen_predeterminada } })
+      });
 
     } catch (error) {
       console.error("--- Error on getProducts :", error);
-      return null;
+      return [];
     } finally {
       setLoading(false);
     }
@@ -192,6 +218,7 @@ export default function useProductsRestaurant() {
     pagination,
     setPagination,
     getProducts,
+    getProductsByRestaurant,
     saveProduct,
     updateProduct,
     saveProductVariant,
