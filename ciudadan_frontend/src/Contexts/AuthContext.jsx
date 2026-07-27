@@ -15,11 +15,16 @@ export const AuthProvider = ({ children }) => {
 
   const [strapiUser, setStrapiUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
+  const [strapiJwt, setStrapiJwt] = useState(() => localStorage.getItem('strapi_jwt') || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const syncWithStrapi = async () => {
       if (!isAuthenticated) {
+        setAccessToken(null);
+        setStrapiUser(null);
+        setStrapiJwt(null);
+        localStorage.removeItem('strapi_jwt');
         setLoading(false);
         return;
       }
@@ -28,11 +33,11 @@ export const AuthProvider = ({ children }) => {
         const token = await getAccessTokenSilently({
           authorizationParams: {
             audience: 'https://api.ciudadan.org',
+            scope: 'openid profile email offline_access',
           },
         });
         setAccessToken(token);
 
-        // Nuevo: Login en Strapi usando el endpoint personalizado
         const res = await fetch(
           `${process.env.REACT_APP_STRAPI_URL}/api/auth/auth0-login`,
           {
@@ -41,15 +46,30 @@ export const AuthProvider = ({ children }) => {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`,
             },
+            body: JSON.stringify({ access_token: token, email: auth0User?.email }),
           }
         );
 
-        const data = await res.json();
+        const text = await res.text();
+        let data = null;
 
-        if (!res.ok) throw new Error('Error autenticando con Strapi');
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch {
+          data = null;
+        }
 
-        // El backend devuelve el usuario ya autenticado (o recién creado)
-        setStrapiUser(data.user);
+        if (!res.ok) {
+          throw new Error(`Error autenticando con Strapi: ${res.status} ${text || ''}`);
+        }
+
+        const jwt = data?.jwt || data?.data?.jwt || null;
+        if (jwt) {
+          localStorage.setItem('strapi_jwt', jwt);
+          setStrapiJwt(jwt);
+        }
+
+        setStrapiUser(data?.user || data?.data?.user || null);
       } catch (err) {
         console.error('Error sincronizando con Strapi:', err);
       } finally {
@@ -66,6 +86,7 @@ export const AuthProvider = ({ children }) => {
         auth0User,
         strapiUser,
         accessToken,
+        strapiJwt,
         isAuthenticated,
         loginWithRedirect,
         logout,

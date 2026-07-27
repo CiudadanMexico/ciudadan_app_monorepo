@@ -29,13 +29,27 @@ module.exports = {
     const scoreNum = Number(score);
     if (Number.isNaN(scoreNum)) return ctx.throw(400, 'score debe ser un número');
 
-    // --- 2. Cargar la tarea + todo (fuera de tx para no bloquear) ---
-    const tarea = await strapi.entityService.findOne('api::tarea.tarea', tareaId, {
-      populate: ['usuario', 'todo'],
-    });
-    if (!tarea) return ctx.throw(404, 'La tarea no existe');
+    // --- 2. Cargar la tarea + todo ---
+    // La policy `can-calificar-tarea` ya cargó tarea+todo (con agencia, áreas,
+    // asignador, asignado_a) y lo cacheó en ctx.state._calificarContext para
+    // evitar duplicar queries. Si por alguna razón no está (p.ej. la ruta se
+    // configuró sin esa policy), recargamos aquí con el populate completo.
+    const cached = ctx.state._calificarContext;
+    let tarea;
+    let todo;
+    if (cached && cached.tarea && String(cached.tarea.id) === String(tareaId)) {
+      tarea = cached.tarea;
+      todo = cached.todo;
+    } else {
+      tarea = await strapi.entityService.findOne('api::tarea.tarea', tareaId, {
+        populate: { usuario: true, todo: { populate: { agencia: true, areas: true, asignador: true, asignado_a: true } } },
+      });
+      if (!tarea) return ctx.throw(404, 'La tarea no existe');
+      todo = tarea.todo;
+    }
+
     if (!tarea.usuario) return ctx.throw(400, 'La tarea no tiene un usuario asignado');
-    if (!tarea.todo) return ctx.throw(400, 'La tarea no tiene un todo asociado');
+    if (!todo) return ctx.throw(400, 'La tarea no tiene un todo asociado');
 
     if (!ESTADOS_CALIFICABLES.includes(tarea.status)) {
       return ctx.throw(
@@ -44,10 +58,10 @@ module.exports = {
       );
     }
 
-    const todo = await strapi.entityService.findOne('api::todo.todo', tarea.todo.id, {
+    const todoFull = await strapi.entityService.findOne('api::todo.todo', todo.id, {
       fields: ['id', 'status', 'reward_laborys', 'recompensa'],
     });
-    if (!todo) return ctx.throw(404, 'El todo asociado no existe');
+    if (!todoFull) return ctx.throw(404, 'El todo asociado no existe');
 
     const montoLaborys = Number(todo.reward_laborys ?? todo.recompensa ?? 0);
     if (montoLaborys < 0) return ctx.throw(400, 'El monto de recompensa no puede ser negativo');

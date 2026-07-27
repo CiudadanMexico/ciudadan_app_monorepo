@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
 export const useStoreAdminPedidos = (user, buildHeaders, mode = "store") => {
   const [pedidos, setPedidos] = useState([]);

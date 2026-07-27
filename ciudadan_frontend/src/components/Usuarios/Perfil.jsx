@@ -1,5 +1,5 @@
 // Perfil.jsx
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import QRCode from "react-qr-code";
 import {
@@ -11,17 +11,37 @@ import {
   Tooltip,
   Snackbar,
   Alert,
+  CircularProgress,
+  Stack,
+  Chip,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
+  TextField,
+  Divider,
 } from "@mui/material";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import PrintIcon from "@mui/icons-material/Print";
 import LoginIcon from "@mui/icons-material/Login";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import SendIcon from "@mui/icons-material/Send";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useRoles } from "../../Contexts/RolesContext";
+import {
+  assignUserAreas,
+  proposeSubarea,
+} from "../../services/cowork/mutationsServices";
+import { getActiveRootAreas } from "../../utils/cowork.helpers";
+
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || "http://localhost:33032";
 
 // Componente Perfil con QR bonito y acciones
 export default function Perfil() {
   const { username } = useParams();
-  const { user, isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
+  const { user, isAuthenticated, loginWithRedirect, isLoading, getAccessTokenSilently } = useAuth0();
+  const { userData, fetchRolesYMembresia } = useRoles();
 
   // url para el perfil: preferimos email si está autenticado, si no usamos username
   const perfilIdentificador = user?.email || username || "invitado";
@@ -31,6 +51,186 @@ export default function Perfil() {
 
   const svgRef = useRef(null);
   const [snack, setSnack] = useState({ open: false, msg: "", severity: "info" });
+
+  // ------------------ Mis áreas y verificación (Fix 5.3 + 3.4) ------------------
+  // Captura: área asignada + propuesta de subárea (carrera/oficio) + subida
+  // de documentación. Badge de estado de verificación visible para el dueño.
+  const [rootAreas, setRootAreas] = useState([]);
+  const [loadingCatalogo, setLoadingCatalogo] = useState(false);
+  const [selectedAreaId, setSelectedAreaId] = useState("");
+  const [proposeAreaId, setProposeAreaId] = useState("");
+  const [proposeNombre, setProposeNombre] = useState("");
+  const [propuestaObs, setPropuestaObs] = useState("");
+  const [docs, setDocs] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submittingPropuesta, setSubmittingPropuesta] = useState(false);
+  const [docUploading, setDocUploading] = useState(false);
+
+  // Cargar catálogo de áreas raíz activas desde el backend (al montar + auth)
+  const fetchCatalogo = useCallback(async () => {
+    setLoadingCatalogo(true);
+    try {
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://api.ciudadan.org" },
+        });
+      } catch { /* offline OK, catálogo raíz suele ser público */ }
+      const res = await fetch(`${STRAPI_URL}/api/areas?filters[level][$eq]=0&filters[is_active][$eq]=true&pagination[pageSize]=50`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`Error catálogo áreas (${res.status})`);
+      const json = await res.json();
+      const items = Array.isArray(json.data) ? json.data : [];
+      const parsed = items.map((it) => {
+        const a = it.attributes || it;
+        return { id: it.id, name: a.name || a.nombre || "—" };
+      });
+      setRootAreas(parsed);
+    } catch (err) {
+      // fallback: usar las áreas del propio userData si el fetch falla.
+      const local = getActiveRootAreas(userData?.areas || []);
+      setRootAreas(local.map((a) => ({ id: a.id, name: a.name || a.nombre || "—" })));
+    } finally {
+      setLoadingCatalogo(false);
+    }
+  }, [getAccessTokenSilently, userData]);
+
+  useEffect(() => {
+    if (isAuthenticated) fetchCatalogo();
+  }, [isAuthenticated, fetchCatalogo]);
+
+  // Asignar área al usuario (vía assignUserAreas service)
+  const handleAssignArea = async () => {
+    if (!selectedAreaId || !userData?.id) return;
+    setSubmitting(true);
+    try {
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://api.ciudadan.org" },
+        });
+      } catch {}
+      const actuales = (userData.areas || []).map((a) => (typeof a === "object" ? a.id : Number(a)));
+      const nuevosIds = Array.from(new Set([...actuales, Number(selectedAreaId)]));
+      await assignUserAreas(userData.id, nuevosIds, token);
+      setSnack({ open: true, msg: "Área asignada. Sube tu documentación para verificación.", severity: "success" });
+      setSelectedAreaId("");
+      // Refrescar userData del contexto (no force=true para no spamear)
+      fetchRolesYMembresia && fetchRolesYMembresia(true);
+    } catch (err) {
+      setSnack({ open: true, msg: `No se pudo asignar el área: ${err.message || err}`, severity: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Subir documento del usuario (PDF/JPG/PNG) — se guarda como evidencia de la
+  // carrera/oficio. El verificador lo verá y marcará verified/pending/rejected
+  // en UserVerification.jsx. Aquí solo lo dejamos listo para-inspección.
+  // Nota: NO creamos el área en este flujo; la propuesta va a area_details.proposed_subareas[].
+  const handleUploadDoc = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "application/pdf"];
+    if (!allowed.includes(file.type)) {
+      setSnack({ open: true, msg: "Solo JPG, PNG o PDF", severity: "warning" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setSnack({ open: true, msg: "Máximo 5MB por archivo", severity: "warning" });
+      return;
+    }
+    setDocUploading(true);
+    try {
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://api.ciudadan.org" },
+        });
+      } catch {}
+      const formData = new FormData();
+      formData.append("files", file);
+      formData.append("ref", "plugin::users-permissions.user");
+      formData.append("refId", userData.id);
+      formData.append("field", "documentos");
+      const res = await fetch(`${STRAPI_URL}/api/upload`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`Upload fallido (${res.status})`);
+      const uploaded = await res.json();
+      const f = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+      setDocs((prev) => [
+        ...prev,
+        {
+          name: f?.name || file.name,
+          url: f?.url || URL.createObjectURL(file),
+          strapiId: f?.id,
+          size: file.size,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+        },
+      ]);
+      setSnack({ open: true, msg: "Documento subido. Un verificador lo revisará.", severity: "success" });
+    } catch (err) {
+      // Fallback: blob URL local (no persistido) para que el usuario al menos
+      // vea que reconocimos el archivo. Se pierde al recargar.
+      setDocs((prev) => [
+        ...prev,
+        { name: file.name, url: URL.createObjectURL(file), size: file.size, type: file.type, uploadedAt: new Date().toISOString() },
+      ]);
+      setSnack({ open: true, msg: `Upload a Strapi falló; archivo cargado localmente: ${err.message || err}`, severity: "warning" });
+    } finally {
+      setDocUploading(false);
+    }
+  };
+
+  // Quitar documento de la lista local (no borra en Strapi)
+  const handleRemoveDoc = (idx) => setDocs((prev) => prev.filter((_, i) => i !== idx));
+
+  // Proponer subárea (carrera/oficio) nueva dentro de un área raíz
+  const handleProposeSubarea = async () => {
+    if (!proposeAreaId || !proposeNombre.trim()) {
+      setSnack({ open: true, msg: "Selecciona un área e indica el nombre de la subárea", severity: "warning" });
+      return;
+    }
+    setSubmittingPropuesta(true);
+    try {
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://api.ciudadan.org" },
+        });
+      } catch {}
+      await proposeSubarea(userData.id, proposeAreaId, proposeNombre.trim(), propuestaObs.trim(), token);
+      setSnack({ open: true, msg: "Subárea propuesta. Un socio la revisará y creará.", severity: "success" });
+      setProposeNombre("");
+      setPropuestaObs("");
+      setProposeAreaId("");
+      fetchRolesYMembresia && fetchRolesYMembresia(true);
+    } catch (err) {
+      setSnack({ open: true, msg: `No se pudo proponer: ${err.message || err}`, severity: "error" });
+    } finally {
+      setSubmittingPropuesta(false);
+    }
+  };
+
+  // Helper local: estado de verificación de un área en area_details
+  const statusDeArea = (areaId) => {
+    const id = Number(areaId);
+    const details = userData?.area_details || {};
+    const entry = details[id] || details[String(id)];
+    return entry?.status || "pending";
+  };
+
+  const badgeChip = (status) => {
+    if (status === "verified") return <Chip size="small" color="success" label="✓ Verificada" />;
+    if (status === "rejected") return <Chip size="small" color="error" label="✕ Rechazada" />;
+    return <Chip size="small" color="warning" label="⏳ Pendiente de verificación" />;
+  };
+  // ------------------ Fin Mis áreas y verificación ------------------
 
   const handleCloseSnack = () => setSnack((s) => ({ ...s, open: false }));
 
@@ -371,6 +571,174 @@ export default function Perfil() {
                 <li>Comparte el enlace o descarga el PNG para imprimirlo en tarjetas o posters.</li>
                 <li>Si vas a imprimir, recomiendo descargar en PNG para mejor resultado.</li>
               </ol>
+            </Paper>
+
+            {/* ===================== Mis áreas y verificación ===================== */}
+            {/* Fix 5.3 — captura de área/subárea + subida de docs en el perfil.
+                Fix 3.4 — el dueño ve el badge de verificación por área. */}
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 3,
+                p: 2,
+                borderRadius: 2,
+                background: "linear-gradient(90deg, rgba(0,255,153,0.05), rgba(255,242,0,0.03))",
+                border: "1px solid rgba(0,0,0,0.06)",
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#051322", mb: 1 }}>
+                Mis áreas y verificación
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#6d6e71", mb: 2 }}>
+                Asocia un área raíz a tu perfil, sube tu documentación y (si tu carrera/oficio
+                no está en la lista) proponlo como subárea. Un verificador revisará tu solicitud.
+              </Typography>
+
+              {/* Áreas asignadas con badge de verificación (Fix 3.4) */}
+              {Array.isArray(userData?.areas) && userData.areas.length > 0 ? (
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+                  {userData.areas.map((a) => {
+                    const id = typeof a === "object" ? a.id : Number(a);
+                    const name = typeof a === "object" ? (a.name || a.nombre || `#${id}`) : `#${id}`;
+                    return (
+                      <Box key={id} sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{name}</Typography>
+                        {badgeChip(statusDeArea(id))}
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              ) : (
+                <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                  Aún no tienes áreas asignadas.
+                </Typography>
+              )}
+
+              {/* Asignar área raíz */}
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
+                Asociar un área
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 1, alignItems: "center" }} useFlexGap flexWrap="wrap">
+                <FormControl sx={{ minWidth: 220 }} size="small">
+                  <InputLabel id="area-label">Área raíz</InputLabel>
+                  <Select
+                    labelId="area-label"
+                    label="Área raíz"
+                    value={selectedAreaId}
+                    onChange={(e) => setSelectedAreaId(e.target.value)}
+                    disabled={loadingCatalogo || submitting}
+                  >
+                    {loadingCatalogo ? (
+                      <MenuItem value=""><em>Cargando…</em></MenuItem>
+                    ) : rootAreas.length === 0 ? (
+                      <MenuItem value=""><em>Sin catálogo</em></MenuItem>
+                    ) : (
+                      rootAreas.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>)
+                    )}
+                  </Select>
+                </FormControl>
+                {loadingCatalogo && <CircularProgress size={20} />}
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<SendIcon />}
+                  disabled={!selectedAreaId || submitting}
+                  onClick={handleAssignArea}
+                  sx={{ background: "#00cc7a", color: "#fff", "&:hover": { background: "#00996b" } }}
+                >
+                  {submitting ? "Asignando…" : "Asignar"}
+                </Button>
+              </Stack>
+
+              {/* Subir documentación */}
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
+                Documentación de tu área / carrera
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
+                Sube título, certificado o凭证PDF/JPG/PNG (máx 5MB) — un verificador lo revisará
+                y marcará tu área como verificada o rechazada.
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }} useFlexGap flexWrap="wrap">
+                <Button
+                  variant="outlined"
+                  size="small"
+                  component="label"
+                  startIcon={<UploadFileIcon />}
+                  disabled={docUploading}
+                  sx={{ borderColor: "#00cc7a", color: "#00cc7a" }}
+                >
+                  Subir documento
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,application/pdf"
+                    hidden
+                    onChange={handleUploadDoc}
+                  />
+                </Button>
+                {docUploading && <CircularProgress size={18} />}
+              </Stack>
+              {docs.length > 0 && (
+                <Stack spacing={0.5} sx={{ mt: 1 }}>
+                  {docs.map((d, i) => (
+                    <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="caption" sx={{ flex: 1 }}>📄 {d.name}</Typography>
+                      <Button size="text" sx={{ color: "#c62828", fontSize: 12 }} onClick={() => handleRemoveDoc(i)}>
+                        Quitar
+                      </Button>
+                    </Box>
+                  ))}
+                </Stack>
+              )}
+
+              {/* Proponer subárea nueva */}
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
+                Tu carrera/oficio no está en la lista? Propónla como subárea
+              </Typography>
+              <Stack spacing={1} sx={{ mt: 1 }}>
+                <FormControl size="small" sx={{ minWidth: 220 }}>
+                  <InputLabel id="prop-area-label">Área raíz</InputLabel>
+                  <Select
+                    labelId="prop-area-label"
+                    label="Área raíz"
+                    value={proposeAreaId}
+                    onChange={(e) => setProposeAreaId(e.target.value)}
+                    disabled={submittingPropuesta}
+                  >
+                    {rootAreas.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>)}
+                  </Select>
+                </FormControl>
+                <TextField
+                  size="small"
+                  label="Nombre de subárea (carrera/oficio)"
+                  placeholder="Ej. Lic. en Derecho"
+                  value={proposeNombre}
+                  onChange={(e) => setProposeNombre(e.target.value)}
+                  fullWidth
+                />
+                <TextField
+                  size="small"
+                  label="Observaciones (opcional)"
+                  placeholder="Ej. Título emitido por la UNAM"
+                  value={propuestaObs}
+                  onChange={(e) => setPropuestaObs(e.target.value)}
+                  fullWidth
+                />
+                <Box>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<SendIcon />}
+                    disabled={!proposeAreaId || !proposeNombre.trim() || submittingPropuesta}
+                    onClick={handleProposeSubarea}
+                    sx={{ background: "#fff200", color: "#051322", "&:hover": { filter: "brightness(0.95)" } }}
+                  >
+                    {submittingPropuesta ? "Enviando…" : "Proponer subárea"}
+                  </Button>
+                </Box>
+              </Stack>
             </Paper>
 
             <Typography sx={{ mt: 2, fontSize: 13, color: "text.secondary", wordBreak: "break-all" }}>

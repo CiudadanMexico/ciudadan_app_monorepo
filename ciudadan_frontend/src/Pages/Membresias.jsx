@@ -30,7 +30,7 @@ const Membresias = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const strapiUrl = (process.env.REACT_APP_STRAPI_URL || "http://localhost:1337").replace(/\/$/, "");
+  const strapiUrl = (process.env.REACT_APP_STRAPI_URL || "http://localhost:33032").replace(/\/$/, "");
   const navigate = useNavigate();
 
   const handleMembresiaClick = (plan) => (e) => {

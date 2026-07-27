@@ -4,6 +4,9 @@ module.exports = ({ env }) => ({
   app: {
     keys: env.array('APP_KEYS'),
   },
+  dirs: {
+    public: './public',
+  },
   webhooks: {
     populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
   },
@@ -14,3 +17,5 @@ module.exports = ({ env }) => ({
     cancelUrl: env('STRIPE_CANCEL_URL'),
   },
 });
+
+// touch 2026-07-25 18:36:39

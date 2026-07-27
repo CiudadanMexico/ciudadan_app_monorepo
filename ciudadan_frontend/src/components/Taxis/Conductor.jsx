@@ -262,6 +262,11 @@ const Conductor = ({
     try {
       const socket = io(process.env.REACT_APP_SOCKET_URL, {
         transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 5000,
+        timeout: 4000,
       });
       socketRef.current = socket;
 

@@ -31,7 +31,7 @@ const statusPedidoConfigUi = {
   encamino: { label: 'En camino', color: 'info',    icon: <LocalShippingIcon /> },
 };
 
-const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
 const PedidosPendientes = () => {
   

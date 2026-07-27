@@ -159,6 +159,16 @@
       "relation": "oneToMany",
       "target": "api::tarea.tarea",
       "mappedBy": "todo"
+    },
+    "asignador": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "asignado_a": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 }

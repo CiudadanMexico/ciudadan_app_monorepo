@@ -816,6 +816,12 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToMany',
       'api::area.area'
     >;
+    area_details: Attribute.JSON;
+    skills: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'manyToMany',
+      'api::skill.skill'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1081,8 +1087,8 @@ export interface ApiAreaArea extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
-    nombre: Attribute.String;
-    nivel: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    name: Attribute.String & Attribute.Required;
+    level: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
     creador: Attribute.Relation<'api::area.area', 'oneToOne', 'admin::user'>;
     timestamp: Attribute.DateTime;
     todos: Attribute.Relation<'api::area.area', 'manyToMany', 'api::todo.todo'>;
@@ -1605,7 +1611,7 @@ export interface ApiCarteraCartera extends Schema.CollectionType {
     user_id: Attribute.Relation<
       'api::cartera.cartera',
       'oneToOne',
-      'admin::user'
+      'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -4018,6 +4024,49 @@ export interface ApiServicioServicio extends Schema.CollectionType {
   };
 }
 
+export interface ApiSkillSkill extends Schema.CollectionType {
+  collectionName: 'skills';
+  info: {
+    singularName: 'skill';
+    pluralName: 'skills';
+    displayName: 'Skill';
+    description: 'Habilidad para el m\u00F3dulo CoWork';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    description: Attribute.Text;
+    is_active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    todos: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'api::todo.todo'
+    >;
+    usuarios: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::skill.skill',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::skill.skill',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSolicitudafiliacionSolicitudafiliacion
   extends Schema.CollectionType {
   collectionName: 'solicitudafiliaciones';
@@ -4328,7 +4377,32 @@ export interface ApiTareaTarea extends Schema.CollectionType {
       'oneToOne',
       'api::agencia.agencia'
     >;
-    tipo: Attribute.Enumeration<['tarea', 'subtarea']>;
+    tipo: Attribute.Enumeration<['tarea', 'subtarea']> &
+      Attribute.DefaultTo<'tarea'>;
+    status: Attribute.Enumeration<
+      [
+        'en_proceso',
+        'completada',
+        'corregir',
+        'corregida',
+        'calificada',
+        'pagada',
+        'cancelada',
+        'modificada'
+      ]
+    > &
+      Attribute.DefaultTo<'en_proceso'>;
+    media: Attribute.JSON;
+    notes: Attribute.Text;
+    score: Attribute.Integer & Attribute.DefaultTo<0>;
+    reviewed_by: Attribute.Relation<
+      'api::tarea.tarea',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    resolved_at: Attribute.DateTime;
+    payment_status: Attribute.Enumeration<['pendiente', 'procesado']> &
+      Attribute.DefaultTo<'pendiente'>;
     todo: Attribute.Relation<'api::tarea.tarea', 'manyToOne', 'api::todo.todo'>;
     avances: Attribute.JSON;
     usuario: Attribute.Relation<
@@ -4386,13 +4460,17 @@ export interface ApiTodoTodo extends Schema.CollectionType {
       'manyToMany',
       'api::area.area'
     >;
+    skills: Attribute.Relation<
+      'api::todo.todo',
+      'manyToMany',
+      'api::skill.skill'
+    >;
     tipo: Attribute.Enumeration<['tarea', 'subtarea']>;
     ambito: Attribute.Enumeration<['privada', 'plataforma']>;
     nivel: Attribute.Enumeration<
-      ['general', 'becarios', 'especialidad', 'experto', 'personalizada']
+      ['general', 'becario', 'especialidad', 'experto', 'personalizada']
     >;
     grupo: Attribute.String;
-    habilidades: Attribute.JSON;
     recurrencia: Attribute.Enumeration<['unica', 'abierta', 'periodica']>;
     descripcion: Attribute.Text;
     enlaces: Attribute.JSON;
@@ -4411,13 +4489,21 @@ export interface ApiTodoTodo extends Schema.CollectionType {
         'cancelada'
       ]
     >;
-    pagos_laborys: Attribute.Decimal;
-    pagos_efectivo: Attribute.Decimal;
     recompensa: Attribute.Decimal;
     minutos_desarrollo: Attribute.Integer;
     fecha_publicacion: Attribute.DateTime;
     fecha_entrega: Attribute.DateTime;
     vence: Attribute.Boolean;
+    has_deadline: Attribute.Boolean;
+    due_date: Attribute.DateTime;
+    is_periodic: Attribute.Boolean;
+    reward_laborys: Attribute.Decimal;
+    reward_cash: Attribute.Decimal;
+    created_by: Attribute.Relation<
+      'api::todo.todo',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     algoritmo: Attribute.Text;
     oraculos_validadores: Attribute.JSON;
     anotaciones: Attribute.Text;
@@ -4656,6 +4742,7 @@ declare module '@strapi/types' {
       'api::resena.resena': ApiResenaResena;
       'api::respuesta.respuesta': ApiRespuestaRespuesta;
       'api::servicio.servicio': ApiServicioServicio;
+      'api::skill.skill': ApiSkillSkill;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;

@@ -243,12 +243,82 @@ export const canUserVerifyArea = (user, areaId) => {
   return user?.roles?.extra?.includes('verificador');
 };
 
-export const canUserRateTask = (task, userId) => {
-  // Solo el creador o verificador puede calificar
-  const isCreator = task?.creador?.id === userId;
-  const isAdminOrVerificador = task?.usuario?.roles?.extra?.includes('admin') || 
-                               task?.usuario?.roles?.extra?.includes('verificador');
-  return isCreator || isAdminOrVerificador;
+/**
+ * canUserRateTask — ¿puede el usuario calificar esta tarea?
+ *
+ * Implementa el spec de permisos por tipo de tarea + tipo de agencia
+ * (docs/documento-off.md / docs/COWORK-FILES.md L492-515):
+ *
+ *  • Tareas generales (todo.nivel = general|becario):
+ *      - califican: todos los socios de ESA agencia.
+ *      - agencias federales: califican todas las generales de toda la red.
+ *  • Tareas especializadas sin asignar (nivel especialidad|experto,
+ *    sin asignado_a):
+ *      - califican: socios del ÁREA de la tarea (de toda la red).
+ *  • Tareas asignadas (nivel personalizada O con asignado_a):
+ *      - califica: SOLAMENTE quien la asignó (todo.asignador).
+ *
+ *  • admin: bypass total.
+ *
+ * @param {object} task  - la tarea (tarea) con su todo populado.
+ * @param {object} user  - el usuario reviewer (de AuthContext/RolesContext),
+ *                         con { id, roles.extra, agencia, areas }.
+ * @returns {boolean}
+ */
+export const canUserRateTask = (task, user) => {
+  if (!task || !user) return false;
+
+  const extra = Array.isArray(user.roles?.extra) ? user.roles.extra : [];
+  const isAdmin = extra.includes('admin');
+  const isSocio = extra.includes('socio');
+
+  // Admin: bypass total.
+  if (isAdmin) return true;
+
+  // Sin rol socio no califica nada (excepto admin).
+  if (!isSocio) return false;
+
+  const todo = task.todo?.data?.attributes || task.todo || {};
+  const nivel = todo.nivel || 'general';
+  const esAsignada = !!todo.asignado_a || nivel === 'personalizada';
+
+  // --- Tareas ASIGNADAS: solo quien asignó califica ---
+  if (esAsignada) {
+    const asignadorId = todo.asignador?.data?.id || todo.asignador?.id || null;
+    if (!asignadorId) return false;
+    return Number(user.id) === Number(asignadorId);
+  }
+
+  const NIVELES_GENERAL = ['general', 'becario', 'becarios'];
+  const todoAgencia = todo.agencia?.data?.attributes || todo.agencia || null;
+  const todoAgenciaId = todoAgencia?.id || null;
+  const reviewerAgencia = user.agencia?.data?.attributes || user.agencia || null;
+  const reviewerEsFederal = reviewerAgencia?.tipo === 'federal';
+  const reviewerAgenciaId = reviewerAgencia?.id || null;
+
+  // --- Tareas GENERALES ---
+  if (NIVELES_GENERAL.includes(nivel)) {
+    // Agencia federal: califica todas las generales de toda la red.
+    if (reviewerEsFederal) return true;
+    // Socio de misma agencia.
+    if (todoAgenciaId && reviewerAgenciaId && Number(todoAgenciaId) === Number(reviewerAgenciaId)) {
+      return true;
+    }
+    return false;
+  }
+
+  // --- Tareas ESPECIALIZADAS (sin asignar) ---
+  //    Califican: socios del ÁREA de la tarea (de toda la red).
+  const todoAreas = Array.isArray(todo.areas) ? todo.areas : [];
+  if (todoAreas.length === 0) return false;
+
+  const todoAreaIds = todoAreas.map((a) => (typeof a === 'object' ? a.id : Number(a)));
+  const reviewerAreas = Array.isArray(user.areas) ? user.areas : [];
+  const reviewerAreaIds = reviewerAreas.map((a) =>
+    typeof a === 'object' ? a.id : Number(a)
+  );
+
+  return todoAreaIds.some((aid) => reviewerAreaIds.includes(Number(aid)));
 };
 
 export const canUserPayTask = (task, userId) => {

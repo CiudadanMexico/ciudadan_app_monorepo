@@ -157,6 +157,7 @@ docker run -p 1337:1337 ciudadan-backend
 
 - [AGENDA-VALIDATION-SYNC.md](AGENDA-VALIDATION-SYNC.md)
 - [DATABASE-SCHEMA.md](DATABASE-SCHEMA.md)
+- [TAREAS-CRUD-PERMISOS.md](TAREAS-CRUD-PERMISOS.md)
 
 ## Notas importantes
 

@@ -40,6 +40,10 @@ import WikiHome from '../Pages/Wiki/WikiHome.jsx';
 import Perfil from '../components/Usuarios/Perfil.jsx';
 import Favoritos from '../components/Usuarios/Favoritos.jsx';
 import Food from '../Pages/Food/Food.jsx';
+import GestionTareas from '../Pages/Herramientas/GestionTareas.jsx';
+import CalificarTarea from '../Pages/Herramientas/CalificarTarea.jsx';
+import CorregirTarea from '../Pages/Herramientas/CorregirTarea.jsx';
+import ResolverApelaciones from '../Pages/Herramientas/ResolverApelaciones.jsx';
 import AgregarTarea from '../Pages/Coowork/AgregarTarea.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
@@ -394,6 +398,22 @@ const Rutas = () => (
     <Route
       path='/herramientas/mi-agencia'
       element={<Agencia />}
+    />
+    <Route
+      path='/herramientas/calificar-tarea'
+      element={<CalificarTarea />}
+    />
+    <Route
+      path='/herramientas/corregir-tarea'
+      element={<CorregirTarea />}
+    />
+    <Route
+      path='/herramientas/gestionar-tareas'
+      element={<GestionTareas />}
+    />
+    <Route
+      path='/herramientas/resolver-apelaciones'
+      element={<ResolverApelaciones />}
     />
     <Route
       path='/herramientas/agregar-tarea'

@@ -16,6 +16,11 @@ export default function useNotificationsSocket() {
 
     const socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
+      timeout: 4000,
     });
 
     socket.on('connect', () => {
