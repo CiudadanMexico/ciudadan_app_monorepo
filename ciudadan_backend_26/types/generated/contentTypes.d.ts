@@ -1280,7 +1280,7 @@ export interface ApiCarroCarro extends Schema.CollectionType {
     > &
       Attribute.DefaultTo<'indiferente'>;
     musica: Attribute.Enumeration<
-    ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
+      ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
     > &
       Attribute.DefaultTo<'indiferente'>;
     tipo_musica: Attribute.JSON;
@@ -3056,6 +3056,77 @@ export interface ApiFoodModifierGroupFoodModifierGroup
   };
 }
 
+export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
+  collectionName: 'food_orders';
+  info: {
+    singularName: 'food-order';
+    pluralName: 'food-orders';
+    displayName: 'Food Orders';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    items: Attribute.Component<'orders.products-order', true>;
+    fecha_creacion: Attribute.DateTime;
+    user: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    guia: Attribute.String;
+    direccion_origen: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    direccion_destino: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    fecha_envio: Attribute.DateTime;
+    fecha_entrega: Attribute.DateTime;
+    fecha_pagado: Attribute.DateTime;
+    fecha_finalizado: Attribute.DateTime;
+    total_volumetrico: Attribute.Decimal;
+    monto_envio: Attribute.Decimal;
+    monto_total: Attribute.Decimal;
+    moneda: Attribute.String;
+    pago: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::pago.pago'
+    >;
+    status: Attribute.Enumeration<
+      ['enviar', 'encamino', 'cancelado', 'devuelto', 'recibido', 'impagado']
+    >;
+    finalizado: Attribute.Boolean;
+    calificado: Attribute.Boolean;
+    metadata: Attribute.JSON;
+    restaurant: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiFoodProductFoodProduct extends Schema.CollectionType {
   collectionName: 'food_products';
   info: {
@@ -3570,7 +3641,8 @@ export interface ApiPagoPago extends Schema.CollectionType {
         'asesoria',
         'servicio',
         'membresia',
-        'carrito'
+        'carrito',
+        'comida'
       ]
     >;
     carrito_id: Attribute.Relation<
@@ -4342,6 +4414,36 @@ export interface ApiServicioServicio extends Schema.CollectionType {
   };
 }
 
+export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
+  collectionName: 'site_settings';
+  info: {
+    singularName: 'site-setting';
+    pluralName: 'site-settings';
+    displayName: 'Site_setting';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    labory_to_pesos_exchange_rate: Attribute.Decimal;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSolicitudafiliacionSolicitudafiliacion
   extends Schema.CollectionType {
   collectionName: 'solicitudafiliaciones';
@@ -4963,6 +5065,7 @@ declare module '@strapi/types' {
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;
+      'api::food-order.food-order': ApiFoodOrderFoodOrder;
       'api::food-product.food-product': ApiFoodProductFoodProduct;
       'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
@@ -4986,6 +5089,7 @@ declare module '@strapi/types' {
       'api::resena.resena': ApiResenaResena;
       'api::respuesta.respuesta': ApiRespuestaRespuesta;
       'api::servicio.servicio': ApiServicioServicio;
+      'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;
