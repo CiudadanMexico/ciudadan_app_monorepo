@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { generateSlug, generateTempSlug } from "../../utils/slugify";
 import { transformImageStrapi } from "../../utils/strapiHelpers";
 
@@ -22,11 +22,12 @@ export default function useProductsRestaurant() {
       const response = await fetch(`${PRODUCTS_URL}?${populateStr}&${filterPagination}${extraParamsString ? `&${extraParamsString}` : ''}`);
       const { data, meta } = await response.json();
       setPagination(meta?.pagination ?? {});
-      return data.map(({ id, attributes }) => {
+      const returnProducts = data.map(({ id, attributes }) => {
         const imagen_predeterminada = transformImageStrapi(attributes.imagen_predeterminada);
         return ({ id, attributes: { ...attributes, imagen_predeterminada } })
       });
-
+      console.log("Products get:", returnProducts)
+      return returnProducts;
     } catch (error) {
       console.error("--- Error on getProducts :", error);
       return [];
@@ -34,6 +35,7 @@ export default function useProductsRestaurant() {
       setLoading(false);
     }
   }
+
   const getProductsByRestaurant = async (restaurantId = 0, params = {}) => {
     try {
       setLoading(true);
@@ -44,14 +46,51 @@ export default function useProductsRestaurant() {
       const response = await fetch(`${PRODUCTS_URL}?${filterRestaurant}&${populateStr}&${filterPagination}${extraParamsString ? `&${extraParamsString}` : ''}`);
       const { data, meta } = await response.json();
       setPagination(meta?.pagination ?? {});
-      return data.map(({ id, attributes }) => {
+      const returnProducts = data.map(({ id, attributes }) => {
         const imagen_predeterminada = transformImageStrapi(attributes.imagen_predeterminada);
         return ({ id, attributes: { ...attributes, imagen_predeterminada } })
       });
+      console.log("Products get:", returnProducts)
+      return returnProducts;
 
     } catch (error) {
       console.error("--- Error on getProducts :", error);
       return [];
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const getProductById = async (productId) => {
+    try {
+      if (!productId) return null;
+      setLoading(true);
+      const populateStr = `populate[0]=imagen_predeterminada&populate[1]=imagenes&populate[2]=food_categories&populate[3]=food_restaurant`;
+      const response = await fetch(`${PRODUCTS_URL}/${productId}?${populateStr}`);
+      const { data } = await response.json();
+      console.log("Product get by id:", data)
+      return data;
+    } catch (error) {
+      console.error("--- Error on getProductById :", error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  const getProductBySlug = async (productSlug) => {
+    try {
+      if (!productSlug) return null;
+      setLoading(true);
+      const filterSlug = `filters[slug][$eq]=${productSlug}`;
+      const populateStr = `populate[0]=imagen_predeterminada&populate[1]=imagenes&populate[2]=food_categories&populate[3]=food_restaurant`;
+      const response = await fetch(`${PRODUCTS_URL}?${filterSlug}&${populateStr}`);
+      const { data } = await response.json();
+      console.log("Product get by slug:", data)
+      return data[0];
+    } catch (error) {
+      console.error("--- Error on getProductBySlug :", error);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -222,5 +261,7 @@ export default function useProductsRestaurant() {
     saveProduct,
     updateProduct,
     saveProductVariant,
+    getProductById,
+    getProductBySlug
   });
 };
