@@ -24,7 +24,8 @@
         "asesoria",
         "servicio",
         "membresia",
-        "carrito"
+        "carrito",
+        "comida"
       ]
     },
     "carrito_id": {
