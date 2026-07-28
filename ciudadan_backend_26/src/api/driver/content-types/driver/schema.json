@@ -1,0 +1,267 @@
+{
+  "kind": "collectionType",
+  "collectionName": "drivers",
+  "info": {
+    "singularName": "driver",
+    "pluralName": "drivers",
+    "displayName": "Driver"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "email": {
+      "type": "email"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "firstname": {
+      "type": "string"
+    },
+    "middlename": {
+      "type": "string"
+    },
+    "lastname": {
+      "type": "string"
+    },
+    "birthdate": {
+      "type": "date"
+    },
+    "curp": {
+      "type": "string"
+    },
+    "rfc": {
+      "type": "string"
+    },
+    "emergency_phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "zip_code": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "municipality": {
+      "type": "string"
+    },
+    "profile_pic": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "verification_selfie": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "id_front": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "id_back": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "driver_license_front": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "driver_license_back": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "proof_of_address": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "license_number": {
+      "type": "string"
+    },
+    "license_type": {
+      "type": "string"
+    },
+    "license_expiration_date": {
+      "type": "date"
+    },
+    "vehicle_brand": {
+      "type": "string"
+    },
+    "vehicle_model": {
+      "type": "string"
+    },
+    "vehicle_year": {
+      "type": "string"
+    },
+    "vehicle_color": {
+      "type": "string"
+    },
+    "license_plate": {
+      "type": "string"
+    },
+    "vin_number": {
+      "type": "string"
+    },
+    "vehicle_type": {
+      "type": "string"
+    },
+    "passenger_capacity": {
+      "type": "string"
+    },
+    "vehicle_front_photo": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "vehicle_side_photo": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "vehicle_back_photo": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "vehicle_interior_photo": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "vehicle_registration_card": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "vehicle_insurance_document": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "appointment_date": {
+      "type": "datetime"
+    },
+    "agency": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agencia.agencia"
+    },
+    "reviewer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "current_step": {
+      "type": "string"
+    },
+    "profile_completed": {
+      "type": "boolean"
+    },
+    "documents_completed": {
+      "type": "boolean"
+    },
+    "appointment_scheduled": {
+      "type": "boolean"
+    },
+    "in_person_verification_completed": {
+      "type": "boolean"
+    },
+    "final_approval": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "pending_documents",
+        "pending_appointment",
+        "pending_review",
+        "documents_rejected",
+        "approved",
+        "rejected",
+        "suspended",
+        "blocked"
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  strapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ciudadan-backend
+    ports:
+      - "1337:1337"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 1337
+      APP_KEYS: "changeMe1,changeMe2,changeMe3,changeMe4"
+      API_TOKEN_SALT: "changeMe"
+      ADMIN_JWT_SECRET: "changeMe"
+      TRANSFER_TOKEN_SALT: "changeMe"
+      JWT_SECRET: "changeMe"
+      DATABASE_CLIENT: sqlite
+      DATABASE_FILENAME: /tmp/data.db
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped

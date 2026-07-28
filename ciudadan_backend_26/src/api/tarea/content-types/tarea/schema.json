@@ -1,0 +1,69 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tareas",
+  "info": {
+    "singularName": "tarea",
+    "pluralName": "tareas",
+    "displayName": "tasks-completed",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "idx": {
+      "type": "uid"
+    },
+    "agencia": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agencia.agencia"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "tarea",
+        "subtarea"
+      ]
+    },
+    "todo": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::todo.todo",
+      "inversedBy": "tareas"
+    },
+    "avances": {
+      "type": "json"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "enlaces": {
+      "type": "json"
+    },
+    "calificaciones": {
+      "type": "json"
+    },
+    "apelaciones": {
+      "type": "json"
+    },
+    "pagos_laborys": {
+      "type": "json"
+    },
+    "pagos_efectivo": {
+      "type": "json"
+    },
+    "validaciones": {
+      "type": "json"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "text"
+    }
+  }
+}

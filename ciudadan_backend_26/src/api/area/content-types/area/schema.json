@@ -1,0 +1,66 @@
+{
+  "kind": "collectionType",
+  "collectionName": "areas",
+  "info": {
+    "singularName": "area",
+    "pluralName": "areas",
+    "displayName": "Area",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string"
+    },
+    "nivel": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    },
+    "creador": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "admin::user"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "todos": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::todo.todo",
+      "inversedBy": "subareas"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "ads": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ad.ad",
+      "mappedBy": "area"
+    },
+    "parent_area": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::area.area",
+      "inversedBy": "subareas"
+    },
+    "subareas": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::area.area",
+      "mappedBy": "parent_area"
+    },
+    "usuarios": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "areas"
+    }
+  }
+}

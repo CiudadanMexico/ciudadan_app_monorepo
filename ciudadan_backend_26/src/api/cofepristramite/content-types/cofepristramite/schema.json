@@ -1,0 +1,178 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cofepristramites",
+  "info": {
+    "singularName": "cofepristramite",
+    "pluralName": "cofepristramites",
+    "displayName": "cofepristramite",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "usuario_email": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "membresia",
+        "jardinero",
+        "club",
+        "usuario",
+        "gestion"
+      ]
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "status": {
+      "type": "string"
+    },
+    "rfc": {
+      "type": "string"
+    },
+    "curp": {
+      "type": "string"
+    },
+    "nombre_completo": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "ine_frente": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "ine_tras": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "acuse": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "acuse_sellado": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "resolucion": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "fecha_solicitud_cita": {
+      "type": "datetime"
+    },
+    "fecha_cita": {
+      "type": "datetime"
+    },
+    "fecha_resolucion": {
+      "type": "datetime"
+    },
+    "concedido": {
+      "type": "boolean"
+    },
+    "negado": {
+      "type": "boolean"
+    },
+    "concluido": {
+      "type": "boolean"
+    },
+    "registro_acciones": {
+      "type": "json"
+    },
+    "otros_documentos": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "escrito_libre_generado": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "escrito_libre_firmado": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "club_slug": {
+      "type": "string"
+    },
+    "fecha_inicial": {
+      "type": "datetime"
+    }
+  }
+}

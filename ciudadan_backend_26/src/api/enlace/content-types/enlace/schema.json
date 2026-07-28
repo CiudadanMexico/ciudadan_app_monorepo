@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "enlaces",
+  "info": {
+    "singularName": "enlace",
+    "pluralName": "enlaces",
+    "displayName": "Enlaces",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "calificacion": {
+      "type": "integer"
+    },
+    "calificaciones": {
+      "type": "integer"
+    },
+    "autor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "borrador",
+        "publicado",
+        "eliminado",
+        "bloqueado"
+      ]
+    },
+    "enlace_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::enlace.enlace"
+    }
+  }
+}

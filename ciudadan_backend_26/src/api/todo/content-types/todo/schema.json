@@ -1,0 +1,147 @@
+{
+  "kind": "collectionType",
+  "collectionName": "todos",
+  "info": {
+    "singularName": "todo",
+    "pluralName": "todos",
+    "displayName": "Tasks",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "idx": {
+      "type": "uid"
+    },
+    "creador": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "areas": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::area.area"
+    },
+    "subareas": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::area.area",
+      "mappedBy": "todos"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "tarea",
+        "subtarea"
+      ]
+    },
+    "ambito": {
+      "type": "enumeration",
+      "enum": [
+        "privada",
+        "plataforma"
+      ]
+    },
+    "nivel": {
+      "type": "enumeration",
+      "enum": [
+        "general",
+        "becarios",
+        "especialidad",
+        "experto",
+        "personalizada"
+      ]
+    },
+    "grupo": {
+      "type": "string"
+    },
+    "habilidades": {
+      "type": "json"
+    },
+    "recurrencia": {
+      "type": "enumeration",
+      "enum": [
+        "unica",
+        "abierta",
+        "periodica"
+      ]
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "enlaces": {
+      "type": "json"
+    },
+    "subtareas": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "borrador",
+        "publicada",
+        "asignada",
+        "en_proceso",
+        "pendiente_revision",
+        "corregir",
+        "corregida",
+        "calificada",
+        "pagada",
+        "cancelada"
+      ]
+    },
+    "pagos_laborys": {
+      "type": "decimal"
+    },
+    "pagos_efectivo": {
+      "type": "decimal"
+    },
+    "recompensa": {
+      "type": "decimal"
+    },
+    "minutos_desarrollo": {
+      "type": "integer"
+    },
+    "fecha_publicacion": {
+      "type": "datetime"
+    },
+    "fecha_entrega": {
+      "type": "datetime"
+    },
+    "vence": {
+      "type": "boolean"
+    },
+    "algoritmo": {
+      "type": "text"
+    },
+    "oraculos_validadores": {
+      "type": "json"
+    },
+    "anotaciones": {
+      "type": "text"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "usuario_email": {
+      "type": "string"
+    },
+    "agencia": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agencia.agencia"
+    },
+    "agencianombre": {
+      "type": "string"
+    },
+    "tareas": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::tarea.tarea",
+      "mappedBy": "todo"
+    }
+  }
+}

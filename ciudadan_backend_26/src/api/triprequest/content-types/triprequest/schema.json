@@ -1,0 +1,49 @@
+{
+  "kind": "collectionType",
+  "collectionName": "triprequests",
+  "info": {
+    "singularName": "triprequest",
+    "pluralName": "triprequests",
+    "displayName": "triprequest"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "origencoords": {
+      "type": "json"
+    },
+    "destinocoords": {
+      "type": "json"
+    },
+    "origendireccion": {
+      "type": "json"
+    },
+    "destinodireccion": {
+      "type": "json"
+    },
+    "pasajeromail": {
+      "type": "email"
+    },
+    "pasajero": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "travelid": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "solicitado",
+        "cancelado",
+        "tomado"
+      ]
+    }
+  }
+}

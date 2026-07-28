@@ -1,0 +1,115 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pagos",
+  "info": {
+    "singularName": "pago",
+    "pluralName": "pagos",
+    "displayName": "Pagos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Idx": {
+      "type": "uid"
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "market",
+        "curso",
+        "evento",
+        "asesoria",
+        "servicio",
+        "membresia",
+        "carrito"
+      ]
+    },
+    "carrito_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::carrito.carrito"
+    },
+    "curso_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::curso.curso"
+    },
+    "evento_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    },
+    "fecha_pagado": {
+      "type": "datetime"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "monto": {
+      "type": "decimal"
+    },
+    "moneda": {
+      "type": "string"
+    },
+    "stripePaymentIntentId": {
+      "type": "string"
+    },
+    "stripeInvoiceId": {
+      "type": "string"
+    },
+    "stripeCustomerId": {
+      "type": "string"
+    },
+    "stripeSubscriptionId": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "disputa": {
+      "type": "boolean"
+    },
+    "metodo_pago": {
+      "type": "enumeration",
+      "enum": [
+        "stripe"
+      ]
+    },
+    "Observaciones": {
+      "type": "text"
+    },
+    "pago_guia": {
+      "type": "decimal"
+    },
+    "pago_vendedor": {
+      "type": "decimal"
+    },
+    "comisionStripe": {
+      "type": "decimal"
+    },
+    "comisionPlataforma": {
+      "type": "decimal"
+    },
+    "store": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store.store"
+    },
+    "pedido": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pedido.pedido"
+    }
+  }
+}

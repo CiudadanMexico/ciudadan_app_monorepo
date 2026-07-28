@@ -1,0 +1,139 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cars_evidences",
+  "info": {
+    "singularName": "cars-evidence",
+    "pluralName": "cars-evidences",
+    "displayName": "Cars Evidence",
+    "description": "Evidencias multimedia de la validación"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "validation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-validation.cars-validation",
+      "inversedBy": "evidences"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "selfie_live",
+        "id_front",
+        "id_back",
+        "license_front",
+        "license_back",
+        "proof_of_address",
+        "profile_photo",
+        "vehicle_front",
+        "vehicle_back",
+        "vehicle_left",
+        "vehicle_right",
+        "registration_card",
+        "insurance_document",
+        "plates",
+        "vin",
+        "interior",
+        "trunk",
+        "video_360"
+      ]
+    },
+    "file": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": ["images", "videos", "files"]
+    },
+    "review_status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "needs_review",
+        "approved",
+        "rejected",
+        "resub_requested",
+        "superseded"
+      ],
+      "default": "pending"
+    },
+    "reviewer_note": {
+      "type": "text"
+    },
+    "reviewed_at": {
+      "type": "datetime"
+    },
+    "reviewer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "source_driver_field": {
+      "type": "string"
+    },
+    "source_file_id": {
+      "type": "integer"
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "is_current": {
+      "type": "boolean",
+      "default": true
+    },
+    "supersedes": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-evidence.cars-evidence"
+    },
+    "origin": {
+      "type": "enumeration",
+      "enum": ["preregister", "reupload", "live_capture"],
+      "default": "preregister"
+    },
+    "sha256": {
+      "type": "string"
+    },
+    "perceptual_hash": {
+      "type": "string"
+    },
+    "nonce": {
+      "type": "string"
+    },
+    "timestamp_client": {
+      "type": "datetime"
+    },
+    "timestamp_server": {
+      "type": "datetime"
+    },
+    "gps_lat": {
+      "type": "decimal"
+    },
+    "gps_lng": {
+      "type": "decimal"
+    },
+    "gps_accuracy": {
+      "type": "decimal"
+    },
+    "device_id": {
+      "type": "string"
+    },
+    "app_version": {
+      "type": "string"
+    },
+    "uploaded_from_gallery": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_valid": {
+      "type": "boolean",
+      "default": false
+    },
+    "validation_flags": {
+      "type": "json"
+    }
+  }
+}

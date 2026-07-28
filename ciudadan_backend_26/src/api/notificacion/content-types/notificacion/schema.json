@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notificaciones",
+  "info": {
+    "singularName": "notificacion",
+    "pluralName": "notificaciones",
+    "displayName": "Notificaciones",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "cuerpo": {
+      "type": "blocks"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "leida": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "entregada",
+        "leida",
+        "borrada"
+      ]
+    },
+    "tipo": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string"
+    },
+    "imagen": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": true
+    },
+    "icono": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "kind": "collectionType",
+  "collectionName": "contenidos",
+  "info": {
+    "singularName": "contenido",
+    "pluralName": "contenidos",
+    "displayName": "Contenidos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "autor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "contenido_libre": {
+      "type": "json"
+    },
+    "contenido_restringido": {
+      "type": "json"
+    },
+    "restringido": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "borrador",
+        "publicado",
+        "archivado"
+      ]
+    },
+    "portada": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "galeria_libre": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "galeria_restringida": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "tags": {
+      "type": "text"
+    },
+    "fecha_publicacion": {
+      "type": "datetime"
+    },
+    "resumen": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::categoria-contenido.categoria-contenido"
+    },
+    "autor_email": {
+      "type": "string"
+    },
+    "autor_nombre": {
+      "type": "string"
+    }
+  }
+}

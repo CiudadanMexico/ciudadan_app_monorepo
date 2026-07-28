@@ -1,0 +1,331 @@
+{
+  "kind": "collectionType",
+  "collectionName": "up_users",
+  "info": {
+    "name": "user",
+    "description": "",
+    "singularName": "user",
+    "pluralName": "users",
+    "displayName": "User"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "attributes": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "unique": true,
+      "configurable": false,
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "minLength": 6,
+      "configurable": false,
+      "required": true
+    },
+    "provider": {
+      "type": "string",
+      "configurable": false
+    },
+    "password": {
+      "type": "password",
+      "minLength": 6,
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "resetPasswordToken": {
+      "type": "string",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "confirmationToken": {
+      "type": "string",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
+    "confirmed": {
+      "type": "boolean",
+      "default": false,
+      "configurable": false
+    },
+    "blocked": {
+      "type": "boolean",
+      "default": false,
+      "configurable": false
+    },
+    "role": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.role",
+      "inversedBy": "users",
+      "configurable": false
+    },
+    "roles": {
+      "type": "json"
+    },
+    "prueba": {
+      "type": "text"
+    },
+    "id_stripe": {
+      "type": "string"
+    },
+    "fecha_registro": {
+      "type": "datetime"
+    },
+    "membresia_vigente": {
+      "type": "boolean"
+    },
+    "tipo_membresia": {
+      "type": "enumeration",
+      "enum": [
+        "mensual",
+        "semestral",
+        "anual",
+        "preferente"
+      ]
+    },
+    "fecha_nacimiento": {
+      "type": "datetime"
+    },
+    "fecha_membresia": {
+      "type": "datetime"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "cp": {
+      "type": "string"
+    },
+    "ine_frente": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "ine_tras": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "foto_credencial": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "nombre_completo": {
+      "type": "string"
+    },
+    "fecha_fin_membresia_actual": {
+      "type": "date"
+    },
+    "stripeCustomerId": {
+      "type": "string"
+    },
+    "stripeSubscriptionId": {
+      "type": "string"
+    },
+    "stripePriceId": {
+      "type": "string"
+    },
+    "subscriptionStatus": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "canceled",
+        "incomplete"
+      ]
+    },
+    "direcciones": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::direccion.direccion"
+    },
+    "demandaamparo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "escritolibrecofepris": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "files": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "esperandocofepris": {
+      "type": "boolean"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "settings": {
+      "type": "json"
+    },
+    "profile": {
+      "type": "json"
+    },
+    "profilepic": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "esperandoamparo": {
+      "type": "boolean"
+    },
+    "tipoamparo": {
+      "type": "enumeration",
+      "enum": [
+        "autoamparo",
+        "membresiaconsumo",
+        "membresiaclubcultivo",
+        "jardinero",
+        "cliente",
+        "otro"
+      ]
+    },
+    "amparostatus": {
+      "type": "string"
+    },
+    "isclub": {
+      "type": "boolean"
+    },
+    "haveclub": {
+      "type": "boolean"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "openpayid": {
+      "type": "string"
+    },
+    "openpaykey": {
+      "type": "string"
+    },
+    "rfc": {
+      "type": "string"
+    },
+    "curp": {
+      "type": "string"
+    },
+    "foliocofepris": {
+      "type": "string"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "clubid": {
+      "type": "string"
+    },
+    "isJardinero": {
+      "type": "boolean"
+    },
+    "membresiatipo": {
+      "type": "enumeration",
+      "enum": [
+        "consumo",
+        "cultivo",
+        "jardinero",
+        "socio"
+      ]
+    },
+    "proximacosecha": {
+      "type": "date"
+    },
+    "curado": {
+      "type": "decimal"
+    },
+    "secado": {
+      "type": "integer"
+    },
+    "registrolegal": {
+      "type": "text"
+    },
+    "promocode": {
+      "type": "string"
+    },
+    "cursos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::curso.curso",
+      "mappedBy": "user"
+    },
+    "registrado": {
+      "type": "boolean"
+    },
+    "verificado": {
+      "type": "boolean"
+    },
+    "status_legal": {
+      "type": "string"
+    },
+    "bitacora": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::bitacora.bitacora",
+      "inversedBy": "colaboradores"
+    },
+    "fechaingresoplantas": {
+      "type": "datetime"
+    },
+    "plantas": {
+      "type": "integer"
+    },
+    "areas": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::area.area",
+      "inversedBy": "usuarios"
+    }
+  }
+}

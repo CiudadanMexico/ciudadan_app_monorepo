@@ -1,0 +1,112 @@
+{
+  "kind": "collectionType",
+  "collectionName": "eventos",
+  "info": {
+    "singularName": "evento",
+    "pluralName": "eventos",
+    "displayName": "Eventos",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "uid"
+    },
+    "creador": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "colaboradores": {
+      "type": "json"
+    },
+    "portada": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "imagenes": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "de_pago": {
+      "type": "boolean"
+    },
+    "precio": {
+      "type": "decimal"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string"
+    },
+    "multifecha": {
+      "type": "boolean"
+    },
+    "fecha_inicio": {
+      "type": "date"
+    },
+    "hora_inicio": {
+      "type": "time"
+    },
+    "fechas_horarios_adicionales": {
+      "type": "json"
+    },
+    "fecha_fin": {
+      "type": "date"
+    },
+    "hora_fin": {
+      "type": "time"
+    },
+    "modalidad": {
+      "type": "enumeration",
+      "enum": [
+        "presencial",
+        "en línea",
+        "híbrido"
+      ]
+    },
+    "status": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "evento_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::evento.evento"
+    },
+    "url": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "description": {
+      "type": "richtext"
+    }
+  }
+}

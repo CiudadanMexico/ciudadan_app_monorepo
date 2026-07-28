@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "respuestas",
+  "info": {
+    "singularName": "respuesta",
+    "pluralName": "respuestas",
+    "displayName": "respuesta"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "pregunta": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pregunta-producto.pregunta-producto"
+    },
+    "respuesta": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "publicada": {
+      "type": "boolean"
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cars_validations",
+  "info": {
+    "singularName": "cars-validation",
+    "pluralName": "cars-validations",
+    "displayName": "Cars Validation",
+    "description": "Historial de validaciones presenciales de conductor y vehículo"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "driver": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::driver.driver"
+    },
+    "agency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agencia.agencia"
+    },
+    "agenda": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agenda.agenda"
+    },
+    "reviewer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "appointment_date": {
+      "type": "datetime"
+    },
+    "opened_at": {
+      "type": "datetime"
+    },
+    "validation_started_at": {
+      "type": "datetime"
+    },
+    "validation_finished_at": {
+      "type": "datetime"
+    },
+    "closed_at": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "active",
+        "completed",
+        "expired",
+        "cancelled",
+        "under_review",
+        "awaiting_resubmission"
+      ],
+      "default": "pending"
+    },
+    "result": {
+      "type": "enumeration",
+      "enum": [
+        "approved",
+        "approved_with_observations",
+        "manual_review",
+        "rejected",
+        "resubmission_required"
+      ],
+      "default": "manual_review"
+    },
+    "nonce": {
+      "type": "string"
+    },
+    "session_token": {
+      "type": "string"
+    },
+    "risk_score": {
+      "type": "integer",
+      "default": 0
+    },
+    "gps_lat": {
+      "type": "decimal"
+    },
+    "gps_lng": {
+      "type": "decimal"
+    },
+    "gps_accuracy": {
+      "type": "decimal"
+    },
+    "device_id": {
+      "type": "string"
+    },
+    "app_version": {
+      "type": "string"
+    },
+    "checklist": {
+      "type": "json"
+    },
+    "observations": {
+      "type": "text"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "evidences": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::cars-evidence.cars-evidence",
+      "mappedBy": "validation"
+    },
+    "events": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::cars-validation-event.cars-validation-event",
+      "mappedBy": "validation"
+    }
+  }
+}

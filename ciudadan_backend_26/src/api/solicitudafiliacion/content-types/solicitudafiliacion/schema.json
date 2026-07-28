@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "solicitudafiliaciones",
+  "info": {
+    "singularName": "solicitudafiliacion",
+    "pluralName": "solicitudafiliaciones",
+    "displayName": "solicitudafiliacion"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "club": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::club.club"
+    },
+    "solicitada": {
+      "type": "datetime"
+    },
+    "pago_inicial": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pago.pago"
+    },
+    "status": {
+      "type": "string"
+    },
+    "afiliacionpagada": {
+      "type": "boolean"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "kit_entregas": {
+      "type": "integer"
+    },
+    "kit_entregados": {
+      "type": "integer"
+    },
+    "luz_activada": {
+      "type": "boolean"
+    },
+    "afiliado": {
+      "type": "datetime"
+    }
+  }
+}

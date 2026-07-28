@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "publicaciones",
+  "info": {
+    "singularName": "publicacion",
+    "pluralName": "publicaciones",
+    "displayName": "Publicaciones"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "contenido": {
+      "type": "blocks"
+    },
+    "autor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "archivos": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "publicado": {
+      "type": "enumeration",
+      "enum": [
+        "publicado",
+        "borrador",
+        "eliminado",
+        "bloqueado"
+      ]
+    },
+    "uid": {
+      "type": "uid"
+    }
+  }
+}

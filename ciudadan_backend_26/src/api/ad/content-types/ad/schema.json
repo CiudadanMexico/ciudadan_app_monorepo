@@ -1,0 +1,96 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ads",
+  "info": {
+    "singularName": "ad",
+    "pluralName": "ads",
+    "displayName": "ad",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tipo": {
+      "type": "enumeration",
+      "enum": [
+        "texto",
+        "imagen",
+        "texto con imagen",
+        "audio",
+        "video"
+      ]
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "texto": {
+      "type": "text"
+    },
+    "archivo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "fecha_subido": {
+      "type": "datetime"
+    },
+    "fecha_publicar": {
+      "type": "datetime"
+    },
+    "fecha_publicado": {
+      "type": "datetime"
+    },
+    "activo": {
+      "type": "boolean"
+    },
+    "periodos": {
+      "type": "blocks"
+    },
+    "status": {
+      "type": "string"
+    },
+    "fecha_unica": {
+      "type": "boolean"
+    },
+    "link": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "observaciones": {
+      "type": "text"
+    },
+    "default": {
+      "type": "boolean"
+    },
+    "hora": {
+      "type": "time"
+    },
+    "cuerpo": {
+      "type": "richtext"
+    },
+    "porcentaje": {
+      "type": "decimal"
+    },
+    "area": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::area.area",
+      "inversedBy": "ads"
+    }
+  }
+}

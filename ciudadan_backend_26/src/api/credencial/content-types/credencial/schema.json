@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "credenciales",
+  "info": {
+    "singularName": "credencial",
+    "pluralName": "credenciales",
+    "displayName": "credencial"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "usuario_email": {
+      "type": "string"
+    },
+    "frente": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "tras": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}
