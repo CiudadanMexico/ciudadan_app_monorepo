@@ -393,27 +393,27 @@ const Food = ({ filtros = '', parametros = '' }) => {
               </Grid>
             )}
 
-            {productos.map(({id, ...prod}, idx) => (
+            {productos.map((product, idx) => (
               <Grid
-                key={id ?? Math.random()}
+                key={`product-item-${product?.id ?? Math.random()}`}
                 item
                 xs={12}
                 sm={6}
                 md={3}
-                data-id={id ?? ''}
+                data-id={product?.id ?? ''}
                 ref={(el) => {
-                  if (el) itemRefs.current.set(id, el);
-                  else itemRefs.current.delete(id);
+                  if (el) itemRefs.current.set(product?.id, el);
+                  else itemRefs.current.delete(product?.id);
                   if (idx === (productos.length - 1))
                     lastProductRef.current = el;
                 }}
                 sx={{
-                  opacity: visible[id] ? 1 : 0,
-                  transform: visible[id] ? 'translateY(0)' : 'translateY(18px)',
+                  opacity: visible[product?.id] ? 1 : 0,
+                  transform: visible[product?.id] ? 'translateY(0)' : 'translateY(18px)',
                   transition: 'all 0.55s cubic-bezier(.2,.9,.3,1)',
                 }}
               >
-                <FoodProductCard producto={prod} />
+                <FoodProductCard producto={product} />
               </Grid>
             ))}
           </Grid>

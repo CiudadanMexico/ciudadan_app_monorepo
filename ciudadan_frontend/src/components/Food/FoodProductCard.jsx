@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -13,12 +13,8 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import EditIcon from '@mui/icons-material/Edit';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import PlaceIcon from '@mui/icons-material/Place';
 import productoImg from '../../assets/placeholders/producto.png';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
@@ -93,14 +89,15 @@ export default function FoodProductCard({ producto }) {
     console.log("handleCardClick")
   };
 
-  const handleEditProduct = (event) => {
+  const handleClickFavoriteButton = (event) => {
     event.stopPropagation();
     console.log("Editing product action")
   };
 
   const handleComprar = (event) => {
     event.stopPropagation();
-    console.log("handle comprar producto:", producto)
+    console.log("handle comprar producto:", producto);
+    navigate(`/comida/comprar/${slug}`, { state: { product_id: producto?.id } })
   }
 
 
@@ -138,7 +135,7 @@ export default function FoodProductCard({ producto }) {
             <Box sx={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 1 }}>
               <Tooltip title='Editar'>
                 <IconButton
-                  onClick={(e) => handleEditProduct(e)}
+                  onClick={(e) => handleClickFavoriteButton(e)}
                   size="small"
                   aria-label="Editar"
                   sx={{
