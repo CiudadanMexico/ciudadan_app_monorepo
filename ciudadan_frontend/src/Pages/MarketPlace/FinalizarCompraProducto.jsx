@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery, Stack } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import DireccionSelector from '../../components/MarketPlace/DireccionSelector';
@@ -13,6 +13,12 @@ import DetalleProducto from '../../components/MarketPlace/DetalleProducto';
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCart } from "../../Contexts/CartContext";
 import PagoPorTienda from '../../components/MarketPlace/PagoPorTienda';
+import {
+  CheckCircleRounded,
+  UploadFileRounded,
+  VerifiedRounded,
+  LocalShippingRounded,
+} from "@mui/icons-material";
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL;
 const steps = ["Producto", "Dirección", "Pago", "Confirmación"];
@@ -346,7 +352,7 @@ export default function FinalizarCompraProducto() {
           timestamp_creacion: new Date().toISOString(),
           monto_envio: envio,
           monto_total: total,
-          status: "enviar",
+          status: "pendiente_pago",
           carrito_id: carritoCreatedId,
           direccion_destino: selectedAddress.id,
           metadata: { usuario_email: user?.email || "unknown" },
@@ -634,7 +640,7 @@ export default function FinalizarCompraProducto() {
               {/* Si no hay pedidos, mostramos mensaje */}
               {pedidoCreado == null ? (
                 <Typography sx={{ mb: 2 }}>
-                  No hay pedidos creados. Vuelve a intentar crear los pedidos.
+                  Pedido no creado. Vuelve a intentar crear el pedido o consulta tus en tus compras.
                 </Typography>
               ) : (
                 <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido} />
@@ -644,19 +650,103 @@ export default function FinalizarCompraProducto() {
         )}
 
         {activeStep === 3 && (
-          <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 4, textAlign: "center" }}>
-              <Typography variant="h5">¡Pedido enviado!</Typography>
-              <Button
-                variant="contained"
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  console.log("cart y emojis - navegando a /mis-compras");
-                  navigate("/mis-compras");
-                }}
-              >
-                Ver mis compras
-              </Button>
+          <motion.div
+            key="ok"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <Paper
+              sx={{
+                p: { xs: 3, sm: 4 },
+                borderRadius: 3,
+              }}
+            >
+              <Stack spacing={3} alignItems="center">
+                <CheckCircleRounded
+                  color="success"
+                  sx={{ fontSize: 70 }}
+                />
+
+                <Box textAlign="center">
+                  <Typography variant="h5" fontWeight={700}>
+                    ¡Comprobante enviado!
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    Tu comprobante de pago fue recibido correctamente.
+                    Ahora comenzará el proceso de validación antes del envío
+                    de tu pedido.
+                  </Typography>
+                </Box>
+
+                <Stack
+                  spacing={2}
+                  sx={{
+                    width: "100%",
+                    mt: 1,
+                  }}
+                >
+                  <Box display="flex" gap={2}>
+                    <UploadFileRounded color="primary" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        1. Comprobante recibido
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Tu comprobante ya fue registrado en el sistema.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <VerifiedRounded color="warning" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        2. Validación del vendedor
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        El vendedor fue notificado y verificará que el pago
+                        haya sido recibido correctamente.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <LocalShippingRounded color="success" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        3. Preparación y envío
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Una vez confirmado el pago, tu pedido será preparado y
+                        enviado. Podrás consultar su avance desde la sección
+                        <strong> Mis compras</strong>.
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  onClick={() => navigate("/mis-compras")}
+                >
+                  Ir a Mis compras
+                </Button>
+              </Stack>
             </Paper>
           </motion.div>
         )}
@@ -700,7 +790,7 @@ export default function FinalizarCompraProducto() {
                         disabled={!selectedAddress || creatingPedidos}
                         onClick={() => handleCrearPedido(handleSaveLater)}
                       >
-                        {creatingPedidos ? <CircularProgress size={18} /> : "Guardar"}
+                        {creatingPedidos ? <CircularProgress size={18} /> : "Pagar más tarde"}
                       </Button>
                     </Tooltip>
                   </Box>
