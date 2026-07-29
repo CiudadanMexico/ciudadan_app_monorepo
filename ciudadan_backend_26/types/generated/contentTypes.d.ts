@@ -3688,6 +3688,8 @@ export interface ApiPagoPago extends Schema.CollectionType {
       'oneToOne',
       'api::pedido.pedido'
     >;
+    comprobante: Attribute.Media<'images' | 'files'> & Attribute.Required;
+    usuario_email: Attribute.Email;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3770,7 +3772,15 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
       'api::pago.pago'
     >;
     status: Attribute.Enumeration<
-      ['enviar', 'encamino', 'cancelado', 'devuelto', 'recibido', 'impagado']
+      [
+        'pendiente_pago',
+        'pendiente_envio',
+        'enviado',
+        'en_camino',
+        'cancelado',
+        'devuelto',
+        'recibido'
+      ]
     >;
     finalizado: Attribute.Boolean;
     fecha_finalizado: Attribute.DateTime;

@@ -105,12 +105,13 @@
     "status": {
       "type": "enumeration",
       "enum": [
-        "enviar",
-        "encamino",
+        "pendiente_pago",
+        "pendiente_envio",
+        "enviado",
+        "en_camino",
         "cancelado",
         "devuelto",
-        "recibido",
-        "impagado"
+        "recibido"
       ]
     },
     "finalizado": {

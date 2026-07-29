@@ -111,6 +111,18 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::pedido.pedido"
+    },
+    "comprobante": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "usuario_email": {
+      "type": "email"
     }
   }
 }
