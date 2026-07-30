@@ -3782,10 +3782,10 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
         'recibido'
       ]
     >;
-    finalizado: Attribute.Boolean;
+    finalizado: Attribute.Boolean & Attribute.DefaultTo<false>;
     fecha_finalizado: Attribute.DateTime;
     metadata: Attribute.JSON;
-    calificado: Attribute.Boolean;
+    calificado: Attribute.Boolean & Attribute.DefaultTo<false>;
     store: Attribute.Relation<
       'api::pedido.pedido',
       'oneToOne',
@@ -4028,8 +4028,8 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
-    activo: Attribute.Boolean;
-    destacado: Attribute.Boolean;
+    activo: Attribute.Boolean & Attribute.DefaultTo<false>;
+    destacado: Attribute.Boolean & Attribute.DefaultTo<false>;
     store_id: Attribute.String;
     store_email: Attribute.String;
     store: Attribute.Relation<
@@ -4621,7 +4621,8 @@ export interface ApiStoreStore extends Schema.CollectionType {
         i18n: {
           localized: true;
         };
-      }>;
+      }> &
+      Attribute.DefaultTo<false>;
     slug: Attribute.String &
       Attribute.SetPluginOptions<{
         i18n: {

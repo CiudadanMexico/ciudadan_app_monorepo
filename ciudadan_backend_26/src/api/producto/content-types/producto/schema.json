@@ -52,10 +52,12 @@
       ]
     },
     "activo": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "destacado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "store_id": {
       "type": "string"

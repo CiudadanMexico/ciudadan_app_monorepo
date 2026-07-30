@@ -66,7 +66,7 @@ export interface CarritosProductoEnCarrito extends Schema.Component {
       'oneToOne',
       'api::store.store'
     >;
-    calificado: Attribute.Boolean;
+    calificado: Attribute.Boolean & Attribute.DefaultTo<false>;
     fechacalificado: Attribute.DateTime;
     status: Attribute.String;
   };

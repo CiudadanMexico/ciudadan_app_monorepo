@@ -115,7 +115,8 @@
       ]
     },
     "finalizado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "fecha_finalizado": {
       "type": "datetime"
@@ -124,7 +125,8 @@
       "type": "json"
     },
     "calificado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "store": {
       "type": "relation",
