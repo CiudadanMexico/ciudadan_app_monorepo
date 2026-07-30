@@ -402,7 +402,7 @@ const Rutas = () => (
       element={<FinalizarCompra />}
     />
     <Route
-      path='/market/compras/*'
+      path='/compras/*'
       element={<Compras />}
     />
     <Route

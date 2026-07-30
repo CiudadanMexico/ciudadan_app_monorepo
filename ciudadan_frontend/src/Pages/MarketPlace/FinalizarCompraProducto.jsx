@@ -742,7 +742,7 @@ export default function FinalizarCompraProducto() {
                   fullWidth
                   size="large"
                   variant="contained"
-                  onClick={() => navigate("/mis-compras")}
+                  onClick={() => navigate("/market/compras/pedidos")}
                 >
                   Ir a Mis compras
                 </Button>
