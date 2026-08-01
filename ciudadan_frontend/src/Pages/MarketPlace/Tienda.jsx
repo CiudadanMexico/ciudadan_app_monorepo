@@ -29,7 +29,7 @@ const Tienda = () => {
 
 
   const [tabIndex, setTabIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [storeData, setStoreData] = useState(null);
   const [storeImageURL, setStoreImageURL] = useState(null);
   const [productos, setProductos] = useState([]);
 
@@ -42,12 +42,6 @@ const Tienda = () => {
     { label: 'Pagos', path: 'pagos' },
     { label: 'Configuración', path: 'configuracion' }
   ];
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     const path = location.pathname;
@@ -77,6 +71,7 @@ const Tienda = () => {
         console.log('📦 Respuesta de tienda:', res.data);
 
         const tienda = res.data.data[0];
+        setStoreData(tienda);
         const imagen = tienda?.attributes?.imagen?.data?.attributes?.url;
 
         if (imagen) {
@@ -84,6 +79,8 @@ const Tienda = () => {
           console.log('📷 Imagen encontrada:', fullURL);
           setStoreImageURL(fullURL);
         }
+        if (!tienda)
+          setTimeout(() => navigate(-1), 1900);
       } catch (error) {
         console.error('❌ Error al traer datos de la tienda:', error);
       }
@@ -223,7 +220,7 @@ const Tienda = () => {
         </Tabs>
 
         <Box sx={{ mt: { xs: 1.5, sm: 2 }, width: '100%', overflowX: 'hidden' }}>
-          {tabIndex === 0 && <PedidosPendientes />}
+          {tabIndex === 0 && <PedidosPendientes store={storeData}/>}
           {tabIndex === 1 && <PedidosEntregados />}
           {tabIndex === 2 && <MisProductos filtros={filtros} />}
           {tabIndex === 3 && <AgregarProducto />}

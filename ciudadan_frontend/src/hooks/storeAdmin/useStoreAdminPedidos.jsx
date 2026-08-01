@@ -1,95 +1,132 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
+const STRAPI_URL = process.env?.REACT_APP_STRAPI_URL ?? 'http://localhost:1337';
+const PEDIDOS_URL = `${STRAPI_URL}/api/pedidos`;
+const PAGOS_URL = `${STRAPI_URL}/api/pagos`;
+const DEFAULT_RESPONSE = { data: [], meta: {} };
 
-export const useStoreAdminPedidos = (user, buildHeaders, mode = "store") => {
-  const [pedidos, setPedidos] = useState([]);
-  const [store, setStore] = useState(null);
+export const useStoreAdminPedidos = () => {
   const [cargando, setCargando] = useState(true);
   const [apiLoading, setApiLoading] = useState(false);
   const [snack, setSnack] = useState({ open: false, message: '' });
 
-  const fetchData = useCallback(async () => {
-    if (!user?.email) return;
-
+  const getStoreBySlug = async (slug, email, onError) => {
+    if (!email) return null;
     setCargando(true);
-
     try {
-      const q = `${STRAPI_URL}/api/stores?filters[email][$eqi]=${encodeURIComponent(user.email)}&populate=*`;
-      const res = await fetch(q);
+      const url = `${STRAPI_URL}/api/stores?filters[slug][$eq]=${slug}&filters[email][$eq]=${encodeURIComponent(email)}&populate=imagen*`;
+      const res = await fetch(url);
       const json = await res.json();
-
-      const found = json?.data?.[0];
-      if (!found) {
-        setStore(null);
-        setPedidos([]);
-        return;
-      }
-
-      setStore(found);
-
-      let pedidosUrl = ""
-      if (mode === 'store'){
-        pedidosUrl = `${STRAPI_URL}/api/pedidos?filters[store][id][$eq]=${found.id}&populate=*`;
-      }
-
-      if (mode === "user") {
-        pedidosUrl =
-            `${STRAPI_URL}/api/pedidos?filters[usuario][email][$eq]=${encodeURIComponent(
-            user.email
-            )}&populate=deep,3&sort[0]=id:desc`;
-      }
-
-      const res2 = await fetch(pedidosUrl);
-      const json2 = await res2.json();
-
-      setPedidos(json2?.data || []);
-    } catch (err) {
-      setSnack({ open: true, message: 'Error cargando pedidos' });
+      const found = json?.data[0];
+      return found;
+    } catch (error) {
+      console.error("Error al obtener tienda:", error);
+      onError && onError();
+      return null;
     } finally {
       setCargando(false);
     }
-  }, [user]);
+  };
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const getPedidosPendientes = async (store_id) => {
+    if (!store_id) return [];
+    setCargando(true);
+    try {
+      const populateStr = "populate[item][populate][producto][populate]=imagen_predeterminada&populate[pago_id][populate][comprobante]=*";
+      const filtersStr = `filters[store][id][$eq]=${store_id}&filters[finalizado][$eq]=false`;
+      const sortStr = 'sort=status';
+      const response = await fetch(`${PEDIDOS_URL}?${filtersStr}&${populateStr}&${sortStr}`);
+      const responseData = await response.json();
+      return responseData ?? DEFAULT_RESPONSE;
+    } catch (error) {
+      console.error("Error al obtener pedidos pendientes: ", error);
+      setTimeout(() => setSnack({ open: true, message: 'Error cargando pedidos pendientes' }), 1200);
+      return DEFAULT_RESPONSE;
+    } finally {
+      setCargando(false);
+    }
+  };
 
-  const patchPedido = async (pedidoId, body) => {
+  const getPedidosEntregados = async (store_id) => {
+    if (!store_id) return [];
+    setCargando(true);
+    try {
+      const populateStr = "populate[item][populate][producto][populate]=imagen_predeterminada&populate[pago_id][populate][comprobante]=*";
+      const filtersStr = `filters[store][id][$eq]=${store_id}&filters[finalizado][$eq]=true`;
+      const sortStr = 'sort=status';
+      const response = await fetch(`${PEDIDOS_URL}?${filtersStr}&${populateStr}&${sortStr}`);
+      const responseData = await response.json();
+      return responseData ?? DEFAULT_RESPONSE;
+    } catch (error) {
+      console.error("Error al obtener pedidos entregados: ", error);
+      setTimeout(() => setSnack({ open: true, message: 'Error cargando pedidos entregados' }), 1200);
+      return DEFAULT_RESPONSE;
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  /**
+   * patchPedido:
+   * Helper para actualizar un pedido en Strapi usando PUT (mantengo PUT como en el original).
+   * Actualiza el state local para remover el pedido (si cambió a enviado) y muestra snack.
+   * @param {number} pedidoId
+   * @param {{}} body
+   * @return {object}
+   */
+  const patchPedido = async (pedidoId, body = {}) => {
     setApiLoading(true);
     try {
-      const headers = await buildHeaders();
 
-      const res = await fetch(`${STRAPI_URL}/api/pedidos/${pedidoId}`, {
+      const res = await fetch(`${PEDIDOS_URL}/${pedidoId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...headers,
         },
         body: JSON.stringify({ data: body }),
       });
 
       const json = await res.json();
-
-      if (json?.data) {
-        setPedidos(prev => prev.filter(p => p.id !== pedidoId));
-        return json.data;
-      }
+      setTimeout(() => setSnack({ open: true, message: 'Pedido actualizado' }), 1200);
+      return json?.data;
     } catch (err) {
-      setSnack({ open: true, message: 'Error actualizando pedido' });
+      setTimeout(() => setSnack({ open: true, message: 'Error actualizando pedido' }), 1200);
+      return null;
     } finally {
       setApiLoading(false);
     }
   };
 
+  const patchPago = async (pagoId, body = {}) => {
+    setApiLoading(true);
+
+    try {
+      const response = await fetch(`${PAGOS_URL}/${pagoId}`,{
+        method:'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body)
+      });
+      const json = await response.json();
+      return json?.data;
+    } catch (error) {
+      console.error("Error al actualizar pago:", error);
+      return null;
+    }finally{
+      setApiLoading(false);
+    }
+  };
+
   return {
-    pedidos,
-    store,
     cargando,
     apiLoading,
     snack,
     setSnack,
     patchPedido,
-    refetch: fetchData,
+    getStoreBySlug,
+    getPedidosPendientes,
+    getPedidosEntregados,
+    patchPago,
   };
 };

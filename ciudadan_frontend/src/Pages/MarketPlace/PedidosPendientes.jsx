@@ -27,91 +27,52 @@ import SendIcon from '@mui/icons-material/Send';
 // Configuración de estados con iconos (puedes ajustar)
 // Usado para mostrar un Chip similar a PedidosEntregados
 const statusPedidoConfigUi = {
-  enviar:   { label: 'Por enviar', color: 'warning', icon: <SendIcon /> },
-  encamino: { label: 'En camino', color: 'info',    icon: <LocalShippingIcon /> },
+  enviar: { label: 'Por enviar', color: 'warning', icon: <SendIcon /> },
+  encamino: { label: 'En camino', color: 'info', icon: <LocalShippingIcon /> },
 };
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
+/**
+ * buildHeaders:
+ * Construye headers para las peticiones; intenta obtener token si corresponde.
+ * Nota: la lógica original construye headers pero no los inyecta sistemáticamente
+ * en todas las llamadas fetch; se mantiene ese comportamiento para que todo quede intacto.
+ */
+// const buildHeaders = useCallback(async () => {
+//   const headers = { 'Content-Type': 'application/json' };
+//   try {
+//     if (conAutenticacion === true && isAuthenticated && typeof getAccessTokenSilently === 'function') {
+//       const token = await getAccessTokenSilently();
+//       if (token) headers.Authorization = `Bearer ${token}`;
+//     }
+//   } catch (err) {
+//     // Si no se pudo obtener token, continuamos sin Authorization.
+//     // No usamos console.* para respetar tu petición.
+//   }
+//   return headers;
+// }, [getAccessTokenSilently, isAuthenticated]);
+const PedidosPendientes = ({ store }) => {
 
-const PedidosPendientes = () => {
-  
   // Auth & datos
   const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
-  //const [cargando, setCargando] = useState(true);
-  
-  const buildHeaders = useCallback(async () => {
-    const headers = { 'Content-Type': 'application/json' };
-    try {
-      if (conAutenticacion === true && isAuthenticated && typeof getAccessTokenSilently === 'function') {
-        const token = await getAccessTokenSilently();
-        if (token) headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (err) {
-      // Si no se pudo obtener token, continuamos sin Authorization.
-      // No usamos console.* para respetar tu petición.
-    }
-    return headers;
-  }, [getAccessTokenSilently, isAuthenticated]);
-  
-  const {
-  pedidos,
-  store,
-  cargando,
-  apiLoading,
-  snack,
-  setSnack,
-  patchPedido,
-} = useStoreAdminPedidos(user, buildHeaders);
-
-  
-  
-  
-  // Lista de pedidos (estructura: [{ id, attributes: { ... } }, ...])
-  //const [pedidos, setPedidos] = useState([]);
-  // Loading principal
-  
-  // Store asociada al usuario
-  //const [store, setStore] = useState(null);
+  const { cargando, apiLoading, snack, setSnack, patchPedido, getPedidosPendientes, patchPago } = useStoreAdminPedidos();
 
   // Estados para modales y acciones
+  const [pedidos, setPedidos] = useState([]);
+  const [pagination, setPagination] = useState(null);
   const [selectedPagoPedido, setSelectedPagoPedido] = useState(null);
   const [openPagoModal, setOpenPagoModal] = useState(false);
   const [openGuiaModal, setOpenGuiaModal] = useState(false);
   const [guiaDraft, setGuiaDraft] = useState({ proveedor: '', guia: '' });
-  //const [apiLoading, setApiLoading] = useState(false);
-  //const [snack, setSnack] = useState({ open: false, message: '' });
-
-  // Toggle para usar autenticación en headers (dejado para compatibilidad)
   const conAutenticacion = false;
-
-  /**
-   * buildHeaders:
-   * Construye headers para las peticiones; intenta obtener token si corresponde.
-   * Nota: la lógica original construye headers pero no los inyecta sistemáticamente
-   * en todas las llamadas fetch; se mantiene ese comportamiento para que todo quede intacto.
-   */
-  
-
-  /**
-   * useEffect principal:
-   * 1) Buscar la store asociada al user.email
-   * 2) Si existe, buscar pedidos con status 'enviar' o 'encamino' y poblar state
-   *
-   * Se han eliminado los console.logs solicitados y se añadieron comentarios explicativos.
-   */
-
-
-  /**
-   * patchPedido:
-   * Helper para actualizar un pedido en Strapi usando PUT (mantengo PUT como en el original).
-   * Actualiza el state local para remover el pedido (si cambió a enviado) y muestra snack.
-   */
 
   // Abrir modal de pago
   const handleOpenPago = (pedido) => {
     setSelectedPagoPedido(pedido);
+    console.log("Selected pedido:", pedido);
     setOpenPagoModal(true);
   };
+
   // Cerrar modal de pago
   const handleClosePago = () => {
     setOpenPagoModal(false);
@@ -124,6 +85,7 @@ const PedidosPendientes = () => {
     const now = new Date().toISOString();
     const payload = {
       fecha_pagado: now,
+      status: 'pendiente_envio',
       metadata: {
         ...(selectedPagoPedido.attributes.metadata || {}),
         payment_confirmed: true,
@@ -131,6 +93,9 @@ const PedidosPendientes = () => {
       },
     };
     await patchPedido(selectedPagoPedido.id, payload);
+    if (selectedPagoPedido?.attributes?.pago_id?.data) {
+      await patchPago(selectedPagoPedido?.attributes?.pago_id?.data?.id, { status: 'verificado' });
+    }
     handleClosePago();
   };
 
@@ -157,6 +122,7 @@ const PedidosPendientes = () => {
     setSelectedPagoPedido(pedido);
     setOpenGuiaModal(true);
   };
+
   const handleCloseGuia = () => {
     setOpenGuiaModal(false);
     setSelectedPagoPedido(null);
@@ -166,7 +132,7 @@ const PedidosPendientes = () => {
   // Generar mock de guía si el usuario no provee una
   const generateMockGuia = () => {
     const ts = Date.now();
-    return `G-${guiaDraft.proveedor?.slice(0,3).toUpperCase() || 'XX'}-${ts}`;
+    return `G-${guiaDraft.proveedor?.slice(0, 3).toUpperCase() || 'XX'}-${ts}`;
   };
 
   // Guardar guía (no cambia status por diseño)
@@ -189,8 +155,6 @@ const PedidosPendientes = () => {
     //función que abre el dialog de imprimir
     printGuia(pedido);
   };
-
-
 
   // Marcar como enviado -> cambia status a 'enviado' (sale de la vista)
   const handleMarcarEnviado = async (pedido) => {
@@ -266,16 +230,12 @@ const PedidosPendientes = () => {
         subtotal,
         envio,
         total,
-        imagen_predeterminada,
+        producto,
       } = item || {};
 
       // Soporta varios formatos de imagen_predeterminada
       let imgUrl = productoImg;
-      const imgPath =
-        imagen_predeterminada?.data?.attributes?.url
-        || imagen_predeterminada?.attributes?.url
-        || imagen_predeterminada?.url
-        || imagen_predeterminada; // por si es string o ruta
+      const imgPath = producto?.data?.attributes?.imagen_predeterminada?.data[0]?.attributes?.url // por si es string o ruta
 
       if (imgPath) {
         imgUrl = imgPath.toString().startsWith('http') ? imgPath : `${STRAPI_URL}${imgPath}`;
@@ -321,9 +281,18 @@ const PedidosPendientes = () => {
     });
   };
 
+  const handleGetPedidos = async (store_id) => {
+    const { data, meta } = await getPedidosPendientes(store_id);
+    setPedidos(data);
+    setPagination(meta?.pagination);
+  };
+
+  useEffect(() => {
+    handleGetPedidos(store?.id);
+  }, [store?.id]);;
+
   // Separar pedidos por estado para la UI (mantenemos tu comparación exacta)
-  const pedidosEnviar = pedidos.filter(({ attributes }) => attributes.status === 'enviar');
-  const pedidosEnCamino = pedidos.filter(({ attributes }) => attributes.status === 'encamino');
+  const pedidosEnCamino = [];
 
   // Loading UI
   if (cargando) {
@@ -346,9 +315,9 @@ const PedidosPendientes = () => {
       )}
 
       {/* Pedidos con status 'enviar' (requieren checar pago) */}
-      {pedidosEnviar.length === 0 ? (
-        <Typography mt={2}>No hay pedidos por revisar (enviar).</Typography>
-      ) : pedidosEnviar.map(({ id, attributes }) => {
+      {pedidos.length === 0 ? (
+        <Typography mt={2}>No hay pedidos pendientes.</Typography>
+      ) : pedidos.map(({ id, attributes }) => {
         // ahora usamos normalizeItems para obtener items en cualquier forma
         const itemList = normalizeItems(attributes.item);
         const pago = attributes.pago?.data?.attributes || null;
