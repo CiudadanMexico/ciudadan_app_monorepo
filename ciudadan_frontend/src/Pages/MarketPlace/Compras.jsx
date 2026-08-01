@@ -21,6 +21,8 @@ import {
   CardMedia,
   DialogContentText,
   Pagination,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import InfoIcon from "@mui/icons-material/Info";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
@@ -158,7 +160,8 @@ function useUserPedidos(user, isLoadingAuth) {
       const base = (process.env.REACT_APP_STRAPI_URL || "").replace(/\/+$/, "");
       if (!base) throw new Error("REACT_APP_STRAPI_URL no definido");
       //Obtener pedido por id, con filtro para incluir item con store, producto e imagenes de producto
-      const url = `${base}/api/pedidos/${pedidoId}?populate[item][populate][store]=*&populate[item][populate][producto][populate]=imagenes`;
+      const populateStr = `populate[item][populate][store]=*&populate[item][populate][producto][populate]=imagenes&populate[pago_id][populate][comprobante]=*`;
+      const url = `${base}/api/pedidos/${pedidoId}?${populateStr}`;
       const headers = { "Content-Type": "application/json" };
       if (process.env.REACT_APP_STRAPI_TOKEN) {
         headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
@@ -189,9 +192,20 @@ function useUserPedidos(user, isLoadingAuth) {
   };
   return { loadingItems, error, page, pageSize, setPage, setPageSize, getPedidosPendientes, getPedidosRecibidosSinCalificar, getHistorialPedidosCalificados, fetchPedidoById, loadingItemById };
 }
-
+const DEFAULT_STATUS_PEDIDO = [
+  { key: 'pendiente_pago', label: 'Pendiente pago', color: 'warning' },
+  { key: 'pendiente_verificacion', label: 'Pendiente verificación', color: 'warning' },
+  { key: 'pendiente_envio', label: 'Pendiente envío', color: 'warning' },
+  { key: 'enviado', label: 'Enviado', color: 'primary' },
+  { key: 'en_camino', label: 'En camino', color: 'info' },
+  { key: 'cancelado', label: 'Cancelado', color: 'error' },
+  { key: 'recibido', label: 'Recibido', color: 'success' },
+  { key: 'devuelto', label: 'Devuelto', color: 'secondary' },
+];
 const Compras = () => {
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const { user, isLoading } = useAuth0();
   const { loadingItems, error, fetchPedidoById, loadingItemById, getPedidosPendientes, getHistorialPedidosCalificados, getPedidosRecibidosSinCalificar, setPage, page, } = useUserPedidos(user, isLoading);
@@ -201,9 +215,6 @@ const Compras = () => {
   const userId = userData?.id ?? null;
 
   const [tabIndex, setTabIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(
-    typeof window !== "undefined" ? window.innerWidth < 768 : false
-  );
   const [openDialog, setOpenDialog] = useState(false);
   const [pedidoSeleccionadoId, setPedidoSeleccionadoId] = useState(0);
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState(null);
@@ -321,12 +332,16 @@ const Compras = () => {
     // refetch();
   }, []);
 
-  /* ---------- responsive listener ---------- */
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const getStatusLabelPedido = (status = '') => {
+    if (!status) return DEFAULT_STATUS_PEDIDO[0].label;
+    const defaultStatus = DEFAULT_STATUS_PEDIDO.find((s) => s.key === status) ?? DEFAULT_STATUS_PEDIDO[0];
+    return defaultStatus.label;
+  }
+  const getStatusColorPedido = (status = '') => {
+    if (!status) return DEFAULT_STATUS_PEDIDO[0].color;
+    const defaultStatus = DEFAULT_STATUS_PEDIDO.find((s) => s.key === status) ?? DEFAULT_STATUS_PEDIDO[0];
+    return defaultStatus.color;
+  }
 
   /* ---------- sincroniza tab con la URL ---------- */
   useEffect(() => {
@@ -374,7 +389,7 @@ const Compras = () => {
         >
           <Divider sx={{ mb: 2 }} />
 
-          {(loadingItems || loadingItemById) ? (
+          {(loadingItems) ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
               <CircularProgress />
             </Box>
@@ -393,11 +408,11 @@ const Compras = () => {
                     pedidosEnCurso.map((entry, idx) => {
                       const id = entry.id;
                       const attrs = entry.attributes || {};
-
                       return (
                         <Grid
+                          key={`pedido-en-curso-item-${id}`}
+                          xs={12}
                           item
-                          xs={12} key={`pedido-en-curso-item-${id}`}
                         >
                           <Card sx={{ p: 2 }}>
                             <CardContent>
@@ -433,7 +448,26 @@ const Compras = () => {
                     {
                       pedidoSeleccionado && (
                         <>
-                          <DialogTitle>Detalle del pedido #{pedidoSeleccionadoId}</DialogTitle>
+                          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="h5">
+                              Detalle del pedido
+                            </Typography>
+                            <Box sx={{ width: 100 }}>
+                              <Chip
+                                size="small"
+                                color={getStatusColorPedido(pedidoSeleccionado?.attributes?.status)}
+                                label={getStatusLabelPedido(pedidoSeleccionado?.attributes?.status)}
+                                sx={{
+                                  height: 'auto',
+                                  '& .MuiChip-label': {
+                                    display: 'block',
+                                    whiteSpace: 'normal',
+                                    textAlign: 'center'
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </DialogTitle>
                           <DialogContent>
                             <Box component={motion.div}
                               initial={{ opacity: 0, y: 8 }}
@@ -448,12 +482,12 @@ const Compras = () => {
                                   const llenar = producto?.attributes?.calificacion != null && !isNaN(Number(producto?.attributes?.calificacion)) ? Math.round(Number(producto?.attributes?.calificacion)) : 0;
                                   const estrellas = Array.from({ length: 5 }).map((_, i) => i < llenar);
                                   return (
-                                    <Card key={`pedido-${pedidoSeleccionadoId}-producto-${itemProducto?.id}-${index}`} sx={{ my: 2, }}>
+                                    <Card key={`pedido-${pedidoSeleccionadoId}-producto-${itemProducto?.id}-${index}`} sx={{ my: 2, display: 'flex', justifyContent: 'space-between', }}>
                                       <CardMedia
                                         component="img"
                                         image={imagenPrincipalProducto}
                                         alt={producto?.attributes?.nombre || 'Producto'}
-                                        sx={{ height: { xs: 180, sm: 120 }, objectFit: 'contain', }}
+                                        sx={{ width: '35%', objectFit: 'contain', }}
 
                                       />
                                       <DialogContentText lineHeight={2}>
@@ -463,29 +497,16 @@ const Compras = () => {
                                           </Typography>
 
                                           <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                                            <Typography variant="h6" fontWeight={800}>
-                                              {itemProducto?.total}
+                                            <Typography>
+                                              Cantidad: {itemProducto?.cantidad}
                                             </Typography>
-
-                                            <Box display="flex" alignItems="center" gap={1}>
-                                              <Box display="flex" alignItems="center">
-                                                {estrellas.map((filled, i) => (
-                                                  <span key={i} style={{ display: 'inline-flex', alignItems: 'center' }}>
-                                                    {filled ? <StarIcon fontSize="small" sx={{ color: '#f7b500' }} /> : <StarBorderIcon fontSize="small" sx={{ color: '#dcdcdc' }} />}
-                                                  </span>
-                                                ))}
-                                              </Box>
-                                            </Box>
+                                            <Typography>
+                                              Total: {itemProducto?.total}
+                                            </Typography>
                                           </Box>
-
-                                          {/* localidad / vendidos */}
-                                          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-                                            <Typography variant="caption" color="text.secondary">Vendidos: {producto?.attributes?.vendidos || 0}</Typography>
-                                          </Box>
-
                                           {/* descripción corta */}
                                           {producto?.attributes?.descripcion && (
-                                            <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                               {producto?.attributes?.descripcion}
                                             </Typography>
                                           )}
