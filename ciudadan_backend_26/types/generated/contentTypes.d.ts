@@ -3774,6 +3774,7 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
     status: Attribute.Enumeration<
       [
         'pendiente_pago',
+        'pendiente_verificacion',
         'pendiente_envio',
         'enviado',
         'en_camino',
@@ -3781,7 +3782,8 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
         'devuelto',
         'recibido'
       ]
-    >;
+    > &
+      Attribute.DefaultTo<'pendiente_pago'>;
     finalizado: Attribute.Boolean & Attribute.DefaultTo<false>;
     fecha_finalizado: Attribute.DateTime;
     metadata: Attribute.JSON;

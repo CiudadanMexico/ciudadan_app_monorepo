@@ -106,13 +106,15 @@
       "type": "enumeration",
       "enum": [
         "pendiente_pago",
+        "pendiente_verificacion",
         "pendiente_envio",
         "enviado",
         "en_camino",
         "cancelado",
         "devuelto",
         "recibido"
-      ]
+      ],
+      "default": "pendiente_pago"
     },
     "finalizado": {
       "type": "boolean",
