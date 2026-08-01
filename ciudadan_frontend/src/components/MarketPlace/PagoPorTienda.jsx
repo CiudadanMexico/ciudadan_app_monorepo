@@ -13,7 +13,7 @@ const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
  * - Emite evento global "cart:paymentUploaded" y llama onPagoSubido(...) si existe.
  * - Muchos logs "cart y emojis".
  */
-const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito" }) => {
+const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }) => {
   const { user } = useAuth0();
   // ---------- DERIVAR ESTADO INICIAL desde pedido.attributes ----------
   // Puede venir en diferentes formas según Strapi. Extraemos con defensiva.
@@ -145,8 +145,11 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito" }) => {
           monto: montoNumeric,
           status: "pendiente_verificacion",
           usuario_email: user?.email,
-          store: store?.id
+          store: store?.id,
         };
+        if (carritoId)
+          pagoPayload.carrito_id = carritoId;
+        
         console.log("cart y emojis - creando pago, payload:", pagoPayload);
 
         formPedido.append("data", JSON.stringify(pagoPayload));

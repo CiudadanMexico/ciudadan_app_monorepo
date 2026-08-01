@@ -448,7 +448,7 @@ export default function FinalizarCompraProducto() {
       console.log("cart y emojis - handlePagoSubido actualizando pedidoCreado:", {
         pedidoId: prev.id,
         updatedAttributes: attributes,
-      });
+      }, "updated: ", updated);
 
       return updated;
     });
@@ -478,7 +478,7 @@ export default function FinalizarCompraProducto() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: {
-            status: "enviar",
+            status: "pendiente_verificacion",
             fecha_pagado: new Date().toISOString(),
           },
         }),
@@ -643,7 +643,7 @@ export default function FinalizarCompraProducto() {
                   Pedido no creado. Vuelve a intentar crear el pedido o consulta tus en tus compras.
                 </Typography>
               ) : (
-                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido} />
+                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido}  carritoId={carritoId} />
               )}
             </Paper>
           </motion.div>
@@ -742,7 +742,7 @@ export default function FinalizarCompraProducto() {
                   fullWidth
                   size="large"
                   variant="contained"
-                  onClick={() => navigate("/market/compras/pedidos")}
+                  onClick={() => navigate("/compras/pedidos")}
                 >
                   Ir a Mis compras
                 </Button>
