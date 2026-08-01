@@ -17,6 +17,7 @@ import { slugify } from "../../utils/slugify.jsx";
 import { getBankByCLABE, validateCLABE, BANK_OPTIONS } from "../../utils/validacionesBanco.js";
 import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
+import { useRoles } from "../../Contexts/RolesContext.jsx";
 
 // Librerías de Google Maps declaradas como constante
 const LIBRARIES = ["places"];
@@ -32,6 +33,7 @@ export default function RegisterStoreStepper() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+  const { updateExtraRole } = useRoles();
 
   const [activeStep, setActiveStep] = useState(0);
   const [storeName, setStoreName] = useState("");
@@ -70,9 +72,13 @@ export default function RegisterStoreStepper() {
         const tiendas = await getStoreByEmail(user?.email || "");
         if (tiendas.length) {
           const tienda = tiendas[0];
+          console.log("tienda:", tienda)
           setLaTienda(tienda);
           const pasoBD = tienda.attributes?.paso;
           setActiveStep(pasoBD != null ? pasoBD : 0);
+          if (pasoBD === 4) {
+            setTimeout(() => handleRedirectStore(tienda?.attributes?.slug), 1800);
+          }
         } else {
           setActiveStep(0);
         }
@@ -94,7 +100,7 @@ export default function RegisterStoreStepper() {
       if (tiendas.length) return setError("Ese nombre ya está registrado");
       const nueva = await createStore({ name: storeName, email: user.email });
       await updateStore(nueva.data.id, { paso: 1 });
-      setLaTienda({ id: nueva.data.id, attributes: { ...nueva.data, paso: 1 } });
+      setLaTienda({ id: nueva.data.id, attributes: { ...nueva.data?.attributes, paso: 1 } });
       setActiveStep(1);
     } catch (err) {
       console.error("Error al crear tienda", err);
@@ -126,7 +132,7 @@ export default function RegisterStoreStepper() {
     setLoading(true);
     setError("");
     try {
-      await createDireccion({
+      const { data } = await createDireccion({
         data: {
           direccion: JSON.stringify({ address: direccion }),
           coords: JSON.stringify({ lat, lng }),
@@ -138,7 +144,7 @@ export default function RegisterStoreStepper() {
           store_id: laTienda.id
         }
       });
-      await updateStore(laTienda.id, { paso: 3 });
+      await updateStore(laTienda.id, { paso: 3, direccion: data?.id });
       setActiveStep(3);
     } catch (err) {
       console.error("Error al guardar dirección", err);
@@ -152,8 +158,8 @@ export default function RegisterStoreStepper() {
     setLoading(true);
     setError("");
     try {
-      await finishStoreSetup(laTienda.id, slugify(storeName));
       await updateStore(laTienda.id, { paso: 4 });
+      await updateExtraRole('store', true);
       setActiveStep(4);
     } catch (err) {
       console.error("Error al verificar datos", err);
@@ -197,7 +203,6 @@ export default function RegisterStoreStepper() {
       console.error("Error en autocomplete:", err);
     }
   };
-
 
   const handleChangeCLABE = (value) => {
     setError(val => val ? '' : val); // Limpiar error en cambio
@@ -251,6 +256,11 @@ export default function RegisterStoreStepper() {
     }
 
   };
+
+  const handleRedirectStore = (slug = '') => {
+    navigate(`/market/store/${slug ?? laTienda?.attributes?.slug}`);
+  }
+
   if (!isAuthenticated)
     return (
       <Button variant="contained" onClick={loginWithRedirect}>
@@ -384,7 +394,7 @@ export default function RegisterStoreStepper() {
           <Typography variant="h5" gutterBottom>
             🎉 Tienda lista!
           </Typography>
-          <Button variant="contained" onClick={() => navigate(`/market/store/${slugify(storeName)}`)}>
+          <Button variant="contained" onClick={() => handleRedirectStore(laTienda?.attributes?.slug)}>
             Ir a tu tienda
           </Button>
         </Box>
