@@ -28,16 +28,16 @@ const ProductosRestaurante = ({ restaurante }) => {
     <Grid container spacing={2}>
       {
         loading && !productos.length && (
-          <Box display='flex' gap={5} justifyContent='center' alignItems='center'>
-            <Typography>Cargando productos...</Typography>
+          <Box display='flex' gap={5} justifyContent='center' alignItems='center' p={5}>
+            <Typography>Cargando platillos...</Typography>
             <CircularProgress />
           </Box>
         )
       }
       {
         !loading && !productos.length && (
-          <Box display='flex' gap={5} justifyContent='center' alignItems='center'>
-            <Typography>No tienes productos publicados.</Typography>
+          <Box display='flex' gap={5} justifyContent='center' alignItems='center' p={5}>
+            <Typography>No tienes platillos publicados.</Typography>
           </Box>
         )
       }
