@@ -29,7 +29,7 @@ const ChecarPagoTienda = ({
   apiLoading,
   handleConfirmPago,
 }) => {
-  const  pago_id = selectedPagoPedido.attributes?.pago_id ?? {};
+  const  pago_id = selectedPagoPedido?.attributes?.pago_id ?? {};
   const hasPago = !!pago_id?.data;
   const hasComprobante = !!pago_id?.data?.attributes?.comprobante;
   const comprobante = transformImageStrapi(pago_id?.data?.attributes?.comprobante);
@@ -44,7 +44,6 @@ const ChecarPagoTienda = ({
     const defaultStatus = DEFAULT_STATUS_PAGO[status] ?? DEFAULT_STATUS_PAGO['pendiente_verificacion'];
     return defaultStatus.color;
   }
-  console.log("Comprobante:", comprobante);
   return (
     <>
       <Dialog open={openPagoModal} onClose={handleClosePago} fullWidth maxWidth="sm">
