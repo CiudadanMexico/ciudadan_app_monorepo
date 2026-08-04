@@ -93,8 +93,9 @@ const PreguntasProductos = ({ storeId }) => {
         prev.map(p =>
           p.id === pregunta.id
             ? {
-              ...preguntaRespondida,
-              draftAnswer: preguntaRespondida?.attributes?.respuesta??''
+              ...pregunta,
+              attributes: { ...pregunta?.attributes, ...preguntaRespondida?.attributes },
+              draftAnswer: preguntaRespondida?.attributes?.respuesta ?? ''
             }
             : p
         )
@@ -142,7 +143,7 @@ const PreguntasProductos = ({ storeId }) => {
             key={`pregunta-producto-item-${p?.id}`}
             pregunta={p}
             onChange={handleChange}
-            onAnswer={handleResponder}          
+            onAnswer={handleResponder}
           />
         ))
       }
