@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useRoles } from '../../Contexts/RolesContext';
 import StoreImagePlaceholder from '../../assets/agencia.png';
 import AgregarProducto from './AgregarProducto';
-import PreguntasProducto from '../../components/MarketPlace/PreguntasProducto';
 import { useAuth0 } from '@auth0/auth0-react';
 import axios from 'axios';
 import MisProductos from './MisProductos';
@@ -11,10 +10,10 @@ import PedidosPendientes from './PedidosPendientes';
 import PedidosEntregados from './PedidosEntregados';
 import PagosTienda from './PagosTienda';
 import ConfiguracionTienda from './ConfiguracionTienda';
-import ActivaTuMembresia from '../../components/Membresias/ActivaTuMembresia';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
+import PreguntasProductos from '../../components/MarketPlace/PreguntasProductos';
 
 const Tienda = () => {
   const { slug } = useParams();
@@ -224,7 +223,7 @@ const Tienda = () => {
           {tabIndex === 1 && <PedidosEntregados />}
           {tabIndex === 2 && <MisProductos filtros={filtros} />}
           {tabIndex === 3 && <AgregarProducto />}
-          {tabIndex === 4 && <PreguntasProducto />}
+          {tabIndex === 4 && <PreguntasProductos  storeId={storeData?.id}/>}
           {tabIndex === 5 && <PagosTienda />}
           {tabIndex === 6 && <ConfiguracionTienda />}
         </Box>
