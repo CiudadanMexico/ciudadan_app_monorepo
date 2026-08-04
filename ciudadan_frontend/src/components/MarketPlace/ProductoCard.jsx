@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -9,6 +9,7 @@ import {
   IconButton,
   Chip,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
@@ -20,6 +21,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PlaceIcon from '@mui/icons-material/Place';
 import productoImg from '../../assets/placeholders/producto.png';
+import { esFavorito, toggleFavorito } from "../../services/favoritosService";
 
 // Componente ProductoCard
 // Props esperadas:
@@ -39,6 +41,8 @@ import productoImg from '../../assets/placeholders/producto.png';
 // - stock (number) opcional
 // - onAgregarCarrito (func) opcional
 // - mostrarLink (boolean) por defecto true
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
+const FAVORITOS_URL = `${STRAPI_URL}/api/favoritos`;
 
 export default function ProductoCard({
   titulo,
@@ -60,10 +64,13 @@ export default function ProductoCard({
   productoId = null,        // acepta id del producto (recomendado)
   id = null,                // fallback si te pasaron prop id
   currentUserId = null,     // opcional: id del usuario actual (si ya lo tienes)
+  user_email = null
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
+  const [favLoading, setFavLoading] = useState(true);
   const [favorito, setFavorito] = useState(false);
+  const [favoritoId, setFavoritoId] = useState(null);
 
   // determinar productId real (acepta varias formas)
   const productId = productoId || id || null;
@@ -98,13 +105,34 @@ export default function ProductoCard({
     if (mostrarLink) navigate(`/market/producto/${slug}`);
   };
 
-  const handleFavoritos = (e) => {
+  const handleFavoritos = async (e) => {
     e.stopPropagation();
-    if (slug) {
-      // navegamos a la ruta que pediste y marcamos favorito optimista
-      navigate(`/favoritos/agregar/producto/${slug}`);
-      setFavorito(true);
+
+    if (!currentUserId) return;
+    if (!productId) return;
+    if (favLoading) return
+    setFavLoading(true);
+    try {
+
+      const resultado = await toggleFavorito({
+        usuarioId: currentUserId,
+        usuarioEmail: user_email,
+        tipo: "producto",
+        elementoId: productId,
+        url: slug
+      });
+
+      setFavorito(resultado.favorito);
+      setFavoritoId(resultado.favoritoId);
+
+    } catch (error) {
+
+      console.error(error);
+
+    } finally {
+      setFavLoading(false);
     }
+
   };
 
   const handleAgregarCarrito = (e) => {
@@ -113,47 +141,35 @@ export default function ProductoCard({
     navigate('/comprar');
   };
 
+  const verificarFavorito = async (userId, productId) => {
+    try {
+      const resultado = await esFavorito(
+        userId,
+        "producto",
+        productId
+      );
+
+      setFavorito(resultado.favorito);
+      setFavoritoId(resultado.favoritoId);
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+  };
+
+
   // ----------------------
   // Check favoritos (no bloqueante)
   // Consulta collection 'favoritos' filtrando por usuario y producto.
   // Si currentUserId no se pasa, intenta obtenerlo desde /api/users/me (requiere sesión).
   // ----------------------
-  React.useEffect(() => {
+  useEffect(() => {
     let mounted = true;
-    const checkFavorito = async () => {
-      try {
-        if (!productId) return; // necesitamos id del producto para checar
+    if (!currentUserId || !productoId) return;
 
-        let userIdLocal = currentUserId;
-        if (!userIdLocal) {
-          try {
-            const meRes = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/users/me`, { credentials: 'include' });
-            if (meRes.ok) {
-              const meJson = await meRes.json();
-              // Strapi puede devolver el user en different shapes; intentar varias
-              userIdLocal = meJson?.id || meJson?.data?.id || (meJson?.data && meJson.data.id) || null;
-            }
-          } catch (e) {
-            // ignore — si no hay sesión, no marcamos como favorito
-          }
-        }
-
-        if (!userIdLocal) return;
-
-        const url = `${process.env.REACT_APP_STRAPI_URL}/api/favoritos?filters[usuario][id][$eq]=${userIdLocal}&filters[producto][id][$eq]=${productId}`;
-        const res = await fetch(url, { credentials: 'include' });
-        if (!mounted) return;
-        if (!res.ok) return;
-        const json = await res.json();
-        const items = json?.data || [];
-        if (!mounted) return;
-        setFavorito(items.length > 0);
-      } catch (err) {
-        console.error('[ProductoCard] Error verificando favoritos:', err);
-      }
-    };
-
-    checkFavorito();
+    verificarFavorito(currentUserId, productId);
     return () => { mounted = false; };
   }, [productId, currentUserId]);
 
@@ -192,6 +208,7 @@ export default function ProductoCard({
                 <IconButton
                   onClick={handleFavoritos}
                   size="small"
+                  disabled={favLoading}
                   aria-label="Agregar a favoritos"
                   sx={{
                     bgcolor: favorito ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.9)',
@@ -200,7 +217,9 @@ export default function ProductoCard({
                     boxShadow: '0 3px 10px rgba(0,0,0,0.06)'
                   }}
                 >
-                  {favorito ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                  {favLoading ? (
+                    <CircularProgress size={20} />
+                  ) : (favorito ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />)}
                 </IconButton>
               </Tooltip>
             </Box>
@@ -287,7 +306,7 @@ export default function ProductoCard({
               fontWeight: 700,
               '&:hover': { backgroundColor: '#0ea46f' }
             }}
-            startIcon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4H3v2h2.2l1.6 8.6a2 2 0 002 1.4h7.4v-2H9.8l-.3-1.4h9.1a1 1 0 00.96-.74l1-4A1 1 0 0019.6 6H6.2" fill="#fff"/></svg>}
+            startIcon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 4H3v2h2.2l1.6 8.6a2 2 0 002 1.4h7.4v-2H9.8l-.3-1.4h9.1a1 1 0 00.96-.74l1-4A1 1 0 0019.6 6H6.2" fill="#fff" /></svg>}
           >
             Agregar
           </Button>
