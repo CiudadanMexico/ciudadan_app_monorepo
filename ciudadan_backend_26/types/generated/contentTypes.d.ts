@@ -3991,6 +3991,8 @@ export interface ApiPreguntaProductoPreguntaProducto
       'oneToOne',
       'api::curso.curso'
     >;
+    respuesta: Attribute.Text;
+    fecha_respuesta: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
