@@ -147,7 +147,7 @@ export const RolesProvider = ({ children }) => {
           // 1) Obtener usuario Strapi por email (con populate necesario)
           const url = `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(
             email
-          )}&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*`;
+          )}&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*&populate[agencia]=*&populate[areas]=*`;
           const headers = { 'Content-Type': 'application/json' };
           if (token) headers.Authorization = `Bearer ${token}`;
           const res = await fetch(url, { credentials: 'include', headers });
@@ -330,15 +330,15 @@ export const RolesProvider = ({ children }) => {
     return hasExtra('root');
   }, [isAuthenticated, userData, hasExtra]);
 
-const isSocio = useCallback(() => {
-  if (!isAuthenticated || !userData) return false;
-  return hasExtra('socio');
-}, [isAuthenticated, userData, hasExtra]);
+  const isSocio = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('socio');
+  }, [isAuthenticated, userData, hasExtra]);
 
-const isVerificador = useCallback(() => {
-  if (!isAuthenticated || !userData) return false;
-  return hasExtra('verificador');
-}, [isAuthenticated, userData, hasExtra]);
+  const isVerificador = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('verificador');
+  }, [isAuthenticated, userData, hasExtra]);
 
   const isActivaMembresia = useCallback(() => Boolean(membresia), [membresia]);
 

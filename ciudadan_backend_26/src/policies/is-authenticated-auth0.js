@@ -1,12 +1,20 @@
 'use strict';
 
-const axios = require('axios');
+const { getAuth0Email } = require('../utils/auth0-verify');
 
 /**
  * Permite continuar si el usuario trae un token de Auth0 válido y existe
  * en Strapi. A diferencia de is-admin-or-socio, NO exige ningún rol extra:
  * cualquier usuario autenticado pasa. Pensada para acciones que cualquier
  * socio puede hacer (ej. resolver/tomar una tarea general).
+ *
+ * Usa getAuth0Email (utils/auth0-verify.js) que cachea la verificación por
+ * token unos segundos — sin esto, ráfagas de requests casi simultáneas con
+ * el mismo token (ej. el doble efecto de React.StrictMode en dev) disparan
+ * varias llamadas a `/userinfo` de Auth0 al mismo tiempo y Auth0 las
+ * rechaza por límite de tasa, viéndose como "token inválido" aunque el
+ * token sea perfectamente válido — bug real confirmado en el log del
+ * servidor: la misma request exacta respondió 200 y, 200ms después, 403.
  */
 module.exports = async (ctx, config, { strapi }) => {
   const authHeader = ctx.request.headers.authorization || '';
@@ -17,26 +25,12 @@ module.exports = async (ctx, config, { strapi }) => {
   }
 
   const token = authHeader.slice(7);
-  const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-
-  if (!AUTH0_DOMAIN) {
-    strapi.log.error('is-authenticated-auth0: falta AUTH0_DOMAIN en el .env');
-    return false;
-  }
 
   let email;
   try {
-    const { data } = await axios.get(`https://${AUTH0_DOMAIN}/userinfo`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    email = data.email;
+    email = await getAuth0Email(token, { strapi });
   } catch (err) {
     strapi.log.warn('is-authenticated-auth0: token inválido en Auth0', err.response?.data || err.message);
-    return false;
-  }
-
-  if (!email) {
-    strapi.log.warn('is-authenticated-auth0: Auth0 no devolvió email');
     return false;
   }
 

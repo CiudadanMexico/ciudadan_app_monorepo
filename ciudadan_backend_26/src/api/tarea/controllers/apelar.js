@@ -43,8 +43,13 @@ module.exports = {
     }
 
     // --- 2. Verificar que la tarea existe ---
+    // OJO: 'usuario' es una relación — solo va en `populate`, nunca en
+    // `fields` (fields es solo para columnas escalares; incluir una
+    // relación ahí hace que Strapi intente hacer SELECT de una columna que
+    // no existe y tira "SQLITE_ERROR: no such column" — bug encontrado
+    // corriendo test-cowork-e2e.js, rompía CUALQUIER llamada a /tareas/apelar).
     const tarea = await strapi.entityService.findOne('api::tarea.tarea', tareaId, {
-      fields: ['id', 'status', 'score', 'apelaciones', 'usuario'],
+      fields: ['id', 'status', 'score', 'apelaciones'],
       populate: { usuario: true, reviewed_by: true },
     });
 

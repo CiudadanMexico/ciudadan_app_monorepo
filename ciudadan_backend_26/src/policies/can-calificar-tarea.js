@@ -1,6 +1,6 @@
 'use strict';
 
-const axios = require('axios');
+const { getAuth0Email } = require('../utils/auth0-verify');
 
 /**
  * Policy: can-calificar-tarea
@@ -46,25 +46,13 @@ module.exports = async (ctx, config, { strapi }) => {
     return false;
   }
   const token = authHeader.slice(7);
-  const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-  if (!AUTH0_DOMAIN) {
-    strapi.log.error('can-calificar-tarea: falta AUTH0_DOMAIN en el .env');
-    return false;
-  }
 
-  // 1. Resolver reviewer vía Auth0.
+  // 1. Resolver reviewer vía Auth0 (cacheado, ver utils/auth0-verify.js).
   let email;
   try {
-    const { data } = await axios.get(`https://${AUTH0_DOMAIN}/userinfo`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    email = data.email;
+    email = await getAuth0Email(token, { strapi });
   } catch (err) {
     strapi.log.warn('can-calificar-tarea: token inválido en Auth0', err.response?.data || err.message);
-    return false;
-  }
-  if (!email) {
-    strapi.log.warn('can-calificar-tarea: Auth0 no devolvió email');
     return false;
   }
 

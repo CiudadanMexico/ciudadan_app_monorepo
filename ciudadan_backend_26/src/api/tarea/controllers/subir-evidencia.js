@@ -83,11 +83,35 @@ module.exports = {
       return ctx.notFound('Tarea no encontrada');
     }
 
-    // --- 2b. Restringir verificador a tareas de áreas que verifica ---
-    // admin/socio: bypass. Verificador: solo si el todo es general/becario
-    // o si tiene área/subárea coincidente con sus verificaciones.
+    // --- 2b. Autorización: dueño de la tarea, admin/socio, o verificador con área que coincide ---
+    // El caso más común es el dueño subiendo evidencia de SU PROPIA tarea al
+    // entregarla — antes esto no estaba contemplado (el endpoint asumía que
+    // solo un revisor externo subía evidencia) y quedaba bloqueado a nivel
+    // de ruta para cualquier usuario normal.
+    //
+    // BUG DE SEGURIDAD ENCONTRADO Y CORREGIDO AQUÍ: al abrir la ruta a
+    // cualquier autenticado (antes exigía is-admin-or-socio-or-verificador a
+    // nivel de ruta), la rama "tareas generales: cualquier verificador puede
+    // subir evidencia" dejaba de estar acotada a verificadores de verdad —
+    // como el check original solo excluía privilegiados, CUALQUIER usuario
+    // ajeno (ni dueño, ni admin/socio, ni verificador) podía subir "evidencia"
+    // a la tarea de otra persona con tal de que fuera de nivel general.
+    // Verificado con un test directo antes de este fix. Ahora se exige
+    // explícitamente el rol verificador para esa rama.
     const usuario = ctx.state.strapiUser;
-    if (usuario && !isPrivilegedUser(usuario)) {
+    const esDueno = usuario && tarea.usuario && tarea.usuario.id === usuario.id;
+    const esVerificador = !!usuario && (
+      (Array.isArray(usuario.roles?.extra) && usuario.roles.extra.includes('verificador')) ||
+      usuario.role?.name === 'Verificador'
+    );
+
+    if (usuario && !esDueno && !isPrivilegedUser(usuario)) {
+      if (!esVerificador) {
+        return ctx.forbidden(
+          'No tienes permiso para subir evidencia a esta tarea (debes ser el dueño, admin, socio o verificador)'
+        );
+      }
+
       const todo = tarea.todo || null;
 
       // Tareas generales/becario: cualquier verificador puede subir evidencia.

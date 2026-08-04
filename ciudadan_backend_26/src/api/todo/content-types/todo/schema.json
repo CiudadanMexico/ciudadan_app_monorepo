@@ -169,6 +169,10 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
+    },
+    "asignable": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

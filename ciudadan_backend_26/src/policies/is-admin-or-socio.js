@@ -1,6 +1,6 @@
 'use strict';
 
-const axios = require('axios');
+const { getAuth0Email } = require('../utils/auth0-verify');
 
 const ROLES_PERMITIDOS = ['admin', 'socio'];
 
@@ -19,26 +19,12 @@ module.exports = async (ctx, config, { strapi }) => {
   }
 
   const token = authHeader.slice(7);
-  const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-
-  if (!AUTH0_DOMAIN) {
-    strapi.log.error('is-admin-or-socio: falta AUTH0_DOMAIN en el .env');
-    return false;
-  }
 
   let email;
   try {
-    const { data } = await axios.get(`https://${AUTH0_DOMAIN}/userinfo`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    email = data.email;
+    email = await getAuth0Email(token, { strapi });
   } catch (err) {
     strapi.log.warn('is-admin-or-socio: token inválido en Auth0', err.response?.data || err.message);
-    return false;
-  }
-
-  if (!email) {
-    strapi.log.warn('is-admin-or-socio: Auth0 no devolvió email');
     return false;
   }
 

@@ -158,12 +158,33 @@ module.exports = {
         //       todo: <actual> → calificada → pagada
         //     (Si el todo ya estaba en 'calificada', el primer update es no-op
         //     porque isValidTransition devuelve true cuando from===to.)
-        await strapi.entityService.update('api::todo.todo', tarea.todo.id, {
-          data: { status: 'calificada' },
+        //
+        //     OJO: un todo puede tener varias tareas (asignación múltiple).
+        //     Si OTRA tarea hermana ya pagó este todo (o lo canceló), el todo
+        //     ya está en un estado terminal y forzar 'calificada' de nuevo
+        //     tira "Transición de estado inválida" (bug real encontrado en
+        //     producción — mismo patrón que en corregir.js). En ese caso no
+        //     tocamos el todo: la calificación de ESTA tarea individual sigue
+        //     siendo válida y su pago se acredita igual, solo no duplicamos
+        //     la propagación al todo que ya llegó a destino por otro lado.
+        const todoActualPrevio = await strapi.entityService.findOne('api::todo.todo', tarea.todo.id, {
+          fields: ['id', 'status'],
         });
-        todoActualizado = await strapi.entityService.update('api::todo.todo', tarea.todo.id, {
-          data: { status: 'pagada' },
-        });
+        const ESTADOS_TODO_TERMINALES = ['pagada', 'cancelada'];
+        if (!ESTADOS_TODO_TERMINALES.includes(todoActualPrevio.status)) {
+          await strapi.entityService.update('api::todo.todo', tarea.todo.id, {
+            data: { status: 'calificada' },
+          });
+          todoActualizado = await strapi.entityService.update('api::todo.todo', tarea.todo.id, {
+            data: { status: 'pagada' },
+          });
+        } else {
+          strapi.log.warn(
+            `calificar: el todo #${tarea.todo.id} ya está en '${todoActualPrevio.status}' (probablemente por ` +
+            `otra tarea hermana) — se deja sin tocar; solo se calificó/pagó la tarea #${tarea.id}.`
+          );
+          todoActualizado = todoActualPrevio;
+        }
       });
     } catch (err) {
       strapi.log.error('calificar: fallo en transacción de pago', err);

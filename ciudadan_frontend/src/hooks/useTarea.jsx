@@ -103,6 +103,7 @@ export function useTarea() {
               }
             : null,
           status: a.status,
+          tipo: a.tipo,
           payment_status: a.payment_status,
           notes: a.notes,
           score: a.score,

@@ -64,6 +64,7 @@ export default function AgregarTarea() {
 
   const [vence, setVence] = useState(false);
   const [fechaEntrega, setFechaEntrega] = useState('');
+  const [asignable, setAsignable] = useState(false);
 
   const getToken = useCallback(async () => {
     try {
@@ -175,6 +176,8 @@ export default function AgregarTarea() {
         creador: user?.email || null,
 
         status: 'publicada',
+
+        asignable,
 
         fecha_publicacion: new Date().toISOString(),
       });
@@ -351,6 +354,13 @@ export default function AgregarTarea() {
               sx={{ bgcolor: 'white', borderRadius: 1 }}
             />
           )}
+
+          {/* ASIGNABLE (Fase 5) */}
+          <FormControlLabel
+            control={<Checkbox checked={asignable} onChange={() => setAsignable(!asignable)} />}
+            label="¿Es asignable? (se podrá asignar a usuarios específicos)"
+            sx={{ color: 'white' }}
+          />
 
           <Button
             type="submit"

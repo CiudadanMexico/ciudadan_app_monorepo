@@ -22,6 +22,19 @@
 // corregir` (permite re-corregir tras una corrección previa).
 const ESTADOS_CORREGIBLES = ['completada', 'corregida'];
 
+// Estados del TODO desde los que 'corregir' es una transición válida (ver
+// todo/lifecycles.js VALID_TRANSITIONS). Un todo puede tener varias tareas
+// (asignación múltiple, o resoluciones históricas) — si OTRA tarea hermana
+// ya lo llevó a un estado terminal (calificada/pagada/cancelada), forzar
+// esta tarea individual a 'corregir' no debe arrastrar al todo a un salto
+// inválido y tronar toda la request. Bug real: encontrado en el log del
+// servidor con un usuario corrigiendo una tarea cuyo todo ya estaba
+// 'pagada' por una tarea hermana — la tarea sí cambiaba a 'corregir' (sin
+// transacción, quedaba a medias) y el todo tiraba 500.
+const ESTADOS_TODO_CORREGIBLES_DESDE = [
+  'borrador', 'publicada', 'asignada', 'en_proceso', 'pendiente_revision', 'corregir',
+];
+
 module.exports = {
   async corregir(ctx) {
     const { tareaId, notes } = ctx.request.body || {};
@@ -56,17 +69,35 @@ module.exports = {
       fecha: new Date().toISOString(),
     };
 
-    // --- 5. Actualizar tarea → corregir ---
-    const tareaCorregida = await strapi.entityService.update('api::tarea.tarea', tarea.id, {
-      data: {
-        status: 'corregir',
-        validaciones: [...validacionesPrevias, nuevaValidacion],
-      },
-    });
+    let tareaCorregida;
+    let todoActualizado = null;
 
-    // --- 6. Actualizar el todo original → corregir ---
-    const todoActualizado = await strapi.entityService.update('api::todo.todo', tarea.todo.id, {
-      data: { status: 'corregir' },
+    // --- 5/6. Tarea → corregir, y todo → corregir (si sigue siendo válido) ---
+    // Envuelto en transacción: si el update del todo falla, no queremos que
+    // la tarea quede marcada 'corregir' mientras el todo se queda atrás
+    // (justo el estado inconsistente que causó el bug real de arriba).
+    await strapi.db.transaction(async () => {
+      tareaCorregida = await strapi.entityService.update('api::tarea.tarea', tarea.id, {
+        data: {
+          status: 'corregir',
+          validaciones: [...validacionesPrevias, nuevaValidacion],
+        },
+      });
+
+      const todoActual = await strapi.entityService.findOne('api::todo.todo', tarea.todo.id, {
+        fields: ['id', 'status'],
+      });
+      if (ESTADOS_TODO_CORREGIBLES_DESDE.includes(todoActual.status)) {
+        todoActualizado = await strapi.entityService.update('api::todo.todo', tarea.todo.id, {
+          data: { status: 'corregir' },
+        });
+      } else {
+        strapi.log.warn(
+          `corregir: el todo #${tarea.todo.id} ya está en '${todoActual.status}' (probablemente por otra ` +
+          `tarea hermana) — se deja sin tocar; solo se marcó la tarea #${tarea.id} para corregir.`
+        );
+        todoActualizado = todoActual;
+      }
     });
 
     // --- 7. Respuesta ---

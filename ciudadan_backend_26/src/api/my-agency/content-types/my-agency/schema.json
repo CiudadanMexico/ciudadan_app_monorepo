@@ -1,0 +1,20 @@
+{
+  "kind": "singleType",
+  "collectionName": "my_agencies",
+  "info": {
+    "singularName": "my-agency",
+    "pluralName": "my-agencies",
+    "displayName": "My-agency"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "agencia": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agencia.agencia"
+    }
+  }
+}

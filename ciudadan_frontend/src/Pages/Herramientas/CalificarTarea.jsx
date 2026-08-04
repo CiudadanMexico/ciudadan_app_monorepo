@@ -130,14 +130,17 @@ export default function CalificarTarea() {
       ) : (
         <Stack spacing={2} mt={2}>
           {tareas.map((t) => {
-            const attrs = t.attributes || {};
+            // /tareas/filtrar devuelve entidades "planas" (via
+            // strapi.entityService), no el formato {attributes:{...}} de la
+            // REST API estándar — attrs.todo/usuario ya vienen sin envoltura.
+            const attrs = t.attributes || t;
             const todo = attrs.todo?.data?.attributes || attrs.todo || {};
             return (
               <Paper key={t.id} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
                   <Typography fontWeight={700}>{todo.titulo || attrs.titulo || 'Sin título'}</Typography>
                   <Typography variant="body2">Estado: {getResolucionStatusLabel(attrs.status)}</Typography>
-                  <Typography variant="caption">Creador: {attrs.creador?.data?.attributes?.email || attrs.creador?.email || '—'}</Typography>
+                  <Typography variant="caption">Usuario: {attrs.usuario?.data?.attributes?.email || attrs.usuario?.email || '—'}</Typography>
                 </Box>
                 <Box>
                   <Button variant="contained" color="primary" onClick={() => handleCalificar(t)}>

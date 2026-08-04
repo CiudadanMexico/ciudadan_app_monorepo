@@ -124,7 +124,10 @@ export default function CorregirTarea() {
       ) : (
         <Stack spacing={2} mt={2}>
           {tareas.map((t) => {
-            const attrs = t.attributes || {};
+            // /tareas/filtrar devuelve entidades "planas" (via
+            // strapi.entityService), no el formato {attributes:{...}} de la
+            // REST API estándar.
+            const attrs = t.attributes || t;
             const todo = attrs.todo?.data?.attributes || attrs.todo || {};
             return (
               <Paper key={t.id} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

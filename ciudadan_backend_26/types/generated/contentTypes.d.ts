@@ -822,6 +822,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToMany',
       'api::skill.skill'
     >;
+    agencia: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -999,6 +1004,13 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'api::agencia.agencia',
       'oneToMany',
       'admin::user'
+    >;
+    tipo: Attribute.Enumeration<['local', 'federal']> &
+      Attribute.DefaultTo<'local'>;
+    socios: Attribute.Relation<
+      'api::agencia.agencia',
+      'oneToMany',
+      'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -3187,6 +3199,40 @@ export interface ApiMessageMessage extends Schema.CollectionType {
   };
 }
 
+export interface ApiMyAgencyMyAgency extends Schema.SingleType {
+  collectionName: 'my_agencies';
+  info: {
+    singularName: 'my-agency';
+    pluralName: 'my-agencies';
+    displayName: 'My-agency';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    agencia: Attribute.Relation<
+      'api::my-agency.my-agency',
+      'oneToOne',
+      'api::agencia.agencia'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::my-agency.my-agency',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::my-agency.my-agency',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   collectionName: 'notificaciones';
   info: {
@@ -4520,6 +4566,17 @@ export interface ApiTodoTodo extends Schema.CollectionType {
       'oneToMany',
       'api::tarea.tarea'
     >;
+    asignador: Attribute.Relation<
+      'api::todo.todo',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    asignado_a: Attribute.Relation<
+      'api::todo.todo',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    asignable: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4728,6 +4785,7 @@ declare module '@strapi/types' {
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
       'api::message.message': ApiMessageMessage;
+      'api::my-agency.my-agency': ApiMyAgencyMyAgency;
       'api::notificacion.notificacion': ApiNotificacionNotificacion;
       'api::pago.pago': ApiPagoPago;
       'api::pedido.pedido': ApiPedidoPedido;

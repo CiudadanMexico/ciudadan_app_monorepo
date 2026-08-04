@@ -37,22 +37,42 @@ module.exports = {
       return ctx.throw(403, check.reason);
     }
 
-    const tarea = await strapi.entityService.create('api::tarea.tarea', {
-      data: {
-        usuario: user.id,
-        todo: todoId,
-        tipo: 'tarea',
-        status: 'en_proceso',
-        payment_status: 'pendiente',
-        // timestamp de toma (cuando el usuario empieza a resolver).
-        // Se reescribe al calificar (calificar.js) como timestamp de cierre,
-        // manteniendo ambos timestamps en el mismo campo según spec 4.2.
-        resolved_at: new Date().toISOString(),
-      },
-    });
+    // Estados desde los que el todo puede saltar a 'asignada'. La tarea
+    // recién creada dispara su propio lifecycle afterCreate, que YA mueve
+    // el todo de 'publicada' a 'en_proceso' automáticamente (recurrencia
+    // 'unica'). Si intentamos forzar 'asignada' después de eso, es un
+    // salto 'en_proceso' -> 'asignada' inválido (no está en VALID_TRANSITIONS
+    // de todo/lifecycles.js) y tira un 500 — bug real encontrado en el log
+    // del servidor con un usuario resolviendo tareas de verdad: la tarea SÍ
+    // se creaba (el create ya había corrido), pero la request completa
+    // fallaba con 500 porque este segundo update reventaba. Mismo patrón de
+    // bug que ya se había corregido en asignar.js.
+    const ESTADOS_REASIGNABLES_DESDE = ['borrador', 'publicada'];
 
-    await strapi.entityService.update('api::todo.todo', todoId, {
-      data: { status: 'asignada' },
+    let tarea;
+    await strapi.db.transaction(async () => {
+      tarea = await strapi.entityService.create('api::tarea.tarea', {
+        data: {
+          usuario: user.id,
+          todo: todoId,
+          tipo: 'tarea',
+          status: 'en_proceso',
+          payment_status: 'pendiente',
+          // timestamp de toma (cuando el usuario empieza a resolver).
+          // Se reescribe al calificar (calificar.js) como timestamp de cierre,
+          // manteniendo ambos timestamps en el mismo campo según spec 4.2.
+          resolved_at: new Date().toISOString(),
+        },
+      });
+
+      const todoActual = await strapi.entityService.findOne('api::todo.todo', todoId, {
+        fields: ['id', 'status'],
+      });
+      if (ESTADOS_REASIGNABLES_DESDE.includes(todoActual.status)) {
+        await strapi.entityService.update('api::todo.todo', todoId, {
+          data: { status: 'asignada' },
+        });
+      }
     });
 
     ctx.body = { data: tarea };

@@ -98,21 +98,27 @@ module.exports = {
    * no duplica la acreditación (eso introducía inconsistencias silenciosas en
    * el happy path y un estado `payment_status: procesado` falso en el unhappy
    * path — ver bug crítico #1 del módulo CoWork).
+   *
+   * OJO — bug crítico #2 (encontrado corriendo test-cowork-e2e.js): este
+   * lifecycle NO debe propagar 'pagada' al todo. `calificar.js` ya hace esa
+   * transición él mismo, en dos pasos válidos dentro de su propia transacción
+   * (<estado actual> → 'calificada' → 'pagada', únicos saltos permitidos por
+   * `todo/lifecycles.js`). Pero el `afterUpdate` de ESTE archivo se dispara
+   * de forma síncrona en cuanto la tarea pasa a 'pagada' — es decir, ANTES
+   * de que calificar.js llegue a su propio paso 3c — e intentaba saltar
+   * directo <estado actual> → 'pagada' en el todo, lo cual casi nunca es una
+   * transición válida (p.ej. 'pendiente_revision' → 'pagada' no lo es) y
+   * tiraba toda la transacción con "Transición de estado inválida". Esto
+   * rompía CALIFICAR EN TODOS LOS CASOS reales (cualquier todo que no
+   * estuviera ya en 'calificada'). No hay otro lugar que ponga
+   * `tarea.status='pagada'` sin pasar por calificar.js, así que no hace
+   * falta propagar nada aquí — se elimina el bloque en vez de intentar
+   * arreglar el salto de estado.
    */
   async afterUpdate(event) {
     const { result } = event;
     const { prevStatus, todoId } = event.state || {};
     const newStatus = result.status;
-
-    // Pagada -> propagar al todo padre (transición validada por el lifecycle
-    // del todo, que ahora sí tiene su propia VALID_TRANSITIONS).
-    if (newStatus === 'pagada' && prevStatus !== 'pagada') {
-      if (todoId) {
-        await strapi.entityService.update('api::todo.todo', todoId, {
-          data: { status: 'pagada' },
-        });
-      }
-    }
 
     // Cancelada -> cancelar todo padre si era la única resolución activa.
     if (newStatus === 'cancelada' && prevStatus !== 'cancelada' && todoId) {

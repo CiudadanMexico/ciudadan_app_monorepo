@@ -3,21 +3,38 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import AddLinkIcon from '@mui/icons-material/AddLink';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
 import { useAuth0 } from '@auth0/auth0-react';
-import { completarTarea } from '../../services/cowork/mutationsServices.js';
+import { completarTarea, subirEvidencia } from '../../services/cowork/mutationsServices.js';
 import { useTarea } from '../../hooks/useTarea';
 import { getTodoStatusLabel } from '../../utils/cowork.helpers';
+
+// Debe coincidir con la whitelist del backend (subir-evidencia.js:43-57) —
+// si divergen, el backend rechaza igual con 400, pero mejor avisar antes.
+const ALLOWED_MIMES = [
+  'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif',
+  'application/pdf', 'text/plain',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'video/mp4', 'audio/mpeg',
+];
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_ARCHIVOS = 10;
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
@@ -193,6 +210,101 @@ const Tareas = ({ userId, subTab }) => {
     return sc <= SCORE_UMBRAL_APELABLE;
   };
 
+  // --- Entrega de tarea (notas + enlaces + archivos) ---
+  // Reemplaza el "marcar completada" directo: no tenía sentido cerrar una
+  // tarea sin poder adjuntar nada de lo que se hizo.
+  const [entrega, setEntrega] = useState({ open: false, tareaId: null, notes: '', enlaces: [''] });
+  const [archivosEntrega, setArchivosEntrega] = useState([]);
+  const [entregaError, setEntregaError] = useState(null);
+
+  const abrirEntrega = (tarea) => {
+    setActionError(null);
+    setEntregaError(null);
+    setEntrega({ open: true, tareaId: tarea.id, notes: '', enlaces: [''] });
+    setArchivosEntrega([]);
+  };
+
+  const cerrarEntrega = () => {
+    if (completandoId) return; // no cerrar a medio envío
+    setEntrega({ open: false, tareaId: null, notes: '', enlaces: [''] });
+    setArchivosEntrega([]);
+    setEntregaError(null);
+  };
+
+  const cambiarEnlace = (idx, value) => {
+    setEntrega((p) => ({
+      ...p,
+      enlaces: p.enlaces.map((e, i) => (i === idx ? value : e)),
+    }));
+  };
+
+  const agregarEnlace = () => {
+    setEntrega((p) => ({ ...p, enlaces: [...p.enlaces, ''] }));
+  };
+
+  const quitarEnlace = (idx) => {
+    setEntrega((p) => ({ ...p, enlaces: p.enlaces.filter((_, i) => i !== idx) }));
+  };
+
+  const handleArchivosChange = (e) => {
+    const nuevos = Array.from(e.target.files || []);
+    setEntregaError(null);
+    for (const f of nuevos) {
+      if (!ALLOWED_MIMES.includes(f.type)) {
+        setEntregaError(`"${f.name}": tipo de archivo no permitido.`);
+        return;
+      }
+      if (f.size > MAX_FILE_SIZE) {
+        setEntregaError(`"${f.name}": excede el máximo de 10MB.`);
+        return;
+      }
+    }
+    setArchivosEntrega((prev) => {
+      const combinado = [...prev, ...nuevos];
+      if (combinado.length > MAX_ARCHIVOS) {
+        setEntregaError(`No se pueden adjuntar más de ${MAX_ARCHIVOS} archivos.`);
+        return prev;
+      }
+      return combinado;
+    });
+    e.target.value = ''; // permite volver a elegir el mismo archivo si lo quita y re-agrega
+  };
+
+  const quitarArchivo = (idx) => {
+    setArchivosEntrega((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const submitEntrega = async () => {
+    const { tareaId, notes, enlaces } = entrega;
+    setCompletandoId(tareaId);
+    setEntregaError(null);
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: 'https://api.ciudadan.org',
+          scope: 'openid profile email offline_access',
+        },
+      });
+
+      if (archivosEntrega.length > 0) {
+        await subirEvidencia(tareaId, archivosEntrega, notes, token);
+      }
+
+      const enlacesLimpios = enlaces.map((e) => e.trim()).filter(Boolean);
+      await completarTarea(tareaId, token, { notes, enlaces: enlacesLimpios });
+
+      setTareas((prev) =>
+        prev.map((t) => (t.id === tareaId ? { ...t, todoStatus: 'pendiente_revision' } : t))
+      );
+      setEntrega({ open: false, tareaId: null, notes: '', enlaces: [''] });
+      setArchivosEntrega([]);
+    } catch (err) {
+      setEntregaError(err.message || 'No se pudo entregar la tarea');
+    } finally {
+      setCompletandoId(null);
+    }
+  };
+
   useEffect(() => {
     const fetchTareas = async () => {
       if (subTab === 0 && !userId) {
@@ -265,29 +377,6 @@ const Tareas = ({ userId, subTab }) => {
 
     fetchTareas();
   }, [userId, subTab, getAccessTokenSilently]);
-
-  const handleCompletar = async (tarea) => {
-    try {
-      setCompletandoId(tarea.id);
-      setActionError(null);
-      const token = await getAccessTokenSilently({
-        authorizationParams: {
-          audience: 'https://api.ciudadan.org',
-          scope: 'openid profile email offline_access',
-        },
-      });
-      await completarTarea(tarea.id, token);
-      setTareas((prev) =>
-        prev.map((t) =>
-          t.id === tarea.id ? { ...t, todoStatus: 'pendiente_revision' } : t
-        )
-      );
-    } catch (err) {
-      setActionError(err.message || 'No se pudo marcar la tarea como completada');
-    } finally {
-      setCompletandoId(null);
-    }
-  };
 
   // loading
   if (loading) {
@@ -394,7 +483,7 @@ const Tareas = ({ userId, subTab }) => {
                           variant="contained"
                           size="small"
                           disabled={completandoId === tarea.id}
-                          onClick={() => handleCompletar(tarea)}
+                          onClick={() => abrirEntrega(tarea)}
                           sx={{
                             bgcolor: '#00ff99',
                             color: '#002200',
@@ -472,6 +561,111 @@ const Tareas = ({ userId, subTab }) => {
             onClick={submitApelacion}
           >
             {apelandoId === apelacion.tareaId ? 'Enviando…' : 'Enviar apelación'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de entrega: notas + enlaces + archivos. El backend guarda
+          notas/enlaces en la tarea (completar.js) y los archivos vía
+          /tareas/subir-evidencia (se suben antes de marcar completada). */}
+      <Dialog open={entrega.open} onClose={cerrarEntrega} fullWidth maxWidth="sm">
+        <DialogTitle>Entregar tarea #{entrega.tareaId}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {entregaError && (
+              <Alert severity="error" onClose={() => setEntregaError(null)}>
+                {entregaError}
+              </Alert>
+            )}
+
+            <TextField
+              label="Notas (opcional)"
+              placeholder="Describe lo que hiciste, comentarios para quien la revise..."
+              value={entrega.notes}
+              onChange={(e) => setEntrega((p) => ({ ...p, notes: e.target.value }))}
+              multiline
+              minRows={3}
+              fullWidth
+            />
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Enlaces (opcional)
+              </Typography>
+              <Stack spacing={1}>
+                {entrega.enlaces.map((enlace, idx) => (
+                  <Stack key={idx} direction="row" spacing={1} alignItems="center">
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="https://..."
+                      value={enlace}
+                      onChange={(e) => cambiarEnlace(idx, e.target.value)}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => quitarEnlace(idx)}
+                      disabled={entrega.enlaces.length === 1 && !enlace}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                ))}
+              </Stack>
+              <Button
+                size="small"
+                startIcon={<AddLinkIcon />}
+                onClick={agregarEnlace}
+                sx={{ mt: 1 }}
+              >
+                Agregar enlace
+              </Button>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Archivos (opcional) — imágenes, PDF, Word, Excel, video, audio (máx. 10MB c/u)
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<AttachFileIcon />}
+                disabled={archivosEntrega.length >= MAX_ARCHIVOS}
+              >
+                Elegir archivos
+                <input
+                  type="file"
+                  multiple
+                  hidden
+                  onChange={handleArchivosChange}
+                />
+              </Button>
+              {archivosEntrega.length > 0 && (
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5, rowGap: 1 }}>
+                  {archivosEntrega.map((f, idx) => (
+                    <Chip
+                      key={`${f.name}-${idx}`}
+                      label={f.name}
+                      onDelete={() => quitarArchivo(idx)}
+                      size="small"
+                    />
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cerrarEntrega} disabled={completandoId === entrega.tareaId}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={completandoId === entrega.tareaId}
+            onClick={submitEntrega}
+            sx={{ bgcolor: '#00ff99', color: '#002200', '&:hover': { bgcolor: '#00cc7a' } }}
+          >
+            {completandoId === entrega.tareaId ? 'Entregando…' : 'Entregar tarea'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -66,9 +66,13 @@ export const resolverTarea = (todoId, token) => {
 
 // Marca una tarea (resolución) del usuario como completada/entregada.
 // Solo el dueño de esa tarea puede hacerlo (validado en el backend).
-export const completarTarea = (tareaId, token) => {
+export const completarTarea = (tareaId, token, { notes, enlaces } = {}) => {
   if (!tareaId) return Promise.reject(new Error('Tarea invalida'));
   if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
+
+  const body = { tareaId };
+  if (notes !== undefined) body.notes = notes;
+  if (enlaces !== undefined) body.enlaces = enlaces;
 
   return fetchJson(
     `${STRAPI_URL}/api/tareas/completar`,
@@ -78,7 +82,7 @@ export const completarTarea = (tareaId, token) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ tareaId }),
+      body: JSON.stringify(body),
     },
     'No se pudo marcar la tarea como completada'
   );
@@ -157,25 +161,6 @@ export const apelarTarea = (tareaId, motivo, scoreSolicitado, token) => {
       body: JSON.stringify(body),
     },
     'No se pudo apelar la tarea'
-  );
-};
-
-// Sube evidencia (media) a una tarea en progreso.
-export const subirEvidencia = (tareaId, media, token) => {
-  if (!tareaId) return Promise.reject(new Error('Tarea invalida'));
-  if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
-
-  return fetchJson(
-    `${STRAPI_URL}/api/tareas/subir-evidencia`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ tareaId, media }),
-    },
-    'No se pudo subir la evidencia'
   );
 };
 
@@ -278,5 +263,93 @@ export const listProposedSubareas = (userId, token = null) => {
     `${STRAPI_URL}/api/users/${userId}/proposed-subareas`,
     { method: 'GET', headers },
     'No se pudieron cargar las propuestas de subarea'
+  );
+};
+
+// Asigna un todo a varios usuarios (Fase 5/6). Usa el endpoint
+// POST /tareas/asignar que requiere la policy can-asignar-tarea.
+// Da de alta (o actualiza) un usuario como socio miembro de una agencia.
+// Solo admin/socio. El backend crea el usuario si no existe (provider auth0).
+export const agregarSocio = (agenciaId, { email, username, roles_extra }, token) => {
+  if (!agenciaId) return Promise.reject(new Error('Falta el id de la agencia'));
+  if (!email) return Promise.reject(new Error('Falta el email del socio'));
+  if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
+
+  return fetchJson(
+    `${STRAPI_URL}/api/agencias/${agenciaId}/socios`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ email, username, roles_extra }),
+    },
+    'No se pudo dar de alta al socio'
+  );
+};
+
+export const asignarTarea = (todoId, userIds, token) => {
+  if (!todoId) return Promise.reject(new Error('Todo invalido'));
+  if (!Array.isArray(userIds) || userIds.length === 0) return Promise.reject(new Error('userIds debe ser un array no vacío'));
+  if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
+
+  return fetchJson(
+    `${STRAPI_URL}/api/tareas/asignar`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ todoId, userIds }),
+    },
+    'No se pudo asignar la tarea'
+  );
+};
+
+// Sube evidencia (archivos) para una tarea al entregarla. `archivos` es un
+// array de objetos File del navegador — se convierten a base64 acá porque
+// el endpoint POST /tareas/subir-evidencia espera { nombre, tipo, dataBase64 }
+// (mismo shape que valida el controller subir-evidencia.js: máx 10MB por
+// archivo, máx 10 archivos, tipos MIME de la whitelist del backend).
+const fileToBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = typeof result === 'string' ? result.split(',')[1] : '';
+      resolve(base64);
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+export const subirEvidencia = async (tareaId, archivosFile, notas, token) => {
+  if (!tareaId) return Promise.reject(new Error('Tarea invalida'));
+  if (!Array.isArray(archivosFile) || archivosFile.length === 0) {
+    return Promise.reject(new Error('Debes seleccionar al menos un archivo'));
+  }
+  if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
+
+  const archivos = await Promise.all(
+    archivosFile.map(async (file) => ({
+      nombre: file.name,
+      tipo: file.type,
+      dataBase64: await fileToBase64(file),
+    }))
+  );
+
+  return fetchJson(
+    `${STRAPI_URL}/api/tareas/subir-evidencia`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ tareaId, archivos, notas: notas || '' }),
+    },
+    'No se pudo subir la evidencia'
   );
 };

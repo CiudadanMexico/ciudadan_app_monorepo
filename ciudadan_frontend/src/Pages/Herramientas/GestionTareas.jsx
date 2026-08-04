@@ -62,23 +62,21 @@ export default function GestionTareas() {
       ) : (
         <Stack spacing={1.5}>
           {tareas.map((t) => {
-            const attrs = t.attributes || {};
-            const todo = attrs.todo?.data?.attributes || {};
             return (
               <Paper key={t.id} sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box sx={{ flex: 1 }}>
                   <Typography fontWeight={700}>
-                    #{t.id} — {todo.titulo || attrs.titulo || 'Sin título'}
+                    #{t.id} — {t.todo?.titulo || 'Sin título'}
                   </Typography>
                   <Typography variant="body2">
-                    Estado: <strong>{getResolucionStatusLabel(attrs.status)}</strong> | Tipo: {attrs.tipo || '—'} | Score: {attrs.score ?? '—'}
+                    Estado: <strong>{getResolucionStatusLabel(t.status)}</strong> | Tipo: {t.tipo || '—'} | Score: {t.score ?? '—'}
                   </Typography>
                   <Typography variant="caption">
-                    Usuario: {attrs.usuario?.data?.attributes?.email || attrs.usuario_email || '—'}
+                    Usuario: {t.usuario?.email || '—'}
                   </Typography>
-                  {attrs.notes && (
+                  {t.notes && (
                     <Typography variant="caption" display="block" sx={{ color: 'text.secondary' }}>
-                      Notas: {attrs.notes}
+                      Notas: {t.notes}
                     </Typography>
                   )}
                 </Box>
