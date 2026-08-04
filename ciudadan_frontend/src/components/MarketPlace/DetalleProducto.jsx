@@ -54,12 +54,13 @@ export default function DetalleProducto({
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const [favLoading, setFavLoading] = useState(true);
+  const [favLoading, setFavLoading] = useState(false);
   const [favorito, setFavorito] = useState(false);
   const [favoritoId, setFavoritoId] = useState(null);
 
   /* -------------------- favoritos hook -------------------- */
   const verificarFavorito = async (userId, productId) => {
+    if (!isAuthenticated) return;
     setFavLoading(true);
     try {
       const resultado = await esFavorito(

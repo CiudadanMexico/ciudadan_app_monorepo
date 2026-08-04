@@ -68,7 +68,7 @@ export default function ProductoCard({
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [favLoading, setFavLoading] = useState(true);
+  const [favLoading, setFavLoading] = useState(false);
   const [favorito, setFavorito] = useState(false);
   const [favoritoId, setFavoritoId] = useState(null);
 
@@ -142,6 +142,8 @@ export default function ProductoCard({
   };
 
   const verificarFavorito = async (userId, productId) => {
+    if (!productId) return;
+    setFavLoading(true);
     try {
       const resultado = await esFavorito(
         userId,
@@ -153,9 +155,9 @@ export default function ProductoCard({
       setFavoritoId(resultado.favoritoId);
 
     } catch (error) {
-
       console.error(error);
-
+    } finally {
+      setFavLoading(false);
     }
   };
 
