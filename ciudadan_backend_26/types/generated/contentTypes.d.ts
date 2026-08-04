@@ -816,6 +816,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToMany',
       'api::area.area'
     >;
+    favoritos: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::favorito.favorito'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -2893,14 +2898,14 @@ export interface ApiFavoritoFavorito extends Schema.CollectionType {
   attributes: {
     usuario: Attribute.Relation<
       'api::favorito.favorito',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     usuario_email: Attribute.Email;
     tipo: Attribute.Enumeration<['producto', 'curso', 'contenido', 'club']>;
     producto: Attribute.Relation<
       'api::favorito.favorito',
-      'oneToOne',
+      'manyToOne',
       'api::producto.producto'
     >;
     club: Attribute.Relation<
@@ -4061,6 +4066,11 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'api::producto.producto',
       'oneToMany',
       'api::pregunta-producto.pregunta-producto'
+    >;
+    favoritos: Attribute.Relation<
+      'api::producto.producto',
+      'oneToMany',
+      'api::favorito.favorito'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

@@ -326,6 +326,12 @@
       "relation": "manyToMany",
       "target": "api::area.area",
       "inversedBy": "usuarios"
+    },
+    "favoritos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::favorito.favorito",
+      "mappedBy": "usuario"
     }
   }
 }

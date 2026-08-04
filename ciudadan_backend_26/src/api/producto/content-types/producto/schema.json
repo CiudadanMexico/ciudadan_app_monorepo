@@ -129,6 +129,12 @@
       "relation": "oneToMany",
       "target": "api::pregunta-producto.pregunta-producto",
       "mappedBy": "producto"
+    },
+    "favoritos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::favorito.favorito",
+      "mappedBy": "producto"
     }
   }
 }
