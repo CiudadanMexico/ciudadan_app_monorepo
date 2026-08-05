@@ -1,4 +1,6 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState } from "react";
+import { useRoles } from "../../Contexts/RolesContext";
 //import "../../styles/PagoPorTienda.css";
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
@@ -12,32 +14,21 @@ const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
  * - Emite evento global "cart:paymentUploaded" y llama onPagoSubido(...) si existe.
  * - Muchos logs "cart y emojis".
  */
-const PagoPorTienda = ({ pedido, onPagoSubido }) => {
+const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }) => {
+  const { user } = useAuth0();
+  const { userData } = useRoles();
   // ---------- DERIVAR ESTADO INICIAL desde pedido.attributes ----------
   // Puede venir en diferentes formas según Strapi. Extraemos con defensiva.
-  const initialPagoId =
-    pedido?.attributes?.pago_id ||
-    pedido?.attributes?.pagoId ||
-    pedido?.attributes?.pago ||
-    null;
+  const initialPagoId = pedido?.attributes?.pago_id || pedido?.attributes?.pagoId || pedido?.attributes?.pago || null;
 
   // posible comprobante ya guardado en attributes.comprobante (expanded) o attributes.comprobante (array)
-  const existingComprobanteData =
-    pedido?.attributes?.comprobante?.data ||
-    (Array.isArray(pedido?.attributes?.comprobante) ? pedido.attributes.comprobante[0] : null) ||
-    null;
+  const existingComprobanteData = pedido?.attributes?.comprobante?.data || (Array.isArray(pedido?.attributes?.comprobante) ? pedido.attributes.comprobante[0] : null) || null;
 
   const existingFileId = existingComprobanteData?.id || null;
-  const existingFileUrl =
-    existingComprobanteData?.attributes?.url ||
-    existingComprobanteData?.url ||
-    null;
+  const existingFileUrl = existingComprobanteData?.attributes?.url || existingComprobanteData?.url || null;
 
   // Si el pedido ya tiene pago_id o comprobante o status de pagado/en revisión -> consideramos "uploaded" true
-  const initialUploaded =
-    Boolean(initialPagoId) ||
-    Boolean(existingFileId) ||
-    ["pago_en_revision", "pagado"].includes(pedido?.attributes?.status);
+  const initialUploaded = Boolean(initialPagoId) || Boolean(existingFileId) || ["pago_en_revision", "pagado"].includes(pedido?.attributes?.status);
 
   // Estados locales (inicializados desde pedido para resistir remounts)
   const [archivo, setArchivo] = useState(null);
@@ -123,6 +114,7 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
       setError("Selecciona un archivo antes de subir.");
       return;
     }
+
     if (!pedido?.id) {
       console.error("cart y emojis - pedido inválido, falta pedido.id", pedido);
       setError("Pedido inválido. Revisa la consola.");
@@ -132,37 +124,43 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
     setSubiendo(true);
     setError(null);
 
+    console.log("cart y emojis - subiendo archivo SIN ref", {
+      archivoName: archivo?.name,
+      archivoType: archivo?.type,
+      archivoSize: archivo?.size,
+    });
+
     try {
-      // ---------------- 0) Reusar pago existente si lo hay ----------------
+      // ---------------- 1) Reusar pago existente si lo hay ----------------
       let pagoId = pagoIdState;
       if (pagoId) {
         console.log("cart y emojis - reutilizando pago existente:", pagoId);
       } else {
-        // ---------------- 1) Crear el recurso 'pago' en Strapi ----------------
-        const montoNumeric = Number(
-          pedido?.attributes?.monto_total ??
-          pedido?.attributes?.monto ??
-          pedido?.attributes?.total ??
-          0
-        );
+        // ---------------- 2) Crear el recurso 'pago' en Strapi ----------------
+        const montoNumeric = Number(pedido?.attributes?.monto_total ?? pedido?.attributes?.monto ?? pedido?.attributes?.total ?? 0);
+
+        const formPedido = new FormData();
 
         const pagoPayload = {
-          data: {
-            pedido: pedido.id,
-            monto: montoNumeric,
-            tipo: "carrito",
-            status: "pendiente_verificacion",
-          },
+          tipo: tipoPago,
+          pedido: pedido.id,
+          monto: montoNumeric,
+          status: "pendiente_verificacion",
+          usuario_email: user?.email,
+          store: store?.id,
+          usuario: userData?.id,
+          fecha_pagado: new Date().toISOString()
         };
-
+        if (carritoId)
+          pagoPayload.carrito_id = carritoId;
+        
         console.log("cart y emojis - creando pago, payload:", pagoPayload);
 
+        formPedido.append("data", JSON.stringify(pagoPayload));
+        formPedido.append("files.comprobante", archivo);
         const pagoRes = await fetch(`${STRAPI_URL}/api/pagos`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(pagoPayload),
+          body: formPedido,
         });
 
         if (!pagoRes.ok) {
@@ -182,7 +180,7 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
         const pagoJson = await pagoRes.json();
         console.log("cart y emojis - pago creado (raw):", pagoJson);
 
-        pagoId = pagoJson?.data?.id;
+        pagoId = pagoJson?.data;
         if (!pagoId) {
           console.error("cart y emojis - pago creado sin id:", pagoJson);
           throw new Error("Respuesta inválida al crear pago (sin id).");
@@ -190,154 +188,10 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
         setPagoIdState(pagoId);
       }
 
-      // ---------------- 2) Subir archivo SIN ref (upload "independiente") ----------------
-      console.log("cart y emojis - subiendo archivo SIN ref", {
-        archivoName: archivo?.name,
-        archivoType: archivo?.type,
-        archivoSize: archivo?.size,
-        pagoId,
-      });
-
-      const formData = new FormData();
-      formData.append("files", archivo);
-
-      const uploadRes = await fetch(`${STRAPI_URL}/api/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadRes.ok) {
-        const uploadBody = await parseResponse(uploadRes);
-        console.groupCollapsed("cart y emojis - ERROR subiendo comprobante SIN ref (detalle)");
-        console.warn("cart y emojis - status:", uploadRes.status, uploadRes.statusText);
-        console.warn("cart y emojis - headers:", Array.from(uploadRes.headers.entries()));
-        console.warn("cart y emojis - body:", uploadBody);
-        console.groupEnd();
-        throw new Error(
-          `Error subiendo comprobante (sin ref): ${uploadRes.status} ${uploadRes.statusText} — ${JSON.stringify(
-            uploadBody
-          )}`
-        );
-      }
-
-      const uploadJson = await uploadRes.json();
-      console.log("cart y emojis - comprobante subido SIN ref (raw):", uploadJson);
-
-      // Extraer id y url si están presentes
-      const firstFile =
-        (Array.isArray(uploadJson) && uploadJson[0]) ||
-        (uploadJson?.data && uploadJson.data[0]) ||
-        null;
-
-      const fileId = firstFile?.id || null;
-      const fileUrl =
-        firstFile?.attributes?.url ||
-        firstFile?.url ||
-        (firstFile?.formats && firstFile.formats?.thumbnail?.url) ||
-        null;
-
-      if (!fileId) {
-        console.error("cart y emojis - no se obtuvo file.id tras upload:", uploadJson);
-        throw new Error("No se obtuvo file.id tras subir archivo.");
-      }
-
-      console.log("cart y emojis - archivo subido con id, url:", { fileId, fileUrl });
-      setUploadedFileId(fileId);
-      setUploadedFileUrl(fileUrl);
-
-      // ---------------- 3) Asociar el archivo al pago (PUT /api/pagos/:pagoId) ----------------
-      let pagoUpdateSuccess = false;
-
-      const tryAssociateToPago = async () => {
-        // Forma A: comprobante: fileId (campo single media)
-        try {
-          console.log("cart y emojis - intentando asociar archivo al pago (A: single id)", {
-            pagoId,
-            fileId,
-          });
-          const updA = await fetch(`${STRAPI_URL}/api/pagos/${pagoId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: { comprobante: fileId } }),
-          });
-          if (updA.ok) {
-            const js = await updA.json().catch(() => null);
-            console.log("cart y emojis - asociacion al pago OK (A):", js);
-            pagoUpdateSuccess = true;
-            return;
-          } else {
-            const body = await parseResponse(updA);
-            console.warn("cart y emojis - asociacion A falló:", updA.status, body);
-          }
-        } catch (e) {
-          console.warn("cart y emojis - excepción asociando A:", e);
-        }
-
-        // Forma B: comprobante: [fileId] (campo multiple media)
-        try {
-          console.log("cart y emojis - intentando asociar archivo al pago (B: array)", {
-            pagoId,
-            fileId,
-          });
-          const updB = await fetch(`${STRAPI_URL}/api/pagos/${pagoId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: { comprobante: [fileId] } }),
-          });
-          if (updB.ok) {
-            const js = await updB.json().catch(() => null);
-            console.log("cart y emojis - asociacion al pago OK (B):", js);
-            pagoUpdateSuccess = true;
-            return;
-          } else {
-            const body = await parseResponse(updB);
-            console.warn("cart y emojis - asociacion B falló:", updB.status, body);
-          }
-        } catch (e) {
-          console.warn("cart y emojis - excepción asociando B:", e);
-        }
-
-        // Forma C: comprobante: { connect: fileId }
-        try {
-          console.log("cart y emojis - intentando asociar archivo al pago (C: connect)", {
-            pagoId,
-            fileId,
-          });
-          const updC = await fetch(`${STRAPI_URL}/api/pagos/${pagoId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ data: { comprobante: { connect: fileId } } }),
-          });
-          if (updC.ok) {
-            const js = await updC.json().catch(() => null);
-            console.log("cart y emojis - asociacion al pago OK (C):", js);
-            pagoUpdateSuccess = true;
-            return;
-          } else {
-            const body = await parseResponse(updC);
-            console.warn("cart y emojis - asociacion C falló:", updC.status, body);
-          }
-        } catch (e) {
-          console.warn("cart y emojis - excepción asociando C:", e);
-        }
-      };
-
-      await tryAssociateToPago();
-
-      if (!pagoUpdateSuccess) {
-        console.warn(
-          "cart y emojis - no se pudo asociar el archivo al pago (ninguna forma funcionó).",
-          { pagoId, fileId }
-        );
-      } else {
-        console.log("cart y emojis - archivo asociado al pago con éxito");
-      }
-
-      // ---------------- 4) Actualizar pedido asociando pago_id y status ----------------
+      // ---------------- 3) Actualizar pedido asociando pago_id y status ----------------
       const pedidoUpdatePayload = {
         data: {
-          status: "enviar",
-          pago_id: pagoId,
+          pago_id: pagoId?.id,
         },
       };
 
@@ -371,24 +225,11 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
       // ----------------- MARCAR ÉXITO EN LA UI Y NOTIFICAR AL PADRE -----------------
       setUploaded(true);
       setArchivo(null); // limpiamos el input visualmente
-      console.log("cart y emojis - flujo completado correctamente para pedido:", pedido.id, {
-        pagoId,
-        fileId,
-        fileUrl,
-        pagoUpdateSuccess,
-      });
 
       // Llamada callback al padre si existe
       if (typeof onPagoSubido === "function") {
         try {
-          console.log("cart y emojis - llamando onPagoSubido callback:", {
-            pedidoId: pedido.id,
-            pagoId,
-            fileId,
-            fileUrl,
-            pagoUpdateSuccess,
-          });
-          onPagoSubido(pedido.id, pagoId, fileId, pagoUpdateSuccess);
+          onPagoSubido(pedido.id, pagoId);
         } catch (cbErr) {
           console.warn("cart y emojis - onPagoSubido lanzó error:", cbErr);
         }
@@ -399,9 +240,6 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
         const detail = {
           pedidoId: pedido.id,
           pagoId,
-          fileId,
-          fileUrl,
-          pagoUpdateSuccess,
         };
         console.log("cart y emojis - dispatching event cart:paymentUploaded", detail);
         window.dispatchEvent(new CustomEvent("cart:paymentUploaded", { detail }));
@@ -541,14 +379,10 @@ const PagoPorTienda = ({ pedido, onPagoSubido }) => {
           <p style={{ margin: 0, color: "#2e7d32" }}>
             Comprobante subido correctamente.
           </p>
-          {uploadedFileUrl ? (
+          {uploadedFileUrl && (
             <a href={uploadedFileUrl} target="_blank" rel="noreferrer">
               Ver comprobante
             </a>
-          ) : (
-            <p style={{ margin: 0, fontSize: 12, color: "#666" }}>
-              Archivo registrado en Strapi (ID: {uploadedFileId})
-            </p>
           )}
         </div>
       )}

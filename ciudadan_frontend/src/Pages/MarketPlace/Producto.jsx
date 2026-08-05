@@ -12,11 +12,15 @@ import {
   Chip,
   Button,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import StarIcon from '@mui/icons-material/Star';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import useProductos from '../../hooks/useProductos.jsx';
 import Resenas from '../../components/MarketPlace/Resenas.jsx';
@@ -26,6 +30,10 @@ import productoImg from '../../assets/placeholders/producto.png';
 
 import '../../styles/Producto.css';
 import '../../styles/DetalleProducto.css';
+import PreguntasProducto from '../../components/MarketPlace/PreguntasProductos.jsx';
+import PreguntasProductoNew from '../../components/MarketPlace/PreguntasProductosNew.jsx';
+import { useRoles } from '../../Contexts/RolesContext.jsx';
+import PreguntasProductoHeader from '../../components/MarketPlace/PreguntasProductoHeader.jsx';
 
 /**
  * Página de detalle de producto (botones movidos a DetalleProducto)
@@ -38,6 +46,7 @@ import '../../styles/DetalleProducto.css';
 const Producto = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { userData } = useRoles();
 
   const {
     getProductoBySlug,
@@ -311,13 +320,46 @@ const Producto = () => {
             {descripcion || 'Sin descripción disponible.'}
           </Typography>
         </Box>
-
         <Divider sx={{ mb: 2 }} />
-
-        <Box mb={3}>
-          <Typography variant="h6" fontWeight={700} mb={1}>Reseñas</Typography>
-          <Resenas slug={slug} />
-        </Box>
+        <Accordion
+          defaultExpanded
+          sx={{
+            mt: 2,
+            borderRadius: 2,
+            "&:before": {
+              display: "none"
+            }
+          }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <PreguntasProductoHeader
+              productoId={producto.id}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <PreguntasProductoNew
+              productoId={producto.id}
+              usuarioId={userData?.id}
+              storeId={producto?.attributes?.store?.data?.id}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion
+          sx={{
+            mt: 2,
+            borderRadius: 2,
+            "&:before": {
+              display: "none"
+            }
+          }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6" fontWeight={700}>Reseñas</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Resenas slug={slug} />
+          </AccordionDetails>
+        </Accordion>
       </Paper>
     </Container>
   );

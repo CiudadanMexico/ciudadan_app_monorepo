@@ -160,7 +160,7 @@ const UserMenu = ({
           <MenuItem
             label="Tus Compras"
             onClick={() =>
-              safeNavigate("/market/compras/pedidos")
+              safeNavigate("/compras/pedidos")
             }
           />
 

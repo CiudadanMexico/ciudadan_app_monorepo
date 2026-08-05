@@ -13,13 +13,13 @@ import AgregarProducto from '../../components/Food/AgregarProducto';
 const restaurantSectionKey = '@restaurant-section-key';
 
 const TABS = [
-  { label: 'Productos', path: 'productos' },
-  { label: 'Agregar producto', path: 'agregar-producto' },
+  { label: 'Platillos', path: 'platillos' },
+  { label: 'Agregar platillo', path: 'agregar-platillo' },
   { label: 'Pedidos a entregar', path: '' },
-  { label: 'Entregados', path: 'entregados' },
-  { label: 'Pagos', path: 'pagos' },
-  { label: 'Configuración', path: 'configuracion' }
 ];
+// { label: 'Entregados', path: 'entregados' },
+// { label: 'Pagos', path: 'pagos' },
+// { label: 'Configuración', path: 'configuracion' }
 
 const Restaurant = () => {
   const { slug } = useParams();
@@ -66,15 +66,16 @@ const Restaurant = () => {
 
   const handleInitializeSection = () => {
     const k = localStorage.getItem(restaurantSectionKey)
+    console.log("localStorage restaurant section key:", k);
     if (k)
       setTabIndex(+k)
   };
 
   useEffect(() => {
-    if (!slug) return;
-    fetchStoreData(slug, user?.email ?? '');
     handleInitializeSection();
-  }, [slug]);
+    if (!slug || !user?.email) return;
+    fetchStoreData(slug, user?.email ?? '');
+  }, [slug, user?.email]);
 
   const a11yProps = (index) => ({
     id: `simple-tab-${index}`,
@@ -176,15 +177,19 @@ const Restaurant = () => {
           }
         </Tabs>
 
-        <Box sx={{ mt: { xs: 1.5, sm: 2 }, width: '100%', overflowX: 'hidden' }}>
-          {tabIndex === 0 && <ProductosRestaurante restaurante={restaurant} />}
-          {tabIndex === 1 && <AgregarProducto restaurant={restaurant} />}
-          {/* {tabIndex === 1 && <PedidosEntregados />}
+        {
+          restaurant && (
+            <Box sx={{ mt: { xs: 1.5, sm: 2 }, width: '100%' }}>
+              {tabIndex === 0 && <ProductosRestaurante restaurante={restaurant} />}
+              {tabIndex === 1 && <AgregarProducto restaurant={restaurant} />}
+              {/* {tabIndex === 1 && <PedidosEntregados />}
           {tabIndex === 2 && <MisProductos filtros={filtros} />}
           {tabIndex === 4 && <PreguntasProducto />}
           {tabIndex === 5 && <PagosTienda />}
           {tabIndex === 6 && <ConfiguracionTienda />} */}
-        </Box>
+            </Box>
+          )
+        }
       </Box>
     </Box>
   );

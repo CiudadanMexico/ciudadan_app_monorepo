@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery, Stack } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import DireccionSelector from '../../components/MarketPlace/DireccionSelector';
@@ -13,6 +13,13 @@ import DetalleProducto from '../../components/MarketPlace/DetalleProducto';
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCart } from "../../Contexts/CartContext";
 import PagoPorTienda from '../../components/MarketPlace/PagoPorTienda';
+import {
+  CheckCircleRounded,
+  UploadFileRounded,
+  VerifiedRounded,
+  LocalShippingRounded,
+} from "@mui/icons-material";
+import { useRoles } from '../../Contexts/RolesContext';
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL;
 const steps = ["Producto", "Dirección", "Pago", "Confirmación"];
@@ -48,6 +55,7 @@ export default function FinalizarCompraProducto() {
     obtenerResenas,
   } = useProductos();
   const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { userData } = useRoles();
   const { precotizarPlataforma, precotizarMienvio, precotizarStripe } = useCart();
 
 
@@ -71,6 +79,20 @@ export default function FinalizarCompraProducto() {
     console.log("cart y emojis - dirección seleccionada:", dir);
     setSelectedAddress(dir);
   }, []);
+
+  const handleGetAddressStore = async (storeId) => {
+    if (!storeId) return null;
+    try {
+      const results = await fetch(`${STRAPI}/api/direcciones?filters[store_id][id][$eq]=${storeId}`);
+      const { data } = await results.json();
+      if (data && data.length > 0)
+        return data[0]
+      return null
+    } catch (error) {
+      console.error("Error al obtener la dirección de la tienda:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -266,6 +288,7 @@ export default function FinalizarCompraProducto() {
       const total = parseFloat(
         (subtotal + envio + comisionPlataforma + comisionStripe).toFixed(2)
       );
+      const storeAddress = await handleGetAddressStore(storeInfo?.id);
 
       // Item mapeado igual que mapItemToComponent en FinalizarCompra.jsx
       const item = {
@@ -346,15 +369,17 @@ export default function FinalizarCompraProducto() {
           timestamp_creacion: new Date().toISOString(),
           monto_envio: envio,
           monto_total: total,
-          status: "enviar",
+          status: "pendiente_pago",
           carrito_id: carritoCreatedId,
           direccion_destino: selectedAddress.id,
           metadata: { usuario_email: user?.email || "unknown" },
-          usuario: user,
+          usuario: userData?.id,
           store: storeInfo.id,
           store_email: attrs.store.email,
         },
       };
+      if (storeAddress)
+        payloadPedido.data['direccion_origen'] = storeAddress?.id;
 
       const res = await fetch(`${STRAPI}/api/pedidos`, {
         method: "POST",
@@ -442,7 +467,7 @@ export default function FinalizarCompraProducto() {
       console.log("cart y emojis - handlePagoSubido actualizando pedidoCreado:", {
         pedidoId: prev.id,
         updatedAttributes: attributes,
-      });
+      }, "updated: ", updated);
 
       return updated;
     });
@@ -472,7 +497,7 @@ export default function FinalizarCompraProducto() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: {
-            status: "enviar",
+            status: "pendiente_verificacion",
             fecha_pagado: new Date().toISOString(),
           },
         }),
@@ -634,29 +659,113 @@ export default function FinalizarCompraProducto() {
               {/* Si no hay pedidos, mostramos mensaje */}
               {pedidoCreado == null ? (
                 <Typography sx={{ mb: 2 }}>
-                  No hay pedidos creados. Vuelve a intentar crear los pedidos.
+                  Pedido no creado. Vuelve a intentar crear el pedido o consulta tus en tus compras.
                 </Typography>
               ) : (
-                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido} />
+                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido}  carritoId={carritoId} />
               )}
             </Paper>
           </motion.div>
         )}
 
         {activeStep === 3 && (
-          <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 4, textAlign: "center" }}>
-              <Typography variant="h5">¡Pedido enviado!</Typography>
-              <Button
-                variant="contained"
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  console.log("cart y emojis - navegando a /mis-compras");
-                  navigate("/mis-compras");
-                }}
-              >
-                Ver mis compras
-              </Button>
+          <motion.div
+            key="ok"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <Paper
+              sx={{
+                p: { xs: 3, sm: 4 },
+                borderRadius: 3,
+              }}
+            >
+              <Stack spacing={3} alignItems="center">
+                <CheckCircleRounded
+                  color="success"
+                  sx={{ fontSize: 70 }}
+                />
+
+                <Box textAlign="center">
+                  <Typography variant="h5" fontWeight={700}>
+                    ¡Comprobante enviado!
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    Tu comprobante de pago fue recibido correctamente.
+                    Ahora comenzará el proceso de validación antes del envío
+                    de tu pedido.
+                  </Typography>
+                </Box>
+
+                <Stack
+                  spacing={2}
+                  sx={{
+                    width: "100%",
+                    mt: 1,
+                  }}
+                >
+                  <Box display="flex" gap={2}>
+                    <UploadFileRounded color="primary" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        1. Comprobante recibido
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Tu comprobante ya fue registrado en el sistema.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <VerifiedRounded color="warning" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        2. Validación del vendedor
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        El vendedor fue notificado y verificará que el pago
+                        haya sido recibido correctamente.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <LocalShippingRounded color="success" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        3. Preparación y envío
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Una vez confirmado el pago, tu pedido será preparado y
+                        enviado. Podrás consultar su avance desde la sección
+                        <strong> Mis compras</strong>.
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  onClick={() => navigate("/compras/pedidos")}
+                >
+                  Ir a Mis compras
+                </Button>
+              </Stack>
             </Paper>
           </motion.div>
         )}
@@ -700,7 +809,7 @@ export default function FinalizarCompraProducto() {
                         disabled={!selectedAddress || creatingPedidos}
                         onClick={() => handleCrearPedido(handleSaveLater)}
                       >
-                        {creatingPedidos ? <CircularProgress size={18} /> : "Guardar"}
+                        {creatingPedidos ? <CircularProgress size={18} /> : "Pagar más tarde"}
                       </Button>
                     </Tooltip>
                   </Box>

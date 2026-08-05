@@ -24,7 +24,8 @@
         "asesoria",
         "servicio",
         "membresia",
-        "carrito"
+        "carrito",
+        "comida"
       ]
     },
     "carrito_id": {
@@ -110,6 +111,21 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::pedido.pedido"
+    },
+    "comprobante": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "usuario_email": {
+      "type": "email"
+    },
+    "fecha_aprobado": {
+      "type": "datetime"
     }
   }
 }

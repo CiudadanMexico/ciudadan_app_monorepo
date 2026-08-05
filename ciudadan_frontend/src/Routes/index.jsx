@@ -131,6 +131,7 @@ import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProduct
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
 import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
 import Restaurant from '../Pages/Food/Restaurant.jsx';
+import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -336,6 +337,10 @@ const Rutas = () => (
       element={<Restaurant />}
     />
     <Route
+      path='/comida/comprar/:slug'
+      element={<ComprarFoodProduct />}
+    />
+    <Route
       path='/restaurantes'
       element={<RestaurantesRoute />}
     />
@@ -403,7 +408,7 @@ const Rutas = () => (
       element={<FinalizarCompra />}
     />
     <Route
-      path='/market/compras/*'
+      path='/compras/*'
       element={<Compras />}
     />
     <Route

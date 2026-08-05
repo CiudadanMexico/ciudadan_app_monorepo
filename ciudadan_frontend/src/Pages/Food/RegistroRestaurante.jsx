@@ -32,7 +32,7 @@ export default function RegistroRestaurante() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user, isAuthenticated, loginWithRedirect } = useAuth0();
-  const { isActivaMembresia } = useRoles();
+  const { isActivaMembresia, updateExtraRole } = useRoles();
 
   const [activeStep, setActiveStep] = useState(0);
   const [restaurantName, setRestaurantName] = useState("");
@@ -200,7 +200,7 @@ export default function RegistroRestaurante() {
     setLoading(true);
     setError("");
     try {
-      await createDireccion({
+      const {data} = await createDireccion({
         data: {
           direccion: JSON.stringify({ address: direccion }),
           coords: JSON.stringify({ lat, lng }),
@@ -212,7 +212,7 @@ export default function RegistroRestaurante() {
           restaurant_id: restaurant.id
         }
       });
-      const updatedRestaurant = await updateRestaurant(restaurant.id, { paso: 3 });
+      const updatedRestaurant = await updateRestaurant(restaurant.id, { paso: 3, direccion: data?.id });
       setRestaurant(updatedRestaurant?.data ?? {});
       setActiveStep(3);
     } catch (err) {
@@ -229,6 +229,7 @@ export default function RegistroRestaurante() {
     try {
       const updatedRestaurant = await updateRestaurant(restaurant.id, { paso: 4 });
       setRestaurant(updatedRestaurant.data);
+      await updateExtraRole('restaurant', true);
       setActiveStep(4);
     } catch (err) {
       console.error("Error al verificar datos", err);

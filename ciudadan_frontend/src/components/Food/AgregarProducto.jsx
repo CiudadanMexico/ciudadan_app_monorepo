@@ -6,7 +6,16 @@ import {
   MenuItem,
   useTheme,
   useMediaQuery,
-  Switch
+  Switch,
+  FormControl,
+  InputLabel,
+  Select,
+  Card,
+  CardMedia,
+  Chip,
+  CardContent,
+  Checkbox,
+  ListItemText
 } from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
 import '../../styles/AgregarProducto.css';
@@ -31,7 +40,31 @@ const NivelesPicante = [
   { value: 'extremo', label: 'Extremo' },
 ];
 
-const Steps = ['Datos Generales', 'Medidas', 'Características', 'Ingredientes', 'Alergenos', 'Imagen Principal', 'Galería', 'Finalizar']
+const Steps = ['Datos Generales', 'Medidas', 'Características', 'Ingredientes', 'Alergenos', 'Imagen Principal', 'Galería', 'Finalizar'];
+
+const FOOD_UNITS = [
+  { value: "unidad", label: "Unidad" },
+  { value: "pieza", label: "Pieza" },
+  { value: "rebanada", label: "Rebanada" },
+  { value: "porcion", label: "Porción" },
+  { value: "gramo", label: "Gramos (g)" },
+  { value: "kilogramo", label: "Kilogramos (kg)" },
+  { value: "mililitro", label: "Mililitros (ml)" },
+  { value: "litro", label: "Litros (L)" },
+  { value: "taza", label: "Taza" },
+  { value: "cucharada", label: "Cucharada" },
+  { value: "cucharadita", label: "Cucharadita" },
+  { value: "pizca", label: "Pizca" },
+  { value: "diente", label: "Diente" },
+  { value: "rama", label: "Rama" },
+  { value: "hoja", label: "Hoja" },
+  { value: "rodaja", label: "Rodaja" },
+  { value: "cubo", label: "Cubo" },
+  { value: "manojo", label: "Manojo" },
+  { value: "paquete", label: "Paquete" },
+  { value: "lata", label: "Lata" },
+  { value: "botella", label: "Botella" }
+];
 
 const defaultFormData = {
   nombre: '',
@@ -61,7 +94,7 @@ const defaultFormData = {
   permite_programar: false,
 };
 
-const defaultIngredientes = [{ nombre: '', cantidad: null }];
+const defaultIngredientes = [{ nombre: '', cantidad: null, unidad: '' }];
 const defaultAlergenos = [''];
 
 const AgregarProducto = ({ restaurant }) => {
@@ -211,7 +244,7 @@ const AgregarProducto = ({ restaurant }) => {
 
   const handleChangeIngrediente = (field = 'nombre', value, index = 0) => {
     setIngredientes(prev => {
-      const newIngredientes = prev.map((item, indx) => indx !== index ? item : (field == 'nombre' ? { ...item, nombre: value } : { ...item, cantidad: value }))
+      const newIngredientes = prev.map((item, indx) => indx !== index ? item : (field == 'nombre' ? { ...item, nombre: value } : (field == 'cantidad' ? { ...item, cantidad: value } : { ...item, unidad: value })))
       return newIngredientes;
     })
   };
@@ -223,7 +256,7 @@ const AgregarProducto = ({ restaurant }) => {
     });
   };
 
-  const handleAddIngrediente = () => setIngredientes((prev) => [...prev, { nombre: '', cantidad: '' }]);
+  const handleAddIngrediente = () => setIngredientes((prev) => [...prev, { nombre: '', cantidad: '', unidad: '' }]);
   const handleDeleteIngrediente = (idx) => {
     setIngredientes(prev => {
       const newIngredientes = prev.map((item, index) => { if (index != idx) return item }).filter(i => i != undefined);
@@ -308,16 +341,26 @@ const AgregarProducto = ({ restaurant }) => {
     setGuardado(false);
   };
 
-  if (!isAuthenticated) return <p className="mensaje-sesion">Debes iniciar sesión para agregar productos.</p>;
-  if (guardado) return <Fade in><p className="mensaje-exito">✅ Producto guardado con éxito.</p></Fade>;
-  if (!storeId) return <p className="mensaje-sesion">No se encontró ninguna tienda asociada</p>;
+  useEffect(() => {
+    if(restaurant?.id) return;
+    setStoreId(restaurant?.id)
+  }, [restaurant])
+  
+
+  if (!isAuthenticated) return <p className="mensaje-sesion">Debes iniciar sesión para agregar platillos.</p>;
+  if (guardado) return <Fade in><p className="mensaje-exito">✅ Platillo guardado con éxito.</p></Fade>;
+  if (!storeId) return <p className="mensaje-sesion">No se encontró ningún restaurante asociado</p>;
 
   return (
     <Paper elevation={4} className="agregar-producto-container">
       {
-        !isMobileDevice && (
+        !isMobileDevice ? (
           <Typography variant="h5" fontWeight="bold" mb={2}>
-            <span className="titulo">🛒 Agregar Producto</span>
+            <span className="titulo">🛒 Agregar platillo</span>
+          </Typography>
+        ) : (
+          <Typography fontWeight="bold" mb={2}>
+            <span className="titulo"> Agregar platillo</span>
           </Typography>
         )
       }
@@ -425,23 +468,41 @@ const AgregarProducto = ({ restaurant }) => {
                         : '')
                   }
                 />
-                {/* Categorias */}
+                {/* Categorías */}
                 <TextField
                   className="input-text"
                   select
-                  label="Categoría"
+                  label="Categorías"
                   name="food_categories"
-                  value={formData.food_categories}
+                  value={formData.food_categories || []}
                   onChange={handleChange}
                   required
                   fullWidth
-                  multiple={true}
-                  error={formSubmitted && !formData.food_categories}
-                  helperText={formSubmitted && !formData.food_categories ? 'Selecciona una categoría' : ''}
+                  error={
+                    formSubmitted &&
+                    (!formData.food_categories || formData.food_categories.length === 0)
+                  }
+                  helperText={
+                    formSubmitted &&
+                      (!formData.food_categories || formData.food_categories.length === 0)
+                      ? "Selecciona al menos una categoría"
+                      : ""
+                  }
+                  SelectProps={{
+                    multiple: true,
+                    renderValue: (selected) =>
+                      categories
+                        .filter((cat) => selected.includes(cat.id))
+                        .map((cat) => cat.attributes.nombre)
+                        .join(", ")
+                  }}
                 >
-                  {categories.map(cat => (
+                  {categories.map((cat) => (
                     <MenuItem key={cat.id} value={cat.id}>
-                      {cat.attributes.nombre}
+                      <Checkbox
+                        checked={formData.food_categories.includes(cat.id)}
+                      />
+                      <ListItemText primary={cat.attributes.nombre} />
                     </MenuItem>
                   ))}
                 </TextField>
@@ -792,42 +853,92 @@ const AgregarProducto = ({ restaurant }) => {
               activeStep === 3 && (
                 <>
                   <Typography>Ingredientes</Typography>
-                  {
-                    ingredientes.map((ingrediente, index) => (
-                      <Box key={`ingrediente-list-item-${index}`} display='flex' alignItems='center' gap={1} flexWrap='wrap'>
-                        <TextField
-                          className="input-text"
-                          label="Nombre"
-                          name="name"
-                          value={ingrediente.nombre}
-                          onChange={(e) => handleChangeIngrediente('nombre', e.target.value, index)}
-                          sx={{ width: isMobileDevice ? '100%' : '55%' }}
-                        />
-                        <TextField
-                          className="input-text"
-                          label="Cantidad"
-                          name="cantidad"
-                          type='number'
-                          value={ingrediente.cantidad}
-                          onChange={(e) => handleChangeIngrediente('cantidad', e.target.value, index)}
-                          sx={{ width: isMobileDevice ? '100%' : '30%' }}
-                        />
-                        <Button
-                          variant="contained"
-                          color='error'
-                          onClick={() => handleDeleteIngrediente(index)}
-                          sx={{ width: isMobileDevice ? '100%' : '10%' }}
+                  {ingredientes.map((ingrediente, index) => (
+                    <Box
+                      key={`ingrediente-list-item-${index}`}
+                      display="flex"
+                      gap={1}
+                      flexWrap="wrap"
+                      alignItems="center"
+                      mb={2}
+                    >
+                      <TextField
+                        className="input-text"
+                        label="Nombre"
+                        value={ingrediente.nombre}
+                        onChange={(e) =>
+                          handleChangeIngrediente("nombre", e.target.value, index)
+                        }
+                        sx={{
+                          width: {
+                            xs: "100%",
+                            md: "42%"
+                          }
+                        }}
+                      />
+
+                      <TextField
+                        className="input-text"
+                        label="Cantidad"
+                        type="number"
+                        value={ingrediente.cantidad}
+                        onChange={(e) =>
+                          handleChangeIngrediente("cantidad", e.target.value, index)
+                        }
+                        sx={{
+                          width: {
+                            xs: "48%",
+                            md: "18%"
+                          }
+                        }}
+                      />
+
+                      <FormControl
+                        sx={{
+                          width: {
+                            xs: "48%",
+                            md: "25%"
+                          }
+                        }}
+                      >
+                        <InputLabel>Unidad</InputLabel>
+
+                        <Select
+                          value={ingrediente.unidad || "unidad"}
+                          label="Unidad"
+                          onChange={(e) =>
+                            handleChangeIngrediente("unidad", e.target.value, index)
+                          }
                         >
-                          <DeleteIcon />
-                        </Button>
-                      </Box>
-                    ))
-                  }
+                          {FOOD_UNITS.map((item) => (
+                            <MenuItem key={item.value} value={item.value}>
+                              {item.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => handleDeleteIngrediente(index)}
+                        sx={{
+                          width: {
+                            xs: "100%",
+                            md: "10%"
+                          },
+                          height: 56
+                        }}
+                      >
+                        <DeleteIcon />
+                      </Button>
+                    </Box>
+                  ))}
                   <Button
                     variant="contained"
+                    startIcon={<AddIcon />}
                     onClick={() => handleAddIngrediente()}
                   >
-                    <AddIcon />
                     <Typography sx={{ textTransform: 'capitalize' }}>
                       Agregar
                     </Typography>
@@ -1019,8 +1130,111 @@ const AgregarProducto = ({ restaurant }) => {
               <>
                 <Typography variant="h6" gutterBottom>✅ Listo para guardar</Typography>
                 <Typography>Revisa los datos antes de continuar.</Typography>
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    borderRadius: 2,
+                    boxShadow: 4,
+                    overflow: 'hidden',
+                    cursor: 'default',
+                  }}
+                >
+                  <Box>
+                    <Box sx={{ position: 'relative' }}>
+                      <CardMedia
+                        component="img"
+                        image={previewImagenPredeterminada}
+                        alt={formData.nombre || 'Platillo'}
+                        unselectable='off'
+                        sx={{ height: { xs: 180, sm: 180 }, objectFit: 'cover', width: '100%' }}
+                      />
+
+                      {/* Badge de stock / agotado */}
+                      {formData.stockEnable && typeof formData.stock === 'number' && (
+                        <Chip
+                          label={formData.stock === 0 ? 'Agotado' : `Disponibles: ${formData.stock}`}
+                          color={formData.stock === 0 ? 'error' : 'default'}
+                          size="small"
+                          sx={{ position: 'absolute', left: 10, top: 10, bgcolor: formData.stock === 0 ? '#ffebee' : 'rgba(255,255,255,0.9)', fontWeight: 700 }}
+                        />
+                      )}
+                    </Box>
+
+                    <CardContent sx={{ pt: 2 }}>
+                      <Typography variant="subtitle1" component="div" fontWeight={700} noWrap sx={{ mb: 0.5 }}>
+                        {formData.nombre || 'Sin título'}
+                      </Typography>
+
+                      <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography variant="h6" fontWeight={800}>
+                          {formData.precio_base}
+                        </Typography>
+                      </Box>
+                      {/* Tiempo preparación / peso */}
+                      <Box display="flex" justifyContent="space-between" gap={1} flexWrap='wrap'>
+                        <Typography variant="caption" color="text.secondary">Tiempo preparación: {formData.tiempo_preparacion ?? 0}</Typography>
+                        <Typography variant="caption" color="text.secondary">Peso: {formData.peso ?? 0}</Typography>
+                      </Box>
+                      {/* Calorias / porciones */}
+                      <Box display="flex" justifyContent="space-between" gap={1} flexWrap='wrap'>
+                        <Typography variant="caption" color="text.secondary">Calorias: {formData.calorias ?? 0}</Typography>
+                        <Typography variant="caption" color="text.secondary">Porciones: {formData.porciones ?? 0}</Typography>
+                      </Box>
+                      {/* Picante / Temperatura */}
+                      <Box display="flex" justifyContent="space-between" gap={1} flexWrap='wrap'>
+                        <Typography variant="caption" color="text.secondary">Picante: {formData.nivel_picante ?? 'ninguno'}</Typography>
+                        <Typography variant="caption" color="text.secondary">Temperatura: {formData.temperatura ?? ''}</Typography>
+                      </Box>
+                      {/* descripción corta */}
+                      {formData.descripcion && (
+                        <Typography variant="body2" color="text.secondary" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {formData.descripcion}
+                        </Typography>
+                      )}
+                      {/* Categorias */}
+                      <Typography variant="caption" color="primary" mt={1}>Categorias:</Typography>
+                      <Box display="flex" alignItems="center" gap={1} flexWrap='wrap' mb={1}>
+                        {
+                          (categories.filter((cat) => formData.food_categories.includes(cat.id))).map(({ id: categoryId, attributes }) => (
+                            <Typography key={`category-${categoryId}}`} variant="caption" color="text.secondary">• {attributes?.nombre ?? ''}</Typography>
+                          ))
+                        }
+                      </Box>
+                      {/* Ingredientes */}
+                      <Box display="flex" flexDirection="column" justifyContent="center" flexWrap='wrap'>
+                        <Typography variant="caption" color="primary">Ingredientes:</Typography>
+                        {
+                          ingredientes.map((ingrediente, index) => (
+                            <Typography key={`ingrediente-${index}-product`} variant="caption" color="text.secondary" pl={1}>• {ingrediente?.nombre ?? ''}</Typography>
+                          ))
+                        }
+                      </Box>
+                      {/* Alergenos */}
+                      <Box display="flex" flexDirection="column" justifyContent="center" flexWrap='wrap'>
+                        <Typography variant="caption" color="primary">Alergenos</Typography>
+                        {
+                          alergenos.map((alergeno, index) => (
+                            <Typography key={`alergeno-${index}-product`} variant="caption" color="text.secondary" pl={1}>• {alergeno ?? ''}</Typography>
+                          ))
+                        }
+                      </Box>
+                      {/* Flags */}
+                      <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" mt={2}>
+                        {formData.vegetariano && (<Chip label="Vegetariano" color="success" size="small" sx={{ fontWeight: 700 }} />)}
+                        {formData.vegano && (<Chip label="Vegano" color="success" size="small" sx={{ fontWeight: 700 }} />)}
+                        {formData.sin_gluten && (<Chip label="Sin gluten" color="default" size="small" sx={{ fontWeight: 700 }} />)}
+                        {formData.contiene_lacteos && (<Chip label="Contiene lacteos" color="info" size="small" sx={{ fontWeight: 700 }} />)}
+                        {formData.contiene_mariscos && (<Chip label="Contiene mariscos" color="error" size="small" sx={{ fontWeight: 700 }} />)}
+                        {formData.contiene_cerdo && (<Chip label="Contiene cerdo" color="secondary" size="small" sx={{ fontWeight: 700 }} />)}
+                      </Box>
+                    </CardContent>
+                  </Box>
+                </Card>
                 <Button type="submit" variant="contained" color="primary" disabled={enviando}>
-                  {enviando ? 'Guardando...' : 'Guardar Producto'}
+                  {enviando ? 'Guardando...' : 'Guardar platillo'}
                 </Button>
               </>
             )}

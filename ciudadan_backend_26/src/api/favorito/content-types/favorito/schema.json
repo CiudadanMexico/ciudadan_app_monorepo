@@ -14,8 +14,9 @@
   "attributes": {
     "usuario": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "plugin::users-permissions.user"
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "favoritos"
     },
     "usuario_email": {
       "type": "email"
@@ -31,8 +32,9 @@
     },
     "producto": {
       "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::producto.producto"
+      "relation": "manyToOne",
+      "target": "api::producto.producto",
+      "inversedBy": "favoritos"
     },
     "club": {
       "type": "relation",

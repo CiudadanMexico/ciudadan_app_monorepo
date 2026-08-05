@@ -24,6 +24,7 @@ import {
   Pagination,
   Skeleton,
 } from '@mui/material';
+import { useRoles } from '../../Contexts/RolesContext.jsx';
 
 export default function MarketPage() {
   // Hooks
@@ -33,6 +34,7 @@ export default function MarketPage() {
   const location = useLocation();
   const { getCategorias, loading: loadingCategorias } = useCategorias();
   const { ubicacion } = useUbicacion();
+  const { userData } = useRoles();
   const {
     getProducts,
     precotizarMienvio,
@@ -106,7 +108,6 @@ export default function MarketPage() {
           numCalificaciones: numCalificaciones ?? prevProduct?.numCalificaciones ?? 0,
           precio: productPrice,
         };
-        console.log("New Aux Object:", auxObject);
         return auxObject;
       }));
 
@@ -374,7 +375,7 @@ export default function MarketPage() {
             const isLast = idx === products.length - 1;
             return (
               <Grid
-                key={id}
+                key={`product-item-${id}`}
                 item
                 xs={12}
                 sm={6}
@@ -408,6 +409,8 @@ export default function MarketPage() {
                   numeroCalificaciones={prod.numCalificaciones ?? prod.attributes?.numero_calificaciones ?? 0}
                   vendidos={prod.attributes?.vendidos}
                   total={prod.total && `$${prod.total}`}
+                  productoId={id}
+                  currentUserId={userData?.id}
                 />
               </Grid>
             );
