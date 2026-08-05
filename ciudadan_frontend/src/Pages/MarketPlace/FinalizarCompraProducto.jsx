@@ -19,6 +19,7 @@ import {
   VerifiedRounded,
   LocalShippingRounded,
 } from "@mui/icons-material";
+import { useRoles } from '../../Contexts/RolesContext';
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL;
 const steps = ["Producto", "Dirección", "Pago", "Confirmación"];
@@ -54,6 +55,7 @@ export default function FinalizarCompraProducto() {
     obtenerResenas,
   } = useProductos();
   const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { userData } = useRoles();
   const { precotizarPlataforma, precotizarMienvio, precotizarStripe } = useCart();
 
 
@@ -77,6 +79,20 @@ export default function FinalizarCompraProducto() {
     console.log("cart y emojis - dirección seleccionada:", dir);
     setSelectedAddress(dir);
   }, []);
+
+  const handleGetAddressStore = async (storeId) => {
+    if (!storeId) return null;
+    try {
+      const results = await fetch(`${STRAPI}/api/direcciones?filters[store_id][id][$eq]=${storeId}`);
+      const { data } = await results.json();
+      if (data && data.length > 0)
+        return data[0]
+      return null
+    } catch (error) {
+      console.error("Error al obtener la dirección de la tienda:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -272,6 +288,7 @@ export default function FinalizarCompraProducto() {
       const total = parseFloat(
         (subtotal + envio + comisionPlataforma + comisionStripe).toFixed(2)
       );
+      const storeAddress = await handleGetAddressStore(storeInfo?.id);
 
       // Item mapeado igual que mapItemToComponent en FinalizarCompra.jsx
       const item = {
@@ -356,11 +373,13 @@ export default function FinalizarCompraProducto() {
           carrito_id: carritoCreatedId,
           direccion_destino: selectedAddress.id,
           metadata: { usuario_email: user?.email || "unknown" },
-          usuario: user,
+          usuario: userData?.id,
           store: storeInfo.id,
           store_email: attrs.store.email,
         },
       };
+      if (storeAddress)
+        payloadPedido.data['direccion_origen'] = storeAddress?.id;
 
       const res = await fetch(`${STRAPI}/api/pedidos`, {
         method: "POST",

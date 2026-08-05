@@ -1,5 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState } from "react";
+import { useRoles } from "../../Contexts/RolesContext";
 //import "../../styles/PagoPorTienda.css";
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
@@ -15,6 +16,7 @@ const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
  */
 const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }) => {
   const { user } = useAuth0();
+  const { userData } = useRoles();
   // ---------- DERIVAR ESTADO INICIAL desde pedido.attributes ----------
   // Puede venir en diferentes formas según Strapi. Extraemos con defensiva.
   const initialPagoId = pedido?.attributes?.pago_id || pedido?.attributes?.pagoId || pedido?.attributes?.pago || null;
@@ -146,6 +148,8 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
           status: "pendiente_verificacion",
           usuario_email: user?.email,
           store: store?.id,
+          usuario: userData?.id,
+          fecha_pagado: new Date().toISOString()
         };
         if (carritoId)
           pagoPayload.carrito_id = carritoId;
