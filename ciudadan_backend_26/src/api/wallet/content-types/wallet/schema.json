@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "wallets",
+  "info": {
+    "singularName": "wallet",
+    "pluralName": "wallets",
+    "displayName": "wallet"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "address": {
+      "type": "string"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "labory_balance": {
+      "type": "decimal"
+    },
+    "cit_history": {
+      "type": "json"
+    },
+    "cit_balance": {
+      "type": "decimal"
+    },
+    "status": {
+      "type": "string"
+    },
+    "agency": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agencia.agencia"
+    },
+    "isagency": {
+      "type": "boolean"
+    }
+  }
+}

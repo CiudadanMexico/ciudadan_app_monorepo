@@ -1010,6 +1010,8 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'oneToMany',
       'admin::user'
     >;
+    walll: Attribute.String;
+    wallet_address: Attribute.String;
     tipo: Attribute.Enumeration<['local', 'federal']> &
       Attribute.DefaultTo<'local'>;
     socios: Attribute.Relation<
@@ -3421,6 +3423,41 @@ export interface ApiKitjardineroKitjardinero extends Schema.CollectionType {
   };
 }
 
+export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
+  collectionName: 'laborys_payments';
+  info: {
+    singularName: 'laborys-payment';
+    pluralName: 'laborys-payments';
+    displayName: 'laborys_payment';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    origin_wallet: Attribute.String;
+    destination_wallet: Attribute.String;
+    ammount: Attribute.Decimal;
+    type: Attribute.String;
+    timestamp: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    status: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
 export interface ApiListaSuscripcionListaSuscripcion
   extends Schema.CollectionType {
   collectionName: 'listas_suscripciones';
@@ -5140,6 +5177,51 @@ export interface ApiViajeViaje extends Schema.CollectionType {
   };
 }
 
+export interface ApiWalletWallet extends Schema.CollectionType {
+  collectionName: 'wallets';
+  info: {
+    singularName: 'wallet';
+    pluralName: 'wallets';
+    displayName: 'wallet';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Attribute.String;
+    user: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    labory_balance: Attribute.Decimal;
+    cit_history: Attribute.JSON;
+    cit_balance: Attribute.Decimal;
+    status: Attribute.String;
+    agency: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'api::agencia.agencia'
+    >;
+    isagency: Attribute.Boolean;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiWorldCoinWalletWorldCoinWallet
   extends Schema.CollectionType {
   collectionName: 'world_coin_wallets';
@@ -5240,6 +5322,7 @@ declare module '@strapi/types' {
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
+      'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
@@ -5269,6 +5352,7 @@ declare module '@strapi/types' {
       'api::todo.todo': ApiTodoTodo;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
       'api::viaje.viaje': ApiViajeViaje;
+      'api::wallet.wallet': ApiWalletWallet;
       'api::world-coin-wallet.world-coin-wallet': ApiWorldCoinWalletWorldCoinWallet;
     }
   }

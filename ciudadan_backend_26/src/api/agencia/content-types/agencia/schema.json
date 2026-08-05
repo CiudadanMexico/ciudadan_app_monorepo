@@ -32,6 +32,12 @@
       "relation": "oneToMany",
       "target": "admin::user"
     },
+    "walll": {
+      "type": "string"
+    },
+    "wallet_address": {
+      "type": "string"
+    },
     "tipo": {
       "type": "enumeration",
       "enum": [

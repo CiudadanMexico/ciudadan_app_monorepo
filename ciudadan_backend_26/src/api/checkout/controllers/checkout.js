@@ -1,5 +1,6 @@
 "use strict";
 
+// @ts-ignore
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const priceIdMap = {
@@ -9,6 +10,7 @@ const priceIdMap = {
 };
 
 module.exports = {
+  // @ts-ignore
   async createSession(ctx) {
     const { email, plan } = ctx.request.body;
 
@@ -16,7 +18,10 @@ module.exports = {
       return ctx.badRequest("Faltan parámetros: email o plan");
     }
 
-    const priceId = priceIdMap[plan.toLowerCase()];
+    // Ensure plan is a string before using it to index priceIdMap
+    const planKey = typeof plan === "string" ? plan.toLowerCase() : "";
+    // @ts-ignore
+    const priceId = priceIdMap[planKey];
     if (!priceId) {
       return ctx.badRequest("Tipo de plan no válido");
     }
