@@ -3458,6 +3458,7 @@ export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
       Attribute.Private;
   };
 }
+
 export interface ApiListaSuscripcionListaSuscripcion
   extends Schema.CollectionType {
   collectionName: 'listas_suscripciones';
