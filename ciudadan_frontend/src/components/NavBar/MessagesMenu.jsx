@@ -13,7 +13,7 @@ const MessagesMenu = ({ isOpen, onClose, onLogout }) => {
     // Asegurarse de que el usuario esté autenticado antes de hacer la petición
     if (isAuthenticated && user) {
       axios
-        .get(`http://localhost:1337/api/messages?filters[sender_id][email]=${user.email}`)
+        .get(`${process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032'}/api/messages?filters[sender_id][email]=${user.email}`)
         .then((response) => {
           setMessages(response.data.data); // Guardar los mensajes
           setLoading(false); // Cambiar estado de carga a falso

@@ -313,7 +313,14 @@ const ConductorRender = ({
   useEffect(() => {
     try {
       console.log('[ConductorRender] conectando socket a', process.env.REACT_APP_SOCKET_URL);
-      socketRef.current = io(process.env.REACT_APP_SOCKET_URL, { transports: ['websocket'] });
+      socketRef.current = io(process.env.REACT_APP_SOCKET_URL, {
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: 3,
+        reconnectionDelay: 2000,
+        reconnectionDelayMax: 5000,
+        timeout: 4000,
+      });
 
       socketRef.current.on('connect', () => {
         console.log('[ConductorRender][socket] conectado id=', socketRef.current.id);

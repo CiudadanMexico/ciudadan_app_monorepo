@@ -1,0 +1,64 @@
+
+[INFO] Including the following ENV variables as part of the JS bundle:
+    - ADMIN_PATH
+    - STRAPI_ADMIN_BACKEND_URL
+    - STRAPI_TELEMETRY_DISABLED
+[2026-07-25 22:38:14.592] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,area_details,skills
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Sat Jul 25 2026 22:38:18 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 6513 ms                                          [90m│[39m
+[90m│[39m Environment        [90m│[39m development                                      [90m│[39m
+[90m│[39m Process PID        [90m│[39m 13896                                            [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.18.1)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://localhost:33032/admin
+
+To access the server ⚡️, go to:
+http://localhost:33032
+
+[2026-07-25 23:07:41.860] [32mhttp[39m: GET /api/todos?filters%5Bstatus%5D%5B%24in%5D%5B0%5D=publicada&filters%5Bstatus%5D%5B%24in%5D%5B1%5D=asignada&filters%5Bstatus%5D%5B%24in%5D%5B2%5D=en_proceso&filters%5Bstatus%5D%5B%24in%5D%5B3%5D=pendiente_revision&filters%5Bstatus%5D%5B%24in%5D%5B4%5D=calificada&filters%5Bstatus%5D%5B%24in%5D%5B5%5D=pagada&filters%5Bnivel%5D%5B%24in%5D%5B0%5D=general&filters%5Bnivel%5D%5B%24in%5D%5B1%5D=becario&filters%5Bnivel%5D%5B%24in%5D%5B2%5D=becarios (35 ms) 200
+[2026-07-25 23:07:41.917] [32mhttp[39m: GET /api/areas (9 ms) 200
+[2026-07-25 23:07:41.958] [32mhttp[39m: GET /api/skills (21 ms) 200
+[2026-07-25 23:07:41.983] [32mhttp[39m: GET /api/carteras (6 ms) 404
+[2026-07-25 23:07:42.016] [32mhttp[39m: GET /api/areas?filters%5Blevel%5D%5B$eq%5D=0&filters%5Bis_active%5D%5B$eq%5D=true (8 ms) 200
+[2026-07-25 23:07:42.097] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:07:42.098] [32mhttp[39m: POST /api/tareas/calificar (12 ms) 403
+[2026-07-25 23:07:42.107] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:07:42.108] [32mhttp[39m: POST /api/tareas/apelar (4 ms) 403
+[2026-07-25 23:07:42.119] [33mwarn[39m: is-admin-or-socio: falta el header Authorization
+[2026-07-25 23:07:42.120] [32mhttp[39m: POST /api/tareas/resolver-apelacion (4 ms) 403
+[2026-07-25 23:07:42.127] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:07:42.128] [32mhttp[39m: POST /api/tareas/resolver (2 ms) 403
+[2026-07-25 23:07:42.138] [32mhttp[39m: POST /api/tareas/completar (2 ms) 405
+[2026-07-25 23:07:42.146] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:07:42.147] [32mhttp[39m: POST /api/tareas/corregir (2 ms) 403
+[2026-07-25 23:07:42.157] [33mwarn[39m: is-verificador: falta el header Authorization
+[2026-07-25 23:07:42.157] [32mhttp[39m: POST /api/areas/verificar-area (3 ms) 403
+[2026-07-25 23:07:42.167] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:07:42.169] [32mhttp[39m: POST /api/tareas/calificar (4 ms) 403
+[2026-07-25 23:07:42.176] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:07:42.177] [32mhttp[39m: POST /api/tareas/apelar (3 ms) 403
+[2026-07-25 23:09:13.761] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:09:13.762] [32mhttp[39m: PUT /api/users/1/areas (2 ms) 403
+[2026-07-25 23:09:13.790] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:09:13.791] [32mhttp[39m: POST /api/users/1/proponer-subarea (4 ms) 403
+[2026-07-25 23:09:13.801] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:09:13.802] [32mhttp[39m: GET /api/users/1/proposed-subareas (3 ms) 403
+[2026-07-25 23:09:13.809] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:09:13.810] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=1&pageSize=10 (2 ms) 403
+[2026-07-25 23:09:13.817] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:09:13.818] [32mhttp[39m: GET /api/tareas/filtrar?status=completada,corregida&pageSize=10 (2 ms) 403
+[2026-07-25 23:09:13.826] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 23:09:13.827] [32mhttp[39m: GET /api/cartera (3 ms) 403
+[2026-07-25 23:09:13.836] [33mwarn[39m: is-verificador: falta el header Authorization
+[2026-07-25 23:09:13.837] [32mhttp[39m: GET /api/areas/verificaciones?userId=1 (2 ms) 403

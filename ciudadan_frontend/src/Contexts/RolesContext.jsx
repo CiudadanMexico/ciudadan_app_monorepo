@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
-const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
 const RolesContext = createContext();
 export const useRoles = () => useContext(RolesContext);
@@ -17,7 +17,19 @@ export const useRoles = () => useContext(RolesContext);
  * API compatibility: keeps the same exported values and function names so other components work unchanged.
  */
 export const RolesProvider = ({ children }) => {
-  const { user: auth0User, isAuthenticated, isLoading } = useAuth0();
+  const { user: auth0User, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+
+  // Helper para obtener el token Auth0 con audience correcta
+  const getToken = useCallback(async () => {
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: 'https://api.ciudadan.org' },
+      });
+    } catch (e) {
+      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+      return null;
+    }
+  }, [getAccessTokenSilently]);
 
   // Estados locales expuestos
   const [roles, setRoles] = useState(['invitado']);
@@ -25,7 +37,7 @@ export const RolesProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
 
   // ----- CONFIG -----
-  const CACHE_TTL = 1 * 1 * 1000; // 5 minutos de TTL para la caché (ajustable)AJUSTAR ESTÁ EN 1 SEGUNDO
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutos de TTL para la caché
 
   // ----- Refs -----
   // para evitar setState después de un unmount
@@ -130,17 +142,14 @@ export const RolesProvider = ({ children }) => {
 
       // Creamos la promesa y la guardamos para coalescer
       const fetchPromise = (async () => {
-        const headers = {
-          "Content-Type": "application/json",
-        };
-        const strapiJwt = process.env.REACT_APP_STRAPI_TOKEN || '';
-        if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
-
         try {
+          const token = await getToken();
           // 1) Obtener usuario Strapi por email (con populate necesario)
           const url = `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(
             email
-          )}&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*`;
+          )}&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*&populate[agencia]=*&populate[areas]=*`;
+          const headers = { 'Content-Type': 'application/json' };
+          if (token) headers.Authorization = `Bearer ${token}`;
           const res = await fetch(url, { credentials: 'include', headers });
           const json = await res.json();
           const users = Array.isArray(json) ? json : json.data || [];
@@ -178,7 +187,9 @@ export const RolesProvider = ({ children }) => {
 
           // 2) Obtener membresias activas para el user by email
           const membUrl = `${STRAPI_URL}/api/membresias?filters[usuarioemail][$eq]=${email}&filters[activa][$eq]=true`;
-          const membRes = await fetch(membUrl, { credentials: 'include', headers });
+          const membHeaders = {};
+          if (token) membHeaders.Authorization = `Bearer ${token}`;
+          const membRes = await fetch(membUrl, { credentials: 'include', headers: membHeaders });
 
           let selectedMembresia = null;
           if (membRes.ok) {
@@ -240,7 +251,7 @@ export const RolesProvider = ({ children }) => {
       return fetchPromise;
     },
     // Dependencias: auth0User.email e isAuthenticated son leídos del closure, pero la función expuesta no cambiará innecesariamente
-    [auth0User?.email, isAuthenticated]
+    [auth0User?.email, isAuthenticated, getToken]
   );
 
   /**
@@ -266,10 +277,13 @@ export const RolesProvider = ({ children }) => {
       blocked: false
     };
 
+    const token = await getToken();
+    const createHeaders = { 'Content-Type': 'application/json' };
+    if (token) createHeaders.Authorization = `Bearer ${token}`;
     const createRes = await fetch(`${STRAPI_URL}/api/users`, {
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: createHeaders,
       body: JSON.stringify(payload)
     });
 
@@ -286,7 +300,7 @@ export const RolesProvider = ({ children }) => {
       setUserData(null);
     }
     return true;
-  }, [auth0User?.email]);
+  }, [auth0User?.email, getToken]);
 
   /**
    * hasExtra(roleName)
@@ -314,6 +328,16 @@ export const RolesProvider = ({ children }) => {
   const isRoot = useCallback(() => {
     if (!isAuthenticated || !userData) return false;
     return hasExtra('root');
+  }, [isAuthenticated, userData, hasExtra]);
+
+  const isSocio = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('socio');
+  }, [isAuthenticated, userData, hasExtra]);
+
+  const isVerificador = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('verificador');
   }, [isAuthenticated, userData, hasExtra]);
 
   const isActivaMembresia = useCallback(() => Boolean(membresia), [membresia]);
@@ -370,11 +394,14 @@ export const RolesProvider = ({ children }) => {
 
       // Envío a Strapi (PUT)
       try {
+        const token = await getToken();
         const payload = { roles: { extra: newExtra } };
+        const putHeaders = { 'Content-Type': 'application/json' };
+        if (token) putHeaders.Authorization = `Bearer ${token}`;
         const res = await fetch(`${STRAPI_URL}/api/users/${userData.id}`, {
           method: 'PUT',
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
+          headers: putHeaders,
           body: JSON.stringify({ data: payload })
         });
 
@@ -399,7 +426,7 @@ export const RolesProvider = ({ children }) => {
         throw err;
       }
     },
-    [userData, roles, auth0User?.email, membresia]
+    [userData, roles, auth0User?.email, membresia, getToken]
   );
 
   // isJardinero / isClub / haveClub / verificado
@@ -427,6 +454,7 @@ export const RolesProvider = ({ children }) => {
   const setEditor = useCallback((enabled) => updateExtraRole('editor', enabled), [updateExtraRole]);
   const setAdmin = useCallback((enabled) => updateExtraRole('admin', enabled), [updateExtraRole]);
   const setRoot = useCallback((enabled) => updateExtraRole('root', enabled), [updateExtraRole]);
+  const setVerificador = useCallback((enabled) => updateExtraRole('verificador', enabled), [updateExtraRole]);
 
   /**
    * useEffect principal:
@@ -462,6 +490,8 @@ export const RolesProvider = ({ children }) => {
         isEditor,
         isAdmin,
         isRoot,
+        isSocio,
+        isVerificador,
         isJardinero,
         isClub,
         haveClub,
@@ -469,6 +499,7 @@ export const RolesProvider = ({ children }) => {
         setEditor,
         setAdmin,
         setRoot,
+        setVerificador,
         verificado
       }}
     >

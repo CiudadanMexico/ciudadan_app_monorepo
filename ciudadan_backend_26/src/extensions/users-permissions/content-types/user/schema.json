@@ -326,6 +326,21 @@
       "relation": "manyToMany",
       "target": "api::area.area",
       "inversedBy": "usuarios"
+    },
+    "area_details": {
+      "type": "json"
+    },
+    "skills": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::skill.skill",
+      "inversedBy": "usuarios"
+    },
+    "agencia": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agencia.agencia",
+      "inversedBy": "socios"
     }
   }
 }
