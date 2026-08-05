@@ -123,6 +123,9 @@
     },
     "usuario_email": {
       "type": "email"
+    },
+    "fecha_aprobado": {
+      "type": "datetime"
     }
   }
 }

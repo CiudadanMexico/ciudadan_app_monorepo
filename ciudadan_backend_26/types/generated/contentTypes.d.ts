@@ -3695,6 +3695,7 @@ export interface ApiPagoPago extends Schema.CollectionType {
     >;
     comprobante: Attribute.Media<'images' | 'files'> & Attribute.Required;
     usuario_email: Attribute.Email;
+    fecha_aprobado: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
