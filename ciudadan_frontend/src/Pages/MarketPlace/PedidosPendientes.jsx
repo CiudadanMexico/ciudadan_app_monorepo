@@ -94,7 +94,7 @@ const PedidosPendientes = ({ store }) => {
     };
     await patchPedido(selectedPagoPedido.id, payload);
     if (selectedPagoPedido?.attributes?.pago_id?.data) {
-      await patchPago(selectedPagoPedido?.attributes?.pago_id?.data?.id, { status: 'verificado' });
+      await patchPago(selectedPagoPedido?.attributes?.pago_id?.data?.id, { status: 'verificado', fecha_aprobado: now });
     }
     handleClosePago();
   };

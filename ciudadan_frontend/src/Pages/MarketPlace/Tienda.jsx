@@ -224,7 +224,7 @@ const Tienda = () => {
           {tabIndex === 2 && <MisProductos filtros={filtros} />}
           {tabIndex === 3 && <AgregarProducto />}
           {tabIndex === 4 && <PreguntasProductos  storeId={storeData?.id}/>}
-          {tabIndex === 5 && <PagosTienda />}
+          {tabIndex === 5 && <PagosTienda storeId={storeData?.id} />}
           {tabIndex === 6 && <ConfiguracionTienda />}
         </Box>
       </Box>
