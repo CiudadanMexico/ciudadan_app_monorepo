@@ -7,7 +7,18 @@ module.exports = {
       path: '/cartera',
       handler: 'cartera.find',
       config: {
-        policies: [],
+        auth: false,
+        policies: ['global::is-authenticated-auth0'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/cartera/:id',
+      handler: 'cartera.findOne',
+      config: {
+        auth: false,
+        policies: ['global::is-authenticated-auth0'],
         middlewares: [],
       },
     },
@@ -16,7 +27,28 @@ module.exports = {
       path: '/cartera',
       handler: 'cartera.create',
       config: {
-        policies: [],
+        auth: false,
+        policies: ['global::is-authenticated-auth0'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/cartera/:id',
+      handler: 'cartera.update',
+      config: {
+        auth: false,
+        policies: ['global::is-authenticated-auth0', 'global::is-admin-or-socio'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'DELETE',
+      path: '/cartera/:id',
+      handler: 'cartera.delete',
+      config: {
+        auth: false,
+        policies: ['global::is-authenticated-auth0', 'global::is-admin-or-socio'],
         middlewares: [],
       },
     },

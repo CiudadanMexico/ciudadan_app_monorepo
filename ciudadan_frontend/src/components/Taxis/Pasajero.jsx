@@ -76,6 +76,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [paymentLabory, setPaymentLabory] = useState(false);
+  const [saldoLabory, setSaldoLabory] = useState(0);
 
   const { mapRef, fromMarkerRef, toMarkerRef } = useGoogleMaps(
     fromCoordinates,
@@ -814,6 +815,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const userData = await response.json();
       const userId = userData?.data?.[0]?.attributes?.usuario?.data?.id || null;
+      console.log('pasajero id', userId);
       const settings = preferenceSettings;
       console.log("[AcceptTrip] configuraciones del usuario:", settings);
 

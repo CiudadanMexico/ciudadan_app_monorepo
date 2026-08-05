@@ -1280,7 +1280,7 @@ export interface ApiCarroCarro extends Schema.CollectionType {
     > &
       Attribute.DefaultTo<'indiferente'>;
     musica: Attribute.Enumeration<
-    ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
+      ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
     > &
       Attribute.DefaultTo<'indiferente'>;
     tipo_musica: Attribute.JSON;
@@ -1605,7 +1605,7 @@ export interface ApiCarteraCartera extends Schema.CollectionType {
     user_id: Attribute.Relation<
       'api::cartera.cartera',
       'oneToOne',
-      'admin::user'
+      'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
