@@ -4491,6 +4491,36 @@ export interface ApiServicioServicio extends Schema.CollectionType {
   };
 }
 
+export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
+  collectionName: 'site_settings';
+  info: {
+    singularName: 'site-setting';
+    pluralName: 'site-settings';
+    displayName: 'Site_setting';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    labory_to_pesos_exchange_rate: Attribute.Decimal;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSkillSkill extends Schema.CollectionType {
   collectionName: 'skills';
   info: {
@@ -4527,36 +4557,6 @@ export interface ApiSkillSkill extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::skill.skill',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
-export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
-  collectionName: 'site_settings';
-  info: {
-    singularName: 'site-setting';
-    pluralName: 'site-settings';
-    displayName: 'Site_setting';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    labory_to_pesos_exchange_rate: Attribute.Decimal;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::site-setting.site-setting',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::site-setting.site-setting',
       'oneToOne',
       'admin::user'
     > &
@@ -5259,8 +5259,8 @@ declare module '@strapi/types' {
       'api::resena.resena': ApiResenaResena;
       'api::respuesta.respuesta': ApiRespuestaRespuesta;
       'api::servicio.servicio': ApiServicioServicio;
-      'api::skill.skill': ApiSkillSkill;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
+      'api::skill.skill': ApiSkillSkill;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;
