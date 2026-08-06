@@ -76,6 +76,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [paymentLabory, setPaymentLabory] = useState(false);
+  const [saldoLabory, setSaldoLabory] = useState(0);
 
   const { mapRef, fromMarkerRef, toMarkerRef } = useGoogleMaps(
     fromCoordinates,
@@ -443,11 +444,6 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     try {
       socketRef.current = io(process.env.REACT_APP_SOCKET_URL, {
         transports: ['websocket'],
-        reconnection: true,
-        reconnectionAttempts: 3,
-        reconnectionDelay: 2000,
-        reconnectionDelayMax: 5000,
-        timeout: 4000,
       });
 
       socketRef.current.on('connect', () => {
@@ -819,6 +815,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const userData = await response.json();
       const userId = userData?.data?.[0]?.attributes?.usuario?.data?.id || null;
+      console.log('pasajero id', userId);
       const settings = preferenceSettings;
       console.log("[AcceptTrip] configuraciones del usuario:", settings);
 

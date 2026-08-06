@@ -285,30 +285,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     return ratingAvg;
   }
 
-  /*useEffect(() => {
-    (async () => {
-      const base = process.env.REACT_APP_SOCKET_URL;
-      const res = await fetch(`${base.replace(/\/$/, '')}/rating-calculate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userEmail: user?.email,
-          isDriver
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Error buscando calificacion de conductor en Strapi");
-      }
-      const data = await res.json();
-      console.log("[AcceptTrip] ratingData:", data?.ratingAvg);
-      setDriverData((prev) => {
-        return { ...prev, ratingAvg: data?.ratingAvg }
-      });
-    })();
-  }, [user?.email, isDriver]);*/
-
   useEffect(() => {
     userCoordsRef.current = userCoords;
   }, [userCoords]);
@@ -894,6 +870,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           paymentFlowState={paymentFlowState}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
           onDriverPaymentChoice={handleDriverPaymentChoice}
+          setDriverPaymentState={setDriverPaymentState}
         />
       ) : (
         <ViajeUsuario

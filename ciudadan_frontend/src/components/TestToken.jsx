@@ -18,7 +18,7 @@ const TestToken = () => {
       setToken(t);
     } catch (err) {
       console.error(err);
-      alert("Error obteniendo token");
+      alert(`Error obteniendo token: ${err.message}`);
     }
     setLoading(false);
   };
