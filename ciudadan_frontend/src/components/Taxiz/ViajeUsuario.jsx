@@ -1,5 +1,6 @@
 // src/components/Trips/ViajeUsuario.jsx
 import React, { useEffect, useState, useCallback } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 
 // normaliza coords a {lat, lng} o null
 const normalizeCoord = (c) => {
@@ -25,6 +26,18 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
 
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
+  const { getAccessTokenSilently } = useAuth0();
+
+  const getToken = useCallback(async () => {
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: 'https://api.ciudadan.org' },
+      });
+    } catch (e) {
+      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+      return null;
+    }
+  }, [getAccessTokenSilently]);
 
   // normalizamos todo ANTES de usarlo
   const pickupNorm = viaje?.attributes?.origendireccion?.label;
@@ -36,6 +49,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
 
   const [expanded, setExpanded] = useState(true);
   const [paymentLabory, setPaymentLabory] = useState(false);
+  const [saldoLabory, setSaldoLabory] = useState(0);
   const status = viaje?.attributes?.status || 'esperando';
   //const routeInfo = viaje?.attributes?._routeInfo || null;
 
@@ -64,6 +78,30 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
 
+  const consultarSaldo = useCallback(async () => {
+    if (!strapiUrl) return;
+
+    try {
+      const url = `${strapiUrl}/api/cartera`;
+      const headers = { 'Content-Type': 'application/json' };
+      const token = await getToken();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error('No se pudo consultar la cartera del usuario');
+      }
+
+      const data = await response.json();
+      const saldo = data?.laborysSaldo || 0;
+      return saldo;
+    } catch (err) {
+      console.warn('[Pasajero] no se pudo consultar la cartera del usuario:', err);
+    }
+  }, [getToken, strapiUrl]);
+
   const loadLabory = useCallback(async () => {
     if (!userEmail || !strapiUrl) return;
 
@@ -83,10 +121,44 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       const payment = userData?.data?.[0]?.attributes?.pago_labory || false;
       console.log('Pago Labory', payment);
       setPaymentLabory(payment);
+      if (payment) {
+        const saldo = await consultarSaldo();
+        console.log('Saldo Labory', saldo);
+        setSaldoLabory(saldo);
+      }
     } catch (err) {
       console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
     }
   }, [strapiToken, strapiUrl, userEmail]);
+
+  const confirmPayment = async (amount) => {
+    if (!strapiUrl) return;
+
+    try {
+      const url = `${strapiUrl}/api/viaje/pagar`;
+      const headers = { 'Content-Type': 'application/json' };
+      const token = await getToken();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          driverId: viaje?.attributes?.conductor?.data?.id,
+          amount
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('No se pudo consultar la cartera del usuario');
+      }
+
+      const data = await response.json();
+    } catch (err) {
+      console.warn('[Pasajero] no se pudo confirmar el pago:', err);
+    }
+  };
 
   useEffect(() => {
     if (!socket || !viaje?.id) return;
@@ -114,10 +186,6 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       socket.off('trip-update', onTripUpdate);
     };
   }, [socket, viaje, setUserCoords, loadLabory]);
-
-  /*useEffect(() => {
-    loadLabory();
-  }, [loadLabory]);*/
 
   return (
     <div style={{
@@ -238,15 +306,12 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               {paymentFlowState.showPassengerAmount && paymentAmount != null && (
                 <div>
                   <div style={{ fontSize: 14, color: '#444' }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
-                  {paymentLabory && (
+                  {(paymentLabory && saldoLabory > 0) && (
                     <>
                       <div style={{ fontSize: 14, color: '#444' }}>Pago máximo con Labory: <strong>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong></div>
                       <div style={{ fontSize: 14, color: '#444' }}>Efectivo restante: <strong>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
                     </>
                   )}
-                  {/*<button onClick={() => onConfirmPayment?.(paymentAmount)} style={{ flex: 1, padding: 10, borderRadius: 8, background: '#2f6fed', color: '#fff', border: 'none', fontWeight: 700 }}>
-                    Confirmar pago
-                  </button>*/}
                 </div>
               )}
               {paymentFlowState.showPassengerConfirmationOptions && (

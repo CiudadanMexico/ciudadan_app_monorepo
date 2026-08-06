@@ -9,8 +9,6 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
 
-  //if (!selectedOffer) return null;
-
   // Obtener datos del conductor desde Strapi por email
   useEffect(() => {
     if (!selectedOffer?.driverId) return;
