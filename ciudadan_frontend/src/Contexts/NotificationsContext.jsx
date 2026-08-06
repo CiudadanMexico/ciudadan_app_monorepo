@@ -220,7 +220,14 @@ export const NotificationsProvider = ({ children }) => {
               })()
             : null;
 
-        const opts = { transports: ["websocket"] };
+        const opts = {
+          transports: ["websocket"],
+          reconnection: true,
+          reconnectionAttempts: 3,       // no reintentar infinitamente
+          reconnectionDelay: 2000,
+          reconnectionDelayMax: 5000,
+          timeout: 4000,
+        };
         if (token) opts.auth = { token };
 
         // desconectar previo
@@ -236,7 +243,13 @@ export const NotificationsProvider = ({ children }) => {
           console.debug("NotificationsContext socket conectado", socket.id)
         );
         socket.on("connect_error", (err) =>
-          console.warn("NotificationsContext socket connect_error", err)
+          console.debug("NotificationsContext socket connect_error (socket no disponible):", err?.message || err)
+        );
+        socket.on("disconnect", () =>
+          console.debug("NotificationsContext socket desconectado")
+        );
+        socket.io.on("reconnect_failed", () =>
+          console.debug("NotificationsContext socket: reintentos agotados, se desconecta silenciosamente")
         );
 
         socket.on("notification", (data) => {

@@ -19,6 +19,7 @@ import {
   Stack,
   Tab,
   Tabs,
+  TextField,
   Typography,
   useMediaQuery,
   useTheme,
@@ -33,8 +34,8 @@ import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
 import {
   assignUserAreas,
-  createTask,
-  updateTodoStatus,
+  proposeSubarea,
+  resolverTarea,
 } from '../../services/cowork/mutationsServices.js';
 import {
   getAvailableRootAreas,
@@ -85,7 +86,7 @@ const AreaTab = styled(Tab)(({ theme }) => ({
   },
 }));
 
-const EmptyState = ({ children, actions }) => (
+export const EmptyState = ({ children, actions }) => (
   <Paper
     elevation={0}
     sx={{
@@ -112,6 +113,12 @@ const AssignAreasForm = ({
   loading,
   loadingAreas,
   error,
+  // Props nuevas (Fix 5.3 "escribirla si no existe"):
+  userId,
+  onProposeSubarea,
+  proposingSubarea,
+  proposedError,
+  proposedSuccess,
 }) => (
   <Paper
     elevation={0}
@@ -153,7 +160,7 @@ const AssignAreasForm = ({
             renderValue={(selected) =>
               areas
                 .filter((area) => selected.includes(area.id))
-                .map((area) => area.nombre)
+                .map((area) => area.name || area.nombre)
                 .join(', ')
             }
             sx={{
@@ -166,7 +173,7 @@ const AssignAreasForm = ({
             {areas.map((area) => (
               <MenuItem key={area.id} value={area.id}>
                 <Checkbox checked={selectedAreaIds.includes(area.id)} />
-                <ListItemText primary={area.nombre} />
+                <ListItemText primary={area.name || area.nombre} />
               </MenuItem>
             ))}
           </Select>
@@ -187,9 +194,137 @@ const AssignAreasForm = ({
       >
         {loading ? 'Asignando...' : 'Asignar'}
       </Button>
+
+      {/* Spec 5.3 — "escribirla si no existe": si la carrera/oficio del usuario
+          no está en la lista fija de áreas raíz, puede proponerla como subárea
+          para que un socio la revise. No crea el área inmediatamente: queda
+          registrada en user.area_details.proposed_subareas[] con estado
+          'pending' hasta aprobación. */}
+      <Box
+        sx={{
+          mt: 1,
+          p: 2,
+          border: '1px dashed rgba(0,255,153,0.25)',
+          borderRadius: 2,
+          bgcolor: 'rgba(0,255,153,0.04)',
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ color: neonGreen, mb: 1 }}>
+          ¿No encuentras tu carrera o especialidad?
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#cfcfcf', display: 'block', mb: 1.5 }}>
+          Escríbela y el equipo la revisará para crearla como subárea dentro del área que elijas.
+        </Typography>
+        <ProposeSubareaForm
+          areas={areas}
+          userId={userId}
+          onSubmit={onProposeSubarea}
+          submitting={proposingSubarea}
+          submitError={proposedError}
+          successMessage={proposedSuccess}
+        />
+      </Box>
     </Stack>
   </Paper>
 );
+
+// Sub-forma controlada para proponer una subárea nueva.
+const ProposeSubareaForm = ({ areas, userId, onSubmit, submitting, submitError, successMessage }) => {
+  const [areaId, setAreaId] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [obs, setObs] = useState('');
+  const [localError, setLocalError] = useState(null);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setLocalError(null);
+    if (!userId) {
+      setLocalError('Debes iniciar sesión para proponer una subárea.');
+      return;
+    }
+    if (!areaId) {
+      setLocalError('Selecciona el área raíz bajo la cual proponer.');
+      return;
+    }
+    if (!nombre.trim()) {
+      setLocalError('Escribe el nombre de la carrera o especialidad.');
+      return;
+    }
+    onSubmit({ areaId: Number(areaId), nombre: nombre.trim(), observaciones: obs });
+    setNombre('');
+    setObs('');
+  };
+
+  return (
+    <Stack spacing={1.5} component="form" onSubmit={handleSubmit}>
+      <FormControl fullWidth size="small">
+        <InputLabel sx={{ color: '#d6d6d6' }}>Área raíz</InputLabel>
+        <Select
+          value={areaId}
+          label="Área raíz"
+          onChange={(e) => setAreaId(e.target.value)}
+          input={<OutlinedInput label="Área raíz" />}
+          sx={{
+            color: 'white',
+            '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
+            '.MuiSvgIcon-root': { color: 'white' },
+          }}
+        >
+          {areas.map((area) => (
+            <MenuItem key={area.id} value={area.id}>
+              {area.name || area.nombre}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <TextField
+        size="small"
+        label="Nombre de la carrera / especialidad"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        inputProps={{ maxLength: 200 }}
+        sx={{
+          input: { color: 'white' },
+          label: { color: '#d6d6d6' },
+          '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: neonGreen },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: neonGreen },
+        }}
+      />
+      <TextField
+        size="small"
+        label="Observaciones (opcional)"
+        value={obs}
+        onChange={(e) => setObs(e.target.value)}
+        inputProps={{ maxLength: 500 }}
+        sx={{
+          input: { color: 'white' },
+          label: { color: '#d6d6d6' },
+          '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: neonGreen },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: neonGreen },
+        }}
+      />
+      {localError && <Alert severity="error" sx={{ py: 0.5 }}>{localError}</Alert>}
+      {submitError && <Alert severity="error" sx={{ py: 0.5 }}>{submitError}</Alert>}
+      {successMessage && <Alert severity="success" sx={{ py: 0.5 }}>{successMessage}</Alert>}
+      <Button
+        type="submit"
+        variant="outlined"
+        disabled={submitting}
+        sx={{
+          alignSelf: 'flex-start',
+          borderColor: neonGreen,
+          color: neonGreen,
+          textTransform: 'none',
+          '&:hover': { bgcolor: 'rgba(0,255,153,0.08)', borderColor: neonGreen },
+        }}
+      >
+        {submitting ? 'Enviando propuesta...' : 'Proponer subárea'}
+      </Button>
+    </Stack>
+  );
+};
 
 const TaskGrid = ({ tasks, renderActions }) => (
   <Stack spacing={{ xs: 2, md: 3 }}>
@@ -242,7 +377,7 @@ const SubareaAccordion = ({
         <AccountTreeIcon sx={{ color: neonGreen, fontSize: 20, flexShrink: 0 }} />
         <Box minWidth={0}>
           <Typography fontWeight={800} noWrap>
-            {subarea.nombre}
+            {subarea.name || subarea.nombre}
           </Typography>
           <Typography variant="caption" sx={{ color: '#bcebd8' }}>
             Subárea
@@ -309,17 +444,23 @@ const TareasEspecializadas = () => {
   const [assignError, setAssignError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [resolvingId, setResolvingId] = useState(null);
-  const { canUserTakeTask } = useRecurrenciaValidation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { isAuthenticated, isLoading: authLoading, loginWithRedirect } = useAuth0();
+  const { isAuthenticated, isLoading: authLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0();
   const { userData } = useRoles();
   const userId = userData?.id;
+  const { canUserTakeTask } = useRecurrenciaValidation(userData);
 
   const fetchAvailableAreas = useCallback(async () => {
     try {
       setLoadingAvailableAreas(true);
-      const json = await getAvailableRootAreas();
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
+        });
+      } catch { /* token optional for public routes */ }
+      const json = await getAvailableRootAreas(token);
       setAvailableAreas(getActiveRootAreas(json.data));
     } catch (err) {
       console.error('Error cargando áreas disponibles:', err);
@@ -327,7 +468,7 @@ const TareasEspecializadas = () => {
     } finally {
       setLoadingAvailableAreas(false);
     }
-  }, []);
+  }, [getAccessTokenSilently]);
 
   const fetchSpecializedTasks = useCallback(async () => {
     if (!userId) return;
@@ -336,7 +477,14 @@ const TareasEspecializadas = () => {
       setLoading(true);
       setError(null);
 
-      const userJson = await getUserAreas(userId);
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
+        });
+      } catch { /* token optional for public routes */ }
+
+      const userJson = await getUserAreas(userId, token);
       const userAreas = getActiveRootAreas(userJson?.areas || []);
 
       setAreas(userAreas);
@@ -348,7 +496,7 @@ const TareasEspecializadas = () => {
         return;
       }
 
-      const todosJson = await getSpecializedTodos();
+      const todosJson = await getSpecializedTodos(token);
       setTasks((todosJson.data || []).map(normalizeTask));
     } catch (err) {
       console.error('Error cargando tareas especializadas:', err);
@@ -358,7 +506,7 @@ const TareasEspecializadas = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchAvailableAreas, userId]);
+  }, [fetchAvailableAreas, getAccessTokenSilently, userId]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -398,7 +546,14 @@ const TareasEspecializadas = () => {
       setAssignError(null);
       setSuccess(null);
 
-      await assignUserAreas(userId, selectedAreaIds);
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
+        });
+      } catch { /* token optional */ }
+
+      await assignUserAreas(userId, selectedAreaIds, token);
 
       setSuccess('Áreas asignadas correctamente.');
       setSelectedAreaIds([]);
@@ -410,6 +565,46 @@ const TareasEspecializadas = () => {
       setAssigningAreas(false);
     }
   };
+
+  // Spec 5.3 — "escribirla si no existe": el usuario propone una subárea
+  // (carrera/oficio) nueva que no encuentra en la lista de áreas. La
+  // propuesta se guarda en user.area_details.proposed_subareas[] para
+  // revisión de socio/verificador. Backend: POST /users/:id/proponer-subarea.
+  const [proposingSubarea, setProposingSubarea] = useState(false);
+  const [proposedError, setProposedError] = useState(null);
+  const [proposedSuccess, setProposedSuccess] = useState(null);
+
+  const handleProposeSubarea = useCallback(
+    async ({ areaId, nombre, observaciones }) => {
+      if (!userId) {
+        setProposedError('Debes iniciar sesión para proponer una subárea.');
+        return;
+      }
+      try {
+        setProposingSubarea(true);
+        setProposedError(null);
+        setProposedSuccess(null);
+
+        let token = null;
+        try {
+          token = await getAccessTokenSilently({
+            authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
+          });
+        } catch { /* token optional */ }
+
+        await proposeSubarea(userId, areaId, nombre, observaciones, token);
+        setProposedSuccess(`Propuesta "${nombre}" enviada. Un socio la revisará y la creará si corresponde.`);
+      } catch (err) {
+        console.error('Error proponiendo subárea:', err);
+        setProposedError(
+          err?.message || 'No se pudo enviar la propuesta. Intenta de nuevo más tarde.'
+        );
+      } finally {
+        setProposingSubarea(false);
+      }
+    },
+    [userId, getAccessTokenSilently]
+  );
 
   const handleResolve = useCallback(
     async (todo) => {
@@ -425,8 +620,13 @@ const TareasEspecializadas = () => {
         setError(null);
         setSuccess(null);
 
-        await createTask(userId, todo.id);
-        await updateTodoStatus(todo.id, 'asignada');
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: 'https://api.ciudadan.org',
+            scope: 'openid profile email offline_access',
+          },
+        });
+        await resolverTarea(todo.id, token);
 
         setTasks((prev) => prev.filter((t) => t.id !== todo.id));
         setSuccess(`Tarea "${todo.titulo}" asignada correctamente.`);
@@ -437,7 +637,7 @@ const TareasEspecializadas = () => {
         setResolvingId(null);
       }
     },
-    [userId, canUserTakeTask]
+    [userId, canUserTakeTask, getAccessTokenSilently]
   );
 
   const hierarchy = useMemo(() => buildAreaHierarchy(areas, tasks), [areas, tasks]);
@@ -499,6 +699,11 @@ const TareasEspecializadas = () => {
           loading={assigningAreas}
           loadingAreas={loadingAvailableAreas}
           error={assignError}
+          userId={userId}
+          onProposeSubarea={handleProposeSubarea}
+          proposingSubarea={proposingSubarea}
+          proposedError={proposedError}
+          proposedSuccess={proposedSuccess}
         />
       </Box>
     );
@@ -538,7 +743,7 @@ const TareasEspecializadas = () => {
               key={area.id}
               icon={<AccountTreeIcon />}
               iconPosition="start"
-              label={`${area.nombre} (${area.totalTasks})`}
+              label={`${area.name || area.nombre} (${area.totalTasks})`}
             />
           ))}
         </AreaTabs>
@@ -550,7 +755,7 @@ const TareasEspecializadas = () => {
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
               <PrecisionManufacturingIcon sx={{ color: amarilloCiudadan }} />
               <Typography variant="h5" fontWeight={800} color="white">
-                {selectedArea.nombre}
+                {selectedArea.name || selectedArea.nombre}
               </Typography>
               <Chip
                 size="small"
@@ -580,7 +785,7 @@ const TareasEspecializadas = () => {
                     Tareas directas del área
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#d8d8d8' }}>
-                    Estas tareas pertenecen a {selectedArea.nombre} y no están dentro de una
+                    Estas tareas pertenecen a {selectedArea.name || selectedArea.nombre} y no están dentro de una
                     subárea.
                   </Typography>
                 </Box>

@@ -1,0 +1,46 @@
+﻿{
+  "_comment": "Semilla declarativa de permisos por rol para el plugin users-permissions. Strapi 4 lee este archivo al inicializar el plugin y crea los permisos faltantes para cada rol. NO sobreescribe permisos ya asignados via panel admin. Para forzar re-sync tras cambiar este archivo: panel admin > Settings > Users-permissions > Roles > abrir cada rol > Guardar (re-aplica). Alternativa: correr `node fix-perms.js` desde la raiz del backend (inserta directamente en up_permissions / up_permissions_role_links de forma idempotente). Las policies custom (src/policies/) corren DESPUES del check nativo, por eso cada accion protected debe estar habilitada aqui en el rol Authenticated/Socio/Verificador segun corresponda.",
+  "Authenticated": {
+    "description": "Usuario autenticado via Auth0. Puede resolver/completar tareas y leer colecciones CoWork.",
+    "permissions": {
+      "application": {
+        "api::area.area": ["find", "findOne"],
+        "api::todo.todo": ["find", "findOne"],
+        "api::tarea.tarea": ["find", "findOne", "create"],
+        "api::skill.skill": ["find", "findOne"]
+      }
+    }
+  },
+  "Public": {
+    "description": "Visitante sin login. Solo lectura de tareas y areas publicas.",
+    "permissions": {
+      "application": {
+        "api::area.area": ["find", "findOne"],
+        "api::todo.todo": ["find", "findOne"],
+        "api::skill.skill": ["find", "findOne"]
+      }
+    }
+  },
+  "Socio": {
+    "description": "Crea/edita/elimina/califica tareas CoWork (dueno del todo). Hereda Authenticated.",
+    "permissions": {
+      "application": {
+        "api::area.area": ["find", "findOne"],
+        "api::todo.todo": ["find", "findOne", "create", "update", "delete"],
+        "api::tarea.tarea": ["find", "findOne", "create", "update"],
+        "api::skill.skill": ["find", "findOne", "create", "update", "delete"]
+      }
+    }
+  },
+  "Verificador": {
+    "description": "Verifica areas y sube evidencia a tareas. Hereda Authenticated.",
+    "permissions": {
+      "application": {
+        "api::area.area": ["find", "findOne"],
+        "api::todo.todo": ["find", "findOne"],
+        "api::tarea.tarea": ["find", "findOne", "create", "update"],
+        "api::skill.skill": ["find", "findOne"]
+      }
+    }
+  }
+}

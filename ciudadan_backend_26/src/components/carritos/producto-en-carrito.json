@@ -67,7 +67,8 @@
       "target": "api::store.store"
     },
     "calificado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "fechacalificado": {
       "type": "datetime"

@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "laborys_payments",
+  "info": {
+    "singularName": "laborys-payment",
+    "pluralName": "laborys-payments",
+    "displayName": "laborys_payment"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "origin_wallet": {
+      "type": "string"
+    },
+    "destination_wallet": {
+      "type": "string"
+    },
+    "ammount": {
+      "type": "decimal"
+    },
+    "type": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}

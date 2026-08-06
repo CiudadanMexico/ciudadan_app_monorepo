@@ -1,20 +1,21 @@
 'use strict';
 
 module.exports = {
-  /**
-   * An asynchronous register function that runs before
-   * your application is initialized.
-   *
-   * This gives you an opportunity to extend code.
-   */
   register(/*{ strapi }*/) {},
 
-  /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
-   */
-  bootstrap(/*{ strapi }*/) {},
+  bootstrap({ strapi }) {
+    const path = require('path');
+    const fs = require('fs');
+
+    if (!strapi.dirs?.static?.public) {
+      const appDir = strapi.dirs?.app?.root || process.cwd();
+      strapi.dirs.static = strapi.dirs.static || {};
+      strapi.dirs.static.public = path.resolve(appDir, 'public');
+    }
+
+    const uploadsDir = path.join(strapi.dirs.static.public, 'uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+  },
 };

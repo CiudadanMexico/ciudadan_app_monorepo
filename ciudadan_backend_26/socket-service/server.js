@@ -60,6 +60,9 @@ const notificaRoute = require("./routes/notifica");
 const testTrip = require('./routes/testTrip');
 const calculateFare = require('./routes/calculateFare');
 const aceptarViajeRoute = require('./routes/aceptarViaje');
+const agenciaRoute = require('./routes/agencia');
+const paymentLabRoute = require('./routes/paymentlab');
+const walletRoute = require('./routes/wallet');
 
 const { getUserRating } = require('./lib/calcRating');
 
@@ -80,6 +83,9 @@ app.use("/notifica", notificaRoute);
 app.use('/test', testTrip);
 app.use('/api', calculateFare);
 app.use('/api', aceptarViajeRoute);
+app.use('/api/wallet', agenciaRoute);
+app.use('/api/subsidios', paymentLabRoute);
+app.use('/api/pagos', walletRoute);
 
 // Montar chatbot (archivo externo) — no inicia puerto extra
 try {

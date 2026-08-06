@@ -1,0 +1,11 @@
+- Building build context
+√ Building build context (142ms)
+- Creating admin
+Browserslist: browsers data (caniuse-lite) is 14 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+√ Creating admin (15779ms)
+- Loading Strapi
+√ Loading Strapi (5341ms)
+- Generating types
+√ Generating types (1160ms)

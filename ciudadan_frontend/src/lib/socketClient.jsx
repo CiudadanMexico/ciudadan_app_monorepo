@@ -14,7 +14,14 @@ export function getSocket() {
 
   if (!socket) {
     const url = getSocketUrl();
-    socket = io(url, { transports: ["websocket"] });
+    socket = io(url, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
+      timeout: 4000,
+    });
 
     socket.on("connect", () => {
       // eslint-disable-next-line no-console

@@ -1,0 +1,22 @@
+node_modules
+npm-debug.log
+
+.git
+.gitignore
+
+.env
+.env.*
+
+.tmp
+.cache
+build
+.strapi
+.strapi-updater.json
+.strapi-cloud.json
+
+coverage
+.DS_Store
+
+# Plantillas de Strapi, no usadas en runtime
+src/admin/*.example.js
+src/admin/webpack.config.example.js

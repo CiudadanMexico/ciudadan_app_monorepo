@@ -1,0 +1,197 @@
+
+[INFO] Including the following ENV variables as part of the JS bundle:
+    - ADMIN_PATH
+    - STRAPI_ADMIN_BACKEND_URL
+    - STRAPI_TELEMETRY_DISABLED
+[2026-07-25 18:42:27.382] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,area_details,skills
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Sat Jul 25 2026 18:42:40 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 23683 ms                                         [90m│[39m
+[90m│[39m Environment        [90m│[39m development                                      [90m│[39m
+[90m│[39m Process PID        [90m│[39m 6468                                             [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.18.1)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://localhost:33032/admin
+
+To access the server ⚡️, go to:
+http://localhost:33032
+
+[2026-07-25 20:57:24.813] [32mhttp[39m: GET /api/todos?filters%5Bstatus%5D%5B%24in%5D%5B0%5D=publicada&filters%5Bstatus%5D%5B%24in%5D%5B1%5D=asignada&filters%5Bstatus%5D%5B%24in%5D%5B2%5D=en_proceso&filters%5Bstatus%5D%5B%24in%5D%5B3%5D=pendiente_revision&filters%5Bstatus%5D%5B%24in%5D%5B4%5D=calificada&filters%5Bstatus%5D%5B%24in%5D%5B5%5D=pagada&filters%5Bnivel%5D%5B%24in%5D%5B0%5D=general&filters%5Bnivel%5D%5B%24in%5D%5B1%5D=becario&filters%5Bnivel%5D%5B%24in%5D%5B2%5D=becarios (108 ms) 200
+[2026-07-25 20:57:31.168] [32mhttp[39m: GET /api/skills?pagination%5Blimit%5D=5 (53 ms) 200
+[2026-07-25 20:57:31.237] [32mhttp[39m: GET /api/areas?pagination%5Blimit%5D=5 (11 ms) 200
+[2026-07-25 21:00:06.348] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 21:00:06.350] [32mhttp[39m: POST /api/tareas/calificar (46 ms) 403
+[2026-07-25 21:28:08.977] [33mwarn[39m: is-admin-or-socio: falta el header Authorization
+[2026-07-25 21:28:08.978] [32mhttp[39m: POST /api/tareas/resolver-apelacion (4 ms) 403
+[2026-07-25 21:28:09.007] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 21:28:09.008] [32mhttp[39m: POST /api/tareas/apelar (4 ms) 403
+[2026-07-25 21:28:09.041] [32mhttp[39m: GET /_health (2 ms) 204
+[2026-07-25 21:46:45.202] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 21:46:45.204] [32mhttp[39m: POST /api/tareas/apelar (7 ms) 403
+[2026-07-25 22:08:27.025] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (153 ms) 200
+[2026-07-25 22:08:27.161] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (122 ms) 200
+[2026-07-25 22:08:27.213] [32mhttp[39m: OPTIONS /api/tareas/filtrar?usuarioId=4&pageSize=100 (1 ms) 204
+[2026-07-25 22:08:27.223] [32mhttp[39m: OPTIONS /api/tareas/filtrar?usuarioId=4&pageSize=100 (2 ms) 204
+[2026-07-25 22:08:27.379] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (201 ms) 200
+[2026-07-25 22:08:27.494] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (103 ms) 200
+[2026-07-25 22:08:27.573] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (70 ms) 200
+[2026-07-25 22:08:27.749] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (82 ms) 200
+[2026-07-25 22:08:27.898] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (136 ms) 200
+[2026-07-25 22:08:28.040] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (801 ms) 200
+[2026-07-25 22:08:28.320] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (274 ms) 200
+[2026-07-25 22:08:28.572] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (245 ms) 200
+[2026-07-25 22:08:28.818] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (239 ms) 200
+[2026-07-25 22:08:29.805] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (50 ms) 200
+[2026-07-25 22:08:29.863] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (53 ms) 200
+[2026-07-25 22:08:29.973] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (19 ms) 200
+[2026-07-25 22:08:30.003] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (11 ms) 200
+[2026-07-25 22:08:30.006] [32mhttp[39m: OPTIONS /api/auth/auth0-login (1 ms) 204
+[2026-07-25 22:08:30.058] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (45 ms) 200
+[2026-07-25 22:08:30.124] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (144 ms) 200
+[2026-07-25 22:08:30.191] [32mhttp[39m: GET /api/carritos?filters[usuario_email][$eq]=rowanojedakumul%40gmail.com&filters[estado][$eq]=activo&populate[productos][populate][producto][populate]=imagen_predeterminada,store (156 ms) 200
+[2026-07-25 22:08:30.201] [32mhttp[39m: OPTIONS /api/users?filters[email][$eq]=rowanojedakumul%40gmail.com&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=* (2 ms) 204
+[2026-07-25 22:08:30.278] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (70 ms) 200
+[2026-07-25 22:08:30.282] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=rowanojedakumul%40gmail.com&pagination[limit]=100 (191 ms) 200
+[2026-07-25 22:08:30.327] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (197 ms) 200
+[2026-07-25 22:08:30.475] [32mhttp[39m: POST /api/auth/auth0-login (456 ms) 200
+[2026-07-25 22:08:30.506] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul%40gmail.com&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=* (294 ms) 200
+[2026-07-25 22:08:30.513] [32mhttp[39m: OPTIONS /api/membresias?filters[usuarioemail][$eq]=rowanojedakumul@gmail.com&filters[activa][$eq]=true (1 ms) 204
+[2026-07-25 22:08:30.537] [32mhttp[39m: GET /api/membresias?filters[usuarioemail][$eq]=rowanojedakumul@gmail.com&filters[activa][$eq]=true (19 ms) 401
+[2026-07-25 22:08:30.994] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (416 ms) 200
+[2026-07-25 22:08:31.599] [32mhttp[39m: OPTIONS /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (2 ms) 204
+[2026-07-25 22:08:31.602] [32mhttp[39m: OPTIONS /api/areas?populate=* (1 ms) 204
+[2026-07-25 22:08:31.606] [32mhttp[39m: OPTIONS /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (2 ms) 204
+[2026-07-25 22:08:31.609] [32mhttp[39m: OPTIONS /api/areas?populate=* (1 ms) 204
+[2026-07-25 22:08:31.723] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (162 ms) 200
+[2026-07-25 22:08:31.784] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (171 ms) 200
+[2026-07-25 22:08:31.879] [32mhttp[39m: GET /api/areas?populate=* (242 ms) 200
+[2026-07-25 22:08:31.955] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (155 ms) 200
+[2026-07-25 22:08:31.965] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (375 ms) 200
+[2026-07-25 22:08:32.004] [32mhttp[39m: GET /api/areas?populate=* (113 ms) 200
+[2026-07-25 22:08:32.686] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (715 ms) 200
+[2026-07-25 22:09:03.845] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (51 ms) 200
+[2026-07-25 22:09:03.911] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (56 ms) 200
+[2026-07-25 22:09:04.111] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (191 ms) 200
+[2026-07-25 22:09:04.177] [32mhttp[39m: GET /api/carritos?filters[usuario_email][$eq]=rowanojedakumul%40gmail.com&filters[estado][$eq]=activo&populate[productos][populate][producto][populate]=imagen_predeterminada,store (59 ms) 200
+[2026-07-25 22:09:04.208] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (129 ms) 200
+[2026-07-25 22:09:04.472] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (28 ms) 200
+[2026-07-25 22:09:04.481] [32mhttp[39m: POST /api/auth/auth0-login (239 ms) 200
+[2026-07-25 22:09:04.497] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=rowanojedakumul%40gmail.com&pagination[limit]=100 (287 ms) 200
+[2026-07-25 22:09:04.513] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (30 ms) 200
+[2026-07-25 22:09:04.553] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (332 ms) 200
+[2026-07-25 22:09:04.570] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (49 ms) 200
+[2026-07-25 22:09:04.610] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (348 ms) 200
+[2026-07-25 22:09:04.653] [32mhttp[39m: GET /api/areas?populate=* (346 ms) 200
+[2026-07-25 22:09:04.712] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (92 ms) 200
+[2026-07-25 22:09:04.835] [32mhttp[39m: GET /api/areas?populate=* (168 ms) 200
+[2026-07-25 22:09:04.842] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (506 ms) 200
+[2026-07-25 22:09:10.284] [32mhttp[39m: OPTIONS /api/tareas/completar (1 ms) 204
+[2026-07-25 22:09:10.799] [32mhttp[39m: PUT /api/tareas/completar (510 ms) 200
+[2026-07-25 22:09:12.185] [32mhttp[39m: GET /api/categorias-herramientas?filters[activa][$eq]=true&_sort=nivel:ASC&pagination[pageSize]=50 (43 ms) 200
+[2026-07-25 22:09:12.228] [32mhttp[39m: GET /api/categorias-herramientas?filters[activa][$eq]=true&_sort=nivel:ASC&pagination[pageSize]=50 (33 ms) 200
+[2026-07-25 22:09:13.830] [32mhttp[39m: OPTIONS /api/tareas/filtrar?status=completada,corregida&pageSize=100 (1 ms) 204
+[2026-07-25 22:09:13.848] [32mhttp[39m: OPTIONS /api/tareas/filtrar?status=completada,corregida&pageSize=100 (7 ms) 204
+[2026-07-25 22:09:13.864] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (12 ms) 200
+[2026-07-25 22:09:14.095] [32mhttp[39m: GET /api/tareas/filtrar?status=completada,corregida&pageSize=100 (226 ms) 200
+[2026-07-25 22:09:14.327] [32mhttp[39m: GET /api/tareas/filtrar?status=completada,corregida&pageSize=100 (223 ms) 200
+[2026-07-25 22:09:18.088] [32mhttp[39m: OPTIONS /api/tareas/calificar (1 ms) 204
+[2026-07-25 22:09:18.589] [31merror[39m: calificar: fallo en transacción de pago Transición de estado inválida para el todo: 'pendiente_revision' -> 'pagada'. Transiciones permitidas desde 'pendiente_revision': corregir, corregida, calificada, cancelada
+[2026-07-25 22:09:18.591] [31merror[39m: Error al procesar la calificación y el pago de laborys
+InternalServerError: Error al procesar la calificación y el pago de laborys
+    at Object.throw (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\koa\lib\context.js:97:11)
+    at Object.calificar (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\src\api\tarea\controllers\calificar.js:146:23)
+    at async returnBodyMiddleware (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\services\server\compose-endpoint.js:42:18)
+    at async policiesMiddleware (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\services\server\policy.js:15:5)
+    at async C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\services\server\compose-endpoint.js:27:12
+    at async C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\middlewares\body.js:45:9
+    at async C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\middlewares\powered-by.js:9:5
+    at async cors (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@koa\cors\index.js:106:16)
+    at async C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\middlewares\errors.js:8:7
+    at async C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\middlewares\logger.js:6:5
+    at async session (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\koa-session\index.js:41:7)
+    at async middleware (C:\Users\root\Desktop\projects\public\ciudadan_backend_26\node_modules\@strapi\strapi\dist\services\metrics\middleware.js:20:5)
+[2026-07-25 22:09:18.593] [32mhttp[39m: POST /api/tareas/calificar (491 ms) 500
+[2026-07-25 22:09:20.557] [32mhttp[39m: GET /api/tareas/filtrar?status=completada,corregida&pageSize=100 (320 ms) 200
+[2026-07-25 22:09:27.699] [33mwarn[39m: is-authenticated-auth0: token inválido en Auth0
+[2026-07-25 22:09:27.701] [32mhttp[39m: POST /api/tareas/calificar (477 ms) 403
+[2026-07-25 22:09:29.988] [32mhttp[39m: GET /api/tareas/filtrar?status=completada,corregida&pageSize=100 (300 ms) 200
+[2026-07-25 22:09:35.369] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (66 ms) 200
+[2026-07-25 22:09:35.436] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (154 ms) 200
+[2026-07-25 22:09:35.501] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (170 ms) 200
+[2026-07-25 22:09:35.583] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (129 ms) 200
+[2026-07-25 22:09:35.606] [32mhttp[39m: GET /api/areas?populate=* (259 ms) 200
+[2026-07-25 22:09:35.659] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (142 ms) 200
+[2026-07-25 22:09:35.691] [32mhttp[39m: GET /api/areas?populate=* (72 ms) 200
+[2026-07-25 22:09:35.698] [33mwarn[39m: is-authenticated-auth0: token inválido en Auth0
+[2026-07-25 22:09:35.699] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (384 ms) 403
+[2026-07-25 22:09:35.939] [33mwarn[39m: is-authenticated-auth0: token inválido en Auth0
+[2026-07-25 22:09:35.941] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (234 ms) 403
+[2026-07-25 22:09:37.874] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (46 ms) 200
+[2026-07-25 22:09:38.046] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (38 ms) 200
+[2026-07-25 22:09:38.087] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (210 ms) 200
+[2026-07-25 22:09:38.145] [32mhttp[39m: POST /api/auth/auth0-login (140 ms) 200
+[2026-07-25 22:09:38.180] [32mhttp[39m: GET /api/carritos?filters[usuario_email][$eq]=rowanojedakumul%40gmail.com&filters[estado][$eq]=activo&populate[productos][populate][producto][populate]=imagen_predeterminada,store (147 ms) 200
+[2026-07-25 22:09:38.226] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (211 ms) 200
+[2026-07-25 22:09:38.282] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=rowanojedakumul%40gmail.com&pagination[limit]=100 (227 ms) 200
+[2026-07-25 22:09:38.291] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (54 ms) 200
+[2026-07-25 22:09:38.348] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (41 ms) 200
+[2026-07-25 22:09:38.372] [33mwarn[39m: is-authenticated-auth0: token inválido en Auth0
+[2026-07-25 22:09:38.374] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (188 ms) 403
+[2026-07-25 22:09:38.404] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (309 ms) 200
+[2026-07-25 22:09:38.438] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (75 ms) 200
+[2026-07-25 22:09:38.534] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (277 ms) 200
+[2026-07-25 22:09:38.643] [32mhttp[39m: GET /api/areas?populate=* (494 ms) 200
+[2026-07-25 22:09:38.697] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (282 ms) 200
+[2026-07-25 22:09:38.738] [32mhttp[39m: GET /api/areas?populate=* (78 ms) 200
+[2026-07-25 22:09:39.162] [32mhttp[39m: GET /api/categorias-herramientas?filters[activa][$eq]=true&_sort=nivel:ASC&pagination[pageSize]=50 (35 ms) 200
+[2026-07-25 22:09:39.203] [32mhttp[39m: GET /api/categorias-herramientas?filters[activa][$eq]=true&_sort=nivel:ASC&pagination[pageSize]=50 (34 ms) 200
+[2026-07-25 22:09:40.734] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (41 ms) 200
+[2026-07-25 22:09:40.790] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (81 ms) 200
+[2026-07-25 22:09:40.824] [32mhttp[39m: GET /api/areas?populate=* (105 ms) 200
+[2026-07-25 22:09:40.871] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (76 ms) 200
+[2026-07-25 22:09:40.933] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (57 ms) 200
+[2026-07-25 22:09:40.948] [32mhttp[39m: GET /api/areas?populate=* (116 ms) 200
+[2026-07-25 22:09:40.998] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (48 ms) 200
+[2026-07-25 22:09:45.750] [32mhttp[39m: OPTIONS /api/tareas/5 (1 ms) 204
+[2026-07-25 22:09:46.170] [32mhttp[39m: DELETE /api/tareas/5 (411 ms) 200
+[2026-07-25 22:09:46.222] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (44 ms) 200
+[2026-07-25 22:09:46.283] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (49 ms) 200
+[2026-07-25 22:09:51.382] [32mhttp[39m: OPTIONS /api/tareas/9 (1 ms) 204
+[2026-07-25 22:09:51.753] [33mwarn[39m: is-admin-or-socio: token inválido en Auth0
+[2026-07-25 22:09:51.755] [32mhttp[39m: DELETE /api/tareas/9 (366 ms) 403
+[2026-07-25 22:09:58.005] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (79 ms) 200
+[2026-07-25 22:09:58.020] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (11 ms) 200
+[2026-07-25 22:09:58.077] [32mhttp[39m: POST /api/auth/auth0-login (34 ms) 200
+[2026-07-25 22:09:58.119] [32mhttp[39m: GET /api/carritos?filters[usuario_email][$eq]=rowanojedakumul%40gmail.com&filters[estado][$eq]=activo&populate[productos][populate][producto][populate]=imagen_predeterminada,store (36 ms) 200
+[2026-07-25 22:09:58.183] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=rowanojedakumul%40gmail.com&pagination[limit]=100 (58 ms) 200
+[2026-07-25 22:09:58.265] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (72 ms) 200
+[2026-07-25 22:09:58.403] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (72 ms) 200
+[2026-07-25 22:09:58.428] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (128 ms) 200
+[2026-07-25 22:09:58.434] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (27 ms) 200
+[2026-07-25 22:09:58.469] [32mhttp[39m: GET /api/users?filters[email][$eq]=rowanojedakumul@gmail.com (31 ms) 200
+[2026-07-25 22:09:58.508] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (200 ms) 200
+[2026-07-25 22:09:58.523] [32mhttp[39m: GET /api/areas?populate=* (249 ms) 200
+[2026-07-25 22:09:58.608] [32mhttp[39m: GET /api/tareas?populate=todo,usuario,reviewed_by,media,skills&pagination[page]=1&pagination[pageSize]=10&sort[0]=id:desc (223 ms) 200
+[2026-07-25 22:09:58.652] [32mhttp[39m: GET /api/tareas?populate[usuario]=*&populate[todo]=*&pagination[limit]=10000 (123 ms) 200
+[2026-07-25 22:09:58.676] [32mhttp[39m: GET /api/areas?populate=* (123 ms) 200
+[2026-07-25 22:09:58.798] [32mhttp[39m: GET /api/tareas/filtrar?usuarioId=4&pageSize=100 (452 ms) 200
+[2026-07-25 22:09:59.420] [32mhttp[39m: OPTIONS /api/cartera (1 ms) 204
+[2026-07-25 22:09:59.702] [33mwarn[39m: is-authenticated-auth0: token inválido en Auth0
+[2026-07-25 22:09:59.704] [32mhttp[39m: GET /api/cartera (280 ms) 403
+[2026-07-25 22:10:00.155] [32mhttp[39m: OPTIONS /api/tareas?filters[status][$eq]=completada&populate[usuario]=*&populate[todo]=*&pagination[limit]=1000&sort[0]=id:desc (2 ms) 204
+[2026-07-25 22:10:00.220] [32mhttp[39m: GET /api/tareas?filters[status][$eq]=completada&populate[usuario]=*&populate[todo]=*&pagination[limit]=1000&sort[0]=id:desc (58 ms) 200
+[2026-07-25 22:10:05.980] [33mwarn[39m: is-admin-or-socio: token inválido en Auth0
+[2026-07-25 22:10:05.982] [32mhttp[39m: POST /api/tareas/calificar (667 ms) 403
+[2026-07-25 22:29:09.655] [32mhttp[39m: GET /api/todos?pagination%5Blimit%5D=3&filters%5Bstatus%5D%5B%24in%5D%5B0%5D=publicada&filters%5Bstatus%5D%5B%24in%5D%5B1%5D=asignada&filters%5Bstatus%5D%5B%24in%5D%5B2%5D=en_proceso&filters%5Bstatus%5D%5B%24in%5D%5B3%5D=pendiente_revision&filters%5Bstatus%5D%5B%24in%5D%5B4%5D=calificada&filters%5Bstatus%5D%5B%24in%5D%5B5%5D=pagada&filters%5Bnivel%5D%5B%24in%5D%5B0%5D=general&filters%5Bnivel%5D%5B%24in%5D%5B1%5D=becario&filters%5Bnivel%5D%5B%24in%5D%5B2%5D=becarios (7 ms) 200
+[2026-07-25 22:29:25.844] [33mwarn[39m: is-authenticated-auth0: falta el header Authorization
+[2026-07-25 22:29:25.845] [32mhttp[39m: POST /api/tareas/apelar (2 ms) 403

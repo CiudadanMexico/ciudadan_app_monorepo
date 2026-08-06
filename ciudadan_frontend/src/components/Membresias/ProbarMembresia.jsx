@@ -27,7 +27,7 @@ const ProbarMembresia = () => {
   const [isOneTime, setIsOneTime] = useState(false);
 
 
-  const strapiUrl = (process.env.REACT_APP_STRAPI_URL || "http://localhost:1337").replace(/\/$/, "");
+  const strapiUrl = (process.env.REACT_APP_STRAPI_URL || "http://localhost:33032").replace(/\/$/, "");
   const apiToken = process.env.REACT_APP_STRAPI_TOKEN || null;
 
   const resolveOrderFromRequest = () => {

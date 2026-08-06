@@ -105,16 +105,20 @@
     "status": {
       "type": "enumeration",
       "enum": [
-        "enviar",
-        "encamino",
+        "pendiente_pago",
+        "pendiente_verificacion",
+        "pendiente_envio",
+        "enviado",
+        "en_camino",
         "cancelado",
         "devuelto",
-        "recibido",
-        "impagado"
-      ]
+        "recibido"
+      ],
+      "default": "pendiente_pago"
     },
     "finalizado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "fecha_finalizado": {
       "type": "datetime"
@@ -123,7 +127,8 @@
       "type": "json"
     },
     "calificado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "store": {
       "type": "relation",

@@ -3,7 +3,6 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useRoles } from '../../Contexts/RolesContext';
 import StoreImagePlaceholder from '../../assets/agencia.png';
 import AgregarProducto from './AgregarProducto';
-import PreguntasProducto from '../../components/MarketPlace/PreguntasProducto';
 import { useAuth0 } from '@auth0/auth0-react';
 import axios from 'axios';
 import MisProductos from './MisProductos';
@@ -11,10 +10,10 @@ import PedidosPendientes from './PedidosPendientes';
 import PedidosEntregados from './PedidosEntregados';
 import PagosTienda from './PagosTienda';
 import ConfiguracionTienda from './ConfiguracionTienda';
-import ActivaTuMembresia from '../../components/Membresias/ActivaTuMembresia';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import { Box, Typography, useMediaQuery, useTheme } from '@mui/material';
+import PreguntasProductos from '../../components/MarketPlace/PreguntasProductos';
 
 const Tienda = () => {
   const { slug } = useParams();
@@ -29,7 +28,7 @@ const Tienda = () => {
 
 
   const [tabIndex, setTabIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [storeData, setStoreData] = useState(null);
   const [storeImageURL, setStoreImageURL] = useState(null);
   const [productos, setProductos] = useState([]);
 
@@ -42,12 +41,6 @@ const Tienda = () => {
     { label: 'Pagos', path: 'pagos' },
     { label: 'Configuración', path: 'configuracion' }
   ];
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     const path = location.pathname;
@@ -77,6 +70,7 @@ const Tienda = () => {
         console.log('📦 Respuesta de tienda:', res.data);
 
         const tienda = res.data.data[0];
+        setStoreData(tienda);
         const imagen = tienda?.attributes?.imagen?.data?.attributes?.url;
 
         if (imagen) {
@@ -84,6 +78,8 @@ const Tienda = () => {
           console.log('📷 Imagen encontrada:', fullURL);
           setStoreImageURL(fullURL);
         }
+        if (!tienda)
+          setTimeout(() => navigate(-1), 1900);
       } catch (error) {
         console.error('❌ Error al traer datos de la tienda:', error);
       }
@@ -223,12 +219,12 @@ const Tienda = () => {
         </Tabs>
 
         <Box sx={{ mt: { xs: 1.5, sm: 2 }, width: '100%', overflowX: 'hidden' }}>
-          {tabIndex === 0 && <PedidosPendientes />}
+          {tabIndex === 0 && <PedidosPendientes store={storeData}/>}
           {tabIndex === 1 && <PedidosEntregados />}
           {tabIndex === 2 && <MisProductos filtros={filtros} />}
           {tabIndex === 3 && <AgregarProducto />}
-          {tabIndex === 4 && <PreguntasProducto />}
-          {tabIndex === 5 && <PagosTienda />}
+          {tabIndex === 4 && <PreguntasProductos  storeId={storeData?.id}/>}
+          {tabIndex === 5 && <PagosTienda storeId={storeData?.id} />}
           {tabIndex === 6 && <ConfiguracionTienda />}
         </Box>
       </Box>

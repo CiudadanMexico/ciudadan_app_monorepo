@@ -178,9 +178,7 @@ const RegistroPasajero = ({ onRegister = () => {} }) => {
       if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
       else {
         try {
-          const accessToken = await getAccessTokenSilently({
-            authorizationParams: { audience: "" },
-          });
+          const accessToken = await getAccessTokenSilently();
           if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
         } catch (err) {
           console.error("Error obteniendo token de Auth0:", err);

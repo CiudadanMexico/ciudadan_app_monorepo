@@ -816,6 +816,22 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToMany',
       'api::area.area'
     >;
+    favoritos: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::favorito.favorito'
+    >;
+    area_details: Attribute.JSON;
+    skills: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'manyToMany',
+      'api::skill.skill'
+    >;
+    agencia: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -994,6 +1010,15 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'oneToMany',
       'admin::user'
     >;
+    walll: Attribute.String;
+    wallet_address: Attribute.String;
+    tipo: Attribute.Enumeration<['local', 'federal']> &
+      Attribute.DefaultTo<'local'>;
+    socios: Attribute.Relation<
+      'api::agencia.agencia',
+      'oneToMany',
+      'plugin::users-permissions.user'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1081,8 +1106,8 @@ export interface ApiAreaArea extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
-    nombre: Attribute.String;
-    nivel: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    name: Attribute.String & Attribute.Required;
+    level: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
     creador: Attribute.Relation<'api::area.area', 'oneToOne', 'admin::user'>;
     timestamp: Attribute.DateTime;
     todos: Attribute.Relation<'api::area.area', 'manyToMany', 'api::todo.todo'>;
@@ -1280,7 +1305,7 @@ export interface ApiCarroCarro extends Schema.CollectionType {
     > &
       Attribute.DefaultTo<'indiferente'>;
     musica: Attribute.Enumeration<
-    ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
+      ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
     > &
       Attribute.DefaultTo<'indiferente'>;
     tipo_musica: Attribute.JSON;
@@ -1605,7 +1630,7 @@ export interface ApiCarteraCartera extends Schema.CollectionType {
     user_id: Attribute.Relation<
       'api::cartera.cartera',
       'oneToOne',
-      'admin::user'
+      'plugin::users-permissions.user'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -2893,14 +2918,14 @@ export interface ApiFavoritoFavorito extends Schema.CollectionType {
   attributes: {
     usuario: Attribute.Relation<
       'api::favorito.favorito',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     usuario_email: Attribute.Email;
     tipo: Attribute.Enumeration<['producto', 'curso', 'contenido', 'club']>;
     producto: Attribute.Relation<
       'api::favorito.favorito',
-      'oneToOne',
+      'manyToOne',
       'api::producto.producto'
     >;
     club: Attribute.Relation<
@@ -3049,6 +3074,77 @@ export interface ApiFoodModifierGroupFoodModifierGroup
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::food-modifier-group.food-modifier-group',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
+  collectionName: 'food_orders';
+  info: {
+    singularName: 'food-order';
+    pluralName: 'food-orders';
+    displayName: 'Food Orders';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    items: Attribute.Component<'orders.products-order', true>;
+    fecha_creacion: Attribute.DateTime;
+    user: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    guia: Attribute.String;
+    direccion_origen: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    direccion_destino: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    fecha_envio: Attribute.DateTime;
+    fecha_entrega: Attribute.DateTime;
+    fecha_pagado: Attribute.DateTime;
+    fecha_finalizado: Attribute.DateTime;
+    total_volumetrico: Attribute.Decimal;
+    monto_envio: Attribute.Decimal;
+    monto_total: Attribute.Decimal;
+    moneda: Attribute.String;
+    pago: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::pago.pago'
+    >;
+    status: Attribute.Enumeration<
+      ['enviar', 'encamino', 'cancelado', 'devuelto', 'recibido', 'impagado']
+    >;
+    finalizado: Attribute.Boolean;
+    calificado: Attribute.Boolean;
+    metadata: Attribute.JSON;
+    restaurant: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-order.food-order',
       'oneToOne',
       'admin::user'
     > &
@@ -3327,6 +3423,42 @@ export interface ApiKitjardineroKitjardinero extends Schema.CollectionType {
   };
 }
 
+export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
+  collectionName: 'laborys_payments';
+  info: {
+    singularName: 'laborys-payment';
+    pluralName: 'laborys-payments';
+    displayName: 'laborys_payment';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    origin_wallet: Attribute.String;
+    destination_wallet: Attribute.String;
+    ammount: Attribute.Decimal;
+    type: Attribute.String;
+    timestamp: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    status: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiListaSuscripcionListaSuscripcion
   extends Schema.CollectionType {
   collectionName: 'listas_suscripciones';
@@ -3505,6 +3637,40 @@ export interface ApiMessageMessage extends Schema.CollectionType {
   };
 }
 
+export interface ApiMyAgencyMyAgency extends Schema.SingleType {
+  collectionName: 'my_agencies';
+  info: {
+    singularName: 'my-agency';
+    pluralName: 'my-agencies';
+    displayName: 'My-agency';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    agencia: Attribute.Relation<
+      'api::my-agency.my-agency',
+      'oneToOne',
+      'api::agencia.agencia'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::my-agency.my-agency',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::my-agency.my-agency',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   collectionName: 'notificaciones';
   info: {
@@ -3570,7 +3736,8 @@ export interface ApiPagoPago extends Schema.CollectionType {
         'asesoria',
         'servicio',
         'membresia',
-        'carrito'
+        'carrito',
+        'comida'
       ]
     >;
     carrito_id: Attribute.Relation<
@@ -3616,6 +3783,9 @@ export interface ApiPagoPago extends Schema.CollectionType {
       'oneToOne',
       'api::pedido.pedido'
     >;
+    comprobante: Attribute.Media<'images' | 'files'> & Attribute.Required;
+    usuario_email: Attribute.Email;
+    fecha_aprobado: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3698,12 +3868,22 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
       'api::pago.pago'
     >;
     status: Attribute.Enumeration<
-      ['enviar', 'encamino', 'cancelado', 'devuelto', 'recibido', 'impagado']
-    >;
-    finalizado: Attribute.Boolean;
+      [
+        'pendiente_pago',
+        'pendiente_verificacion',
+        'pendiente_envio',
+        'enviado',
+        'en_camino',
+        'cancelado',
+        'devuelto',
+        'recibido'
+      ]
+    > &
+      Attribute.DefaultTo<'pendiente_pago'>;
+    finalizado: Attribute.Boolean & Attribute.DefaultTo<false>;
     fecha_finalizado: Attribute.DateTime;
     metadata: Attribute.JSON;
-    calificado: Attribute.Boolean;
+    calificado: Attribute.Boolean & Attribute.DefaultTo<false>;
     store: Attribute.Relation<
       'api::pedido.pedido',
       'oneToOne',
@@ -3902,6 +4082,8 @@ export interface ApiPreguntaProductoPreguntaProducto
       'oneToOne',
       'api::curso.curso'
     >;
+    respuesta: Attribute.Text;
+    fecha_respuesta: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3946,8 +4128,8 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
-    activo: Attribute.Boolean;
-    destacado: Attribute.Boolean;
+    activo: Attribute.Boolean & Attribute.DefaultTo<false>;
+    destacado: Attribute.Boolean & Attribute.DefaultTo<false>;
     store_id: Attribute.String;
     store_email: Attribute.String;
     store: Attribute.Relation<
@@ -3977,6 +4159,11 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'api::producto.producto',
       'oneToMany',
       'api::pregunta-producto.pregunta-producto'
+    >;
+    favoritos: Attribute.Relation<
+      'api::producto.producto',
+      'oneToMany',
+      'api::favorito.favorito'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -4342,6 +4529,79 @@ export interface ApiServicioServicio extends Schema.CollectionType {
   };
 }
 
+export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
+  collectionName: 'site_settings';
+  info: {
+    singularName: 'site-setting';
+    pluralName: 'site-settings';
+    displayName: 'Site_setting';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    labory_to_pesos_exchange_rate: Attribute.Decimal;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiSkillSkill extends Schema.CollectionType {
+  collectionName: 'skills';
+  info: {
+    singularName: 'skill';
+    pluralName: 'skills';
+    displayName: 'Skill';
+    description: 'Habilidad para el m\u00F3dulo CoWork';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    description: Attribute.Text;
+    is_active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    todos: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'api::todo.todo'
+    >;
+    usuarios: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::skill.skill',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::skill.skill',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSolicitudafiliacionSolicitudafiliacion
   extends Schema.CollectionType {
   collectionName: 'solicitudafiliaciones';
@@ -4509,7 +4769,8 @@ export interface ApiStoreStore extends Schema.CollectionType {
         i18n: {
           localized: true;
         };
-      }>;
+      }> &
+      Attribute.DefaultTo<false>;
     slug: Attribute.String &
       Attribute.SetPluginOptions<{
         i18n: {
@@ -4652,7 +4913,32 @@ export interface ApiTareaTarea extends Schema.CollectionType {
       'oneToOne',
       'api::agencia.agencia'
     >;
-    tipo: Attribute.Enumeration<['tarea', 'subtarea']>;
+    tipo: Attribute.Enumeration<['tarea', 'subtarea']> &
+      Attribute.DefaultTo<'tarea'>;
+    status: Attribute.Enumeration<
+      [
+        'en_proceso',
+        'completada',
+        'corregir',
+        'corregida',
+        'calificada',
+        'pagada',
+        'cancelada',
+        'modificada'
+      ]
+    > &
+      Attribute.DefaultTo<'en_proceso'>;
+    media: Attribute.JSON;
+    notes: Attribute.Text;
+    score: Attribute.Integer & Attribute.DefaultTo<0>;
+    reviewed_by: Attribute.Relation<
+      'api::tarea.tarea',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    resolved_at: Attribute.DateTime;
+    payment_status: Attribute.Enumeration<['pendiente', 'procesado']> &
+      Attribute.DefaultTo<'pendiente'>;
     todo: Attribute.Relation<'api::tarea.tarea', 'manyToOne', 'api::todo.todo'>;
     avances: Attribute.JSON;
     usuario: Attribute.Relation<
@@ -4710,13 +4996,17 @@ export interface ApiTodoTodo extends Schema.CollectionType {
       'manyToMany',
       'api::area.area'
     >;
+    skills: Attribute.Relation<
+      'api::todo.todo',
+      'manyToMany',
+      'api::skill.skill'
+    >;
     tipo: Attribute.Enumeration<['tarea', 'subtarea']>;
     ambito: Attribute.Enumeration<['privada', 'plataforma']>;
     nivel: Attribute.Enumeration<
-      ['general', 'becarios', 'especialidad', 'experto', 'personalizada']
+      ['general', 'becario', 'especialidad', 'experto', 'personalizada']
     >;
     grupo: Attribute.String;
-    habilidades: Attribute.JSON;
     recurrencia: Attribute.Enumeration<['unica', 'abierta', 'periodica']>;
     descripcion: Attribute.Text;
     enlaces: Attribute.JSON;
@@ -4735,13 +5025,21 @@ export interface ApiTodoTodo extends Schema.CollectionType {
         'cancelada'
       ]
     >;
-    pagos_laborys: Attribute.Decimal;
-    pagos_efectivo: Attribute.Decimal;
     recompensa: Attribute.Decimal;
     minutos_desarrollo: Attribute.Integer;
     fecha_publicacion: Attribute.DateTime;
     fecha_entrega: Attribute.DateTime;
     vence: Attribute.Boolean;
+    has_deadline: Attribute.Boolean;
+    due_date: Attribute.DateTime;
+    is_periodic: Attribute.Boolean;
+    reward_laborys: Attribute.Decimal;
+    reward_cash: Attribute.Decimal;
+    created_by: Attribute.Relation<
+      'api::todo.todo',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     algoritmo: Attribute.Text;
     oraculos_validadores: Attribute.JSON;
     anotaciones: Attribute.Text;
@@ -4758,6 +5056,17 @@ export interface ApiTodoTodo extends Schema.CollectionType {
       'oneToMany',
       'api::tarea.tarea'
     >;
+    asignador: Attribute.Relation<
+      'api::todo.todo',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    asignado_a: Attribute.Relation<
+      'api::todo.todo',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    asignable: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4869,6 +5178,51 @@ export interface ApiViajeViaje extends Schema.CollectionType {
   };
 }
 
+export interface ApiWalletWallet extends Schema.CollectionType {
+  collectionName: 'wallets';
+  info: {
+    singularName: 'wallet';
+    pluralName: 'wallets';
+    displayName: 'wallet';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Attribute.String;
+    user: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    labory_balance: Attribute.Decimal;
+    cit_history: Attribute.JSON;
+    cit_balance: Attribute.Decimal;
+    status: Attribute.String;
+    agency: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'api::agencia.agencia'
+    >;
+    isagency: Attribute.Boolean;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiWorldCoinWalletWorldCoinWallet
   extends Schema.CollectionType {
   collectionName: 'world_coin_wallets';
@@ -4963,15 +5317,18 @@ declare module '@strapi/types' {
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;
+      'api::food-order.food-order': ApiFoodOrderFoodOrder;
       'api::food-product.food-product': ApiFoodProductFoodProduct;
       'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
+      'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
       'api::message.message': ApiMessageMessage;
+      'api::my-agency.my-agency': ApiMyAgencyMyAgency;
       'api::notificacion.notificacion': ApiNotificacionNotificacion;
       'api::pago.pago': ApiPagoPago;
       'api::pedido.pedido': ApiPedidoPedido;
@@ -4986,6 +5343,8 @@ declare module '@strapi/types' {
       'api::resena.resena': ApiResenaResena;
       'api::respuesta.respuesta': ApiRespuestaRespuesta;
       'api::servicio.servicio': ApiServicioServicio;
+      'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
+      'api::skill.skill': ApiSkillSkill;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;
@@ -4994,6 +5353,7 @@ declare module '@strapi/types' {
       'api::todo.todo': ApiTodoTodo;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
       'api::viaje.viaje': ApiViajeViaje;
+      'api::wallet.wallet': ApiWalletWallet;
       'api::world-coin-wallet.world-coin-wallet': ApiWorldCoinWalletWorldCoinWallet;
     }
   }

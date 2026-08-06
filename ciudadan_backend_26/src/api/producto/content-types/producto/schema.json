@@ -52,10 +52,12 @@
       ]
     },
     "activo": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "destacado": {
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "store_id": {
       "type": "string"
@@ -126,6 +128,12 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::pregunta-producto.pregunta-producto",
+      "mappedBy": "producto"
+    },
+    "favoritos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::favorito.favorito",
       "mappedBy": "producto"
     }
   }

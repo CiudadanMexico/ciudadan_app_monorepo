@@ -2,32 +2,61 @@
 
 'use strict';
 
-const axios = require('axios');
 const jwt = require('jsonwebtoken');
+const jwksClient = require('jwks-rsa');
+
+const client = jwksClient({
+  jwksUri: `https://${process.env.AUTH0_DOMAIN}/.well-known/jwks.json`,
+});
+
+function getKey(header, callback) {
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return callback(err);
+    const signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
+}
+
+// Lee el Bearer token del header `Authorization`. Como fallback, acepta
+// `access_token` en el body para retrocompatibilidad con clientes que aún
+// no usen el header (e.g. apps nativas viejas).
+function extractAccessToken(ctx) {
+  const header = ctx.request.header?.authorization || ctx.request.headers?.authorization;
+  if (header && /^Bearer\s+/i.test(header)) {
+    return header.replace(/^Bearer\s+/i, '').trim();
+  }
+  return ctx.request.body?.access_token || null;
+}
 
 module.exports = {
   async auth0Login(ctx) {
     try {
-      const { access_token } = ctx.request.body;
-      console.log('🔑 access_token recibido:', access_token);
+      const access_token = extractAccessToken(ctx);
+      const bodyEmail = ctx.request.body?.email;
 
       if (!access_token) {
         return ctx.badRequest('Missing access token');
       }
 
-      // Obtener información del usuario desde Auth0
-      const auth0User = await axios.get(`https://${process.env.AUTH0_DOMAIN}/userinfo`, {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
+      // Verificar el JWT con las claves públicas de Auth0 (JWKS)
+      const payload = await new Promise((resolve, reject) => {
+        jwt.verify(access_token, getKey, {
+          audience: process.env.AUTH0_AUDIENCE,
+          issuer: `https://${process.env.AUTH0_DOMAIN}/`,
+          algorithms: ['RS256'],
+        }, (err, decoded) => {
+          if (err) reject(err);
+          else resolve(decoded);
+        });
       });
 
-      const { email, sub: auth0Id } = auth0User.data;
-      console.log('📧 Email desde Auth0:', email);
-      console.log('🆔 Auth0 sub:', auth0Id);
+      const auth0Id = payload.sub;
+      // El access_token de API no incluye email; usar el email del body o
+      // los claims de Auth0 (namespace claim configurado en Auth0).
+      const email = bodyEmail || payload.email || payload['https://ciudadan.org/email'];
 
       if (!email) {
-        return ctx.badRequest('No email returned by Auth0');
+        return ctx.badRequest('No email provided');
       }
 
       // Buscar si el usuario ya existe
@@ -39,10 +68,8 @@ module.exports = {
       let user = existingUsers[0];
 
       if (!user) {
-        console.log('🆕 Usuario no existe. Creando nuevo usuario...');
-
         // Obtener el rol por defecto
-        const defaultRole = await strapi.query('plugin::users-permissions.role').findOne({
+        const defaultRole = await strapi.db.query('plugin::users-permissions.role').findOne({
           where: { type: 'authenticated' },
         });
 
@@ -50,7 +77,6 @@ module.exports = {
           throw new Error('No default authenticated role found');
         }
 
-        // Crear usuario
         user = await strapi.entityService.create('plugin::users-permissions.user', {
           data: {
             email,
@@ -60,10 +86,6 @@ module.exports = {
             role: defaultRole.id,
           },
         });
-
-        console.log('✅ Usuario creado:', user);
-      } else {
-        console.log('👤 Usuario existente encontrado:', user.id);
       }
 
       // Generar token JWT de Strapi
@@ -71,13 +93,19 @@ module.exports = {
         id: user.id,
       });
 
+      // Sesión por cookie: `secure` según entorno. En prod (HTTPS) la cookie
+      // va solo sobre conexiones cifradas; en dev (HTTP local) puede ser false
+      // para que el navegador la acepte. Se controla con NODE_ENV o un flag
+      // explícito. Por defecto se asume producción (más seguro).
+      const isProd = process.env.NODE_ENV === 'production' && process.env.COOKIE_SECURE !== 'false';
+
       ctx.cookies.set('token', token, {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // true en producción
-  sameSite: 'lax', // o 'none' si usas HTTPS y dominios distintos
-  path: '/',
-  maxAge: 1000 * 60 * 60 * 24, // 1 día
-});
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24, // 1 día
+      });
 
       ctx.send({
         jwt: token,
@@ -85,7 +113,7 @@ module.exports = {
       });
 
     } catch (err) {
-      console.error('❌ Error en auth0Login:', err);
+      strapi.log.error('auth0Login: verificación Auth0 fallida', err);
       return ctx.unauthorized('Auth0 verification failed');
     }
   },

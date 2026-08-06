@@ -25,6 +25,8 @@ import useFavoritos from '../../hooks/useFavoritos';
 import { useAuth0 } from '@auth0/auth0-react';
 
 import '../../styles/DetalleProducto.css';
+import { esFavorito, toggleFavorito } from "../../services/favoritosService";
+import { useRoles } from '../../Contexts/RolesContext';
 
 const MotionButton = motion(Button);
 
@@ -44,6 +46,7 @@ export default function DetalleProducto({
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { user, isAuthenticated } = useAuth0();
+  const { userData } = useRoles();
 
   /* -------------------- estados -------------------- */
   const [costoEnvio, setCostoEnvio] = useState('Calculando…');
@@ -51,17 +54,32 @@ export default function DetalleProducto({
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const [favLoading, setFavLoading] = useState(true);
-  const [favAdded, setFavAdded] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
+  const [favorito, setFavorito] = useState(false);
+  const [favoritoId, setFavoritoId] = useState(null);
 
   /* -------------------- favoritos hook -------------------- */
-  const { addFavorito, existeFavorito } = useFavoritos({
-    user: user
-      ? { email: user.email }
-      : null,
-    token: null,
-  });
+  const verificarFavorito = async (userId, productId) => {
+    if (!isAuthenticated) return;
+    setFavLoading(true);
+    try {
+      const resultado = await esFavorito(
+        userId,
+        "producto",
+        productId
+      );
 
+      setFavorito(resultado.favorito);
+      setFavoritoId(resultado.favoritoId);
+
+    } catch (error) {
+
+      console.error(error);
+
+    } finally {
+      setFavLoading(false);
+    }
+  };
   /* -------------------- ENVÍO (no bloqueante) -------------------- */
   useEffect(() => {
     let mounted = true;
@@ -105,31 +123,10 @@ export default function DetalleProducto({
 
   /* -------------------- FAVORITOS (silent load) -------------------- */
   useEffect(() => {
-    let mounted = true;
+    if (!userData?.id || !producto?.id) return;
 
-    const checkFavorito = async () => {
-      if (!isAuthenticated || !producto?.id || !existeFavorito) {
-        setFavLoading(false);
-        return;
-      }
-
-      try {
-        const existe = await existeFavorito({
-          tipo: 'producto',
-          id: producto.id,
-        });
-
-        if (mounted) setFavAdded(!!existe);
-      } catch (e) {
-        console.error('[FAVORITOS check]', e);
-      } finally {
-        if (mounted) setFavLoading(false);
-      }
-    };
-
-    checkFavorito();
-    return () => { mounted = false; };
-  }, [isAuthenticated, producto, existeFavorito]);
+    verificarFavorito(userData?.id, producto?.id);
+  }, [producto?.id, userData?.id]);
 
   /* -------------------- acciones -------------------- */
   const handleAddToCart = async () => {
@@ -159,17 +156,26 @@ export default function DetalleProducto({
 
   const handleToggleFavorito = async () => {
     if (!isAuthenticated || favLoading) return;
+    if (!userData?.id || !producto?.id) return;
 
     setFavLoading(true);
     try {
-      await addFavorito({
-        tipo: 'producto',
-        id: producto.id,
-        url: `/market/producto/${producto.attributes.slug}`,
+
+      const resultado = await toggleFavorito({
+        usuarioId: userData?.id,
+        usuarioEmail: userData?.email,
+        tipo: "producto",
+        elementoId: producto?.id,
+        url: producto?.slug
       });
-      setFavAdded(true);
-    } catch (e) {
-      console.error('[FAVORITOS add]', e);
+
+      setFavorito(resultado.favorito);
+      setFavoritoId(resultado.favoritoId);
+
+    } catch (error) {
+
+      console.error(error);
+
     } finally {
       setFavLoading(false);
     }
@@ -195,7 +201,7 @@ export default function DetalleProducto({
           >
             {favLoading ? (
               <CircularProgress size={20} />
-            ) : favAdded ? (
+            ) : favorito ? (
               <FavoriteIcon sx={{ color: '#7C3AED' }} />
             ) : (
               <FavoriteBorderIcon />

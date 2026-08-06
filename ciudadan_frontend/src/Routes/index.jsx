@@ -43,7 +43,13 @@ import WikiHome from '../Pages/Wiki/WikiHome.jsx';
 import Perfil from '../components/Usuarios/Perfil.jsx';
 import Favoritos from '../components/Usuarios/Favoritos.jsx';
 import Food from '../Pages/Food/Food.jsx';
+import GestionTareas from '../Pages/Herramientas/GestionTareas.jsx';
+import CalificarTarea from '../Pages/Herramientas/CalificarTarea.jsx';
+import CorregirTarea from '../Pages/Herramientas/CorregirTarea.jsx';
+import ResolverApelaciones from '../Pages/Herramientas/ResolverApelaciones.jsx';
 import AgregarTarea from '../Pages/Coowork/AgregarTarea.jsx';
+import AgregarSocio from '../Pages/Coowork/AgregarSocio.jsx';
+import AsignarTareaPage from '../Pages/Herramientas/AsignarTareaPage.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
 import RequisitosConductor from '../components/Taxiz/RequisitosConductor.jsx';
@@ -125,6 +131,7 @@ import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProduct
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
 import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
 import Restaurant from '../Pages/Food/Restaurant.jsx';
+import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -330,6 +337,10 @@ const Rutas = () => (
       element={<Restaurant />}
     />
     <Route
+      path='/comida/comprar/:slug'
+      element={<ComprarFoodProduct />}
+    />
+    <Route
       path='/restaurantes'
       element={<RestaurantesRoute />}
     />
@@ -397,7 +408,7 @@ const Rutas = () => (
       element={<FinalizarCompra />}
     />
     <Route
-      path='/market/compras/*'
+      path='/compras/*'
       element={<Compras />}
     />
     <Route
@@ -462,12 +473,41 @@ const Rutas = () => (
       element={<Coowork />}
     />
     <Route
+      path='/asignar-tarea'
+      element={<AsignarTareaPage />}
+    />
+    <Route
       path='/herramientas/mi-agencia'
       element={<Agencia />}
     />
     <Route
+      path='/herramientas/calificar-tarea'
+      element={<CalificarTarea />}
+    />
+    <Route
+      path='/herramientas/corregir-tarea'
+      element={<CorregirTarea />}
+    />
+    <Route
+      path='/herramientas/gestionar-tareas'
+      element={<GestionTareas />}
+    />
+    <Route
+      path='/herramientas/resolver-apelaciones'
+      element={<ResolverApelaciones />}
+    />
+    <Route
       path='/herramientas/agregar-tarea'
       element={<AgregarTarea />}
+    />
+
+    <Route
+      path='/herramientas/asignar-tarea'
+      element={<AsignarTareaPage />}
+    />
+    <Route
+      path='/herramientas/agregar-socio'
+      element={<AgregarSocio />}
     />
 
     {/* Perfil / Usuario */}

@@ -31,6 +31,12 @@
       "target": "api::area.area",
       "mappedBy": "todos"
     },
+    "skills": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::skill.skill",
+      "inversedBy": "todos"
+    },
     "tipo": {
       "type": "enumeration",
       "enum": [
@@ -49,7 +55,7 @@
       "type": "enumeration",
       "enum": [
         "general",
-        "becarios",
+        "becario",
         "especialidad",
         "experto",
         "personalizada"
@@ -57,9 +63,6 @@
     },
     "grupo": {
       "type": "string"
-    },
-    "habilidades": {
-      "type": "json"
     },
     "recurrencia": {
       "type": "enumeration",
@@ -93,12 +96,6 @@
         "cancelada"
       ]
     },
-    "pagos_laborys": {
-      "type": "decimal"
-    },
-    "pagos_efectivo": {
-      "type": "decimal"
-    },
     "recompensa": {
       "type": "decimal"
     },
@@ -113,6 +110,26 @@
     },
     "vence": {
       "type": "boolean"
+    },
+    "has_deadline": {
+      "type": "boolean"
+    },
+    "due_date": {
+      "type": "datetime"
+    },
+    "is_periodic": {
+      "type": "boolean"
+    },
+    "reward_laborys": {
+      "type": "decimal"
+    },
+    "reward_cash": {
+      "type": "decimal"
+    },
+    "created_by": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
     },
     "algoritmo": {
       "type": "text"
@@ -142,6 +159,20 @@
       "relation": "oneToMany",
       "target": "api::tarea.tarea",
       "mappedBy": "todo"
+    },
+    "asignador": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "asignado_a": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "asignable": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

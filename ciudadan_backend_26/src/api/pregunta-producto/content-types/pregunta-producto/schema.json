@@ -47,6 +47,12 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::curso.curso"
+    },
+    "respuesta": {
+      "type": "text"
+    },
+    "fecha_respuesta": {
+      "type": "datetime"
     }
   }
 }

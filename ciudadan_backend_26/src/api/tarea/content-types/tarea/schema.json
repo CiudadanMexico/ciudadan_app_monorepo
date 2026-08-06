@@ -25,7 +25,49 @@
       "enum": [
         "tarea",
         "subtarea"
-      ]
+      ],
+      "default": "tarea"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "en_proceso",
+        "completada",
+        "corregir",
+        "corregida",
+        "calificada",
+        "pagada",
+        "cancelada",
+        "modificada"
+      ],
+      "default": "en_proceso"
+    },
+    "media": {
+      "type": "json",
+      "description": "Array de evidencias adjuntas. Cada entry: { nombre, tipo, url, size, subido_por, subido_en }. Validado en subir-evidencia.js."
+    },
+    "notes": {
+      "type": "text"
+    },
+    "score": {
+      "type": "integer",
+      "default": 0
+    },
+    "reviewed_by": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "resolved_at": {
+      "type": "datetime"
+    },
+    "payment_status": {
+      "type": "enumeration",
+      "enum": [
+        "pendiente",
+        "procesado"
+      ],
+      "default": "pendiente"
     },
     "todo": {
       "type": "relation",
