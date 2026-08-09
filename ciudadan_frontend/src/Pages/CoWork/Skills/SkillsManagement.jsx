@@ -1,156 +1,237 @@
-// src/pages/CoWork/Skills/SkillsManagement.jsx
-
-import React, { useState, useEffect } from 'react';
+// src/Pages/CoWork/Skills/SkillsManagement.jsx
+//
+// Reescrito en MUI: la versión anterior usaba Ant Design (librería no
+// instalada en el proyecto — nunca podía siquiera importarse) y no estaba
+// conectada a ninguna ruta, así que era inalcanzable. El hook useSkills.js
+// que consume ya fue corregido (antes su fetch/create/update siempre
+// devolvían datos vacíos/undefined por un desajuste de forma de respuesta
+// en el backend — ver src/api/skill/controllers/skill.js).
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  IconButton,
+  Paper,
+  Stack,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { useRoles } from '../../../Contexts/RolesContext';
 import { useSkills } from '../../../hooks/useSkills/useSkills';
-import { Button, Table, Modal, Form, Input, Space, Alert, message } from 'antd';
-import { PlusCircleOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+
+const emptyForm = { name: '', description: '', is_active: true };
 
 const SkillsManagement = () => {
   const { isAdmin, isEditor, isRoot } = useRoles();
-  const { skills, fetchSkills, createSkill, updateSkill, deleteSkill, loading } = useSkills();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editingSkill, setEditingSkill] = useState(null);
-  const [form] = Form.useForm();
+  const puedeGestionar = isAdmin() || isEditor() || isRoot();
+  const { skills, fetchSkills, createSkill, updateSkill, deleteSkill, loading, error } = useSkills();
+
+  const [dialog, setDialog] = useState({ open: false, editingId: null, form: emptyForm });
+  const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState(null);
 
   useEffect(() => {
-    if (isAdmin() || isEditor() || isRoot()) {
-      fetchSkills();
-    }
-  }, [isAdmin, isEditor, isRoot, fetchSkills]);
+    if (puedeGestionar) fetchSkills();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puedeGestionar]);
 
-  const handleCreate = () => {
-    setEditingSkill(null);
-    form.resetFields();
-    setModalOpen(true);
-  };
-
-  const handleEdit = (skill) => {
-    setEditingSkill(skill);
-    form.setFieldsValue({
-      name: skill.attributes.name,
-      description: skill.attributes.description || ''
-    });
-    setModalOpen(true);
-  };
-
-  const handleDelete = async (skillId) => {
-    if (!window.confirm('¿Estás seguro de eliminar esta habilidad? Esta acción no se puede deshacer.')) return;
-    
-    try {
-      await deleteSkill(skillId);
-      message.success('Habilidad eliminada correctamente');
-    } catch (error) {
-      message.error('Error al eliminar la habilidad');
-    }
-  };
-
-  const handleFormSubmit = async (values) => {
-    try {
-      if (editingSkill) {
-        await updateSkill(editingSkill.id, values);
-        message.success('Habilidad actualizada correctamente');
-      } else {
-        await createSkill(values);
-        message.success('Habilidad creada correctamente');
-      }
-      
-      setModalOpen(false);
-      form.resetFields();
-    } catch (error) {
-      message.error('Error al guardar la habilidad');
-    }
-  };
-
-  const columns = [
-    {
-      title: 'Nombre',
-      dataIndex: ['attributes', 'name'],
-      key: 'name',
-    },
-    {
-      title: 'Descripción',
-      dataIndex: ['attributes', 'description'],
-      key: 'description',
-      render: (text) => text || <em>Sin descripción</em>,
-    },
-    {
-      title: 'Acciones',
-      key: 'actions',
-      render: (_, skill) => (
-        <Space>
-          <Button 
-            type="link" 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(skill)}
-          >
-            Editar
-          </Button>
-          <Button 
-            type="link" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleDelete(skill.id)}
-          >
-            Eliminar
-          </Button>
-        </Space>
-      ),
-    },
-  ];
-
-  if (!isAdmin() && !isEditor() && !isRoot()) {
+  if (!puedeGestionar) {
     return (
-      <Alert 
-        message="Acceso denegado" 
-        description="Solo administradores y editores pueden gestionar habilidades." 
-        type="error" 
-        showIcon 
-      />
+      <Box sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+        <Alert severity="error">
+          Solo administradores y editores pueden gestionar habilidades.
+        </Alert>
+      </Box>
     );
   }
 
+  const abrirCrear = () => {
+    setActionError(null);
+    setDialog({ open: true, editingId: null, form: emptyForm });
+  };
+
+  const abrirEditar = (skill) => {
+    setActionError(null);
+    setDialog({
+      open: true,
+      editingId: skill.id,
+      form: {
+        name: skill.attributes?.name || '',
+        description: skill.attributes?.description || '',
+        is_active: skill.attributes?.is_active !== false,
+      },
+    });
+  };
+
+  const cerrarDialog = () => {
+    if (saving) return;
+    setDialog({ open: false, editingId: null, form: emptyForm });
+  };
+
+  const submitDialog = async () => {
+    if (!dialog.form.name.trim()) {
+      setActionError('El nombre es requerido');
+      return;
+    }
+    setSaving(true);
+    setActionError(null);
+    try {
+      if (dialog.editingId) {
+        await updateSkill(dialog.editingId, dialog.form);
+      } else {
+        await createSkill(dialog.form);
+      }
+      setDialog({ open: false, editingId: null, form: emptyForm });
+      await fetchSkills();
+    } catch (err) {
+      setActionError(err.message || 'No se pudo guardar la habilidad');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (skill) => {
+    if (!window.confirm(`¿Eliminar la habilidad "${skill.attributes?.name}"? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await deleteSkill(skill.id);
+      await fetchSkills();
+    } catch (err) {
+      setActionError(err.message || 'No se pudo eliminar la habilidad');
+    }
+  };
+
   return (
-    <div style={{ padding: '24px' }}>
-      <h2>Gestión de Habilidades</h2>
-      
-      <div style={{ marginBottom: '16px' }}>
-        <Button type="primary" icon={<PlusCircleOutlined />} onClick={handleCreate}>
-          Nueva Habilidad
+    <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="h5">Gestión de habilidades</Typography>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={abrirCrear}>
+          Nueva habilidad
         </Button>
-      </div>
-      
-      <Table 
-        dataSource={skills} 
-        columns={columns} 
-        loading={loading} 
-        rowKey="id" 
-        pagination={{ pageSize: 10 }}
-      />
-      
-      <Modal
-        title={editingSkill ? 'Editar Habilidad' : 'Nueva Habilidad'}
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        onOk={() => form.submit()}
-        okText="Guardar"
-        cancelText="Cancelar"
-      >
-        <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-          <Form.Item
-            name="name"
-            label="Nombre"
-            rules={[{ required: true, message: 'Por favor ingresa el nombre de la habilidad' }]}
-          >
-            <Input />
-          </Form.Item>
-          
-          <Form.Item name="description" label="Descripción">
-            <Input.TextArea rows={4} />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </div>
+      </Stack>
+
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Colección simple de habilidades (nombre + estado activo) usada para filtrar tareas
+        especializadas por habilidad verificada del usuario.
+      </Typography>
+
+      {(error || actionError) && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setActionError(null)}>
+          {actionError || error}
+        </Alert>
+      )}
+
+      <Paper variant="outlined">
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Descripción</TableCell>
+                <TableCell align="center">Activo</TableCell>
+                <TableCell align="right">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                    <CircularProgress size={24} />
+                  </TableCell>
+                </TableRow>
+              ) : skills.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                    <Typography color="text.secondary">No hay habilidades registradas</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                skills.map((skill) => (
+                  <TableRow key={skill.id}>
+                    <TableCell>{skill.attributes?.name}</TableCell>
+                    <TableCell>
+                      {skill.attributes?.description || <em>Sin descripción</em>}
+                    </TableCell>
+                    <TableCell align="center">
+                      {skill.attributes?.is_active !== false ? 'Sí' : 'No'}
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" onClick={() => abrirEditar(skill)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" color="error" onClick={() => handleDelete(skill)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
+      <Dialog open={dialog.open} onClose={cerrarDialog} fullWidth maxWidth="sm">
+        <DialogTitle>{dialog.editingId ? 'Editar habilidad' : 'Nueva habilidad'}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Nombre *"
+              value={dialog.form.name}
+              onChange={(e) => setDialog((p) => ({ ...p, form: { ...p.form, name: e.target.value } }))}
+              fullWidth
+              disabled={saving}
+            />
+            <TextField
+              label="Descripción (opcional)"
+              value={dialog.form.description}
+              onChange={(e) => setDialog((p) => ({ ...p, form: { ...p.form, description: e.target.value } }))}
+              multiline
+              minRows={2}
+              fullWidth
+              disabled={saving}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={dialog.form.is_active}
+                  onChange={(e) => setDialog((p) => ({ ...p, form: { ...p.form, is_active: e.target.checked } }))}
+                  disabled={saving}
+                />
+              }
+              label="Activa"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cerrarDialog} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button variant="contained" onClick={submitDialog} disabled={saving}>
+            {saving ? 'Guardando…' : 'Guardar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {
+  Alert,
   Box,
   Paper,
   Typography,
@@ -66,6 +67,9 @@ export default function AgregarTarea() {
   const [fechaEntrega, setFechaEntrega] = useState('');
   const [asignable, setAsignable] = useState(false);
 
+  const [error, setError] = useState(null);
+  const [creando, setCreando] = useState(false);
+
   const getToken = useCallback(async () => {
     try {
       return await getAccessTokenSilently({
@@ -127,6 +131,7 @@ export default function AgregarTarea() {
 
   const submit = async (e) => {
     e.preventDefault();
+    setError(null);
 
     try {
       if (!isAuthenticated) {
@@ -136,6 +141,8 @@ export default function AgregarTarea() {
       if (!areaSeleccionada) {
         throw new Error('Selecciona un área principal.');
       }
+
+      setCreando(true);
 
       console.log('Creando tarea con:', {
         titulo,
@@ -182,11 +189,14 @@ export default function AgregarTarea() {
         fecha_publicacion: new Date().toISOString(),
       });
 
-      alert('Tarea creada');
+      // Al crear con éxito, navegamos directo a la lista — ahí el usuario ve
+      // su tarea recién publicada, que ya es la confirmación (sin necesidad
+      // de una alerta bloqueante encima).
       navigate('/coowork?tab=generales');
     } catch (err) {
       console.error('Error creando tarea:', err);
-      alert(err.message || 'No se pudo crear la tarea');
+      setError(err.message || 'No se pudo crear la tarea');
+      setCreando(false);
     }
   };
 
@@ -205,6 +215,12 @@ export default function AgregarTarea() {
         <Typography variant="h5" color="white" gutterBottom>
           Agregar Tarea
         </Typography>
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
 
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
@@ -365,6 +381,7 @@ export default function AgregarTarea() {
           <Button
             type="submit"
             variant="contained"
+            disabled={creando}
             sx={{
               bgcolor: '#fff200',
               color: '#000',
@@ -373,7 +390,7 @@ export default function AgregarTarea() {
               '&:hover': { bgcolor: '#ffea00' },
             }}
           >
-            CREAR TAREA
+            {creando ? 'CREANDO…' : 'CREAR TAREA'}
           </Button>
         </Box>
       </Paper>

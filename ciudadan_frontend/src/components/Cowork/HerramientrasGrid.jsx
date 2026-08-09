@@ -10,6 +10,8 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import AppsIcon from '@mui/icons-material/Apps';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { fetchJson, STRAPI_URL } from '../../utils/request.utils';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
@@ -40,6 +42,8 @@ const iconBySlug = {
   'gestionar-tareas': <ListAltIcon fontSize="large" />,
   'agregar-tarea': <AddTaskIcon fontSize="large" />,
   'agregar-socio': <PersonAddIcon fontSize="large" />,
+  'gestionar-habilidades': <PsychologyIcon fontSize="large" />,
+  'verificar-usuarios': <VerifiedUserIcon fontSize="large" />,
   'carpetas-enlaces': <FolderIcon fontSize="large" />,
   'mi-agencia': <AccountBalanceIcon fontSize="large" />,
   'conductores': <DirectionsCarIcon fontSize="large" />,
@@ -47,7 +51,7 @@ const iconBySlug = {
 
 // Herramientas que solo deben ver admin/socio. Las_ocultamos_ para
 // usuarios sin permiso CRUD aunque est�n activas en Strapi.
-const SLUGS_SOLO_ADMIN_SOCIO = ['agregar-tarea', 'agregar-socio', 'calificar-tarea', 'corregir-tarea', 'gestionar-tareas'];
+const SLUGS_SOLO_ADMIN_SOCIO = ['agregar-tarea', 'agregar-socio', 'calificar-tarea', 'corregir-tarea', 'gestionar-tareas', 'gestionar-habilidades'];
 
 const iconFor = (slug, titulo) => {
   const key = slug || (titulo || '').toLowerCase().replace(/\s+/g, '-');
