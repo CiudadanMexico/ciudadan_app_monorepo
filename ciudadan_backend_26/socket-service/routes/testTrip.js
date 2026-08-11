@@ -95,6 +95,7 @@ router.post('/send-trip', async (req, res) => {
       createdAt: new Date().toISOString(),
       userEmail: body.userEmail || null,
       userId: body.userId || null,
+      userData: body.userData || null,
       settings: body.settings || {},
       meta: body.meta || {}
     };

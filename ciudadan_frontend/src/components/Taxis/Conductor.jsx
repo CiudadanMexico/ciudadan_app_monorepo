@@ -78,6 +78,7 @@ const Conductor = ({
   };
 
   const getSheetContent = () => {
+    console.log('getSheetContent: consultedTravel', consultedTravel, 'travelData', travelData);
     if (consultedTravel !== null && travelData[consultedTravel]) {
       const travel = travelData[consultedTravel];
       return (
@@ -424,6 +425,7 @@ const Conductor = ({
       { consultedTravel, travelData, userCoords });
     if (consultedTravel === null) return;
     const travel = travelData[consultedTravel];
+    console.log('[Conductor] travel seleccionado para dibujar ruta:', travel);
     if (!travel) return;
     if (!window.google || !mapRef.current) return;
 

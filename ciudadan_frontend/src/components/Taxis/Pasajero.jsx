@@ -74,9 +74,13 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [sheetState, setSheetState] = useState('collapsed');
   const [preferencesModalOpen, setPreferencesModalOpen] = useState(false);
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [passenger, setPassenger] = useState(null);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [paymentLabory, setPaymentLabory] = useState(false);
   const [saldoLabory, setSaldoLabory] = useState(0);
+  const [debtsLoading, setDebtsLoading] = useState(false);
+  const [debtsError, setDebtsError] = useState(null);
+  const [debts, setDebts] = useState([]);
 
   const { mapRef, fromMarkerRef, toMarkerRef } = useGoogleMaps(
     fromCoordinates,
@@ -161,6 +165,33 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     };
   }, []);
 
+  const getUserData = useCallback(async () => {
+    if (!user?.email || !strapiUrl) return;
+
+    try {
+      const url = `${strapiUrl}/api/users?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las preferencias');
+      }
+      const data = await response.json();
+
+      const userData = Array.isArray(data) ? data[0] : null;
+      if (!userData) {
+        throw new Error("No se encontró usuario");
+      }
+      console.log('[Pasajero] datos del usuario cargados:', userData);
+      setPassenger(userData);
+    } catch (err) {
+      console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
+    }
+  }, [strapiToken, strapiUrl, user?.email]);
+
   const loadUserPreferences = useCallback(async () => {
     if (!user?.email || !strapiUrl) return;
 
@@ -188,8 +219,43 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   }, [normalizePreferences, strapiToken, strapiUrl, user?.email]);
 
   useEffect(() => {
+    getUserData();
     loadUserPreferences();
-  }, [loadUserPreferences]);
+  }, [getUserData, loadUserPreferences]);
+
+  // Cargar adeudos del pasajero
+  useEffect(() => {
+    const fetchDebts = async () => {
+      if (!user?.email) return;
+      setDebtsLoading(true);
+      setDebtsError(null);
+      try {
+        // Preferir variable de entorno STRAPI si existe, sino usar localhost:33032
+        //const base = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
+        const url = `${strapiUrl.replace(/\/$/, '')}/api/taxi-debts?filters[pasajero_email][$eq]=${encodeURIComponent(
+          user.email,
+        )}&filters[pagado][$eq]=false&populate=*`;
+
+        const resp = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(strapiToken ? { Authorization: `Bearer ${strapiToken}` } : {}),
+          },
+        });
+        if (!resp.ok) throw new Error('Error consultando adeudos');
+        const json = await resp.json();
+        const items = (json && json.data) || [];
+        setDebts(items);
+      } catch (err) {
+        console.warn('[Pasajero] error cargando adeudos:', err);
+        setDebtsError(err && (err.message || String(err)));
+      } finally {
+        setDebtsLoading(false);
+      }
+    };
+
+    fetchDebts();
+  }, [user?.email]);
 
   const handlePreferenceFieldChange = (field, value) => {
     setPreferences((prev) => ({ ...prev, [field]: value }));
@@ -834,6 +900,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             body: JSON.stringify({
               userEmail,
               userId,
+              userData: passenger || null,
               settings,
               originCoordinates: payload.originCoordinates,
               destinationCoordinates: payload.destinationCoordinates,
@@ -1006,6 +1073,68 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const cancelarBusqueda = () => {
     setLoadingSearch(false);
   };
+
+  const formatDate = (iso) => {
+    try {
+      return new Date(iso).toLocaleString();
+    } catch (e) {
+      return iso;
+    }
+  };
+
+  const AdeudoWarning = ({ debt }) => {
+    if (!debt || !debt.attributes) return null;
+    const a = debt.attributes;
+    const conductor = a.conductor && a.conductor.data && a.conductor.data.attributes ? a.conductor.data.attributes : null;
+    const conductorName = conductor?.nombre_completo || a.conductor_email || 'Conductor';
+    const costoViaje = a.costo_viaje != null ? a.costo_viaje : a.costo_efectivo || 0;
+    const adeudo = a.adeudo != null ? a.adeudo : costoViaje;
+    const fecha = a.fecha_viaje ? formatDate(a.fecha_viaje) : a.createdAt ? formatDate(a.createdAt) : '';
+    const origen = a.origen_direccion || '-';
+    const destino = a.destino_direccion || '-';
+
+    // Intentar obtener teléfono para WhatsApp
+    const phone = conductor && (conductor.telefono || conductor.phone || conductor.celular);
+    /*const whatsappLink = phone
+      ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+        `Hola ${conductorName}, respecto al adeudo del viaje. Mi email: ${user?.email || ''}`,
+      )}`
+      : null;*/
+    const whatsappLink = '+52 55 1234 5678'; // Reemplaza con el número de WhatsApp real del conductor o soporte
+
+    return (
+      <div className='adeudo-warning' style={{ padding: 20, maxWidth: 900, margin: '20px auto', background: '#fff6f6', border: '1px solid #ffb3b3', borderRadius: 8 }}>
+        <Typography variant='h6' sx={{ color: '#a10d0d', marginBottom: 1 }}>Tienes un adeudo pendiente</Typography>
+        <Typography sx={{ mb: 1 }}>No podrás pedir otro viaje hasta resolver este adeudo.</Typography>
+        <Box sx={{ mt: 1, mb: 1 }}>
+          <div><strong>Costo del viaje:</strong> ${Intl.NumberFormat('es-MX').format(costoViaje)}</div>
+          <div><strong>Adeudo:</strong> ${Intl.NumberFormat('es-MX').format(adeudo)}</div>
+          <div><strong>Fecha del viaje:</strong> {fecha}</div>
+          <div><strong>Conductor:</strong> {conductorName}</div>
+          <div><strong>Origen:</strong> {origen}</div>
+          <div><strong>Destino:</strong> {destino}</div>
+        </Box>
+        <Box sx={{ mt: 2 }}>
+          {whatsappLink ? (
+            <Button variant='contained' color='success' href={whatsappLink} target='_blank' rel='noreferrer'>Contactar por WhatsApp</Button>
+          ) : (
+            <Button variant='outlined' color='primary' href={`mailto:${a.conductor_email || ''}`}>Contactar por email</Button>
+          )}
+        </Box>
+      </div>
+    );
+  };
+
+  // Si hay adeudos no pagados, mostrar advertencia y evitar render normal
+  if (!debtsLoading && Array.isArray(debts) && debts.length > 0) {
+    return (
+      <>
+        <div className='taxis-container'>
+          <AdeudoWarning debt={debts[0]} />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

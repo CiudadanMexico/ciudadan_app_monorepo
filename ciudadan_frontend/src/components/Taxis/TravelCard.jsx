@@ -93,6 +93,21 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     travel.meta?.suggested?.priceFormatted ??
     (suggestedPrice ? currencyFmt(suggestedPrice) : null);
 
+  const passengerName = travel?.userData?.nombre_completo || travel?.username || 'Pasajero desconocido';
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
+
+  let userPhoto = null;
+  const profilePicUrl = travel?.userData?.profilepic?.url;
+  const profilePicThumbnail = travel?.userData?.profilepic?.formats?.thumbnail?.url;
+
+  if (profilePicThumbnail) {
+    // Usar thumbnail si disponible (más pequeño y rápido)
+    userPhoto = `${strapiUrl}${profilePicThumbnail}`;
+  } else if (profilePicUrl) {
+    // Fallback a la imagen original
+    userPhoto = `${strapiUrl}${profilePicUrl}`;
+  }
+
   // Helper para obtener coords actuales (Promise)
   const getCurrentPosition = (opts = { enableHighAccuracy: false, timeout: 5000, maximumAge: 10000 }) => {
     return new Promise((resolve, reject) => {
@@ -187,9 +202,10 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
 
   // Handler para Ver: pasa travel e index al handler padre
   const handleViewClicked = useCallback(() => {
+    console.log('[TravelCard] handleViewClicked:', { travel, index });
     try {
       if (typeof onClick === 'function') {
-        onClick(travel, index);
+        onClick(index);
       }
     } catch (e) {
       console.warn('[TravelCard] error en handleViewClicked:', e);
@@ -224,7 +240,41 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
       }}
     >
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, textAlign: 'center' }}>
+          {userPhoto ? (
+            <img
+              src={userPhoto}
+              alt={travel.username}
+              style={{ width: 90, height: 90, borderRadius: "50%", marginRight: 12, objectFit: "cover" }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 90,
+                height: 90,
+                borderRadius: "50%",
+                marginRight: 12,
+                background: "#e8f5e9",
+                color: "#2e7d32",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 700,
+              }}
+            >
+              a
+            </div>
+          )}
+          <div style={{ fontSize: 18, color: '#333', marginTop: 4 }}>
+            <strong>{travel.userRating ? `${travel.userRating.toFixed(1)} ⭐` : '—'}</strong>
+          </div>
+        </div>
+
         <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, marginBottom: 8, fontWeight: 700, color: '#0c1196' }}>
+            {passengerName}
+          </div>
+
           <div style={{ fontSize: 12, color: '#666' }}>
             <strong>Origen</strong>
           </div>
@@ -241,10 +291,6 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
           </div>
           <div style={{ fontSize: 15 }}>{destination}</div>
 
-          <div style={{ fontSize: 14, color: '#333', marginTop: 10 }}>
-            <strong>Calificación del pasajero:</strong> {travel.userRating ? `${travel.userRating} ⭐` : '—'}
-          </div>
-          
           <div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
             {travel.roundedDistanceMeters ? ` • ${travel.roundedDistanceMeters} m` : ''}

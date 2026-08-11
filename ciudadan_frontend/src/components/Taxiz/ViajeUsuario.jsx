@@ -18,11 +18,9 @@ const normalizeCoord = (c) => {
   }
 };
 
-const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUserCoords, mapRef, setConsultedTravel, paymentFlowState, paymentAmount, onPassengerPaymentChoice, passengerPaymentState, onCancel }) => {
-  console.log('viajando usuario', viaje);
-  console.log('driverData', driverData);
-  console.log('paymentFlowState', paymentFlowState.showPassengerConfirmationOptions);
-  console.log('passengerPaymentState', passengerPaymentState);
+const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUserCoords, mapRef, setConsultedTravel, paymentAmount, onCancel }) => {
+  //console.log('paymentFlowState', paymentFlowState.showPassengerConfirmationOptions);
+  //console.log('passengerPaymentState', passengerPaymentState);
 
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
@@ -48,7 +46,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   const userEmail = viaje?.attributes?.pasajeromail;
 
   const [expanded, setExpanded] = useState(true);
-  const [paymentLabory, setPaymentLabory] = useState(false);
+  const [hasLabory, setHasLabory] = useState(false);
   const [saldoLabory, setSaldoLabory] = useState(0);
   const status = viaje?.attributes?.status || 'esperando';
   //const routeInfo = viaje?.attributes?._routeInfo || null;
@@ -73,7 +71,6 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
     [driverData?.vehicle_brand, driverData?.vehicle_model]
       .filter(Boolean)
       .join(" ") || "Vehículo no disponible";
-  //const vehicleExtras = [vehicleModel, vehicleColor, vehiclePlate].filter(Boolean);
 
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
@@ -118,10 +115,10 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       }
 
       const userData = await response.json();
-      const payment = userData?.data?.[0]?.attributes?.pago_labory || false;
-      console.log('Pago Labory', payment);
-      setPaymentLabory(payment);
-      if (payment) {
+      const labory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      console.log('Pago Labory', labory);
+      setHasLabory(labory);
+      if (labory) {
         const saldo = await consultarSaldo();
         console.log('Saldo Labory', saldo);
         setSaldoLabory(saldo);
@@ -216,7 +213,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
         <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0, borderRight: '1px solid #eee', paddingRight: 12, marginRight: 6 }}>
               <div style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
                 {driverPhoto ? (
                   <img
@@ -243,41 +240,65 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                   ) : (
                     <div style={{ color: '#666', fontSize: 16 }}>Sin datos de vehículo</div>
                   )}
-                  <div style={{ fontSize: 16, marginTop: 5 }}>
-                    {driverData?.ratingAvg ? `${driverData?.ratingAvg} ⭐` : '- ⭐'}
+                  <div style={{ fontSize: 18, marginTop: 5 }}>
+                    <strong>{driverData?.ratingAvg ? `${driverData?.ratingAvg.toFixed(1)} ⭐` : '- ⭐'}</strong>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <div><strong>Pickup</strong></div>
-                <div style={{ fontSize: 13 }}>
-                  {pickupNorm ? `${pickupNorm}` : 'Sin pickup'}
+            {(status === 'en_curso' || status === 'iniciando') && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <div><strong>Pickup</strong></div>
+                  <div style={{ fontSize: 13 }}>
+                    {pickupNorm ? `${pickupNorm}` : 'Sin pickup'}
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div><strong>Destino</strong></div>
+                  <div style={{ fontSize: 13 }}>
+                    {destNorm ? `${destNorm}` : 'Sin destino'}
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div><strong>Precio</strong></div>
+                  <div style={{ fontSize: 20 }}>
+                    <strong style={{ color: '#0007d7' }}>
+                      {price ? `$${price.toFixed(2)} MXN` : 'Sin precio'}
+                    </strong>
+                  </div>
                 </div>
               </div>
-
-              <div style={{ flex: 1 }}>
-                <div><strong>Destino</strong></div>
-                <div style={{ fontSize: 13 }}>
-                  {destNorm ? `${destNorm}` : 'Sin destino'}
-                </div>
+            )}
+            {(status === 'finalizado' && paymentAmount != null) && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontSize: 18, paddingBottom: 8 }}><strong>Monto a pagar</strong></div>
+                <div style={{ fontSize: 16, color: '#444', paddingBottom: 8 }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
+                {(hasLabory && saldoLabory > 0) && (
+                  <>
+                    <div style={{ fontSize: 16, color: '#444', paddingBottom: 8 }}>
+                      Pago máximo con
+                      <strong style={{ color: '#000', backgroundColor: '#f3cb19', padding: 4, margin: 4, borderRadius: '4px' }}>
+                        Labory
+                      </strong>:
+                      <strong style={{ color: '#0007d7' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
+                    </div>
+                    <div style={{ fontSize: 16, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                  </>
+                )}
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#0007d7', paddingTop: 12 }}>Confirma tu pago con el conductor</div>
               </div>
-
-              <div style={{ flex: 1 }}>
-                <div><strong>Precio</strong></div>
-                <div style={{ fontSize: 20 }}>
-                  <strong>
-                    {price ? `$${price.toFixed(2)} MXN` : 'Sin precio'}
-                  </strong>
-                </div>
+            )}
+            {(status === 'partial' || status === 'unpaid') &&
+              <div style={{ flex: 1, display: 'flex', fontSize: 18, textAlign: 'center', fontWeight: 600, color: '#e02c2c', padding: 12 }}>
+                El conductor indicó que el pago no fue completado
               </div>
-            </div>
+            }
           </div>
 
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            {(status === 'in_progress' || status === 'iniciando') && <button
+            {(status === 'en_curso' || status === 'iniciando') && <button
               onClick={() => {
                 const center = pickupNorm || taxiNorm;
                 if (mapRef?.current && center) {
@@ -289,7 +310,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
             >
               Centrar en pickup / taxi
             </button>}
-            {status === 'in_progress' &&
+            {status === 'en_curso' &&
               (routeInfo < .15 ?
                 <>
                   <div style={{ fontSize: 16, fontWeight: 700, color: '#2f6fed' }}>Ya casi llegas</div>
@@ -300,20 +321,8 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
             }
           </div>
 
-          {paymentFlowState?.isPaymentFlowActive && (
+          {/*paymentFlowState?.isPaymentFlowActive && (
             <div style={{ borderTop: '1px solid #eee', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 14, fontWeight: 700 }}>Monto a pagar</div>
-              {paymentFlowState.showPassengerAmount && paymentAmount != null && (
-                <div>
-                  <div style={{ fontSize: 14, color: '#444' }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
-                  {(paymentLabory && saldoLabory > 0) && (
-                    <>
-                      <div style={{ fontSize: 14, color: '#444' }}>Pago máximo con Labory: <strong>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong></div>
-                      <div style={{ fontSize: 14, color: '#444' }}>Efectivo restante: <strong>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
-                    </>
-                  )}
-                </div>
-              )}
               {paymentFlowState.showPassengerConfirmationOptions && (
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => onPassengerPaymentChoice?.('paid')} style={{ flex: 1, padding: 10, borderRadius: 8, background: '#2f6fed', color: '#fff', border: 'none', fontWeight: 700 }}>
@@ -328,8 +337,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                 <div style={{ fontSize: 13, color: '#2f6fed' }}>Pago confirmado.</div>
               )}
             </div>
-          )}
-
+          )*/}
         </div>
       )}
     </div>

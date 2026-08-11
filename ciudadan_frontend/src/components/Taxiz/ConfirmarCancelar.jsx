@@ -7,16 +7,16 @@ const ConfirmarCancelar = ({ viajeId, open, isDriver, onSubmit, onClose, strapiC
     const title = `El ${userType} desea finalizar el viaje antes del destino`;
 
     const handleSubmit = async () => {
-        if (typeof onSubmit === 'function') onSubmit('finished');
-        if (strapiConfig?.baseUrl && viajeId) {
+        if (typeof onSubmit === 'function') onSubmit('finalizado');
+        /*if (strapiConfig?.baseUrl && viajeId) {
             try {
                 await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viajes/${viajeId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', ...(strapiConfig.token ? { Authorization: `Bearer ${strapiConfig.token}` } : {}) },
-                    body: JSON.stringify({ data: { status: 'finished' } }),
+                    body: JSON.stringify({ data: { status: 'finalizado' } }),
                 });
             } catch (e) { console.warn('no pudo actualizar viaje', e); }
-        }
+        }*/
     };
 
     return (
