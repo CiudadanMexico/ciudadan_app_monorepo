@@ -4,7 +4,8 @@
   "info": {
     "singularName": "food-order",
     "pluralName": "food-orders",
-    "displayName": "Food Orders"
+    "displayName": "Food Orders",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -70,12 +71,14 @@
     "status": {
       "type": "enumeration",
       "enum": [
-        "enviar",
-        "encamino",
+        "pendiente_pago",
+        "pendiente_verificacion",
+        "pendiente_envio",
+        "enviado",
+        "en_camino",
         "cancelado",
         "devuelto",
-        "recibido",
-        "impagado"
+        "recibido"
       ]
     },
     "finalizado": {

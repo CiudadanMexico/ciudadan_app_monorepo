@@ -3087,6 +3087,7 @@ export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
     singularName: 'food-order';
     pluralName: 'food-orders';
     displayName: 'Food Orders';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -3124,7 +3125,16 @@ export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
       'api::pago.pago'
     >;
     status: Attribute.Enumeration<
-      ['enviar', 'encamino', 'cancelado', 'devuelto', 'recibido', 'impagado']
+      [
+        'pendiente_pago',
+        'pendiente_verificacion',
+        'pendiente_envio',
+        'enviado',
+        'en_camino',
+        'cancelado',
+        'devuelto',
+        'recibido'
+      ]
     >;
     finalizado: Attribute.Boolean;
     calificado: Attribute.Boolean;
@@ -3786,6 +3796,16 @@ export interface ApiPagoPago extends Schema.CollectionType {
     comprobante: Attribute.Media<'images' | 'files'> & Attribute.Required;
     usuario_email: Attribute.Email;
     fecha_aprobado: Attribute.DateTime;
+    food_restaurant: Attribute.Relation<
+      'api::pago.pago',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    food_order: Attribute.Relation<
+      'api::pago.pago',
+      'oneToOne',
+      'api::food-order.food-order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
