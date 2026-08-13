@@ -1,4 +1,4 @@
-import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Paper, Step, StepLabel, Stepper, Typography, Tooltip, useTheme, useMediaQuery, Stack } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import DireccionSelector from '../../components/MarketPlace/DireccionSelector';
@@ -11,6 +11,9 @@ import { useAuth0 } from "@auth0/auth0-react";
 import PagoPorTienda from '../../components/MarketPlace/PagoPorTienda';
 import useProductsRestaurant from '../../hooks/food/useProductsRestaurant';
 import DetalleFoodProduct from '../../components/Food/DetalleFoodProduct';
+import { useRoles } from '../../Contexts/RolesContext';
+import PagoPedidoRestaurante from '../../components/Food/PagoPedidoRestaurante';
+import { CheckCircleRounded, LocalShippingRounded, UploadFileRounded, VerifiedRounded } from '@mui/icons-material';
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL;
 const steps = ["Producto", "Dirección", "Pago", "Confirmación"];
@@ -23,7 +26,8 @@ export default function ComprarFoodProduct() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const { isAuthenticated, loginWithRedirect, user } = useAuth0();
-  const { getProductById, getProductBySlug } = useProductsRestaurant();
+  const { userData } = useRoles();
+  const { getProductById, getProductBySlug, loading: loadingProduct } = useProductsRestaurant();
 
   const [activeStep, setActiveStep] = useState(0);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -60,8 +64,7 @@ export default function ComprarFoodProduct() {
 
   useEffect(() => {
     let mounted = true;
-    const { product_id } = state;
-    handleGetProduct({ id: product_id, slug })
+    handleGetProduct({ id: state?.product_id, slug })
     return () => { mounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, state]);
@@ -132,8 +135,8 @@ export default function ComprarFoodProduct() {
     setCreatingPedidos(true);
 
     try {
-      const restaurant = attrs?.food_restaurant?.data?.id;
-      const precio_unitario = precioNum || 0;
+      const restaurant = attrs?.food_restaurant?.data ?? {};
+      const precio_unitario = precioNum ?? 0;
       const subtotal = precio_unitario * cantidad;
 
       // const comisionPlataforma = precotizarPlataforma(subtotal);
@@ -150,9 +153,7 @@ export default function ComprarFoodProduct() {
       const envio = 0;
       const comisionPlataforma = 0;
       const comisionStripe = 0;
-      const total = parseFloat(
-        (subtotal + envio + comisionPlataforma + comisionStripe).toFixed(2)
-      );
+      const total = parseFloat((subtotal + envio + comisionPlataforma + comisionStripe).toFixed(2));
       // Item mapeado igual que mapItemToComponent en FinalizarCompra.jsx
       const item = {
         producto: producto.id,
@@ -178,19 +179,19 @@ export default function ComprarFoodProduct() {
       // ----------------------------
       const payloadPedido = {
         data: {
-          item: [item],
-          tipo: "tienda",
-          timestamp_creacion: new Date().toISOString(),
+          items: [item],
+          fecha_creacion: new Date().toISOString(),
+          user: userData?.id,
           monto_envio: envio,
           monto_total: total,
-          status: "enviar",
+          status: "pendiente_pago",
           direccion_destino: selectedAddress.id,
           metadata: { usuario_email: user?.email || "unknown" },
-          usuario: user,
+          restaurant: restaurant?.id,
         },
       };
 
-      const res = await fetch(`${STRAPI}/api/pedidos`, {
+      const res = await fetch(`${STRAPI}/api/food-orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payloadPedido),
@@ -203,11 +204,11 @@ export default function ComprarFoodProduct() {
       }
 
       const created = await res.json();
-      const createdData = created?.data || null;
-      const attributes = { ...(createdData?.attributes || {}) };
+      const createdData = created?.data ?? null;
+      const attributes = { ...(createdData?.attributes ?? {}), restaurant };
 
       const normalized = {
-        id: createdData?.id || null,
+        id: createdData?.id ?? null,
         attributes,
         pago: attributes?.pago || attributes?.pago_id || null,
         _raw: created,
@@ -232,7 +233,7 @@ export default function ComprarFoodProduct() {
   const handleNextStep = () => setActiveStep(1);
   const handleNextStep2 = () => setActiveStep(2);
   const handleSaveLater = () => {
-    setTimeout(() => navigate("/market"), 500);
+    setTimeout(() => navigate("/food"), 500);
   };
 
   const handlePagoSubido = useCallback((pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl = null) => {
@@ -301,12 +302,12 @@ export default function ComprarFoodProduct() {
     try {
       console.log("cart y emojis - marcando pedido como pagado, id:", pedidoCreado.id);
 
-      const upd = await fetch(`${STRAPI}/api/pedidos/${pedidoCreado.id}`, {
+      const upd = await fetch(`${STRAPI}/api/food-orders/${pedidoCreado.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           data: {
-            status: "enviar",
+            status: "pendiente_verificacion",
             fecha_pagado: new Date().toISOString(),
           },
         }),
@@ -386,109 +387,200 @@ export default function ComprarFoodProduct() {
           </Step>
         ))}
       </Stepper>
+      {
+        loadingProduct && (
+          <Box display="flex" justifyContent="center" alignItems="center">
+            <Typography>Cargando...</Typography>
+            <CircularProgress />
+          </Box>
+        )
+      }
+      {activeStep === 0 && (
+        <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          {
+            producto && (
+              <Paper sx={{ p: 2 }}>
+                <Grid container spacing={4}>
+                  <Grid item xs={12} md={6}>
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                      <GaleriaImagenesProducto
+                        imagenes={todasLasImagenes}
+                        nombre={nombre}
+                        imagenIndex={imagenIndex}
+                        setImagenIndex={setImagenIndex}
+                      />
+                    </motion.div>
 
-      <AnimatePresence mode="wait">
-        {activeStep === 0 && (
-          <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 2 }}>
-              <Grid container spacing={4}>
-                <Grid item xs={12} md={6}>
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                    <GaleriaImagenesProducto
-                      imagenes={todasLasImagenes}
-                      nombre={nombre}
-                      imagenIndex={imagenIndex}
-                      setImagenIndex={setImagenIndex}
-                    />
-                  </motion.div>
-
-                  <Box display="flex" gap={1} alignItems="center" mt={2}>
-                    <LocalShippingIcon sx={{ color: '#6d6e71' }} />
-                    <Typography variant="body2" color="text.secondary">Envío estimado:</Typography>
-                    <Typography variant="subtitle2" fontWeight={700}>{envioMostrar}</Typography>
-                  </Box>
-
-                  {usa_stock && typeof stock === 'number' && (
-                    <Box mt={1}>
-                      <Chip label={stock === 0 ? 'Agotado' : `Disponibles: ${stock}`} color={stock === 0 ? 'error' : 'default'} />
-                    </Box>
-                  )}
-                </Grid>
-
-                <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Box mb={1}>
-                    <Typography variant="h5" fontWeight={900}>{nombre}</Typography>
-
-                    <Box display="flex" gap={2} alignItems="center">
-                      {marca && <Typography variant="body2" color="text.secondary">Marca: <strong>{marca}</strong></Typography>}
+                    <Box display="flex" gap={1} alignItems="center" mt={2}>
+                      <LocalShippingIcon sx={{ color: '#6d6e71' }} />
+                      <Typography variant="body2" color="text.secondary">Envío estimado:</Typography>
+                      <Typography variant="subtitle2" fontWeight={700}>{envioMostrar}</Typography>
                     </Box>
 
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Box display="flex" alignItems="center">
-                        {estrellas.map((filled, i) => (
-                          <StarIcon key={i} fontSize="small" sx={{ color: filled ? '#f7b500' : '#e6e6e6' }} />
-                        ))}
+                    {usa_stock && typeof stock === 'number' && (
+                      <Box mt={1}>
+                        <Chip label={stock === 0 ? 'Agotado' : `Disponibles: ${stock}`} color={stock === 0 ? 'error' : 'default'} />
                       </Box>
-                      <Typography variant="body2" fontWeight={700}>
-                        {avg5 != null ? Number(avg5).toFixed(1) : '—'}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">({numCalificaciones})</Typography>
+                    )}
+                  </Grid>
+
+                  <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Box mb={1}>
+                      <Typography variant="h5" fontWeight={900}>{nombre}</Typography>
+
+                      <Box display="flex" gap={2} alignItems="center">
+                        {marca && <Typography variant="body2" color="text.secondary">Marca: <strong>{marca}</strong></Typography>}
+                      </Box>
+
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Box display="flex" alignItems="center">
+                          {estrellas.map((filled, i) => (
+                            <StarIcon key={i} fontSize="small" sx={{ color: filled ? '#f7b500' : '#e6e6e6' }} />
+                          ))}
+                        </Box>
+                        <Typography variant="body2" fontWeight={700}>
+                          {avg5 != null ? Number(avg5).toFixed(1) : '—'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">({numCalificaciones})</Typography>
+                      </Box>
                     </Box>
-                  </Box>
 
-                  {/* DetalleProducto contiene ahora todas las acciones (agregar, favoritos, comprar) */}
-                  <DetalleFoodProduct
-                    producto={producto}
-                    cantidad={cantidad}
-                    handleCantidadChange={handleCantidadChange}
-                    enableActions={false}
-                  />
+                    {/* DetalleProducto contiene ahora todas las acciones (agregar, favoritos, comprar) */}
+                    <DetalleFoodProduct
+                      producto={producto}
+                      cantidad={cantidad}
+                      handleCantidadChange={handleCantidadChange}
+                      enableActions={false}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Paper>
-          </motion.div>
-        )}
-        {activeStep === 1 && (
-          <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 2 }}>
-              <DireccionSelector onConfirm={handleConfirmAddress} />
-            </Paper>
-          </motion.div>
-        )}
+              </Paper>
+            )
+          }
+        </motion.div>
+      )}
+      {activeStep === 1 && (
+        <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Paper sx={{ p: 2 }}>
+            <DireccionSelector onConfirm={handleConfirmAddress} />
+          </Paper>
+        </motion.div>
+      )}
+      {activeStep === 2 && (
+        <motion.div key="pagos" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Paper sx={{ p: 2 }}>
+            {/* Si no hay pedidos, mostramos mensaje */}
+            {pedidoCreado == null ? (
+              <Typography sx={{ mb: 2 }}>
+                No hay pedidos creados. Vuelve a intentar crear los pedidos.
+              </Typography>
+            ) : (
+              <PagoPedidoRestaurante key={`pago-pedido-${pedidoCreado?.id}`} pedido={pedidoCreado} onPagoSubido={handlePagoSubido} />
+            )}
+          </Paper>
+        </motion.div>
+      )}
+      {activeStep === 3 && (
+        <motion.div
+          key="ok"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <Paper
+            sx={{
+              p: { xs: 3, sm: 4 },
+              borderRadius: 3,
+            }}
+          >
+            <Stack spacing={3} alignItems="center">
+              <CheckCircleRounded
+                color="success"
+                sx={{ fontSize: 70 }}
+              />
 
-        {activeStep === 2 && (
-          <motion.div key="pagos" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 2 }}>
-              {/* Si no hay pedidos, mostramos mensaje */}
-              {pedidoCreado == null ? (
-                <Typography sx={{ mb: 2 }}>
-                  No hay pedidos creados. Vuelve a intentar crear los pedidos.
+              <Box textAlign="center">
+                <Typography variant="h5" fontWeight={700}>
+                  ¡Comprobante enviado!
                 </Typography>
-              ) : (
-                <PagoPorTienda key={pedidoCreado.id} pedido={pedidoCreado} onPagoSubido={handlePagoSubido} />
-              )}
-            </Paper>
-          </motion.div>
-        )}
 
-        {activeStep === 3 && (
-          <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 4, textAlign: "center" }}>
-              <Typography variant="h5">¡Pedido enviado!</Typography>
-              <Button
-                variant="contained"
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  console.log("cart y emojis - navegando a /mis-compras");
-                  navigate("/mis-compras");
+                <Typography
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  Tu comprobante de pago fue recibido correctamente.
+                  Ahora comenzará el proceso de validación antes del envío
+                  de tu pedido.
+                </Typography>
+              </Box>
+
+              <Stack
+                spacing={2}
+                sx={{
+                  width: "100%",
+                  mt: 1,
                 }}
               >
-                Ver mis compras
+                <Box display="flex" gap={2}>
+                  <UploadFileRounded color="primary" />
+                  <Box>
+                    <Typography fontWeight={600}>
+                      1. Comprobante recibido
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      Tu comprobante ya fue registrado en el sistema.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box display="flex" gap={2}>
+                  <VerifiedRounded color="warning" />
+                  <Box>
+                    <Typography fontWeight={600}>
+                      2. Validación del vendedor
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      El vendedor fue notificado y verificará que el pago
+                      haya sido recibido correctamente.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Box display="flex" gap={2}>
+                  <LocalShippingRounded color="success" />
+                  <Box>
+                    <Typography fontWeight={600}>
+                      3. Preparación y envío
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      Una vez confirmado el pago, tu pedido será preparado y
+                      enviado. Podrás consultar su avance desde la sección
+                      <strong> Mis compras</strong>.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Stack>
+
+              <Button
+                fullWidth
+                size="large"
+                variant="contained"
+                onClick={() => navigate("/compras/ordenes-comida")}
+              >
+                Ir a Mis compras
               </Button>
-            </Paper>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </Stack>
+          </Paper>
+        </motion.div>
+      )}
 
       <Box mt={1} display="flex" justifyContent={activeStep > 0 && activeStep < 2 ? "space-between" : "flex-end"}>
         {
@@ -513,24 +605,21 @@ export default function ComprarFoodProduct() {
               {activeStep === 1 && (
                 <>
                   <Box display='flex' gap={2} justifyContent='center'>
-                    <Tooltip title="Continuar con el pago del pedido">
-                      <Button
-                        variant="contained"
-                        disabled={!selectedAddress || creatingPedidos}
-                        onClick={() => handleCrearPedido(handleNextStep2)}
-                      >
-                        {creatingPedidos ? <CircularProgress size={18} /> : "Pagar"}
-                      </Button>
-                    </Tooltip>
-                    <Tooltip title="Continuar con el pago del pedido más tarde">
-                      <Button
-                        color="secondary"
-                        disabled={!selectedAddress || creatingPedidos}
-                        onClick={() => handleCrearPedido(handleSaveLater)}
-                      >
-                        {creatingPedidos ? <CircularProgress size={18} /> : "Guardar"}
-                      </Button>
-                    </Tooltip>
+                    <Button
+                      variant="contained"
+                      disabled={!selectedAddress || creatingPedidos}
+                      onClick={() => handleCrearPedido(handleNextStep2)}
+                    >
+                      Pagar
+                    </Button>
+
+                    <Button
+                      color="secondary"
+                      disabled={!selectedAddress || creatingPedidos}
+                      onClick={() => handleCrearPedido(handleSaveLater)}
+                    >
+                      Guardar
+                    </Button>
                   </Box>
                 </>
               )}

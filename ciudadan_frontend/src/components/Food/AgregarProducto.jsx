@@ -40,7 +40,7 @@ const NivelesPicante = [
   { value: 'extremo', label: 'Extremo' },
 ];
 
-const Steps = ['Datos Generales', 'Medidas', 'Características', 'Ingredientes', 'Alergenos', 'Imagen Principal', 'Galería', 'Finalizar'];
+const Steps = ['Datos Generales', 'Información', 'Características', 'Ingredientes', 'Alergenos', 'Imagen Principal', 'Galería', 'Finalizar'];
 
 const FOOD_UNITS = [
   { value: "unidad", label: "Unidad" },
@@ -73,16 +73,16 @@ const defaultFormData = {
   calorias: '',
   food_categories: [],
   stockEnable: false,
-  stock: null,
+  stock: '',
   disponible: true,
-  manejar_horario_disponibilidad: true,
+  manejar_horario_disponibilidad: false,
   horario_disponibilidad: { inicio: null, fin: null },
   tiempo_preparacion: '',
   calorias: '',
   peso: '',
   porciones: '',
   temperatura: '',
-  orden_minima: null,
+  orden_minima: '',
   es_picante: false,
   nivel_picante: '',
   vegetariano: false,
@@ -97,7 +97,7 @@ const defaultFormData = {
 const defaultIngredientes = [{ nombre: '', cantidad: null, unidad: '' }];
 const defaultAlergenos = [''];
 
-const AgregarProducto = ({ restaurant }) => {
+const AgregarProducto = ({ restaurante }) => {
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
   const { user, isAuthenticated } = useAuth0();
   const { getCategories } = useFoodCategories();
@@ -106,8 +106,8 @@ const AgregarProducto = ({ restaurant }) => {
   const isMobileDevice = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [categories, setCategories] = useState([]);
-  const [storeId, setStoreId] = useState(restaurant?.id);
-  const [storeCP, setStoreCP] = useState(restaurant?.attributes?.cp);
+  const [storeId, setStoreId] = useState(restaurante?.id);
+  const [storeCP, setStoreCP] = useState(restaurante?.attributes?.cp);
   const [guardado, setGuardado] = useState(false);
   const [imagenPredeterminada, setImagenPredeterminada] = useState(null);
   const [previewImagenPredeterminada, setPreviewImagenPredeterminada] = useState(null);
@@ -311,7 +311,7 @@ const AgregarProducto = ({ restaurant }) => {
         ingredientes,
         alergenos,
         fecha_creacion: new Date().toISOString(),
-        food_restaurant: restaurant?.id,
+        food_restaurant: restaurante?.id,
         imagen_predeterminada: imagenPredeterminada,
       })
 
@@ -342,10 +342,10 @@ const AgregarProducto = ({ restaurant }) => {
   };
 
   useEffect(() => {
-    if(restaurant?.id) return;
-    setStoreId(restaurant?.id)
-  }, [restaurant])
-  
+    if (restaurante?.id) return;
+    setStoreId(restaurante?.id)
+  }, [restaurante])
+
 
   if (!isAuthenticated) return <p className="mensaje-sesion">Debes iniciar sesión para agregar platillos.</p>;
   if (guardado) return <Fade in><p className="mensaje-exito">✅ Platillo guardado con éxito.</p></Fade>;
@@ -356,11 +356,11 @@ const AgregarProducto = ({ restaurant }) => {
       {
         !isMobileDevice ? (
           <Typography variant="h5" fontWeight="bold" mb={2}>
-            <span className="titulo">🛒 Agregar platillo</span>
+            <span>🛒 Agregar platillo</span>
           </Typography>
         ) : (
-          <Typography fontWeight="bold" mb={2}>
-            <span className="titulo"> Agregar platillo</span>
+          <Typography variant='h5' fontWeight="bold" mb={2}>
+            🛒 Agregar platillo
           </Typography>
         )
       }
@@ -629,6 +629,7 @@ const AgregarProducto = ({ restaurant }) => {
                   name="tiempo_preparacion"
                   type="number"
                   value={formData.tiempo_preparacion}
+                  min={0}
                   onChange={handleChange}
                   required
                   fullWidth

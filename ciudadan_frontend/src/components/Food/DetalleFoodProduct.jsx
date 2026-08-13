@@ -210,19 +210,6 @@ export default function DetalleFoodProduct({
           <Typography variant="h4" fontWeight={900}>
             ${precio?.toFixed(2) || '0.00'}
           </Typography>
-
-          {/* <IconButton
-            onClick={handleToggleFavorito}
-            disabled={favLoading || !isAuthenticated}
-          >
-            {favLoading ? (
-              <CircularProgress size={20} />
-            ) : favAdded ? (
-              <FavoriteIcon sx={{ color: '#7C3AED' }} />
-            ) : (
-              <FavoriteBorderIcon />
-            )}
-          </IconButton> */}
         </Box>
 
         <Divider sx={{ my: 1 }} />

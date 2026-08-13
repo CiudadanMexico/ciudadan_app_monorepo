@@ -25,7 +25,7 @@ export function useFoodRestaurants() {
   const getRestaurantsByEmail = async (email) => {
     try {
       setLoading(true);
-      const res = await fetch(`${RESTAURANTS_URL}?filters[email][$eq]=${email}`);
+      const res = await fetch(`${RESTAURANTS_URL}?filters[email][$eq]=${email}&populate=imagen`);
       const data = await res.json();
       return Array.isArray(data.data) ? data?.data : [];
     } catch (error) {
@@ -50,7 +50,7 @@ export function useFoodRestaurants() {
     }
   };
 
-  const createRestaurant = async ({ name = '', email = '' }) => {
+  const createRestaurant = async ({ name = '', email = '', user_id, }) => {
     const slug = slugify(name);
     const slug_tmp = generateTempSlug();
 
@@ -65,7 +65,7 @@ export function useFoodRestaurants() {
       const res = await fetch(`${RESTAURANTS_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: { nombre: slug, slug: slug_tmp, email } })
+        body: JSON.stringify({ data: { nombre: slug, slug: slug_tmp, email, users_permissions_user: user_id } })
       });
 
       if (!res.ok) {

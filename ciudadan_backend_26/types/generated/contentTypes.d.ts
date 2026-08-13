@@ -3144,6 +3144,7 @@ export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
       'oneToOne',
       'api::food-restaurant.food-restaurant'
     >;
+    fecha_verificado: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

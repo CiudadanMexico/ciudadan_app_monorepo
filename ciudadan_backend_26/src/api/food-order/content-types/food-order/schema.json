@@ -94,6 +94,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::food-restaurant.food-restaurant"
+    },
+    "fecha_verificado": {
+      "type": "datetime"
     }
   }
 }
