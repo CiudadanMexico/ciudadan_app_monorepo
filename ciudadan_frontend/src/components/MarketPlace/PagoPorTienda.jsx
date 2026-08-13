@@ -63,7 +63,7 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
 
   // Si el pedido ya está en revisión o pagado explicitamente, renderizamos mensaje y no permitimos subir
   if (
-    pedido?.attributes?.status === "pago_en_revision" ||
+    pedido?.attributes?.status === "pendiente_verificacion" ||
     pedido?.attributes?.status === "pagado"
   ) {
     console.log(
