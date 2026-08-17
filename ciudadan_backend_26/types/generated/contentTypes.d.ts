@@ -3081,6 +3081,60 @@ export interface ApiFoodModifierGroupFoodModifierGroup
   };
 }
 
+export interface ApiFoodOfferFoodOffer extends Schema.CollectionType {
+  collectionName: 'food_offers';
+  info: {
+    singularName: 'food-offer';
+    pluralName: 'food-offers';
+    displayName: 'Food Offers';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    titulo: Attribute.String &
+      Attribute.Required &
+      Attribute.SetMinMaxLength<{
+        maxLength: 150;
+      }>;
+    descripcion: Attribute.Text;
+    precio: Attribute.Decimal &
+      Attribute.Required &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    cantidad: Attribute.Integer;
+    activa: Attribute.Boolean;
+    fecha_inicio: Attribute.DateTime;
+    fecha_fin: Attribute.DateTime;
+    restaurant: Attribute.Relation<
+      'api::food-offer.food-offer',
+      'manyToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    items: Attribute.Component<'offers.offer-item', true> & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-offer.food-offer',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-offer.food-offer',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
   collectionName: 'food_orders';
   info: {
@@ -3342,6 +3396,11 @@ export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
       'api::food-restaurant.food-restaurant',
       'oneToMany',
       'api::food-modifier-group.food-modifier-group'
+    >;
+    offers: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
+      'oneToMany',
+      'api::food-offer.food-offer'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -5338,6 +5397,7 @@ declare module '@strapi/types' {
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;
+      'api::food-offer.food-offer': ApiFoodOfferFoodOffer;
       'api::food-order.food-order': ApiFoodOrderFoodOrder;
       'api::food-product.food-product': ApiFoodProductFoodProduct;
       'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;

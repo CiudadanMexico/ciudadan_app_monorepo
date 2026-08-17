@@ -106,7 +106,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
     navigate(`/productos/busqueda/${slug}`);
   };
   const handleCategoriaClick = (slug) => navigate(`/productos/categoria/${slug}`);
-  const handleOfertas = () => navigate('/comida-ofertas');
+  const handleOfertas = () => navigate('/comida/ofertas');
   const handleEnvios = () => navigate('/comida/envios');
 
   const handleGetProducts = async (search = '', category = '') => {

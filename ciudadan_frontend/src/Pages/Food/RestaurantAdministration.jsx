@@ -14,6 +14,8 @@ import FastfoodIcon from '@mui/icons-material/Fastfood';
 import RestaurantIcon from '@mui/icons-material/RestaurantMenu';
 import ModificadoresRestaurante from '../../components/Food/ModificadoresRestaurante';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import LocalOffer from "@mui/icons-material/LocalOffer";
+import OfertasRestaurante from '../../components/Food/OfertasRestaurante';
 
 const restaurantSectionKey = '@restaurant-section-key';
 
@@ -22,6 +24,7 @@ const TABS = [
   { label: 'Agregar platillo', path: 'agregar-platillo', Icon: AddCircleIcon },
   { label: 'Modificadores', path: 'modificadores', Icon: RestaurantIcon },
   { label: 'Pedidos a entregar', path: '', Icon: ShoppingBagOutlinedIcon },
+  { label: "Ofertas", path: "ofertas", Icon: LocalOffer }
 ];
 // { label: 'Entregados', path: 'entregados' },
 // { label: 'Pagos', path: 'pagos' },
@@ -163,6 +166,7 @@ const RestaurantAdministration = ({ restaurantData }) => {
               {tabIndex === 1 && <AgregarProducto restaurante={restaurantData} />}
               {tabIndex === 2 && <ModificadoresRestaurante restaurante={restaurantData} />}
               {tabIndex === 3 && (<PedidosRestaurante restaurante={restaurantData} />)}
+              {tabIndex === 4 && (<OfertasRestaurante restaurante={restaurantData} />)}
               {
                 /* 
                 {tabIndex === 1 && <PedidosEntregados />}

@@ -299,9 +299,6 @@ const PedidosRestaurante = ({ restaurante }) => {
 const PedidoCard = ({ pedido, onView }) => {
   const estado = ESTADOS_PEDIDO[pedido.status] ?? ESTADOS_PEDIDO.pendiente;
   const total = Number(pedido?.monto_total ?? 0).toFixed(2);
-
-  console.log("Pedido en card:", pedido)
-
   return (
     <Card
       elevation={0}
