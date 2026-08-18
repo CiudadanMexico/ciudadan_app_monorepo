@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 
-const ConfirmarCancelar = ({ viajeId, open, isDriver, onSubmit, onClose, strapiConfig }) => {
+const ConfirmarCancelar = ({ viajeId, status, open, setOpen, isDriver, onSubmit, onClose, strapiConfig }) => {
+    // Mostrar componente durante 15 segundos
+    useEffect(() => {
+        if (status?.includes('fin_solicitado')) {
+            const timer = setTimeout(() => {
+                if (typeof onSubmit === 'function') onSubmit('finalizado');
+                setOpen(false);
+            }, 15000);
+            // Limpia el temporizador si el componente se desmonta antes
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
+
     if (!open) return null;
 
     const userType = isDriver ? 'pasajero' : 'conductor';
@@ -8,15 +20,7 @@ const ConfirmarCancelar = ({ viajeId, open, isDriver, onSubmit, onClose, strapiC
 
     const handleSubmit = async () => {
         if (typeof onSubmit === 'function') onSubmit('finalizado');
-        /*if (strapiConfig?.baseUrl && viajeId) {
-            try {
-                await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viajes/${viajeId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', ...(strapiConfig.token ? { Authorization: `Bearer ${strapiConfig.token}` } : {}) },
-                    body: JSON.stringify({ data: { status: 'finalizado' } }),
-                });
-            } catch (e) { console.warn('no pudo actualizar viaje', e); }
-        }*/
+        setOpen(false);
     };
 
     return (
@@ -41,22 +45,6 @@ const ConfirmarCancelar = ({ viajeId, open, isDriver, onSubmit, onClose, strapiC
                 <div style={{ fontSize: 16, marginBottom: 16 }}>{title}</div>
 
                 <div style={{ display: 'flex', gap: 10 }}>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (typeof onClose === 'function') onClose();
-                        }}
-                        style={{
-                            flex: 1,
-                            padding: '12px 14px',
-                            borderRadius: 10,
-                            border: '1px solid #ddd',
-                            background: '#fff',
-                            fontWeight: 600,
-                        }}
-                    >
-                        Denegar
-                    </button>
                     <button
                         type="button"
                         onClick={handleSubmit}

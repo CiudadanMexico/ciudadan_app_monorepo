@@ -784,7 +784,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         console.warn('[TripView] error emitiendo trip-update', e);
       }
     }
-    setShowConfirmCancelModal(false);
   };
 
   const handleCancelTrip = () => {
@@ -861,31 +860,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     }
   };
 
-  const handleCancelTripSubmit = async (reason) => {
-    const base = process.env.REACT_APP_SOCKET_URL || '';
-    const viajeId = viaje?.id;
-
-    try {
-      const payload = {
-        id: viajeId,
-        reason,
-        cancelledBy: isDriver ? 'driver' : 'user',
-      };
-
-      await fetch(`${base.replace(/\/$/, '')}/test/cancel-trip`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload),
-      });
-    } catch (e) {
-      console.warn('[TripView] no se pudo cancelar el viaje', e);
-    } finally {
-      setShowCancelModal(false);
-    }
-  }
-
   // Render
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -935,14 +909,18 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         onClose={closeRatingFlow}
       />
       <SolicitudCancelar
+        viajeId={viaje?.id}
         open={showCancelModal}
+        setOpen={setShowCancelModal}
         isDriver={isDriver}
-        onSubmit={handleCancelTripSubmit}
+        onStatusChange={handleTripStatusChange}
         onClose={() => setShowCancelModal(false)}
       />
       <ConfirmarCancelar
         viajeId={viaje?.id}
+        status={viaje?.attributes?.status}
         open={showConfirmCancelModal}
+        setOpen={setShowConfirmCancelModal}
         isDriver={isDriver}
         onSubmit={handleTripStatusChange}
         onClose={() => setShowConfirmCancelModal(false)}

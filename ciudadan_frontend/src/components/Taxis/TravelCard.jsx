@@ -87,6 +87,7 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     travel.dropoff ||
     'Destino desconocido';
 
+  const rating = travel.userRating || null;
   const suggestedPrice = travel.suggestedPrice ?? travel.meta?.suggested?.price ?? null;
   const suggestedFormatted =
     travel.suggestedPriceFormatted ??
@@ -237,68 +238,64 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
         marginBottom: 12,
         boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
         background: '#fff',
+        maxHeight: 320,
+        overflowY: 'auto'
       }}
     >
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, textAlign: 'center' }}>
-          {userPhoto ? (
-            <img
-              src={userPhoto}
-              alt={travel.username}
-              style={{ width: 90, height: 90, borderRadius: "50%", marginRight: 12, objectFit: "cover" }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 90,
-                height: 90,
-                borderRadius: "50%",
-                marginRight: 12,
-                background: "#e8f5e9",
-                color: "#2e7d32",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-              }}
-            >
-              a
+      <div className='travel-card' style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className='travel-card-info' style={{ display: 'flex', justifyContent: 'space-between', flex: 1, margin: 8, maxWidth: 800 }}>
+          <div className='travel-card-profile' >
+            {userPhoto ? (
+              <img
+                src={userPhoto}
+                alt={travel.username}
+                style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", margin: 12 }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: "50%",
+                  background: "#e8f5e9",
+                  color: "#2e7d32",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                }}
+              >
+                {passengerName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 14, marginBottom: 4, fontWeight: 700, color: '#0c1196' }}>
+                {passengerName}
+              </div>
+              <div style={{ fontSize: 18, color: '#333', marginBottom: 4 }}>
+                <strong>{rating ? `${rating.toFixed(1)} ⭐` : '—'}</strong>
+              </div>
             </div>
-          )}
-          <div style={{ fontSize: 18, color: '#333', marginTop: 4 }}>
-            <strong>{travel.userRating ? `${travel.userRating.toFixed(1)} ⭐` : '—'}</strong>
-          </div>
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, marginBottom: 8, fontWeight: 700, color: '#0c1196' }}>
-            {passengerName}
           </div>
 
-          <div style={{ fontSize: 12, color: '#666' }}>
-            <strong>Origen</strong>
+          <div style={{ margin: 12 }}>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              <strong>Origen</strong>
+            </div>
+            <div style={{ fontSize: 11, marginBottom: 8 }}>{origin}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              <strong>Destino</strong>
+            </div>
+            <div style={{ fontSize: 11, marginBottom: 8 }}>{destination}</div>
           </div>
-          <div style={{ fontSize: 15, marginBottom: 8 }}>
-            {origin
-              ?.split(" ")
-              .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-              .join(" ")
-            }
-          </div>
-
-          <div style={{ fontSize: 12, color: '#666' }}>
-            <strong>Destino</strong>
-          </div>
-          <div style={{ fontSize: 15 }}>{destination}</div>
-
-          <div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
+          {/*<div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
             {travel.roundedDistanceMeters ? ` • ${travel.roundedDistanceMeters} m` : ''}
             {travel.distanceMeters ? ` • ${(travel.distanceMeters / 1000).toFixed(2)} km` : ''}
-          </div>
+          </div>*/}
         </div>
 
-        <div style={{ width: 220, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className='send-proposal' style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: 8 }}>
           <div style={{ fontSize: 12, color: '#333' }}>
             Tiempo: <strong>{formatMMSS(elapsedSeconds)}</strong>
           </div>

@@ -88,9 +88,10 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
   const vehicle = vehicles[0]?.attributes || vehicles[0] || {};
 
   const driverName =
-    user?.firstname && user?.lastname
-      ? `${user.firstname} ${user.lastname}`
+    user?.firstname && user?.middlename && user?.lastname
+      ? `${user.firstname} ${user.middlename} ${user.lastname}`
       : user?.firstname ||
+      user?.nombre_completo ||
       user?.username ||
       user?.email?.split("@")[0] ||
       "Conductor";
@@ -109,7 +110,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
   }
 
   const vehicleLabel =
-    [user?.vehicle_brand, user?.vehicle_model, user?.license_plate]
+    [user?.vehicle_brand, user?.vehicle_model]
       .filter(Boolean)
       .join(" ") || "Vehículo no disponible";
 
@@ -185,6 +186,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
         alignItems: "center",
         justifyContent: "center",
         background: "rgba(0,0,0,0.4)",
+        overflowY: 'auto'
       }}
       onClick={closeModal}
     >
@@ -199,7 +201,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
           boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
         }}
       >
-        <h3 style={{ marginTop: 0 }}>Oferta del conductor</h3>
+        <h3 style={{ marginTop: 0 }}>{driverName}</h3>
 
         {loading ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
@@ -215,13 +217,13 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
               <img
                 src={driverPhoto}
                 alt={driverName}
-                style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover" }}
+                style={{ width: 90, height: 90, borderRadius: "50%", objectFit: "cover" }}
               />
             ) : (
               <div
                 style={{
-                  width: 120,
-                  height: 120,
+                  width: 90,
+                  height: 90,
                   borderRadius: "50%",
                   background: "#e8f5e9",
                   color: "#2e7d32",
@@ -235,17 +237,15 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
               </div>
             )}
             <div>
-              <div style={{ fontSize: 16 }}>
-                <strong>Conductor:</strong> {driverName}
+              <div style={{ fontSize: 20, marginTop: 5 }}>
+                <strong style={{ color: '#666' }}>{user?.license_plate}</strong>
               </div>
               <div style={{ fontSize: 16, marginTop: 5 }}>
-                <strong>Vehículo:</strong> {vehicleLabel}
+                {vehicleLabel}
               </div>
-              <div style={{ fontSize: 16, marginTop: 5 }}>
-                <strong>Precio:</strong> ${selectedOffer.price} MXN
-              </div>
-              <div style={{ fontSize: 16, marginTop: 5 }}>
-                <strong>Calificación del conductor:</strong> {selectedOffer.driverRating ? `${selectedOffer.driverRating.toFixed(1)} ⭐` : '-'}
+              <div style={{ fontSize: 18, marginTop: 5, display: 'flex', justifyContent: 'space-between', width: 200 }}>
+                <strong>{selectedOffer.driverRating ? `${selectedOffer.driverRating.toFixed(1)} ⭐` : '—'}</strong>
+                <strong style={{ color: '#151bc1' }}>${selectedOffer.price} MXN</strong>
               </div>
             </div>
           </div>
@@ -311,7 +311,6 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
         {/* Preferencias de viaje del conductor */}
         {vehicles.length > 0 && (
           <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid #e0e0e0" }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Preferencias de viaje</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {/* Atributos simples (azules) */}
               {vehicle?.marca && vehicle?.nombre && vehicle?.modelo && (

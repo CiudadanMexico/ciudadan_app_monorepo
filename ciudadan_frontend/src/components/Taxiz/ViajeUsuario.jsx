@@ -19,8 +19,6 @@ const normalizeCoord = (c) => {
 };
 
 const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUserCoords, mapRef, setConsultedTravel, paymentAmount, onCancel }) => {
-  //console.log('paymentFlowState', paymentFlowState.showPassengerConfirmationOptions);
-  //console.log('passengerPaymentState', passengerPaymentState);
 
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
@@ -198,6 +196,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       transition: 'height 280ms ease',
       zIndex: 2000,
       overflow: 'hidden',
+      overflowY: 'auto',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
         <div style={{ flex: 1 }}>
@@ -210,19 +209,19 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       </div>
 
       {expanded && (
-        <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ padding: 6, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1, minWidth: 0, borderRight: '1px solid #eee', paddingRight: 12, marginRight: 6 }}>
-              <div style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+            <div style={{ flex: 1 }}>
+              <div className='trip-view' style={{ fontSize: 13, display: 'flex', gap: 16, margin: 6, paddingInline: 12, borderRight: '1px solid #eee' }}>
                 {driverPhoto ? (
                   <img
                     src={driverPhoto}
                     alt={`Foto de ${driverName}`}
-                    style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', border: '1px solid #ddd' }}
+                    style={{ width: 90, height: 90, borderRadius: '50%', objectFit: 'cover', border: '1px solid #ddd' }}
                   />
                 ) : (
-                  <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#f2f2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
+                  <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#f2f2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
                     🚕
                   </div>
                 )}
@@ -247,51 +246,48 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               </div>
             </div>
 
-            {(status === 'en_curso' || status === 'iniciando') && (
+            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado')) && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <div><strong>Pickup</strong></div>
-                  <div style={{ fontSize: 13 }}>
+                  <div style={{ fontSize: 12 }}>
                     {pickupNorm ? `${pickupNorm}` : 'Sin pickup'}
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
                   <div><strong>Destino</strong></div>
-                  <div style={{ fontSize: 13 }}>
+                  <div style={{ fontSize: 12 }}>
                     {destNorm ? `${destNorm}` : 'Sin destino'}
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
                   <div><strong>Precio</strong></div>
-                  <div style={{ fontSize: 20 }}>
-                    <strong style={{ color: '#0007d7' }}>
+                  <div style={{ fontSize: 16 }}>
+                    <strong style={{ color: '#151bc1' }}>
                       {price ? `$${price.toFixed(2)} MXN` : 'Sin precio'}
                     </strong>
                   </div>
                 </div>
               </div>
             )}
-            {(status === 'finalizado' && paymentAmount != null) && (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ fontSize: 18, paddingBottom: 8 }}><strong>Monto a pagar</strong></div>
-                <div style={{ fontSize: 16, color: '#444', paddingBottom: 8 }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
+            {(status === 'finalizado') && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
+                <div style={{ fontSize: 16, paddingBlock: 8 }}><strong>Monto a pagar</strong></div>
+                <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
                 {(hasLabory && saldoLabory > 0) && (
                   <>
-                    <div style={{ fontSize: 16, color: '#444', paddingBottom: 8 }}>
+                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
                       Pago máximo con
-                      <strong style={{ color: '#000', backgroundColor: '#f3cb19', padding: 4, margin: 4, borderRadius: '4px' }}>
-                        Labory
-                      </strong>:
-                      <strong style={{ color: '#0007d7' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
+                      <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
                     </div>
-                    <div style={{ fontSize: 16, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
                   </>
                 )}
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#0007d7', paddingTop: 12 }}>Confirma tu pago con el conductor</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: '#151bc1', paddingTop: 12 }}>Confirma tu pago con el conductor</div>
               </div>
             )}
             {(status === 'partial' || status === 'unpaid') &&
-              <div style={{ flex: 1, display: 'flex', fontSize: 18, textAlign: 'center', fontWeight: 600, color: '#e02c2c', padding: 12 }}>
+              <div style={{ flex: 1, display: 'flex', fontSize: 16, textAlign: 'center', fontWeight: 600, color: '#e02c2c', padding: 12 }}>
                 El conductor indicó que el pago no fue completado
               </div>
             }
@@ -311,7 +307,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               Centrar en pickup / taxi
             </button>}
             {status === 'en_curso' &&
-              (routeInfo < .15 ?
+              (routeInfo < 0.15 ?
                 <>
                   <div style={{ fontSize: 16, fontWeight: 700, color: '#2f6fed' }}>Ya casi llegas</div>
                   <div style={{ fontSize: 14, color: '#333' }}>Al finalizar el viaje podrás confirmar el pago y revisar tus pertenencias</div>
@@ -320,6 +316,17 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               )
             }
           </div>
+          {status === 'fin_solicitado_pasajero' &&
+            <div>
+              <div style={{ color: '#333', textAlign: 'center', fontSize: 14, paddingBottom: 6, fontWeight: 600 }}>
+                Espere a que el conductor acepte su solicitud. Si no acepta, puede marcar a los siguientes contactos.
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
+                <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
+              </div>
+            </div>
+          }
 
           {/*paymentFlowState?.isPaymentFlowActive && (
             <div style={{ borderTop: '1px solid #eee', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>

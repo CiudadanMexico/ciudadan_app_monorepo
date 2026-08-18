@@ -7,6 +7,22 @@ const ConfirmPayment = ({ tripData, cashAmount, open, onClose, onSubmit, strapiC
     const status = tripData?.attributes?.status || 'esperando';
     console.log('ConfirmPayment status', status, 'tripData', tripData);
 
+    let contenido = '';
+    switch (status) {
+        case 'paid':
+            contenido = '¿Está seguro de confirmar el pago como completado?';
+            break;
+        case 'partial':
+            contenido = 'Por favor, ingrese el monto que ha pagado el usuario';
+            break;
+        case 'unpaid':
+            contenido = '¿Está seguro de marcar como no pagado?';
+            break;
+        default:
+            contenido = null;
+            break;
+    }
+
     const handleSubmit = async () => {
         if (status === 'paid') {
             onSubmit('cerrado');
@@ -55,43 +71,29 @@ const ConfirmPayment = ({ tripData, cashAmount, open, onClose, onSubmit, strapiC
                 background: '#fff',
                 borderRadius: 16,
                 width: '100%',
-                maxWidth: 420,
+                maxWidth: 450,
                 padding: 20,
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
             }}>
-                <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Confirmar pago del pasajero</div>
-
-                {status === 'partial' && (
-                    <>
-                        <div style={{ fontSize: 14, color: '#555', marginBottom: 16 }}>
-                            Por favor, ingresa el monto que ha pagado el pasajero.
-                        </div>
-                        <div style={{ marginBottom: 16 }}>
-                            <label style={{ display: 'block', marginBottom: 8 }}>Monto:</label>
-                            <input
-                                type="number"
-                                value={monto}
-                                onChange={(e) => setMonto(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '8px 12px',
-                                    borderRadius: 8,
-                                    border: '1px solid #ccc',
-                                }}
-                            />
-                        </div>
-                    </>
-                )}
-                {status === 'unpaid' && (
-                    <div style={{ fontSize: 14, color: '#555', marginBottom: 16 }}>
-                        El pasajero no ha pagado el viaje. ¿Deseas registrar el pago como completado?
+                <div style={{ fontSize: 16, color: '#333', fontWeight: 600, marginBottom: 16 }}>
+                    {contenido}
+                </div>
+                {status === 'partial' &&
+                    <div style={{ marginBottom: 16 }}>
+                        <label style={{ display: 'block', marginBottom: 8 }}>Monto:</label>
+                        <input
+                            type="number"
+                            value={monto}
+                            onChange={(e) => setMonto(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '8px 12px',
+                                borderRadius: 8,
+                                border: '1px solid #ccc',
+                            }}
+                        />
                     </div>
-                )}
-                {status === 'paid' && (
-                    <div style={{ fontSize: 14, color: '#555', marginBottom: 16 }}>
-                        ¿Desea confirmar el pago como completado?
-                    </div>
-                )}
+                }
                 <div style={{ display: 'flex', gap: 10 }}>
                     <button
                         type="button"
