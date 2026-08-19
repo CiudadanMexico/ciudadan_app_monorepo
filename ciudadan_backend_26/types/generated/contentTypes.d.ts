@@ -3281,6 +3281,11 @@ export interface ApiFoodProductFoodProduct extends Schema.CollectionType {
       'oneToMany',
       'api::food-product-variant.food-product-variant'
     >;
+    food_modifiers: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToMany',
+      'api::food-modifier.food-modifier'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

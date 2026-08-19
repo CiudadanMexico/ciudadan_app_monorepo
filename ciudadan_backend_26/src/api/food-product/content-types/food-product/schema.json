@@ -159,6 +159,11 @@
       "relation": "oneToMany",
       "target": "api::food-product-variant.food-product-variant",
       "mappedBy": "food_product"
+    },
+    "food_modifiers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-modifier.food-modifier"
     }
   }
 }

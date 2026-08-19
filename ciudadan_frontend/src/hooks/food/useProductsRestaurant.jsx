@@ -4,7 +4,7 @@ import { transformImageStrapi } from "../../utils/strapiHelpers";
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:1337';
 const PRODUCTS_URL = `${STRAPI_URL}/api/food-products`;
-const VARIANTS_URL = `${STRAPI_URL}/api/food-product-variantss`;
+const VARIANTS_URL = `${STRAPI_URL}/api/food-product-variants`;
 
 export default function useProductsRestaurant() {
   const [loading, setLoading] = useState(false);
@@ -77,7 +77,7 @@ export default function useProductsRestaurant() {
       setLoading(false);
     }
   }
-  
+
   const getProductBySlug = async (productSlug) => {
     try {
       if (!productSlug) return null;
@@ -102,7 +102,7 @@ export default function useProductsRestaurant() {
     precio_base = 0, // General - step 1
     food_categories = [], // General - step 1
     disponible = true,  // General - step 1
-    usa_stock = true, // General - step 1
+    stockEnable = false, // General - step 1
     stock = 0, // General - step 1
     horario_disponibilidad = {}, // General - step 1
 
@@ -126,6 +126,7 @@ export default function useProductsRestaurant() {
     ingredientes = [], // Ingredientes - step 4
     alergenos = [], // Ingredientes - step 4
     food_products_variants = [],
+    food_modifiers = [], // Modificadores - paso final, ids de food-modifier ya existentes
     imagen_predeterminada, // Imagen principal - step 5
     imagenes = [], // Galería - step 6
     fecha_creacion = new Date().toISOString(), // Finalizar - step 7
@@ -156,12 +157,13 @@ export default function useProductsRestaurant() {
       alergenos,
       temperatura,
       disponible,
-      usa_stock,
-      stock,
+      usa_stock: stockEnable,
+      stock: stockEnable ? stock : 0,
       horario_disponibilidad,
       orden_minima,
       permite_programar,
       fecha_creacion,
+      food_modifiers,
     };
     data.append('data', JSON.stringify(payload));
     if (imagen_predeterminada) data.append('files.imagen_predeterminada', imagen_predeterminada);
