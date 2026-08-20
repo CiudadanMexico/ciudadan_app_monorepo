@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_offers",
+  "info": {
+    "singularName": "food-offer",
+    "pluralName": "food-offers",
+    "displayName": "Food Offers",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titulo": {
+      "type": "string",
+      "required": true,
+      "maxLength": 150
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "precio": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "cantidad": {
+      "type": "integer"
+    },
+    "activa": {
+      "type": "boolean"
+    },
+    "fecha_inicio": {
+      "type": "datetime"
+    },
+    "fecha_fin": {
+      "type": "datetime"
+    },
+    "restaurant": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::food-restaurant.food-restaurant",
+      "inversedBy": "offers"
+    },
+    "items": {
+      "displayName": "Offer Item",
+      "type": "component",
+      "repeatable": true,
+      "component": "offers.offer-item",
+      "required": true
+    }
+  }
+}

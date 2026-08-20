@@ -2,7 +2,10 @@
 
 const { getAuth0Email } = require('../utils/auth0-verify');
 
-const ROLES_PERMITIDOS = ['admin', 'verificador'];
+// Spec documento-off.md: "Un socio/verificador revisa documentos y marca el
+// área como verificada o en proceso" — socio faltaba en la lista original,
+// dejando el flujo de verificación solo en manos de admin/verificador.
+const ROLES_PERMITIDOS = ['admin', 'verificador', 'socio'];
 
 /**
  * Permite continuar solo si el usuario autenticado (via Auth0) tiene

@@ -243,6 +243,11 @@ html, body {
   .price-amount { font-size: 18px; }
 }
 
+@media (max-width: 1050px) {
+  .travel-card { flex-direction: column; padding-right: 20px }
+  .send-proposal { width: 100%; }
+}
+
 /* Responsive: mobile — inputs ocupan TODO el ancho disponible y mapa se superpone */
 @media (max-width: 600px) {
     .taxis-map{
@@ -296,6 +301,13 @@ html, body {
   /* Coordenadas y cards */
   .cuadro-coordenadas { position: relative; margin-top: 8px; z-index: 78; }
   .travel-container { margin: 10px 0; padding: 12px; }
+
+  /* Card de solicitud de viaje */
+  .travel-card-info { flex-direction: column; }
+  .travel-card-profile { display: flex; justify-content: center; align-items: center;}
+
+  /* Vista de viaje usuario y conductor */
+  .trip-view { flex-direction: column; }
 }
 
 /* Utilidades pequeñas */

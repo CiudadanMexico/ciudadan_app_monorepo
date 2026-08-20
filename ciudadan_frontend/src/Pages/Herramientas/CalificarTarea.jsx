@@ -1,5 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, Stack } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
 import useTodos from '../../hooks/useTodos';
 import { getResolucionStatusLabel } from '../../utils/cowork.helpers';
@@ -75,31 +88,47 @@ export default function CalificarTarea() {
     fetchTareasPendientes();
   }, [fetchTareasPendientes]);
 
-  const handleCalificar = async (tarea) => {
+  // Diálogo de calificación (reemplaza window.prompt/alert por un dialog MUI
+  // consistente con el resto del módulo, ej. el de apelación en Tareas.jsx).
+  const [dialog, setDialog] = useState({ open: false, tarea: null, score: '5', notes: '' });
+  const [calificando, setCalificando] = useState(false);
+  const [dialogError, setDialogError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+
+  const abrirCalificar = (tarea) => {
+    setDialogError(null);
+    setDialog({ open: true, tarea, score: '5', notes: '' });
+  };
+
+  const cerrarCalificar = () => {
+    if (calificando) return; // no cerrar a medio envío
+    setDialog({ open: false, tarea: null, score: '5', notes: '' });
+    setDialogError(null);
+  };
+
+  const submitCalificar = async () => {
+    const score = Number(dialog.score);
+    if (Number.isNaN(score) || score < 0 || score > 5) {
+      setDialogError('La calificación debe ser un número entre 0 y 5');
+      return;
+    }
+
+    setCalificando(true);
+    setDialogError(null);
     try {
-      const scoreStr = window.prompt('Ingresa tu calificación (0-5):', '5');
-      if (!scoreStr) return;
-      const score = Number(scoreStr);
-      if (Number.isNaN(score) || score < 0 || score > 5) {
-        alert('Calificación inválida');
-        return;
-      }
-
-      const notesStr = window.prompt('Notas / comentarios (opcional):', '');
-      const notes = notesStr || '';
-
       // rateTask espera { score, notes } — el backend hace el pago automático de laborys
-      await rateTask(tarea.id, { score, notes });
+      await rateTask(dialog.tarea.id, { score, notes: dialog.notes });
 
       // Optimistic update: remove the task from the list immediately so the
       // user sees it disappear without needing to reload the page.
-      setTareas((prev) => prev.filter((t) => t.id !== tarea.id));
-
-      alert('Tarea calificada correctamente');
+      setTareas((prev) => prev.filter((t) => t.id !== dialog.tarea.id));
+      setSuccessMsg('Tarea calificada correctamente');
+      setDialog({ open: false, tarea: null, score: '5', notes: '' });
     } catch (err) {
       console.error('Error calificando', err);
-      alert(err.message || 'Error al calificar');
+      setDialogError(err.message || 'Error al calificar');
     } finally {
+      setCalificando(false);
       // Always refresh the list after a calificar attempt (success or error)
       // to keep it in sync — removes stale tasks that are no longer calificable
       // (e.g. already calificada → 400, or token expired → 403).
@@ -107,13 +136,16 @@ export default function CalificarTarea() {
     }
   };
 
-  // (debug helper removed)
-
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>Calificar Tarea</Typography>
+      {successMsg && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg(null)}>
+          {successMsg}
+        </Alert>
+      )}
       {error && (
         <Box sx={{ mb: 2 }}>
           <Typography color="error" sx={{ mb: 1 }}>{error}</Typography>
@@ -143,7 +175,7 @@ export default function CalificarTarea() {
                   <Typography variant="caption">Usuario: {attrs.usuario?.data?.attributes?.email || attrs.usuario?.email || '—'}</Typography>
                 </Box>
                 <Box>
-                  <Button variant="contained" color="primary" onClick={() => handleCalificar(t)}>
+                  <Button variant="contained" color="primary" onClick={() => abrirCalificar(t)}>
                     Calificar
                   </Button>
                 </Box>
@@ -152,6 +184,45 @@ export default function CalificarTarea() {
           })}
         </Stack>
       )}
+
+      <Dialog open={dialog.open} onClose={cerrarCalificar} fullWidth maxWidth="sm">
+        <DialogTitle>Calificar tarea #{dialog.tarea?.id}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {dialogError && (
+              <Alert severity="error" onClose={() => setDialogError(null)}>
+                {dialogError}
+              </Alert>
+            )}
+            <TextField
+              label="Calificación (0-5) *"
+              type="number"
+              inputProps={{ min: 0, max: 5, step: 1 }}
+              value={dialog.score}
+              onChange={(e) => setDialog((p) => ({ ...p, score: e.target.value }))}
+              fullWidth
+              disabled={calificando}
+            />
+            <TextField
+              label="Notas / comentarios (opcional)"
+              value={dialog.notes}
+              onChange={(e) => setDialog((p) => ({ ...p, notes: e.target.value }))}
+              multiline
+              minRows={3}
+              fullWidth
+              disabled={calificando}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cerrarCalificar} disabled={calificando}>
+            Cancelar
+          </Button>
+          <Button variant="contained" onClick={submitCalificar} disabled={calificando}>
+            {calificando ? 'Calificando…' : 'Calificar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
+  Chip,
   Container,
   Stack,
   Typography,
@@ -20,6 +22,9 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddLinkIcon from '@mui/icons-material/AddLink';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
 import { styled } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,6 +32,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GroupIcon from '@mui/icons-material/Group';
 import BuildIcon from '@mui/icons-material/Build';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import PaidIcon from '@mui/icons-material/Paid';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
@@ -39,7 +45,7 @@ import HerramientrasGrid from './../../components/Cowork/HerramientrasGrid.jsx';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useSearchParams } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
-import { resolverTarea } from '../../services/cowork/mutationsServices.js';
+import { resolverTarea, completarTarea, subirEvidencia } from '../../services/cowork/mutationsServices.js';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
 import useTodos from '../../hooks/useTodos.jsx';
 import { normalizeTask } from '../../utils/cowork.helpers.js';
@@ -50,19 +56,34 @@ const amarilloCiudadan = '#f5c400';
 const darkGray = '#1a1a1a';
 const fondoVerdeOscuro = '#022b23'; // 🟢 Nuevo color de fondo
 
+// Mismos límites que el diálogo de entrega en Tareas.jsx — "Resolver" ahora
+// pide de una vez la evidencia (spec: "no tiene sentido resolver y ya, hay
+// que pedir otros campos"), en vez de solo tomar la tarea y dejar la entrega
+// para después en otra pantalla.
+const ALLOWED_MIMES_RESOLVER = [
+  'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif',
+  'application/pdf', 'text/plain',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'video/mp4', 'audio/mpeg',
+];
+const MAX_FILE_SIZE_RESOLVER = 10 * 1024 * 1024;
+const MAX_ARCHIVOS_RESOLVER = 10;
+
+// Antes esto devolvía índices numéricos absolutos (0/1/2), que dependían de
+// cuántos tabs existieran según el rol (tienePermisoCRUD quita/agrega el tab
+// "Admin/Socio"). Eso causaba bugs reales: el efecto que carga las tareas
+// generales comparaba `tab === 1` a secas, que es el índice correcto SOLO
+// para un socio — para un usuario normal (sin ese tab), "Tareas" es el
+// índice 0, así que fetchGeneralTodos() nunca se disparaba y la lista
+// quedaba vacía para cualquiera que no fuera socio/admin. Usar valores con
+// nombre elimina esa clase de bug de raíz.
 const getTabFromSearchParams = (searchParams) => {
   const tabParam = searchParams.get('tab');
-
-  switch (tabParam) {
-    case 'socio':
-      return 0;
-    case 'generales':
-      return 1;
-    case 'especializadas':
-      return 2;
-    default:
-      return 0;
+  if (['socio', 'mistareas', 'generales', 'especializadas'].includes(tabParam)) {
+    return tabParam;
   }
+  return null;
 };
 
 // 🔹 Tabs principales (barra amarilla)
@@ -149,11 +170,7 @@ const CooWork = () => {
   const tienePermisoCRUD = isAdmin() || isSocio();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState(() => {
-    const absolute = getTabFromSearchParams(searchParams);
-    if (!tienePermisoCRUD) {
-      return absolute <= 1 ? 0 : 1;
-    }
-    return absolute;
+    return getTabFromSearchParams(searchParams) || (tienePermisoCRUD ? 'socio' : 'generales');
   });
   const [subTab, setSubTab] = useState(0);
   const [generalTodos, setGeneralTodos] = useState([]);
@@ -182,7 +199,8 @@ const CooWork = () => {
 
   useEffect(() => {
     if (!searchParams.get('tab')) return;
-    setTab(getTabFromSearchParams(searchParams));
+    const parsed = getTabFromSearchParams(searchParams);
+    if (parsed) setTab(parsed);
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
 
@@ -211,7 +229,7 @@ const CooWork = () => {
   }, [getAccessTokenSilently]);
 
   useEffect(() => {
-    if (tab === 1) fetchGeneralTodos();
+    if (tab === 'generales') fetchGeneralTodos();
   }, [tab, fetchGeneralTodos]);
 
   const fetchCartera = useCallback(async () => {
@@ -233,7 +251,7 @@ const CooWork = () => {
   }, [getAccessTokenSilently]);
 
   useEffect(() => {
-    if (tab === 0 && subTab === 3) fetchCartera();
+    if (tab === 'socio' && subTab === 3) fetchCartera();
   }, [tab, subTab, fetchCartera]);
 
   const handleEditGeneral = useCallback((todo) => {
@@ -305,34 +323,118 @@ const CooWork = () => {
     }
   }, [editForm, updateTodo, handleCloseEditDialog]);
 
-  const handleResolveGeneral = useCallback(
-    async (todo) => {
+  // Resolver ya no es "un clic y ya" — pide de una vez notas/enlaces/
+  // archivos (mismos campos que el diálogo de entrega en Tareas.jsx) y hace
+  // resolver + entregar en una sola acción, en vez de dejar al usuario sin
+  // ningún lugar obvio para completar lo que acaba de tomar.
+  const [resolverDialog, setResolverDialog] = useState({ open: false, todo: null, notes: '', enlaces: [''] });
+  const [archivosResolver, setArchivosResolver] = useState([]);
+  const [resolverDialogError, setResolverDialogError] = useState(null);
+
+  const abrirResolverDialog = useCallback(
+    (todo) => {
       const userId = userData?.id;
       if (!userId) return;
-
       if (!canUserTakeTask(todo, userId)) {
         setGeneralError('Esta tarea ya no está disponible para ser asignada.');
         return;
       }
+      setResolverDialogError(null);
+      setResolverDialog({ open: true, todo, notes: '', enlaces: [''] });
+      setArchivosResolver([]);
+    },
+    [userData?.id, canUserTakeTask]
+  );
 
+  const cerrarResolverDialog = () => {
+    if (resolvingGeneralId) return; // no cerrar a medio envío
+    setResolverDialog({ open: false, todo: null, notes: '', enlaces: [''] });
+    setArchivosResolver([]);
+    setResolverDialogError(null);
+  };
+
+  const cambiarEnlaceResolver = (idx, value) => {
+    setResolverDialog((p) => ({ ...p, enlaces: p.enlaces.map((e, i) => (i === idx ? value : e)) }));
+  };
+  const agregarEnlaceResolver = () => {
+    setResolverDialog((p) => ({ ...p, enlaces: [...p.enlaces, ''] }));
+  };
+  const quitarEnlaceResolver = (idx) => {
+    setResolverDialog((p) => ({ ...p, enlaces: p.enlaces.filter((_, i) => i !== idx) }));
+  };
+
+  const handleArchivosResolverChange = (e) => {
+    const nuevos = Array.from(e.target.files || []);
+    setResolverDialogError(null);
+    for (const f of nuevos) {
+      if (!ALLOWED_MIMES_RESOLVER.includes(f.type)) {
+        setResolverDialogError(`"${f.name}": tipo de archivo no permitido.`);
+        return;
+      }
+      if (f.size > MAX_FILE_SIZE_RESOLVER) {
+        setResolverDialogError(`"${f.name}": excede el máximo de 10MB.`);
+        return;
+      }
+    }
+    setArchivosResolver((prev) => {
+      const combinado = [...prev, ...nuevos];
+      if (combinado.length > MAX_ARCHIVOS_RESOLVER) {
+        setResolverDialogError(`No se pueden adjuntar más de ${MAX_ARCHIVOS_RESOLVER} archivos.`);
+        return prev;
+      }
+      return combinado;
+    });
+    e.target.value = '';
+  };
+  const quitarArchivoResolver = (idx) => {
+    setArchivosResolver((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const submitResolverConEvidencia = useCallback(
+    async () => {
+      const todo = resolverDialog.todo;
+      if (!todo) return;
+
+      setResolvingGeneralId(todo.id);
+      setResolverDialogError(null);
       try {
-        setResolvingGeneralId(todo.id);
-        setGeneralError(null);
-
         const token = await getAccessTokenSilently({
           authorizationParams: { audience: 'https://api.ciudadan.org' },
         });
-        await resolverTarea(todo.id, token);
+
+        // 1. Tomar la tarea (crea la resolución en en_proceso).
+        const resolverRes = await resolverTarea(todo.id, token);
+        const tareaId = resolverRes?.data?.id;
+        if (!tareaId) throw new Error('No se pudo obtener el id de la tarea recién creada');
+
+        // 2. Subir evidencia (si adjuntó archivos).
+        if (archivosResolver.length > 0) {
+          await subirEvidencia(tareaId, archivosResolver, resolverDialog.notes, token);
+        }
+
+        // 3. Entregar (notas + enlaces) — la deja lista para revisión.
+        const enlacesLimpios = resolverDialog.enlaces.map((e) => e.trim()).filter(Boolean);
+        await completarTarea(tareaId, token, { notes: resolverDialog.notes, enlaces: enlacesLimpios });
 
         setGeneralTodos((prev) => prev.filter((t) => t.id !== todo.id));
+        setResolverDialog({ open: false, todo: null, notes: '', enlaces: [''] });
+        setArchivosResolver([]);
+
+        // Llevar al usuario a donde puede ver el resultado de su entrega.
+        if (tienePermisoCRUD) {
+          setTab('socio');
+          setSubTab(0);
+        } else {
+          setTab('mistareas');
+        }
       } catch (err) {
-        console.error('Error asignando tarea general:', err);
-        setGeneralError(err.message || 'No se pudo asignar la tarea');
+        console.error('Error resolviendo tarea general:', err);
+        setResolverDialogError(err.message || 'No se pudo resolver la tarea');
       } finally {
         setResolvingGeneralId(null);
       }
     },
-    [userData?.id, canUserTakeTask, getAccessTokenSilently]
+    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD]
   );
 
   // ---------------------------
@@ -400,16 +502,24 @@ const CooWork = () => {
             centered={!isMobile}
           >
             {tienePermisoCRUD && (
-              <StyledTab icon={<GroupIcon />} label={isAdmin() ? 'Admin' : 'Socio'} />
+              <StyledTab value="socio" icon={<GroupIcon />} label={isAdmin() ? 'Admin' : 'Socio'} />
             )}
-            <StyledTab icon={<WorkOutlineIcon />} label="Tareas Generales" />
-            <StyledTab icon={<PrecisionManufacturingIcon />} label="Tareas Especializadas" />
+            <StyledTab value="generales" icon={<WorkOutlineIcon />} label="Tareas Generales" />
+            <StyledTab value="especializadas" icon={<PrecisionManufacturingIcon />} label="Tareas Especializadas" />
+            {/* "Mis Tareas": antes el único lugar para entregar una tarea ya
+                tomada (con archivos/enlaces/notas) vivía dentro del tab
+                Socio -> sub-tab Tareas, inalcanzable para cualquier usuario
+                sin rol admin/socio. Un usuario normal podía darle "Resolver"
+                pero nunca volver a encontrar esa tarea para completarla. */}
+            {isAuthenticated && !tienePermisoCRUD && (
+              <StyledTab value="mistareas" icon={<AssignmentIndIcon />} label="Mis Tareas" />
+            )}
           </StyledTabs>
         </Container>
       </Box>
       {/* 💚 Sub-barra (solo en Socio) */}
       <AnimatePresence>
-        {tab === 0 && tienePermisoCRUD && (
+        {tab === 'socio' && tienePermisoCRUD && (
           <motion.div
             key="subbar"
             initial={{ opacity: 0, y: -10 }}
@@ -447,7 +557,7 @@ const CooWork = () => {
       </AnimatePresence>
       {/* 🔸 Contenido principal */}
       <Container maxWidth="md" sx={{ mt: 4, mb: 8 }}>
-        {tab === 0 && tienePermisoCRUD && (
+        {tab === 'socio' && tienePermisoCRUD && (
           <motion.div
             key="socio-content"
             initial={{ opacity: 0, y: 15 }}
@@ -515,7 +625,18 @@ const CooWork = () => {
           </motion.div>
         )}
 
-        {(tab === 1 || (tab === 0 && !tienePermisoCRUD)) && (
+        {tab === 'mistareas' && !tienePermisoCRUD && (
+          <motion.div
+            key="mis-tareas"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Tareas userId={userData?.id} subTab={0} />
+          </motion.div>
+        )}
+
+        {tab === 'generales' && (
           <motion.div
             key="generales"
             initial={{ opacity: 0, y: 15 }}
@@ -614,7 +735,7 @@ const CooWork = () => {
                             variant="contained"
                             size="small"
                             disabled={resolvingGeneralId === todo.id}
-                            onClick={() => handleResolveGeneral(todo)}
+                            onClick={() => abrirResolverDialog(todo)}
                             sx={{
                               bgcolor: neonGreen,
                               color: '#002200',
@@ -641,7 +762,7 @@ const CooWork = () => {
           </motion.div>
         )}
 
-        {(tab === 2 || (tab === 1 && !tienePermisoCRUD)) && (
+        {tab === 'especializadas' && (
           <motion.div
             key="especializadas"
             initial={{ opacity: 0, y: 15 }}
@@ -717,6 +838,96 @@ const CooWork = () => {
             sx={{ bgcolor: neonGreen, color: '#002200', '&:hover': { bgcolor: '#00e68a' } }}
           >
             {savingEdit ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Resolver una tarea general ya no es "un clic y ya" — pide notas,
+          enlaces y archivos de una vez, y hace resolver+entregar en una sola
+          acción (mismos campos que el diálogo de entrega en Tareas.jsx). */}
+      <Dialog open={resolverDialog.open} onClose={cerrarResolverDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Resolver: {resolverDialog.todo?.titulo}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {resolverDialogError && (
+              <Alert severity="error" onClose={() => setResolverDialogError(null)}>
+                {resolverDialogError}
+              </Alert>
+            )}
+
+            <TextField
+              label="Notas (opcional)"
+              placeholder="Describe lo que hiciste, comentarios para quien la revise..."
+              value={resolverDialog.notes}
+              onChange={(e) => setResolverDialog((p) => ({ ...p, notes: e.target.value }))}
+              multiline
+              minRows={3}
+              fullWidth
+            />
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Enlaces (opcional)
+              </Typography>
+              <Stack spacing={1}>
+                {resolverDialog.enlaces.map((enlace, idx) => (
+                  <Stack key={idx} direction="row" spacing={1} alignItems="center">
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="https://..."
+                      value={enlace}
+                      onChange={(e) => cambiarEnlaceResolver(idx, e.target.value)}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => quitarEnlaceResolver(idx)}
+                      disabled={resolverDialog.enlaces.length === 1 && !enlace}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                ))}
+              </Stack>
+              <Button size="small" startIcon={<AddLinkIcon />} onClick={agregarEnlaceResolver} sx={{ mt: 1 }}>
+                Agregar enlace
+              </Button>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Archivos (opcional) — imágenes, PDF, Word, Excel, video, audio (máx. 10MB c/u)
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<AttachFileIcon />}
+                disabled={archivosResolver.length >= MAX_ARCHIVOS_RESOLVER}
+              >
+                Elegir archivos
+                <input type="file" multiple hidden onChange={handleArchivosResolverChange} />
+              </Button>
+              {archivosResolver.length > 0 && (
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5, rowGap: 1 }}>
+                  {archivosResolver.map((f, idx) => (
+                    <Chip key={`${f.name}-${idx}`} label={f.name} onDelete={() => quitarArchivoResolver(idx)} size="small" />
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cerrarResolverDialog} disabled={!!resolvingGeneralId}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!!resolvingGeneralId}
+            onClick={submitResolverConEvidencia}
+            sx={{ bgcolor: neonGreen, color: '#002200', '&:hover': { bgcolor: '#00cc7a' } }}
+          >
+            {resolvingGeneralId ? 'Enviando…' : 'Resolver y entregar'}
           </Button>
         </DialogActions>
       </Dialog>

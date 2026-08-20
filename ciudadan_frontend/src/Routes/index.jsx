@@ -50,6 +50,8 @@ import ResolverApelaciones from '../Pages/Herramientas/ResolverApelaciones.jsx';
 import AgregarTarea from '../Pages/Coowork/AgregarTarea.jsx';
 import AgregarSocio from '../Pages/Coowork/AgregarSocio.jsx';
 import AsignarTareaPage from '../Pages/Herramientas/AsignarTareaPage.jsx';
+import SkillsManagement from '../Pages/CoWork/Skills/SkillsManagement.jsx';
+import VerificarUsuarios from '../Pages/CoWork/Verificacion/VerificarUsuarios.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
 import RequisitosConductor from '../components/Taxiz/RequisitosConductor.jsx';
@@ -132,6 +134,8 @@ import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
 import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
 import Restaurant from '../Pages/Food/Restaurant.jsx';
 import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
+import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
+import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -337,8 +341,16 @@ const Rutas = () => (
       element={<Restaurant />}
     />
     <Route
+      path='/comida/producto/:slug'
+      element={<ComidaProducto />}
+    />
+    <Route
       path='/comida/comprar/:slug'
       element={<ComprarFoodProduct />}
+    />
+    <Route 
+      path='/comida/ofertas'
+      element={<ComidaOfertas />}
     />
     <Route
       path='/restaurantes'
@@ -508,6 +520,14 @@ const Rutas = () => (
     <Route
       path='/herramientas/agregar-socio'
       element={<AgregarSocio />}
+    />
+    <Route
+      path='/herramientas/gestionar-habilidades'
+      element={<SkillsManagement />}
+    />
+    <Route
+      path='/herramientas/verificar-usuarios'
+      element={<VerificarUsuarios />}
     />
 
     {/* Perfil / Usuario */}

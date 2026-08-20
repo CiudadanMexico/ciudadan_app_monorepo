@@ -13,7 +13,14 @@ function buildHeaders(token) {
   return headers;
 }
 
-export default function useSkills() {
+// Se exporta como default Y con nombre: los dos consumidores actuales
+// (UserVerification.jsx, SkillsManagement.jsx) hacían `import { useSkills }`
+// (named), pero el archivo solo tenía `export default` — eso resolvía a
+// `undefined` en tiempo de ejecución y tronaba con "useSkills is not a
+// function" apenas se montaba el componente. Bug real, confirmado
+// transpilando el archivo y viendo que el CommonJS resultante solo exponía
+// `exports.default`, nunca `exports.useSkills`.
+export function useSkills() {
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   
   const [skills, setSkills] = useState([]);
@@ -252,3 +259,5 @@ export default function useSkills() {
     dissociateSkillFromUser
   };
 }
+
+export default useSkills;

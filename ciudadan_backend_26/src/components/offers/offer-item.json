@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_offers_offer_items",
+  "info": {
+    "displayName": "Offer Item",
+    "icon": "restaurant",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "product": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-product.food-product"
+    },
+    "cantidad": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "min": 1
+    },
+    "precio": {
+      "type": "decimal",
+      "required": true,
+      "min": 0
+    },
+    "food_modifiers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-modifier.food-modifier"
+    }
+  }
+}

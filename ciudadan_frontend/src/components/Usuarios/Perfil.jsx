@@ -32,7 +32,10 @@ import { useRoles } from "../../Contexts/RolesContext";
 import {
   assignUserAreas,
   proposeSubarea,
+  subirDocumentoArea,
+  listProposedSubareas,
 } from "../../services/cowork/mutationsServices";
+import { getSubareasDeArea } from "../../services/cowork/queryServices";
 import { getActiveRootAreas } from "../../utils/cowork.helpers";
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || "http://localhost:33032";
@@ -62,9 +65,19 @@ export default function Perfil() {
   const [proposeNombre, setProposeNombre] = useState("");
   const [propuestaObs, setPropuestaObs] = useState("");
   const [docs, setDocs] = useState([]);
+  const [docAreaId, setDocAreaId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submittingPropuesta, setSubmittingPropuesta] = useState(false);
   const [docUploading, setDocUploading] = useState(false);
+  // Subáreas EXISTENTES bajo el área raíz elegida — "elegirla de la lista"
+  // (spec 5.3), en vez de siempre tener que proponer/escribir una nueva.
+  const [existingSubareas, setExistingSubareas] = useState([]);
+  const [loadingSubareas, setLoadingSubareas] = useState(false);
+  const [selectedSubareaId, setSelectedSubareaId] = useState("");
+  const [submittingSubarea, setSubmittingSubarea] = useState(false);
+  // Mis propuestas de subárea ya enviadas, con su estado (antes no se
+  // mostraba ningún feedback: el usuario proponía y nunca sabía qué pasó).
+  const [misPropuestas, setMisPropuestas] = useState([]);
 
   // Cargar catálogo de áreas raíz activas desde el backend (al montar + auth)
   const fetchCatalogo = useCallback(async () => {
@@ -100,6 +113,93 @@ export default function Perfil() {
     if (isAuthenticated) fetchCatalogo();
   }, [isAuthenticated, fetchCatalogo]);
 
+  // Cargar subáreas existentes del área raíz elegida en "proponer/elegir"
+  // (mismo selector se usa para navegar el catálogo antes de proponer).
+  useEffect(() => {
+    if (!proposeAreaId) {
+      setExistingSubareas([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setLoadingSubareas(true);
+      try {
+        let token = null;
+        try {
+          token = await getAccessTokenSilently({
+            authorizationParams: { audience: "https://api.ciudadan.org" },
+          });
+        } catch {}
+        const json = await getSubareasDeArea(proposeAreaId, token);
+        if (cancelled) return;
+        const items = Array.isArray(json.data)
+          ? json.data.map((it) => {
+              const a = it.attributes || it;
+              return { id: it.id, name: a.name || "—" };
+            })
+          : [];
+        setExistingSubareas(items);
+      } catch {
+        if (!cancelled) setExistingSubareas([]);
+      } finally {
+        if (!cancelled) setLoadingSubareas(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [proposeAreaId, getAccessTokenSilently]);
+
+  // Cargar mis propuestas de subárea ya enviadas, para mostrar su estado.
+  useEffect(() => {
+    if (!isAuthenticated || !userData?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        let token = null;
+        try {
+          token = await getAccessTokenSilently({
+            authorizationParams: { audience: "https://api.ciudadan.org" },
+          });
+        } catch {}
+        const json = await listProposedSubareas(userData.id, token);
+        if (!cancelled) setMisPropuestas(json?.data?.proposed_subareas || []);
+      } catch {
+        if (!cancelled) setMisPropuestas([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, userData?.id, getAccessTokenSilently]);
+
+  // Asignar directamente una subárea que YA EXISTE en el catálogo (spec 5.3
+  // "elegirla de la lista") — sin pasar por revisión, porque ya es una
+  // subárea real y verificada como carrera/oficio válido; lo único
+  // pendiente después es la verificación DOCUMENTAL del usuario en esa área.
+  const handleAssignSubarea = async () => {
+    if (!selectedSubareaId || !userData?.id) return;
+    setSubmittingSubarea(true);
+    try {
+      let token = null;
+      try {
+        token = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://api.ciudadan.org" },
+        });
+      } catch {}
+      const actuales = (userData.areas || []).map((a) => (typeof a === "object" ? a.id : Number(a)));
+      const nuevosIds = Array.from(new Set([...actuales, Number(selectedSubareaId)]));
+      await assignUserAreas(userData.id, nuevosIds, token);
+      setSnack({ open: true, msg: "Subárea asignada. Sube tu documentación para verificación.", severity: "success" });
+      setSelectedSubareaId("");
+      fetchRolesYMembresia && fetchRolesYMembresia(true);
+    } catch (err) {
+      setSnack({ open: true, msg: `No se pudo asignar la subárea: ${err.message || err}`, severity: "error" });
+    } finally {
+      setSubmittingSubarea(false);
+    }
+  };
+
   // Asignar área al usuario (vía assignUserAreas service)
   const handleAssignArea = async () => {
     if (!selectedAreaId || !userData?.id) return;
@@ -132,6 +232,10 @@ export default function Perfil() {
   const handleUploadDoc = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!docAreaId) {
+      setSnack({ open: true, msg: "Selecciona primero para qué área es este documento", severity: "warning" });
+      return;
+    }
     const allowed = ["image/jpeg", "image/png", "application/pdf"];
     if (!allowed.includes(file.type)) {
       setSnack({ open: true, msg: "Solo JPG, PNG o PDF", severity: "warning" });
@@ -162,18 +266,35 @@ export default function Perfil() {
       if (!res.ok) throw new Error(`Upload fallido (${res.status})`);
       const uploaded = await res.json();
       const f = Array.isArray(uploaded) ? uploaded[0] : uploaded;
-      setDocs((prev) => [
-        ...prev,
-        {
-          name: f?.name || file.name,
-          url: f?.url || URL.createObjectURL(file),
-          strapiId: f?.id,
-          size: file.size,
-          type: file.type,
-          uploadedAt: new Date().toISOString(),
-        },
-      ]);
-      setSnack({ open: true, msg: "Documento subido. Un verificador lo revisará.", severity: "success" });
+      const nuevoDoc = {
+        name: f?.name || file.name,
+        url: f?.url || URL.createObjectURL(file),
+        strapiId: f?.id,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString(),
+      };
+      setDocs((prev) => [...prev, nuevoDoc]);
+
+      // Persistir el documento en area_details[docAreaId].documentos — sin
+      // esto, el archivo se sube a la Media Library pero ningún verificador
+      // puede verlo jamás (bug real: la subida era puramente decorativa).
+      try {
+        await subirDocumentoArea(
+          userData.id,
+          docAreaId,
+          { nombre: nuevoDoc.name, url: nuevoDoc.url, size: nuevoDoc.size, tipo: nuevoDoc.type },
+          token
+        );
+        fetchRolesYMembresia && fetchRolesYMembresia(true);
+        setSnack({ open: true, msg: "Documento subido. Un verificador lo revisará.", severity: "success" });
+      } catch (persistErr) {
+        setSnack({
+          open: true,
+          msg: `El archivo se subió pero no se pudo asociar al área: ${persistErr.message || persistErr}`,
+          severity: "warning",
+        });
+      }
     } catch (err) {
       // Fallback: blob URL local (no persistido) para que el usuario al menos
       // vea que reconocimos el archivo. Se pierde al recargar.
@@ -651,22 +772,167 @@ export default function Perfil() {
                 </Button>
               </Stack>
 
+              {/* Elegir o proponer subárea (carrera/oficio) — spec 5.3:
+                  "elegirla de la lista o escribirla si no existe". Antes solo
+                  existía la mitad de "escribirla" (proponer); ahora primero
+                  se muestran las subáreas YA EXISTENTES bajo el área raíz
+                  elegida para asignarlas directo, y solo si no está ahí se
+                  usa la propuesta de abajo. */}
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
+                ¿Cuál es tu carrera u oficio?
+              </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
+                Elige el área raíz y luego busca tu carrera en la lista. Si no está, puedes
+                proponerla más abajo.
+              </Typography>
+              <Stack spacing={1}>
+                <FormControl size="small" sx={{ minWidth: 220 }}>
+                  <InputLabel id="prop-area-label">Área raíz</InputLabel>
+                  <Select
+                    labelId="prop-area-label"
+                    label="Área raíz"
+                    value={proposeAreaId}
+                    onChange={(e) => { setProposeAreaId(e.target.value); setSelectedSubareaId(""); }}
+                    disabled={submittingPropuesta}
+                  >
+                    {rootAreas.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>)}
+                  </Select>
+                </FormControl>
+
+                {proposeAreaId && (
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }} useFlexGap flexWrap="wrap">
+                    <FormControl size="small" sx={{ minWidth: 220 }}>
+                      <InputLabel id="subarea-label">Tu carrera/oficio</InputLabel>
+                      <Select
+                        labelId="subarea-label"
+                        label="Tu carrera/oficio"
+                        value={selectedSubareaId}
+                        onChange={(e) => setSelectedSubareaId(e.target.value)}
+                        disabled={loadingSubareas || submittingSubarea}
+                      >
+                        {loadingSubareas ? (
+                          <MenuItem value=""><em>Cargando…</em></MenuItem>
+                        ) : existingSubareas.length === 0 ? (
+                          <MenuItem value=""><em>No hay ninguna todavía — proponla abajo</em></MenuItem>
+                        ) : (
+                          existingSubareas.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>)
+                        )}
+                      </Select>
+                    </FormControl>
+                    {loadingSubareas && <CircularProgress size={20} />}
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={<SendIcon />}
+                      disabled={!selectedSubareaId || submittingSubarea}
+                      onClick={handleAssignSubarea}
+                      sx={{ background: "#00cc7a", color: "#fff", "&:hover": { background: "#00996b" } }}
+                    >
+                      {submittingSubarea ? "Asignando…" : "Asignar esta"}
+                    </Button>
+                  </Stack>
+                )}
+              </Stack>
+
+              {/* Proponer subárea nueva (si no está en la lista de arriba) */}
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
+                Tu carrera/oficio no está en la lista? Propónla como subárea
+              </Typography>
+              <Stack spacing={1} sx={{ mt: 1 }}>
+                <TextField
+                  size="small"
+                  label="Nombre de subárea (carrera/oficio)"
+                  placeholder="Ej. Lic. en Derecho"
+                  value={proposeNombre}
+                  onChange={(e) => setProposeNombre(e.target.value)}
+                  fullWidth
+                  helperText={!proposeAreaId ? "Primero elige un área raíz arriba" : ""}
+                />
+                <TextField
+                  size="small"
+                  label="Observaciones (opcional)"
+                  placeholder="Ej. Título emitido por la UNAM"
+                  value={propuestaObs}
+                  onChange={(e) => setPropuestaObs(e.target.value)}
+                  fullWidth
+                />
+                <Box>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<SendIcon />}
+                    disabled={!proposeAreaId || !proposeNombre.trim() || submittingPropuesta}
+                    onClick={handleProposeSubarea}
+                    sx={{ background: "#fff200", color: "#051322", "&:hover": { filter: "brightness(0.95)" } }}
+                  >
+                    {submittingPropuesta ? "Enviando…" : "Proponer subárea"}
+                  </Button>
+                </Box>
+              </Stack>
+
+              {/* Mis propuestas enviadas y su estado — antes el usuario
+                  proponía y nunca sabía qué había pasado con su propuesta. */}
+              {misPropuestas.length > 0 && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322", mb: 1 }}>
+                    Mis propuestas enviadas
+                  </Typography>
+                  <Stack spacing={0.75}>
+                    {misPropuestas.map((p, i) => (
+                      <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {p.nombre} <Typography component="span" variant="caption" color="text.secondary">({p.areaName})</Typography>
+                        </Typography>
+                        {p.estado === "approved" && <Chip size="small" color="success" label="✓ Aprobada" />}
+                        {p.estado === "rejected" && <Chip size="small" color="error" label={`✕ Rechazada${p.motivo_rechazo ? `: ${p.motivo_rechazo}` : ""}`} />}
+                        {(!p.estado || p.estado === "pending") && <Chip size="small" color="warning" label="⏳ Pendiente de revisión" />}
+                      </Box>
+                    ))}
+                  </Stack>
+                </>
+              )}
+
               {/* Subir documentación */}
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
                 Documentación de tu área / carrera
               </Typography>
               <Typography variant="caption" sx={{ color: "text.secondary", display: "block", mb: 1 }}>
-                Sube título, certificado o凭证PDF/JPG/PNG (máx 5MB) — un verificador lo revisará
+                Sube título, certificado o diploma en PDF/JPG/PNG (máx 5MB) — un verificador lo revisará
                 y marcará tu área como verificada o rechazada.
               </Typography>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", mb: 1 }} useFlexGap flexWrap="wrap">
+                <FormControl size="small" sx={{ minWidth: 220 }}>
+                  <InputLabel id="doc-area-label">¿Para qué área es?</InputLabel>
+                  <Select
+                    labelId="doc-area-label"
+                    label="¿Para qué área es?"
+                    value={docAreaId}
+                    onChange={(e) => setDocAreaId(e.target.value)}
+                    disabled={docUploading}
+                  >
+                    {(userData?.areas || []).length === 0 ? (
+                      <MenuItem value=""><em>Primero asigna un área arriba</em></MenuItem>
+                    ) : (
+                      userData.areas.map((a) => {
+                        const id = typeof a === "object" ? a.id : Number(a);
+                        const name = typeof a === "object" ? (a.name || a.nombre || `#${id}`) : `#${id}`;
+                        return <MenuItem key={id} value={id}>{name}</MenuItem>;
+                      })
+                    )}
+                  </Select>
+                </FormControl>
+              </Stack>
               <Stack direction="row" spacing={1} sx={{ alignItems: "center" }} useFlexGap flexWrap="wrap">
                 <Button
                   variant="outlined"
                   size="small"
                   component="label"
                   startIcon={<UploadFileIcon />}
-                  disabled={docUploading}
+                  disabled={docUploading || !docAreaId}
                   sx={{ borderColor: "#00cc7a", color: "#00cc7a" }}
                 >
                   Subir documento
@@ -691,54 +957,6 @@ export default function Perfil() {
                   ))}
                 </Stack>
               )}
-
-              {/* Proponer subárea nueva */}
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#051322" }}>
-                Tu carrera/oficio no está en la lista? Propónla como subárea
-              </Typography>
-              <Stack spacing={1} sx={{ mt: 1 }}>
-                <FormControl size="small" sx={{ minWidth: 220 }}>
-                  <InputLabel id="prop-area-label">Área raíz</InputLabel>
-                  <Select
-                    labelId="prop-area-label"
-                    label="Área raíz"
-                    value={proposeAreaId}
-                    onChange={(e) => setProposeAreaId(e.target.value)}
-                    disabled={submittingPropuesta}
-                  >
-                    {rootAreas.map((a) => <MenuItem key={a.id} value={a.id}>{a.name}</MenuItem>)}
-                  </Select>
-                </FormControl>
-                <TextField
-                  size="small"
-                  label="Nombre de subárea (carrera/oficio)"
-                  placeholder="Ej. Lic. en Derecho"
-                  value={proposeNombre}
-                  onChange={(e) => setProposeNombre(e.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  size="small"
-                  label="Observaciones (opcional)"
-                  placeholder="Ej. Título emitido por la UNAM"
-                  value={propuestaObs}
-                  onChange={(e) => setPropuestaObs(e.target.value)}
-                  fullWidth
-                />
-                <Box>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<SendIcon />}
-                    disabled={!proposeAreaId || !proposeNombre.trim() || submittingPropuesta}
-                    onClick={handleProposeSubarea}
-                    sx={{ background: "#fff200", color: "#051322", "&:hover": { filter: "brightness(0.95)" } }}
-                  >
-                    {submittingPropuesta ? "Enviando…" : "Proponer subárea"}
-                  </Button>
-                </Box>
-              </Stack>
             </Paper>
 
             <Typography sx={{ mt: 2, fontSize: 13, color: "text.secondary", wordBreak: "break-all" }}>
