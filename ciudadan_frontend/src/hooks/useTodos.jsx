@@ -123,28 +123,36 @@ const findStrapiUserIdByEmail = async (email, token = null) => {
       }
     }
 
-    // creador: si viene un id numérico lo usamos; sino intentamos buscar por email del auth0 user
-    if (payload.creador !== undefined && payload.creador !== null && payload.creador !== "") {
-      //const maybeNum = toNumberIfPossible(payload.creador);
-      const maybeNum = toNumberIfPossible(payload.creador);
-
-if (typeof maybeNum === "number" && maybeNum > 0) {
-  data.creador = maybeNum;
-} else {
-  delete data.creador;
-}
+    // creador: si viene un id numérico lo usamos tal cual. Si viene un email
+    // (string no numérico) o no viene nada, lo resolvemos a un id de Strapi
+    // por email — antes, cualquier valor "truthy" no numérico (ej. el email
+    // de Auth0 que manda AgregarTarea.jsx: `creador: user?.email`) caía en un
+    // `delete data.creador` y el todo se creaba SIN creador. Bug real y
+    // grave: can-asignar-tarea.js exige `todo.creador.id === asignador.id`
+    // para dejar asignar — con creador siempre vacío, ningún socio podía
+    // jamás asignar una tarea creada desde el producto real (solo funcionaba
+    // en los scripts de seed, que ponían el id directo).
+    const maybeNum = toNumberIfPossible(payload.creador);
+    if (typeof maybeNum === "number" && maybeNum > 0) {
+      data.creador = maybeNum;
+      data.created_by = maybeNum;
     } else {
-      // no nos pasaron creador: intentar mapear user.email (Auth0) a Strapi user id
-      if (user?.email) {
-        // find id (intenta con token si está disponible)
+      const emailParaBuscar = typeof payload.creador === "string" && payload.creador.includes("@")
+        ? payload.creador
+        : user?.email;
+      if (emailParaBuscar) {
         const token = await getToken();
-        const strapiUserId = await findStrapiUserIdByEmail(user.email, token);
+        const strapiUserId = await findStrapiUserIdByEmail(emailParaBuscar, token);
         if (strapiUserId && strapiUserId > 0) {
-  data.creador = strapiUserId;
-} else {
+          data.creador = strapiUserId;
+          data.created_by = strapiUserId;
+        } else {
           // guardar email para emparejamiento posterior
-          data.usuario_email = user.email;
+          data.usuario_email = emailParaBuscar;
+          delete data.creador;
         }
+      } else {
+        delete data.creador;
       }
     }
 

@@ -266,6 +266,58 @@ export const listProposedSubareas = (userId, token = null) => {
   );
 };
 
+// Adjunta un documento (ya subido a Strapi Media Library) al area_details
+// propio del usuario. Self-service: antes la subida de documentos en el
+// perfil era puramente decorativa (se subía el archivo pero nunca quedaba
+// asociado a ninguna área, así que un verificador jamás podía verlo).
+export const subirDocumentoArea = (userId, areaId, documento, token = null, observaciones = undefined) => {
+  if (!userId) return Promise.reject(new Error('Usuario invalido'));
+  if (!areaId) return Promise.reject(new Error('areaId invalido'));
+  if (!documento || !documento.nombre || !documento.url) {
+    return Promise.reject(new Error('documento invalido (falta nombre o url)'));
+  }
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const body = { areaId, documento };
+  if (observaciones !== undefined) body.observaciones = observaciones;
+
+  return fetchJson(
+    `${STRAPI_URL}/api/users/${userId}/subir-documento-area`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    },
+    'No se pudo subir el documento'
+  );
+};
+
+// Aprueba o rechaza una propuesta de subárea (solo admin/socio/verificador).
+// Al aprobar, el backend crea la subárea real (o reusa una existente con el
+// mismo nombre) y la asigna al usuario.
+export const revisarSubarea = (userId, { areaId, nombre, decision, motivo }, token = null) => {
+  if (!userId) return Promise.reject(new Error('Usuario invalido'));
+  if (!areaId || !nombre) return Promise.reject(new Error('areaId y nombre son requeridos'));
+  if (!['approved', 'rejected'].includes(decision)) {
+    return Promise.reject(new Error('decision debe ser "approved" o "rejected"'));
+  }
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  return fetchJson(
+    `${STRAPI_URL}/api/users/${userId}/revisar-subarea`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ areaId, nombre, decision, motivo }),
+    },
+    'No se pudo revisar la propuesta de subarea'
+  );
+};
+
 // Asigna un todo a varios usuarios (Fase 5/6). Usa el endpoint
 // POST /tareas/asignar que requiere la policy can-asignar-tarea.
 // Da de alta (o actualiza) un usuario como socio miembro de una agencia.

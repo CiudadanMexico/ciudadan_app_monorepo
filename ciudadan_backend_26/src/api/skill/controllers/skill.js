@@ -1,105 +1,89 @@
 'use strict';
 
-const { parseMultipartData } = require('@strapi/utils');
+/**
+ * skill controller
+ *
+ * BUGS REALES ENCONTRADOS Y CORREGIDOS AQUÍ: el controller anterior llamaba
+ * directo a `strapi.service('api::skill.skill')` (find/create/update/delete)
+ * en vez de usar `super.find()/create()/update()/delete()` del core
+ * controller. Eso rompía dos cosas:
+ *
+ *   1. Forma de respuesta no estándar: find() devolvía {results, pagination}
+ *      y create()/update() devolvían el objeto plano de la entidad — ninguno
+ *      pasaba por el sanitizador/transformador de respuesta de Strapi que
+ *      produce {data, meta}. El hook del frontend (useSkills.js) espera
+ *      json.data en todos los casos: como resultado, fetchSkills() SIEMPRE
+ *      devolvía [] (aunque hubiera skills reales en la DB) y createSkill()/
+ *      updateSkill() guardaban `undefined` en el estado local.
+ *   2. delete() llamaba `skillService.delete({ params: { id } })` — firma
+ *      incorrecta para el core service (que espera el id directo, no un
+ *      objeto {params}). Confirmado invocando el controller real con un
+ *      usuario admin: tira "Undefined attribute level operator params"
+ *      SIEMPRE, sin importar el permiso — borrar un skill nunca funcionó.
+ *
+ * Usar createCoreController + super.<method>() delega en la implementación
+ * de Strapi (que sí arma {data, meta} correctamente y sí sabe borrar una
+ * entidad), y aquí solo se añaden los checks de permiso/visibilidad.
+ */
 
+const { createCoreController } = require('@strapi/strapi').factories;
+
+function getRoles(user) {
+  return Array.isArray(user?.roles?.extra) ? user.roles.extra : [];
+}
 function isAdminEditorOrVerificador(user) {
-  const roles = Array.isArray(user?.roles?.extra) ? user.roles.extra : [];
-  return ['admin', 'editor', 'verificador'].some((rol) => roles.includes(rol));
+  return ['admin', 'editor', 'verificador'].some((rol) => getRoles(user).includes(rol));
+}
+function isAdminOrEditor(user) {
+  return ['admin', 'editor'].some((rol) => getRoles(user).includes(rol));
+}
+function isAdmin(user) {
+  return getRoles(user).includes('admin');
 }
 
-function isActiveSkill(skill) {
-  return (skill?.attributes?.is_active ?? skill?.attributes?.isActive ?? skill?.is_active ?? skill?.isActive) !== false;
-}
-
-module.exports = {
+module.exports = createCoreController('api::skill.skill', ({ strapi }) => ({
   async find(ctx) {
-    const skillService = strapi.service('api::skill.skill');
-    const entities = ctx.query._q
-      ? await skillService.search(ctx.query)
-      : await skillService.find(ctx.query);
-
-    const user = ctx.state.user || ctx.state.strapiUser;
-    if (!user || !isAdminEditorOrVerificador(user)) {
-      if (entities && Array.isArray(entities.data)) {
-        return { ...entities, data: entities.data.filter(isActiveSkill) };
-      }
-      if (Array.isArray(entities)) {
-        return entities.filter(isActiveSkill);
-      }
+    const user = ctx.state.strapiUser || ctx.state.user;
+    if (!isAdminEditorOrVerificador(user)) {
+      ctx.query = {
+        ...ctx.query,
+        filters: { ...(ctx.query?.filters || {}), is_active: { $eq: true } },
+      };
     }
-
-    return entities;
+    return super.find(ctx);
   },
 
   async findOne(ctx) {
     const { id } = ctx.params;
-    const skillService = strapi.service('api::skill.skill');
-    const skill = await skillService.findOne(id, ctx.query);
+    const user = ctx.state.strapiUser || ctx.state.user;
 
-    if (!skill) {
-      return ctx.notFound();
+    const skill = await strapi.entityService.findOne('api::skill.skill', id, {
+      fields: ['is_active'],
+    });
+    if (!skill) return ctx.notFound();
+
+    if (!isAdminEditorOrVerificador(user) && skill.is_active === false) {
+      return ctx.forbidden();
     }
 
-    const user = ctx.state.user || ctx.state.strapiUser;
-    const actualSkill = skill.data || skill;
-    if (!user || !isAdminEditorOrVerificador(user)) {
-      if (!isActiveSkill(actualSkill)) {
-        return ctx.forbidden();
-      }
-    }
-
-    return skill;
+    return super.findOne(ctx);
   },
 
   async create(ctx) {
-    const user = ctx.state.user || ctx.state.strapiUser;
-    if (!user || !['admin', 'editor'].some((rol) => Array.isArray(user.roles?.extra) && user.roles.extra.includes(rol))) {
-      return ctx.forbidden();
-    }
-
-    const skillService = strapi.service('api::skill.skill');
-    let entity;
-
-    if (ctx.is('multipart')) {
-      const { data, files } = parseMultipartData(ctx);
-      entity = await skillService.create({ data, files });
-    } else {
-      entity = await skillService.create({ data: ctx.request.body.data ?? ctx.request.body });
-    }
-
-    return entity;
+    const user = ctx.state.strapiUser || ctx.state.user;
+    if (!isAdminOrEditor(user)) return ctx.forbidden();
+    return super.create(ctx);
   },
 
   async update(ctx) {
-    const user = ctx.state.user || ctx.state.strapiUser;
-    if (!user || !['admin', 'editor'].some((rol) => Array.isArray(user.roles?.extra) && user.roles.extra.includes(rol))) {
-      return ctx.forbidden();
-    }
-
-    const { id } = ctx.params;
-    const skillService = strapi.service('api::skill.skill');
-    let entity;
-
-    if (ctx.is('multipart')) {
-      const { data, files } = parseMultipartData(ctx);
-      entity = await skillService.update({ params: { id }, data, files });
-    } else {
-      entity = await skillService.update({ params: { id }, data: ctx.request.body.data ?? ctx.request.body });
-    }
-
-    return entity;
+    const user = ctx.state.strapiUser || ctx.state.user;
+    if (!isAdminOrEditor(user)) return ctx.forbidden();
+    return super.update(ctx);
   },
 
   async delete(ctx) {
-    const user = ctx.state.user || ctx.state.strapiUser;
-    if (!user || !Array.isArray(user.roles?.extra) || !user.roles.extra.includes('admin')) {
-      return ctx.forbidden();
-    }
-
-    const { id } = ctx.params;
-    const skillService = strapi.service('api::skill.skill');
-    const entity = await skillService.delete({ params: { id } });
-
-    return entity;
+    const user = ctx.state.strapiUser || ctx.state.user;
+    if (!isAdmin(user)) return ctx.forbidden();
+    return super.delete(ctx);
   },
-};
+}));

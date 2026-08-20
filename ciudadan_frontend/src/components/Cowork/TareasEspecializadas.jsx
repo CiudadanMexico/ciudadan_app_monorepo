@@ -6,12 +6,15 @@ import {
   Alert,
   Box,
   Button,
-  Checkbox,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
+  IconButton,
   InputLabel,
-  ListItemText,
   MenuItem,
   OutlinedInput,
   Paper,
@@ -25,6 +28,9 @@ import {
   useTheme,
 } from '@mui/material';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import AddLinkIcon from '@mui/icons-material/AddLink';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import { styled } from '@mui/material/styles';
@@ -34,8 +40,11 @@ import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
 import {
   assignUserAreas,
+  completarTarea,
   proposeSubarea,
   resolverTarea,
+  subirDocumentoArea,
+  subirEvidencia,
 } from '../../services/cowork/mutationsServices.js';
 import {
   getAvailableRootAreas,
@@ -46,11 +55,27 @@ import {
   buildAreaHierarchy,
   getActiveRootAreas,
   normalizeTask,
-  parseAreaSelectValue,
 } from '../../utils/cowork.helpers.js';
 
 const neonGreen = '#00ff99';
 const amarilloCiudadan = '#f5c400';
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
+
+// Mismos límites que el resto del módulo (subir-evidencia.js / Perfil.jsx).
+const ALLOWED_MIMES_DECLARAR = ['image/jpeg', 'image/png', 'application/pdf'];
+const MAX_FILE_SIZE_DECLARAR = 5 * 1024 * 1024;
+
+// Límites para el diálogo de "Resolver y entregar" — mismos que Tareas.jsx /
+// Coowork.jsx (evidencia de la resolución, no documentos de área).
+const ALLOWED_MIMES_RESOLVER = [
+  'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif',
+  'application/pdf', 'text/plain',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'video/mp4', 'audio/mpeg',
+];
+const MAX_FILE_SIZE_RESOLVER = 10 * 1024 * 1024;
+const MAX_ARCHIVOS_RESOLVER = 10;
 
 const AreaTabs = styled((props) => (
   <Tabs
@@ -105,15 +130,27 @@ export const EmptyState = ({ children, actions }) => (
   </Paper>
 );
 
-const AssignAreasForm = ({
+// Reemplaza al viejo "Asignar áreas" (selección múltiple + asignación
+// instantánea, sin documentos ni aprobación — justo lo que se pidió quitar:
+// "eso de asignar áreas no va ahí"). Ahora es una auto-declaración de UNA
+// sola área con experiencia + comprobantes, que queda pendiente de
+// aprobación (mismo criterio que "aprobar socio": aquí es "aprobar
+// habilidades", vía la cola de VerificarUsuarios.jsx).
+const DeclararAreaForm = ({
   areas,
-  selectedAreaIds,
-  onChange,
-  onAssign,
+  areaId,
+  onChangeArea,
+  experiencia,
+  onChangeExperiencia,
+  archivos,
+  onChangeArchivos,
+  onQuitarArchivo,
+  onSubmit,
   loading,
   loadingAreas,
   error,
-  // Props nuevas (Fix 5.3 "escribirla si no existe"):
+  success,
+  // Props de "escribirla si no existe" (Fix 5.3):
   userId,
   onProposeSubarea,
   proposingSubarea,
@@ -134,13 +171,15 @@ const AssignAreasForm = ({
     <Stack spacing={2.5}>
       <Box>
         <Typography variant="h6" fontWeight={800}>
-          Asignar áreas
+          ¿Cuál de estas áreas tienes?
         </Typography>
         <Typography sx={{ color: '#cfcfcf', mt: 0.5 }}>
-          Selecciona las áreas principales que quieres asociar a tu perfil.
+          Elige tu área, cuéntanos tu experiencia y sube tus comprobantes. Un socio de esa área
+          (o un admin) revisará tu solicitud.
         </Typography>
       </Box>
 
+      {success && <Alert severity="success">{success}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
 
       {loadingAreas ? (
@@ -149,20 +188,11 @@ const AssignAreasForm = ({
         </Box>
       ) : (
         <FormControl fullWidth disabled={loading || areas.length === 0}>
-          <InputLabel sx={{ color: '#d6d6d6' }}>Áreas</InputLabel>
+          <InputLabel sx={{ color: '#d6d6d6' }}>Área</InputLabel>
           <Select
-            multiple
-            value={selectedAreaIds}
-            onChange={(event) => {
-              onChange(parseAreaSelectValue(event.target.value));
-            }}
-            input={<OutlinedInput label="Áreas" />}
-            renderValue={(selected) =>
-              areas
-                .filter((area) => selected.includes(area.id))
-                .map((area) => area.name || area.nombre)
-                .join(', ')
-            }
+            value={areaId}
+            label="Área"
+            onChange={(event) => onChangeArea(event.target.value)}
             sx={{
               color: 'white',
               '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
@@ -172,18 +202,53 @@ const AssignAreasForm = ({
           >
             {areas.map((area) => (
               <MenuItem key={area.id} value={area.id}>
-                <Checkbox checked={selectedAreaIds.includes(area.id)} />
-                <ListItemText primary={area.name || area.nombre} />
+                {area.name || area.nombre}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
       )}
 
+      <TextField
+        label="Tu experiencia y certificaciones"
+        placeholder="Cuéntanos brevemente tu experiencia en esta área..."
+        value={experiencia}
+        onChange={(e) => onChangeExperiencia(e.target.value)}
+        multiline
+        minRows={3}
+        fullWidth
+        disabled={loading}
+        InputLabelProps={{ sx: { color: '#d6d6d6' } }}
+        sx={{
+          '.MuiOutlinedInput-root': { color: 'white' },
+          '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
+        }}
+      />
+
+      <Box>
+        <Button
+          variant="outlined"
+          component="label"
+          startIcon={<AttachFileIcon />}
+          disabled={loading}
+          sx={{ borderColor: neonGreen, color: neonGreen }}
+        >
+          Subir comprobantes
+          <input type="file" multiple hidden onChange={onChangeArchivos} />
+        </Button>
+        {archivos.length > 0 && (
+          <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5, rowGap: 1 }}>
+            {archivos.map((f, idx) => (
+              <Chip key={`${f.name}-${idx}`} label={f.name} onDelete={() => onQuitarArchivo(idx)} size="small" />
+            ))}
+          </Stack>
+        )}
+      </Box>
+
       <Button
         variant="contained"
-        disabled={loading || loadingAreas || selectedAreaIds.length === 0}
-        onClick={onAssign}
+        disabled={loading || loadingAreas || !areaId || archivos.length === 0}
+        onClick={onSubmit}
         sx={{
           alignSelf: { xs: 'stretch', sm: 'flex-start' },
           bgcolor: amarilloCiudadan,
@@ -192,7 +257,7 @@ const AssignAreasForm = ({
           '&:hover': { bgcolor: '#ffe04a' },
         }}
       >
-        {loading ? 'Asignando...' : 'Asignar'}
+        {loading ? 'Enviando...' : 'Enviar para aprobación'}
       </Button>
 
       {/* Spec 5.3 — "escribirla si no existe": si la carrera/oficio del usuario
@@ -435,14 +500,21 @@ const TareasEspecializadas = () => {
   const [areas, setAreas] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [availableAreas, setAvailableAreas] = useState([]);
-  const [selectedAreaIds, setSelectedAreaIds] = useState([]);
   const [areaTab, setAreaTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingAvailableAreas, setLoadingAvailableAreas] = useState(false);
-  const [assigningAreas, setAssigningAreas] = useState(false);
   const [error, setError] = useState(null);
-  const [assignError, setAssignError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  // Auto-declaración de área (reemplaza el viejo "asignar áreas" múltiple e
+  // instantáneo): una sola área + experiencia + comprobantes, mandado a
+  // aprobación. Ver DeclararAreaForm más arriba.
+  const [declararAreaId, setDeclararAreaId] = useState('');
+  const [declararExperiencia, setDeclararExperiencia] = useState('');
+  const [declararArchivos, setDeclararArchivos] = useState([]);
+  const [declarando, setDeclarando] = useState(false);
+  const [assignError, setAssignError] = useState(null);
+  const [declararSuccess, setDeclararSuccess] = useState(null);
   const [resolvingId, setResolvingId] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -490,14 +562,19 @@ const TareasEspecializadas = () => {
       setAreas(userAreas);
       setAreaTab(0);
 
-      if (userAreas.length === 0) {
-        setTasks([]);
-        await fetchAvailableAreas();
-        return;
-      }
-
+      // Antes: si el usuario no tenía áreas verificadas, ni siquiera se
+      // pedían las tareas — eso también ocultaba las de nivel `becario`,
+      // que el PDF dice que se agrupan como especializadas en la UI pero
+      // (por decisión del usuario) NO requieren área/habilidad verificada,
+      // igual que las generales. Ahora siempre se piden las tareas; si no
+      // tiene áreas, simplemente no habrá tareas de área para mostrar, pero
+      // las de becario sí deben verse.
       const todosJson = await getSpecializedTodos(token);
       setTasks((todosJson.data || []).map(normalizeTask));
+
+      if (userAreas.length === 0) {
+        await fetchAvailableAreas();
+      }
     } catch (err) {
       console.error('Error cargando tareas especializadas:', err);
       setError('No se pudieron cargar las tareas especializadas');
@@ -537,14 +614,40 @@ const TareasEspecializadas = () => {
     });
   };
 
-  const handleAssignAreas = async () => {
-    if (!userId || selectedAreaIds.length === 0) return;
+  const handleDeclararArchivosChange = (e) => {
+    const nuevos = Array.from(e.target.files || []);
+    setAssignError(null);
+    for (const f of nuevos) {
+      if (!ALLOWED_MIMES_DECLARAR.includes(f.type)) {
+        setAssignError(`"${f.name}": solo se aceptan JPG, PNG o PDF.`);
+        return;
+      }
+      if (f.size > MAX_FILE_SIZE_DECLARAR) {
+        setAssignError(`"${f.name}": excede el máximo de 5MB.`);
+        return;
+      }
+    }
+    setDeclararArchivos((prev) => [...prev, ...nuevos]);
+    e.target.value = '';
+  };
+
+  const handleQuitarDeclararArchivo = (idx) => {
+    setDeclararArchivos((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Auto-declaración de área: sube cada comprobante a la Media Library de
+  // Strapi, asocia la relación de área al usuario, y registra documentos +
+  // experiencia en area_details (status 'pending' por defecto) para que
+  // quede en la cola de aprobación de VerificarUsuarios.jsx — reemplaza el
+  // viejo "asignar áreas" instantáneo sin revisión.
+  const handleDeclararArea = async () => {
+    if (!userId || !declararAreaId || declararArchivos.length === 0) return;
 
     try {
-      setAssigningAreas(true);
+      setDeclarando(true);
       setError(null);
       setAssignError(null);
-      setSuccess(null);
+      setDeclararSuccess(null);
 
       let token = null;
       try {
@@ -553,16 +656,43 @@ const TareasEspecializadas = () => {
         });
       } catch { /* token optional */ }
 
-      await assignUserAreas(userId, selectedAreaIds, token);
+      const actuales = (userData?.areas || []).map((a) => (typeof a === 'object' ? a.id : Number(a)));
+      const nuevosIds = Array.from(new Set([...actuales, Number(declararAreaId)]));
+      await assignUserAreas(userId, nuevosIds, token);
 
-      setSuccess('Áreas asignadas correctamente.');
-      setSelectedAreaIds([]);
+      for (const file of declararArchivos) {
+        const formData = new FormData();
+        formData.append('files', file);
+        formData.append('ref', 'plugin::users-permissions.user');
+        formData.append('refId', userId);
+        formData.append('field', 'documentos');
+        const res = await fetch(`${STRAPI_URL}/api/upload`, {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`No se pudo subir "${file.name}" (${res.status})`);
+        const uploaded = await res.json();
+        const f = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+        await subirDocumentoArea(
+          userId,
+          declararAreaId,
+          { nombre: f?.name || file.name, url: f?.url || '', size: file.size, tipo: file.type },
+          token,
+          declararExperiencia
+        );
+      }
+
+      setDeclararSuccess('Tu solicitud fue enviada. Un socio de esa área (o un admin) la revisará.');
+      setDeclararAreaId('');
+      setDeclararExperiencia('');
+      setDeclararArchivos([]);
       await fetchSpecializedTasks();
     } catch (err) {
-      console.error('Error asignando áreas:', err);
-      setAssignError('No se pudieron asignar las áreas');
+      console.error('Error declarando área:', err);
+      setAssignError(err.message || 'No se pudo enviar tu solicitud');
     } finally {
-      setAssigningAreas(false);
+      setDeclarando(false);
     }
   };
 
@@ -606,42 +736,121 @@ const TareasEspecializadas = () => {
     [userId, getAccessTokenSilently]
   );
 
-  const handleResolve = useCallback(
-    async (todo) => {
-      if (!userId) return;
+  // Resolver ya no es "un clic y ya" — spec: "resolver tarea debe de traer
+  // para rellenar todo para resolverla, no debe de darse por resuelta en
+  // automático, eso no tiene sentido". Igual que en Coowork.jsx (Tareas
+  // Generales), pide notas/enlaces/archivos y hace resolver + entregar en
+  // una sola acción.
+  const [resolverDialog, setResolverDialog] = useState({ open: false, todo: null, notes: '', enlaces: [''] });
+  const [archivosResolver, setArchivosResolver] = useState([]);
+  const [resolverDialogError, setResolverDialogError] = useState(null);
 
+  const abrirResolverDialog = useCallback(
+    (todo) => {
+      if (!userId) return;
       if (!canUserTakeTask(todo, userId)) {
         setError('Esta tarea ya no está disponible para ser asignada.');
         return;
       }
+      setResolverDialogError(null);
+      setResolverDialog({ open: true, todo, notes: '', enlaces: [''] });
+      setArchivosResolver([]);
+    },
+    [userId, canUserTakeTask]
+  );
 
+  const cerrarResolverDialog = () => {
+    if (resolvingId) return;
+    setResolverDialog({ open: false, todo: null, notes: '', enlaces: [''] });
+    setArchivosResolver([]);
+    setResolverDialogError(null);
+  };
+
+  const cambiarEnlaceResolver = (idx, value) => {
+    setResolverDialog((p) => ({ ...p, enlaces: p.enlaces.map((e, i) => (i === idx ? value : e)) }));
+  };
+  const agregarEnlaceResolver = () => {
+    setResolverDialog((p) => ({ ...p, enlaces: [...p.enlaces, ''] }));
+  };
+  const quitarEnlaceResolver = (idx) => {
+    setResolverDialog((p) => ({ ...p, enlaces: p.enlaces.filter((_, i) => i !== idx) }));
+  };
+
+  const handleArchivosResolverChange = (e) => {
+    const nuevos = Array.from(e.target.files || []);
+    setResolverDialogError(null);
+    for (const f of nuevos) {
+      if (!ALLOWED_MIMES_RESOLVER.includes(f.type)) {
+        setResolverDialogError(`"${f.name}": tipo de archivo no permitido.`);
+        return;
+      }
+      if (f.size > MAX_FILE_SIZE_RESOLVER) {
+        setResolverDialogError(`"${f.name}": excede el máximo de 10MB.`);
+        return;
+      }
+    }
+    setArchivosResolver((prev) => {
+      const combinado = [...prev, ...nuevos];
+      if (combinado.length > MAX_ARCHIVOS_RESOLVER) {
+        setResolverDialogError(`No se pueden adjuntar más de ${MAX_ARCHIVOS_RESOLVER} archivos.`);
+        return prev;
+      }
+      return combinado;
+    });
+    e.target.value = '';
+  };
+  const quitarArchivoResolver = (idx) => {
+    setArchivosResolver((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const submitResolverConEvidencia = useCallback(
+    async () => {
+      const todo = resolverDialog.todo;
+      if (!todo) return;
+
+      setResolvingId(todo.id);
+      setResolverDialogError(null);
       try {
-        setResolvingId(todo.id);
-        setError(null);
-        setSuccess(null);
-
         const token = await getAccessTokenSilently({
           authorizationParams: {
             audience: 'https://api.ciudadan.org',
             scope: 'openid profile email offline_access',
           },
         });
-        await resolverTarea(todo.id, token);
+
+        const resolverRes = await resolverTarea(todo.id, token);
+        const tareaId = resolverRes?.data?.id;
+        if (!tareaId) throw new Error('No se pudo obtener el id de la tarea recién creada');
+
+        if (archivosResolver.length > 0) {
+          await subirEvidencia(tareaId, archivosResolver, resolverDialog.notes, token);
+        }
+
+        const enlacesLimpios = resolverDialog.enlaces.map((e) => e.trim()).filter(Boolean);
+        await completarTarea(tareaId, token, { notes: resolverDialog.notes, enlaces: enlacesLimpios });
 
         setTasks((prev) => prev.filter((t) => t.id !== todo.id));
-        setSuccess(`Tarea "${todo.titulo}" asignada correctamente.`);
+        setSuccess(`Tarea "${todo.titulo}" resuelta y entregada correctamente.`);
+        setResolverDialog({ open: false, todo: null, notes: '', enlaces: [''] });
+        setArchivosResolver([]);
       } catch (err) {
-        console.error('Error asignando tarea:', err);
-        setError(err.message || 'No se pudo asignar la tarea');
+        console.error('Error resolviendo tarea:', err);
+        setResolverDialogError(err.message || 'No se pudo resolver la tarea');
       } finally {
         setResolvingId(null);
       }
     },
-    [userId, canUserTakeTask, getAccessTokenSilently]
+    [resolverDialog, archivosResolver, getAccessTokenSilently]
   );
 
   const hierarchy = useMemo(() => buildAreaHierarchy(areas, tasks), [areas, tasks]);
   const selectedArea = hierarchy[areaTab];
+
+  // Tareas nivel `becario`: el PDF las agrupa como "especializadas" en la
+  // UI, pero no requieren área verificada — no encajan en buildAreaHierarchy
+  // (que agrupa por área) porque normalmente no tienen `areas` asignadas.
+  // Se muestran aparte, siempre, sin depender de que el usuario tenga áreas.
+  const becarioTasks = useMemo(() => tasks.filter((t) => t.nivel === 'becario'), [tasks]);
 
   useEffect(() => {
     if (areaTab >= hierarchy.length) setAreaTab(0);
@@ -682,6 +891,43 @@ const TareasEspecializadas = () => {
     return <EmptyState>{error}</EmptyState>;
   }
 
+  const seccionBecario = becarioTasks.length > 0 && (
+    <Stack spacing={1.75} sx={{ mb: 4 }}>
+      <Box>
+        <Typography variant="h5" fontWeight={800} color="white">
+          Becario
+        </Typography>
+        <Typography sx={{ color: '#cfcfcf', mt: 0.5 }}>
+          Tareas de nivel becario — no requieren área ni habilidad verificada, cualquier usuario
+          registrado las puede resolver.
+        </Typography>
+      </Box>
+      <TaskGrid
+        tasks={becarioTasks}
+        renderActions={(task) =>
+          task.status === 'publicada' && canUserTakeTask(task, userId) ? (
+            <Button
+              variant="contained"
+              size="small"
+              disabled={resolvingId === task.id}
+              onClick={() => abrirResolverDialog(task)}
+              sx={{
+                bgcolor: '#00ff99',
+                color: '#002200',
+                fontWeight: 700,
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#00e68a' },
+                '&.Mui-disabled': { bgcolor: 'rgba(0,255,153,0.3)', color: '#004d33' },
+              }}
+            >
+              {resolvingId === task.id ? 'Asignando...' : 'Resolver tarea'}
+            </Button>
+          ) : null
+        }
+      />
+    </Stack>
+  );
+
   if (hierarchy.length === 0) {
     return (
       <Box sx={{ mt: 3 }}>
@@ -690,15 +936,22 @@ const TareasEspecializadas = () => {
             {success}
           </Alert>
         )}
+        {seccionBecario}
         <EmptyState>Aún no tienes áreas asignadas para ver tareas especializadas.</EmptyState>
-        <AssignAreasForm
+        <DeclararAreaForm
           areas={availableAreas}
-          selectedAreaIds={selectedAreaIds}
-          onChange={setSelectedAreaIds}
-          onAssign={handleAssignAreas}
-          loading={assigningAreas}
+          areaId={declararAreaId}
+          onChangeArea={setDeclararAreaId}
+          experiencia={declararExperiencia}
+          onChangeExperiencia={setDeclararExperiencia}
+          archivos={declararArchivos}
+          onChangeArchivos={handleDeclararArchivosChange}
+          onQuitarArchivo={handleQuitarDeclararArchivo}
+          onSubmit={handleDeclararArea}
+          loading={declarando}
           loadingAreas={loadingAvailableAreas}
           error={assignError}
+          success={declararSuccess}
           userId={userId}
           onProposeSubarea={handleProposeSubarea}
           proposingSubarea={proposingSubarea}
@@ -716,6 +969,7 @@ const TareasEspecializadas = () => {
           {success}
         </Alert>
       )}
+      {seccionBecario}
       <Paper
         elevation={0}
         sx={{
@@ -798,7 +1052,7 @@ const TareasEspecializadas = () => {
                       variant="contained"
                       size="small"
                       disabled={resolvingId === task.id}
-                      onClick={() => handleResolve(task)}
+                      onClick={() => abrirResolverDialog(task)}
                       sx={{
                         bgcolor: '#00ff99',
                         color: '#002200',
@@ -821,7 +1075,7 @@ const TareasEspecializadas = () => {
               key={subarea.id}
               subarea={subarea}
               defaultExpanded={selectedArea.subareas.length === 1}
-              handleResolve={handleResolve}
+              handleResolve={abrirResolverDialog}
               resolvingId={resolvingId}
               canUserTakeTask={canUserTakeTask}
               userId={userId}
@@ -829,6 +1083,93 @@ const TareasEspecializadas = () => {
           ))}
         </Stack>
       )}
+
+      <Dialog open={resolverDialog.open} onClose={cerrarResolverDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Resolver: {resolverDialog.todo?.titulo}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {resolverDialogError && (
+              <Alert severity="error" onClose={() => setResolverDialogError(null)}>
+                {resolverDialogError}
+              </Alert>
+            )}
+
+            <TextField
+              label="Notas (opcional)"
+              placeholder="Describe lo que hiciste, comentarios para quien la revise..."
+              value={resolverDialog.notes}
+              onChange={(e) => setResolverDialog((p) => ({ ...p, notes: e.target.value }))}
+              multiline
+              minRows={3}
+              fullWidth
+            />
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Enlaces (opcional)
+              </Typography>
+              <Stack spacing={1}>
+                {resolverDialog.enlaces.map((enlace, idx) => (
+                  <Stack key={idx} direction="row" spacing={1} alignItems="center">
+                    <TextField
+                      size="small"
+                      fullWidth
+                      placeholder="https://..."
+                      value={enlace}
+                      onChange={(e) => cambiarEnlaceResolver(idx, e.target.value)}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => quitarEnlaceResolver(idx)}
+                      disabled={resolverDialog.enlaces.length === 1 && !enlace}
+                    >
+                      <CloseIcon fontSize="small" />
+                    </IconButton>
+                  </Stack>
+                ))}
+              </Stack>
+              <Button size="small" startIcon={<AddLinkIcon />} onClick={agregarEnlaceResolver} sx={{ mt: 1 }}>
+                Agregar enlace
+              </Button>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Archivos (opcional) — imágenes, PDF, Word, Excel, video, audio (máx. 10MB c/u)
+              </Typography>
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<AttachFileIcon />}
+                disabled={archivosResolver.length >= MAX_ARCHIVOS_RESOLVER}
+              >
+                Elegir archivos
+                <input type="file" multiple hidden onChange={handleArchivosResolverChange} />
+              </Button>
+              {archivosResolver.length > 0 && (
+                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1.5, rowGap: 1 }}>
+                  {archivosResolver.map((f, idx) => (
+                    <Chip key={`${f.name}-${idx}`} label={f.name} onDelete={() => quitarArchivoResolver(idx)} size="small" />
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cerrarResolverDialog} disabled={!!resolvingId}>
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!!resolvingId}
+            onClick={submitResolverConEvidencia}
+            sx={{ bgcolor: neonGreen, color: '#002200', '&:hover': { bgcolor: '#00cc7a' } }}
+          >
+            {resolvingId ? 'Enviando…' : 'Resolver y entregar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

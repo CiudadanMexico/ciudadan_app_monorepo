@@ -50,6 +50,8 @@ import ResolverApelaciones from '../Pages/Herramientas/ResolverApelaciones.jsx';
 import AgregarTarea from '../Pages/Coowork/AgregarTarea.jsx';
 import AgregarSocio from '../Pages/Coowork/AgregarSocio.jsx';
 import AsignarTareaPage from '../Pages/Herramientas/AsignarTareaPage.jsx';
+import SkillsManagement from '../Pages/CoWork/Skills/SkillsManagement.jsx';
+import VerificarUsuarios from '../Pages/CoWork/Verificacion/VerificarUsuarios.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
 import RequisitosConductor from '../components/Taxiz/RequisitosConductor.jsx';
@@ -508,6 +510,14 @@ const Rutas = () => (
     <Route
       path='/herramientas/agregar-socio'
       element={<AgregarSocio />}
+    />
+    <Route
+      path='/herramientas/gestionar-habilidades'
+      element={<SkillsManagement />}
+    />
+    <Route
+      path='/herramientas/verificar-usuarios'
+      element={<VerificarUsuarios />}
     />
 
     {/* Perfil / Usuario */}

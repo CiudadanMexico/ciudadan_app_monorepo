@@ -1,5 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, Stack } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
 import useTodos from '../../hooks/useTodos';
 import { getResolucionStatusLabel } from '../../utils/cowork.helpers';
@@ -74,23 +87,36 @@ export default function CorregirTarea() {
     fetchTareasCompletadas();
   }, [fetchTareasCompletadas]);
 
-  const handleCorregir = async (tarea) => {
-    try {
-      const notesStr = window.prompt('Describe qué debe corregirse:', '');
-      if (notesStr === null) return;
-      const notes = notesStr || '';
+  // Diálogo para pedir la nota de corrección (reemplaza window.prompt/alert).
+  const [dialog, setDialog] = useState({ open: false, tarea: null, notes: '' });
+  const [dialogError, setDialogError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
-      setBusyId(tarea.id);
-      await corregirTarea(tarea.id, notes);
+  const abrirCorregir = (tarea) => {
+    setDialogError(null);
+    setDialog({ open: true, tarea, notes: '' });
+  };
+
+  const cerrarCorregir = () => {
+    if (busyId) return;
+    setDialog({ open: false, tarea: null, notes: '' });
+    setDialogError(null);
+  };
+
+  const submitCorregir = async () => {
+    setBusyId(dialog.tarea.id);
+    setDialogError(null);
+    try {
+      await corregirTarea(dialog.tarea.id, dialog.notes);
 
       // Optimistic update: remove the task from the list immediately so the
       // user sees it disappear without needing to reload the page.
-      setTareas((prev) => prev.filter((t) => t.id !== tarea.id));
-
-      alert('Tarea marcada para corrección correctamente');
+      setTareas((prev) => prev.filter((t) => t.id !== dialog.tarea.id));
+      setSuccessMsg('Tarea marcada para corrección correctamente');
+      setDialog({ open: false, tarea: null, notes: '' });
     } catch (err) {
       console.error('Error al marcar corrección', err);
-      alert(err.message || 'Error al marcar tarea para corrección');
+      setDialogError(err.message || 'Error al marcar tarea para corrección');
     } finally {
       setBusyId(null);
       // Always refresh the list after a corregir attempt (success or error)
@@ -107,6 +133,12 @@ export default function CorregirTarea() {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Marca tareas completadas que requieren corrección antes de ser calificadas.
       </Typography>
+
+      {successMsg && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMsg(null)}>
+          {successMsg}
+        </Alert>
+      )}
 
       {error && (
         <Box sx={{ mb: 2 }}>
@@ -143,7 +175,7 @@ export default function CorregirTarea() {
                     variant="contained"
                     color="warning"
                     disabled={busyId === t.id}
-                    onClick={() => handleCorregir(t)}
+                    onClick={() => abrirCorregir(t)}
                   >
                     {busyId === t.id ? 'Enviando...' : 'Marcar para corregir'}
                   </Button>
@@ -153,6 +185,36 @@ export default function CorregirTarea() {
           })}
         </Stack>
       )}
+
+      <Dialog open={dialog.open} onClose={cerrarCorregir} fullWidth maxWidth="sm">
+        <DialogTitle>Corregir tarea #{dialog.tarea?.id}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            {dialogError && (
+              <Alert severity="error" onClose={() => setDialogError(null)}>
+                {dialogError}
+              </Alert>
+            )}
+            <TextField
+              label="Describe qué debe corregirse"
+              value={dialog.notes}
+              onChange={(e) => setDialog((p) => ({ ...p, notes: e.target.value }))}
+              multiline
+              minRows={3}
+              fullWidth
+              disabled={!!busyId}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cerrarCorregir} disabled={!!busyId}>
+            Cancelar
+          </Button>
+          <Button variant="contained" color="warning" onClick={submitCorregir} disabled={!!busyId}>
+            {busyId ? 'Enviando…' : 'Marcar para corregir'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

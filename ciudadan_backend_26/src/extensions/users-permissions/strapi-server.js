@@ -299,5 +299,225 @@ module.exports = function extendUsersPermissionsPlugin(plugin) {
     },
   });
 
+  // =====================================================================
+  // Flujo "Verificación" (spec documento-off.md 5/34-35): el usuario sube
+  // documentación de SU propia área/carrera, y un socio/verificador la
+  // revisa. Antes de este fix, la subida de documentos en Perfil.jsx era
+  // puramente decorativa (el archivo se subía a la Media Library de Strapi
+  // pero nunca quedaba asociado a `area_details`, así que ningún verificador
+  // podía verlo jamás). Este endpoint es el que faltaba: self-service,
+  // adjunta un documento ya subido (con su URL) al area_details propio.
+  // =====================================================================
+  const getAreaDetailsObjDoc = (raw) =>
+    raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  const MAX_DOCUMENTOS_POR_AREA = 10;
+
+  plugin.controllers.user.subirDocumentoArea = async function subirDocumentoArea(ctx) {
+    const userId = Number(ctx.params.id);
+    const { areaId, documento, observaciones } = ctx.request.body || {};
+    const requester = ctx.state.strapiUser;
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return ctx.badRequest('El ID de usuario debe ser un entero positivo');
+    }
+    if (requester && Number(requester.id) !== userId) {
+      const requesterRoles = requester.roles?.extra || requester.roles || [];
+      const extra = Array.isArray(requesterRoles) ? requesterRoles : [];
+      const isAdminOrSocio = extra.includes('admin') || extra.includes('socio');
+      if (!isAdminOrSocio) {
+        return ctx.forbidden('Solo puedes subir documentos para tu propio usuario');
+      }
+    }
+    const areaIdNum = Number(areaId);
+    if (!Number.isInteger(areaIdNum) || areaIdNum <= 0) {
+      return ctx.badRequest('areaId debe ser entero positivo');
+    }
+    if (!documento || typeof documento !== 'object') {
+      return ctx.badRequest('documento es requerido: { nombre, url, size?, tipo? }');
+    }
+    const { nombre, url, size, tipo } = documento;
+    if (!nombre || !url) {
+      return ctx.badRequest('documento.nombre y documento.url son requeridos');
+    }
+
+    const area = await strapi.entityService.findOne(AREA_UID, areaIdNum, { fields: ['id'] });
+    if (!area) return ctx.notFound('Área no existe');
+
+    const user = await strapi.entityService.findOne(USER_UID, userId, {
+      fields: ['id', 'email', 'username', 'area_details'],
+    });
+    if (!user) return ctx.notFound('Usuario no encontrado');
+
+    const details = getAreaDetailsObjDoc(user.area_details);
+    const entryPrev = details[String(areaIdNum)] || {};
+    const documentosPrev = Array.isArray(entryPrev.documentos) ? entryPrev.documentos : [];
+
+    if (documentosPrev.length >= MAX_DOCUMENTOS_POR_AREA) {
+      return ctx.badRequest(`Máximo ${MAX_DOCUMENTOS_POR_AREA} documentos por área`);
+    }
+
+    const nuevoDoc = {
+      nombre: String(nombre).slice(0, 255),
+      url: String(url).slice(0, 1024),
+      size: Number.isInteger(size) ? size : 0,
+      tipo: String(tipo || '').slice(0, 100),
+      subido_por: requester?.email || user.email || null,
+      subido_en: new Date().toISOString(),
+    };
+
+    // No pisa el status existente (si ya estaba verified/rejected, un doc
+    // nuevo no lo revierte solo); si es la primera vez, arranca en pending.
+    // `observaciones`: texto de experiencia/certificaciones que el propio
+    // usuario declara al auto-declararse en esta área (spec: "puede poner
+    // texto, un campo de texto y otro campo con documentos que lo
+    // acrediten"). Solo se sobreescribe si viene explícito en el body.
+    const nuevoEntry = {
+      status: 'pending',
+      ...entryPrev,
+      documentos: [...documentosPrev, nuevoDoc],
+    };
+    if (typeof observaciones === 'string' && observaciones.trim()) {
+      nuevoEntry.observaciones = observaciones.trim().slice(0, 1000);
+    }
+    const nuevoAreaDetails = { ...details, [String(areaIdNum)]: nuevoEntry };
+
+    await strapi.entityService.update(USER_UID, userId, {
+      data: { area_details: nuevoAreaDetails },
+      fields: ['id'],
+    });
+
+    ctx.body = {
+      data: {
+        areaId: areaIdNum,
+        documento: nuevoDoc,
+        total_documentos: nuevoEntry.documentos.length,
+      },
+    };
+  };
+
+  plugin.routes['content-api'].routes.push({
+    method: 'POST',
+    path: '/users/:id/subir-documento-area',
+    handler: 'user.subirDocumentoArea',
+    config: {
+      prefix: '',
+      auth: false,
+      policies: ['global::is-authenticated-auth0'],
+    },
+  });
+
+  // =====================================================================
+  // Aprobar/rechazar una propuesta de subárea (spec 5.3 "elegirla de la
+  // lista o escribirla si no existe"): antes no existía NINGÚN endpoint
+  // para convertir una propuesta (texto libre en area_details.proposed_
+  // subareas[]) en una subárea real utilizable — proponer era un callejón
+  // sin salida. Al aprobar: reusa la subárea si ya existe una con el mismo
+  // nombre bajo la misma área raíz (evita duplicados si dos personas
+  // proponen "Desarrollo Backend"), o la crea. Luego la asigna al usuario.
+  // =====================================================================
+  plugin.controllers.user.revisarSubarea = async function revisarSubarea(ctx) {
+    const userId = Number(ctx.params.id);
+    const { areaId, nombre, decision, motivo } = ctx.request.body || {};
+    const reviewer = ctx.state.strapiUser;
+
+    if (!Number.isInteger(userId) || userId <= 0) {
+      return ctx.badRequest('El ID de usuario debe ser un entero positivo');
+    }
+    if (!areaId || !nombre) {
+      return ctx.badRequest('areaId y nombre son requeridos para identificar la propuesta');
+    }
+    if (!['approved', 'rejected'].includes(decision)) {
+      return ctx.badRequest('decision debe ser "approved" o "rejected"');
+    }
+    if (decision === 'rejected' && (!motivo || !String(motivo).trim())) {
+      return ctx.badRequest('motivo es requerido para rechazar una propuesta');
+    }
+
+    const areaIdNum = Number(areaId);
+    const user = await strapi.entityService.findOne(USER_UID, userId, {
+      fields: ['id', 'email', 'username', 'area_details'],
+    });
+    if (!user) return ctx.notFound('Usuario no encontrado');
+
+    const details = getAreaDetailsObjDoc(user.area_details);
+    const propuestas = Array.isArray(details.proposed_subareas) ? details.proposed_subareas : [];
+    const idx = propuestas.findIndex(
+      (p) =>
+        p &&
+        typeof p === 'object' &&
+        p.areaId === areaIdNum &&
+        String(p.nombre).toLowerCase() === String(nombre).toLowerCase() &&
+        (p.estado || 'pending') === 'pending'
+    );
+    if (idx === -1) {
+      return ctx.notFound('No se encontró una propuesta pendiente con esos datos');
+    }
+
+    const propuesta = propuestas[idx];
+    let subareaCreadaOReusada = null;
+
+    if (decision === 'approved') {
+      const hermanas = await strapi.entityService.findMany(AREA_UID, {
+        filters: { parent_area: areaIdNum },
+        fields: ['id', 'name'],
+      });
+      const match = hermanas.find(
+        (a) => String(a.name).toLowerCase() === String(propuesta.nombre).toLowerCase()
+      );
+      subareaCreadaOReusada = match || await strapi.entityService.create(AREA_UID, {
+        data: {
+          name: propuesta.nombre,
+          level: 1,
+          is_active: true,
+          parent_area: areaIdNum,
+          publishedAt: new Date().toISOString(),
+        },
+      });
+
+      const userConAreas = await strapi.entityService.findOne(USER_UID, userId, {
+        fields: ['id'],
+        populate: { areas: { fields: ['id'] } },
+      });
+      const idsActuales = (userConAreas.areas || []).map((a) => a.id);
+      if (!idsActuales.includes(subareaCreadaOReusada.id)) {
+        await strapi.entityService.update(USER_UID, userId, {
+          data: { areas: { set: [...idsActuales.map((id) => ({ id })), { id: subareaCreadaOReusada.id }] } },
+        });
+      }
+    }
+
+    propuestas[idx] = {
+      ...propuesta,
+      estado: decision,
+      revisado_por: reviewer?.email || reviewer?.username || String(reviewer?.id || 'desconocido'),
+      revisado_en: new Date().toISOString(),
+      ...(decision === 'rejected' ? { motivo_rechazo: String(motivo).slice(0, 500) } : {}),
+      ...(subareaCreadaOReusada ? { areaCreadaId: subareaCreadaOReusada.id } : {}),
+    };
+
+    await strapi.entityService.update(USER_UID, userId, {
+      data: { area_details: { ...details, proposed_subareas: propuestas } },
+      fields: ['id'],
+    });
+
+    ctx.body = {
+      data: {
+        propuesta: propuestas[idx],
+        subarea: subareaCreadaOReusada,
+      },
+    };
+  };
+
+  plugin.routes['content-api'].routes.push({
+    method: 'POST',
+    path: '/users/:id/revisar-subarea',
+    handler: 'user.revisarSubarea',
+    config: {
+      prefix: '',
+      auth: false,
+      policies: ['global::is-verificador'],
+    },
+  });
+
   return plugin;
 };

@@ -1,0 +1,5437 @@
+EBVTT
+
+00:12:55.000 --> 00:12:56.000
+Ciudadan Mex: Pero.
+
+00:13:33.000 --> 00:13:37.000
+Ciudadan Mex: Hola, Rowan, cómo estás. Buenas tardes.
+
+00:13:49.000 --> 00:13:52.000
+Ciudadan Mex: Me escuchas buenas tardes. Rowan.
+
+00:14:01.000 --> 00:14:02.000
+Rowan: No.
+
+00:14:02.000 --> 00:14:06.000
+Ciudadan Mex: Ahí te escucho un poquito bajito.
+
+00:14:04.000 --> 00:14:05.000
+Rowan: No.
+
+00:14:10.000 --> 00:14:12.000
+Ciudadan Mex: Cómo estás. Rowan.
+
+00:14:25.000 --> 00:14:27.000
+Ciudadan Mex: Oye, pues.
+
+00:14:27.000 --> 00:14:31.000
+Ciudadan Mex: Me puedes presentar lo que ya está. Y ahora te digo que.
+
+00:14:33.000 --> 00:14:39.000
+Ciudadan Mex: Unos detallitos que vi como pero a ver. Primero que nada a ver cómo cómo lo tienes tú.
+
+00:14:40.000 --> 00:14:45.000
+Ciudadan Mex: Si quieres compartir tu pantalla y proyecto porfas.
+
+00:15:33.000 --> 00:15:35.000
+Ciudadan Mex: Si me escuchas robots.
+
+00:16:26.000 --> 00:16:30.000
+Ciudadan Mex: Ahí estás a ver, habla de nuevo. Si quieres abre tu micro y hablas.
+
+00:16:48.000 --> 00:16:50.000
+Ciudadan Mex: A ver, habla.
+
+00:16:58.000 --> 00:17:03.000
+Ciudadan Mex: Si quieres activar tu micro. Y porque si te escuché, pero ya después ya.
+
+00:17:04.000 --> 00:17:06.000
+Ciudadan Mex: A ver si si quieres probar.
+
+00:17:16.000 --> 00:17:18.000
+Ciudadan Mex: A ver ahí. Me escuchas.
+
+00:17:18.000 --> 00:17:20.000
+Ciudadan Mex: Ahí me escuchas.
+
+00:17:28.000 --> 00:17:32.000
+Ciudadan Mex: Es que, de hecho, tu micro me parece como que no lo tienes activado.
+
+00:18:02.000 --> 00:18:04.000
+Ciudadan Mex: A ver si.
+
+00:18:07.000 --> 00:18:13.000
+Ciudadan Mex: Primero que nada también. Si tú me escuchas a mí acá. Me parece que sí tiene actividad en el micro.
+
+00:18:46.000 --> 00:18:49.000
+Ciudadan Mex: A ver si tú me escuchas.
+
+00:18:49.000 --> 00:18:52.000
+Ciudadan Mex: Si quieres responder mientras por mensaje.
+
+00:19:24.000 --> 00:19:27.000
+Ciudadan Mex: A ver si ahí me escuchas. Rowan.
+
+00:19:31.000 --> 00:19:34.000
+rowan: Bueno, bueno, se escucha.
+
+00:19:32.000 --> 00:19:35.000
+Ciudadan Mex: Y ahí te escucho. Bien.
+
+00:19:35.000 --> 00:19:37.000
+rowan: Ahh: Igual le escucho.
+
+00:19:37.000 --> 00:19:48.000
+Ciudadan Mex: Okay. Entonces ahora sí, a ver si me puedes compartir pantalla, presentarme. ¿cómo ves tú? Bueno, presentarme cómo tienes tú el proyecto, por favor.
+
+00:19:42.000 --> 00:19:43.000
+rowan: Sí.
+
+00:19:49.000 --> 00:19:50.000
+rowan: Claro.
+
+00:19:51.000 --> 00:19:54.000
+rowan: Sí estuvo probandono en el proyecto.
+
+00:19:54.000 --> 00:20:03.000
+Ciudadan Mex: Sí, más o menos. Por eso, para ahorita comentarte unos los que vi. Pero precisamente para checar como lo tienes exactamente todo.
+
+00:19:58.000 --> 00:19:59.000
+rowan: Okay.
+
+00:20:03.000 --> 00:20:05.000
+rowan: Okay.
+
+00:20:05.000 --> 00:20:07.000
+Ciudadan Mex: Va. Gracias.
+
+00:20:15.000 --> 00:20:17.000
+rowan: Bueno, me encontré.
+
+00:20:19.000 --> 00:20:21.000
+Ciudadan Mex: Sí. Ahí ya veo.
+
+00:20:21.000 --> 00:20:23.000
+rowan: Okay.
+
+00:20:24.000 --> 00:20:28.000
+rowan: Okay. Bueno, aquí estoy preparando la documentación.
+
+00:20:28.000 --> 00:20:37.000
+rowan: Solamente en el módulo q y todo lo que se hizo. De hecho, en un momento subí esto en una programa de documentación para que.
+
+00:20:37.000 --> 00:20:38.000
+rowan: No puede haber.
+
+00:20:42.000 --> 00:20:44.000
+Ciudadan Mex: Okay.
+
+00:24:19.000 --> 00:24:22.000
+rowan: Okay. Perfecto.
+
+00:24:22.000 --> 00:24:24.000
+rowan: Tú no.
+
+00:25:11.000 --> 00:25:14.000
+rowan: Okay pone mi pantalla, ¿verdad?
+
+00:25:14.000 --> 00:25:16.000
+Ciudadan Mex: Sí, Sí, lo estoy viendo.
+
+00:25:15.000 --> 00:25:21.000
+rowan: Okay es lo que se tiene aquí en la sección.
+
+00:25:21.000 --> 00:25:24.000
+rowan: En módulos de tareas.
+
+00:25:25.000 --> 00:25:33.000
+rowan: Aquí tengo que factorizar algunas cosas, porque, pues hay hay unas secciones que se repiten. Se repiten much muchísimo.
+
+00:25:33.000 --> 00:25:36.000
+rowan: ¿y a qué tuve que separar entre.
+
+00:25:37.000 --> 00:25:39.000
+rowan: Entré.
+
+00:25:39.000 --> 00:25:43.000
+rowan: Creo que para agregar tareas, si no me equivoco.
+
+00:25:45.000 --> 00:25:48.000
+rowan: Y califica tarea de amor segura.
+
+00:25:50.000 --> 00:25:52.000
+rowan: Gestiona tareas.
+
+00:25:52.000 --> 00:25:55.000
+rowan: De hecho, esta función sí existía, pero.
+
+00:25:55.000 --> 00:26:07.000
+rowan: En la pista. From Net No, no se está abusando, sin duda, pues según el documento sí lo requería. Así que, pues, pues sí, con con el desarrollo, implementación de esta nueva sección.
+
+00:26:07.000 --> 00:26:12.000
+rowan: Tareas generales. Aquí está.
+
+00:26:12.000 --> 00:26:19.000
+rowan: Bueno, en este caso, como estoy como administrador, según mi correo, soy administrador. Entonces, si puedo.
+
+00:26:20.000 --> 00:26:22.000
+rowan: Yo puedo editar.
+
+00:26:22.000 --> 00:26:26.000
+rowan: Y elimina tareas, incluso agregar tareas.
+
+00:26:27.000 --> 00:26:36.000
+rowan: Y eso, pues esperamos rol de administrador y socio. Bueno, en ese en ese momento estoy como.
+
+00:26:28.000 --> 00:26:31.000
+Ciudadan Mex: Esto es control. ¿de qué.
+
+00:26:36.000 --> 00:26:37.000
+rowan: Administrador.
+
+00:26:37.000 --> 00:26:43.000
+Ciudadan Mex: Pero el de socio permite hacer esto ahorita. Vamos a definir bien unos detalles que faltaban de los roles.
+
+00:26:40.000 --> 00:26:42.000
+rowan: Sí, Sí.
+
+00:26:42.000 --> 00:26:44.000
+rowan: Okay.
+
+00:26:43.000 --> 00:26:49.000
+Ciudadan Mex: Si quieres ahorita vamo, Vemos esto, pero 1 de de los cambios es precisamente que.
+
+00:26:44.000 --> 00:26:45.000
+rowan: Okay Bye.
+
+00:26:49.000 --> 00:26:58.000
+Ciudadan Mex: Si no eres socio, no debería de aparecer la tap de socio. Digo ahorita porque estás como socio, pero esa fue una de las cosas que probé. Pero bueno, ahorita si quieres, sígueme, o sea.
+
+00:26:57.000 --> 00:27:06.000
+rowan: Ok? Bueno, en este caso, bueno, mi correo es trapi como hay una sección que se maneja roles. Agregué 2.
+
+00:27:06.000 --> 00:27:16.000
+rowan: Uno que es sólo para administradores y socios. Y si eres usuario, un usuario normal, pues no te debe dejar ni editar ni eliminar ni agregar nuevas tareas.
+
+00:27:16.000 --> 00:27:26.000
+rowan: Bueno, mi correo electrónico. Ahí lo hice. Tuve que hacer un cuérico, un selecrón con con mi correo para cambiarme a perfil de administrador.
+
+00:27:26.000 --> 00:27:30.000
+rowan: Cuando soy un administrador, puedo editar.
+
+00:27:30.000 --> 00:27:32.000
+rowan: Eliminar la tarea.
+
+00:27:33.000 --> 00:27:39.000
+rowan: Y tampoco, obviamente, resolver la tarea e incluso agregar nueva tarea.
+
+00:27:48.000 --> 00:27:50.000
+rowan: Para crear una nueva creación.
+
+00:27:50.000 --> 00:27:52.000
+rowan: Y.
+
+00:27:52.000 --> 00:27:54.000
+rowan: Si soy un usuario.
+
+00:27:54.000 --> 00:27:59.000
+rowan: Común y corriente o un usuario normal. Entonces esa función no se demuestra ninguna.
+
+00:27:59.000 --> 00:28:04.000
+rowan: Porque igual esta sección no se le demuestra ninguna, y esa tampoco.
+
+00:28:04.000 --> 00:28:08.000
+rowan: Son 3 secciones.
+
+00:28:08.000 --> 00:28:11.000
+rowan: Aquí si se le muestra, pero sin las opciones de.
+
+00:28:11.000 --> 00:28:14.000
+rowan: Editar y eliminar tareas.
+
+00:28:14.000 --> 00:28:26.000
+Ciudadan Mex: Es que la parte de socio es para crear las tareas a resolver. Si está bien, como lo entendiste, pero Si era así, originalmente las la Tar, la parte de socios para re para crear las tareas a resolver.
+
+00:28:20.000 --> 00:28:22.000
+rowan: Okay.
+
+00:28:26.000 --> 00:28:36.000
+Ciudadan Mex: Y ya las otras taps de tareas generales y tareas especializadas es para la pura parte de resolverlas. Sí, está bien, así como lo hiciste. De hecho, si te fijas así está.
+
+00:28:36.000 --> 00:28:42.000
+rowan: Okay. Sí, de hecho, sí me atrasó un poco, porque.
+
+00:28:42.000 --> 00:28:47.000
+rowan: Ha había muchas cosas que no se utilizaban entonces. De hecho, este.
+
+00:28:47.000 --> 00:28:50.000
+rowan: Solamente es detalles en la parte Fronil.
+
+00:28:50.000 --> 00:28:56.000
+rowan: Aníbal Baccant, pues sólo hay funciones que no se utilizan. De hecho, no las he quitado.
+
+00:28:56.000 --> 00:28:59.000
+rowan: Lo estoy rebosando de una vez.
+
+00:28:59.000 --> 00:29:02.000
+rowan: Pero con los nuevos cambios que acaba de mencionar.
+
+00:29:02.000 --> 00:29:04.000
+Ciudadan Mex: Sí, Exacto.
+
+00:29:04.000 --> 00:29:06.000
+rowan: Roles.
+
+00:29:04.000 --> 00:29:20.000
+Ciudadan Mex: Exacto. Ya definimos bien, ahorita la la parte de los roles, porque ya va a ser de una vez multi agencia había omitido ese taller, pero ya estuve re el fin de semana trabajando en cómo es la entonces ahora explícame esa parte de los roles. Pero lo primero, si es.
+
+00:29:11.000 --> 00:29:13.000
+rowan: Okay Okay.
+
+00:29:21.000 --> 00:29:34.000
+Ciudadan Mex: Que mira. Ahorita si entras como usuario, de todas manera que no eres socio, si te quitas el el el ambos, tanto el de administrador como el de socio. De todas maneras, está mostrando la tap de socios. No.
+
+00:29:30.000 --> 00:29:32.000
+rowan: Mhm.
+
+00:29:35.000 --> 00:29:38.000
+rowan: Ok, Esa no.
+
+00:29:38.000 --> 00:29:39.000
+Ciudadan Mex: Ajá.
+
+00:29:39.000 --> 00:29:41.000
+rowan: Okay.
+
+00:29:41.000 --> 00:29:43.000
+Ciudadan Mex: Esa no la debería demostrar.
+
+00:29:43.000 --> 00:29:51.000
+rowan: Okay. Bueno, en estos momentos estoy como administrador. Por eso me aparece esta sesión de social.
+
+00:29:44.000 --> 00:29:46.000
+Ciudadan Mex: Más.
+
+00:29:50.000 --> 00:29:53.000
+Ciudadan Mex: Pero A, Pero mira entra como usuario.
+
+00:29:54.000 --> 00:29:55.000
+rowan: ¿por qué?
+
+00:30:06.000 --> 00:30:14.000
+rowan: Esa plataforma no tiene login, ¿verdad? Y hacía el cambio a nivel usuario a nivel strapping.
+
+00:30:14.000 --> 00:30:16.000
+Ciudadan Mex: Sí desde Stratpi.
+
+00:30:16.000 --> 00:30:18.000
+rowan: ¿por qué?
+
+00:30:19.000 --> 00:30:24.000
+Ciudadan Mex: Sí desde desde tu proyección, desde tu desde el registro de tu usuario.
+
+00:30:19.000 --> 00:30:22.000
+rowan: A ver si me veo como usar Strapi.
+
+00:30:25.000 --> 00:30:27.000
+rowan: Insource Gate.
+
+00:30:30.000 --> 00:30:33.000
+Ciudadan Mex: El que estés usando el que estés ahorita, ajá.
+
+00:30:35.000 --> 00:30:39.000
+Ciudadan Mex: Y en roles, hay que ajá. Hay que.
+
+00:30:39.000 --> 00:30:49.000
+Ciudadan Mex: Ándale, estás manejando verificador, ese ese lo tuviste que inventar. Y no hay problema. Nada más es cambiar la palabra, pero esto es lo que se arregló ahorita, Entonces hay que quitarle el admin.
+
+00:30:44.000 --> 00:30:45.000
+rowan: Mhm.
+
+00:30:49.000 --> 00:30:57.000
+Ciudadan Mex: Incluso si quieres con ningún rol extra y a ver a ver si no aparece porque también yo no le quité todos los rollos a ver.
+
+00:30:57.000 --> 00:30:58.000
+rowan: Lo que.
+
+00:31:07.000 --> 00:31:09.000
+Ciudadan Mex: A ver a ver. Ahí está.
+
+00:31:10.000 --> 00:31:13.000
+rowan: Hey solo el de control o pago. El servidor.
+
+00:31:13.000 --> 00:31:19.000
+Ciudadan Mex: Este. No, ella debería de de tener efecto, pero la debes actualizar.
+
+00:31:16.000 --> 00:31:17.000
+rowan: Okay.
+
+00:31:22.000 --> 00:31:24.000
+Ciudadan Mex: Ahora sí que work.
+
+00:31:24.000 --> 00:31:27.000
+Ciudadan Mex: Ves, te te digo que de ahí te da muestras.
+
+00:31:25.000 --> 00:31:27.000
+rowan: Sí, está bien. Parece.
+
+00:31:27.000 --> 00:31:29.000
+rowan: Okay.
+
+00:31:28.000 --> 00:31:32.000
+Ciudadan Mex: Ahora, eso, en vez de socio.
+
+00:31:32.000 --> 00:31:34.000
+rowan: Mhm.
+
+00:31:33.000 --> 00:31:41.000
+Ciudadan Mex: Ahí faltaría buscar a ver si encuentro otros iconos, sino con el mismo icono. Pero ahí vamos a tener socio.
+
+00:31:34.000 --> 00:31:35.000
+rowan: Ajá.
+
+00:31:41.000 --> 00:31:46.000
+Ciudadan Mex: Espérame ahí. ¿cómo va a ser espérame si es socio.
+
+00:31:47.000 --> 00:31:48.000
+rowan: Okay.
+
+00:31:48.000 --> 00:31:49.000
+rowan: Si no.
+
+00:31:50.000 --> 00:31:55.000
+Ciudadan Mex: No, O sea, es perdón, es o sea, decía, si es socio, o sea, es socio.
+
+00:31:51.000 --> 00:31:53.000
+rowan: A prop.
+
+00:31:55.000 --> 00:31:57.000
+rowan: Ahh: Sí, Sí, es es ocio.
+
+00:31:57.000 --> 00:32:02.000
+Ciudadan Mex: Ajá socio. El otro rol que podría que podríamos tener ahí.
+
+00:32:04.000 --> 00:32:13.000
+Ciudadan Mex: Porque mira socio puede asignar tareas a. Y ya que vas a hacer el back end de una vez, el Backend, que va a ser el que las va a aventar. Te lo comento.
+
+00:32:13.000 --> 00:32:22.000
+Ciudadan Mex: Quién va a cal a poder calificar una tarea? Ya vamos a ir a la parte de calificar tareas y quién va a poder calificar una tarea este quien la asignó.
+
+00:32:23.000 --> 00:32:26.000
+rowan: Okay Okay. Ese es nuevo.
+
+00:32:24.000 --> 00:32:32.000
+Ciudadan Mex: O sea, yo puedo crear una tarea general y esas. No sé que esas vamos a crear otro sistema, Esas las puede.
+
+00:32:35.000 --> 00:32:41.000
+Ciudadan Mex: Las tareas generales y especializadas, pero las que esas que aparecen ahí, que no son como asignadas.
+
+00:32:35.000 --> 00:32:37.000
+rowan: En el.
+
+00:32:39.000 --> 00:32:42.000
+rowan: Y a.
+
+00:32:43.000 --> 00:32:47.000
+Ciudadan Mex: Esas que no son asignadas a un usuario.
+
+00:32:47.000 --> 00:32:59.000
+Ciudadan Mex: Las generales y también las especializadas, pero dentro de especializadas, te acuerdas caídas que se le asignan al usuario y las que las que no, las que nada más le pide que tengas que ir.
+
+00:32:48.000 --> 00:32:50.000
+rowan: No está.
+
+00:33:00.000 --> 00:33:03.000
+Ciudadan Mex: Entonces este.
+
+00:33:04.000 --> 00:33:10.000
+Ciudadan Mex: Esas esas las puede calificar cualquier.
+
+00:33:10.000 --> 00:33:14.000
+Ciudadan Mex: Socio de de que sea de la Agencia.
+
+00:33:14.000 --> 00:33:17.000
+Ciudadan Mex: O sea, de la Agencia, que le asignó.
+
+00:33:18.000 --> 00:33:23.000
+rowan: Porque es socio, okay? Teria especial, escalifica, porque es socio?
+
+00:33:18.000 --> 00:33:23.000
+rowan: Cualquier socio Okay, 3 especiales califica cualquier socio.
+
+00:33:20.000 --> 00:33:21.000
+Ciudadan Mex: De edad.
+
+00:33:22.000 --> 00:33:29.000
+Ciudadan Mex: Que se que sea de esa agencia. Ahora vas a ver cómo se va a identi a relacionar con la Agencia, pero que sea de esa agencia.
+
+00:33:29.000 --> 00:33:31.000
+rowan: Okay.
+
+00:33:29.000 --> 00:33:31.000
+rowan: Okay.
+
+00:33:29.000 --> 00:33:31.000
+Ciudadan Mex: O sea.
+
+00:33:31.000 --> 00:33:41.000
+Ciudadan Mex: Una tarea general. La creó una, oh, espérame. Bien importante, porque vamos a tener el rol de de la agencia federal.
+
+00:33:41.000 --> 00:33:51.000
+Ciudadan Mex: O que sea de la Agencia, que la creó acá abajo. Espérame que sea que sea socio de la Agencia, que creó la tarea. O sea, digamos que yo soy.
+
+00:33:46.000 --> 00:33:47.000
+rowan: Okay.
+
+00:33:46.000 --> 00:33:47.000
+rowan: ¿por qué?
+
+00:33:52.000 --> 00:33:56.000
+Ciudadan Mex: Una agencia tiene 5 socios por decir algo.
+
+00:33:56.000 --> 00:34:01.000
+Ciudadan Mex: Y el socio. Uno crea una tarea general.
+
+00:34:01.000 --> 00:34:12.000
+Ciudadan Mex: Que es distinta a la lógica que que las de asignación. Ahora estamos viendo las generales o especializadas, pero las que no son asignadas todavía un usuario, las que no tienen asignada un usuario no.
+
+00:34:02.000 --> 00:34:03.000
+rowan: Okay.
+
+00:34:02.000 --> 00:34:03.000
+rowan: Okay.
+
+00:34:12.000 --> 00:34:14.000
+rowan: Okay.
+
+00:34:12.000 --> 00:34:14.000
+rowan: Okay.
+
+00:34:12.000 --> 00:34:14.000
+Ciudadan Mex: Es.
+
+00:34:14.000 --> 00:34:15.000
+Ciudadan Mex: Entonces.
+
+00:34:15.000 --> 00:34:30.000
+Ciudadan Mex: Pues las tareas generales las puede re revisar cualquier cualquier socio de esa agencia, o sea, la crea el socio 1, pero el socio 4 igual la puede revisar las generales.
+
+00:34:31.000 --> 00:34:38.000
+rowan: Okay, okay. Eso es solamente temas de sociedad, todo eso son cultivar de temas solamente de sociedad.
+
+00:34:31.000 --> 00:34:38.000
+rowan: Okay Okay, esto es solamente temas de socios. No todo eso son cuestiones de temas solamente de socios.
+
+00:34:32.000 --> 00:34:34.000
+Ciudadan Mex: Calificar perdón.
+
+00:34:38.000 --> 00:34:42.000
+Ciudadan Mex: Ajá está en calificar tareas, ajá.
+
+00:34:39.000 --> 00:34:40.000
+rowan: Okay.
+
+00:34:39.000 --> 00:34:40.000
+rowan: Okay.
+
+00:34:41.000 --> 00:34:43.000
+rowan: Okay.
+
+00:34:41.000 --> 00:34:43.000
+rowan: Okay.
+
+00:34:42.000 --> 00:34:52.000
+Ciudadan Mex: Nada más que a la hora de pedirlas. El backend la que les va a devolver que puede calificar, pues son las generales que haya creado su Agencia.
+
+00:34:52.000 --> 00:34:59.000
+Ciudadan Mex: Esas van a ir en un apartado. Ahora Ahora vemos cómo va a ir la la vista de de de calificar tarea.
+
+00:34:58.000 --> 00:35:00.000
+rowan: Okay.
+
+00:34:58.000 --> 00:35:00.000
+rowan: ¿por qué?
+
+00:34:59.000 --> 00:35:00.000
+Ciudadan Mex: Este.
+
+00:35:01.000 --> 00:35:03.000
+Ciudadan Mex: Eh.
+
+00:35:05.000 --> 00:35:08.000
+Ciudadan Mex: De su Agencia, si es agencia local.
+
+00:35:08.000 --> 00:35:23.000
+Ciudadan Mex: O federal, cualquiera de las 2. Pero a lo que voy es que va a haber una agencia que en la tabla de agencias, vas a encontrar su nivel, que ahora hay que agregar ese campo, que es la Agencia federal. Los socios de la agencia federal pueden calificar.
+
+00:35:23.000 --> 00:35:26.000
+Ciudadan Mex: Todas las tareas generales de toda la red.
+
+00:35:28.000 --> 00:35:30.000
+Ciudadan Mex: Y además.
+
+00:35:28.000 --> 00:35:30.000
+rowan: Okay.
+
+00:35:28.000 --> 00:35:30.000
+rowan: Ok.
+
+00:35:30.000 --> 00:35:34.000
+Ciudadan Mex: Las tareas que así no ese socio.
+
+00:35:32.000 --> 00:35:33.000
+rowan: Yes.
+
+00:35:32.000 --> 00:35:33.000
+rowan: Y no.
+
+00:35:34.000 --> 00:35:44.000
+Ciudadan Mex: Las tareas. Ahora vamos con las tareas asignadas, las tareas que son asignadas, que un socio se las asigna a algún usuario o socio a cualquier usuario, pues.
+
+00:35:45.000 --> 00:35:53.000
+Ciudadan Mex: Las que son asignadas. Esas llevan una lógica distinta a las tareas que que asigna alguien, esas solamente las puede calificar esa persona.
+
+00:35:54.000 --> 00:35:57.000
+Ciudadan Mex: Asignada, baja.
+
+00:35:55.000 --> 00:36:02.000
+rowan: Oh, okay. Okay, uh…
+
+00:35:55.000 --> 00:36:02.000
+rowan: Okay Okay a ver 1 no no tiene esa parte. Tres asignadas, o sea, puede que.
+
+00:36:00.000 --> 00:36:11.000
+Ciudadan Mex: Si yo yo creo una tarea, pero es una tarea de tipo que hay veces, que hay unos tipos en los que en las que se asigna a un usuario. Y hay unos tipos en los que no.
+
+00:36:09.000 --> 00:36:11.000
+rowan: Oh, yeah.
+
+00:36:11.000 --> 00:36:15.000
+rowan: Si, ya, ya, Captain. Entonces, ahi seria com.
+
+00:36:13.000 --> 00:36:16.000
+Ciudadan Mex: Entendemos las generales.
+
+00:36:15.000 --> 00:36:16.000
+rowan: Mm-hmm.
+
+00:36:16.000 --> 00:36:22.000
+Ciudadan Mex: Que las puede. Digo, hay más tipos, no, pero tenemos las generales que las puede resolver. Cualquier usuario.
+
+00:36:18.000 --> 00:36:20.000
+rowan: Okay.
+
+00:36:23.000 --> 00:36:25.000
+rowan: Okay, yeah.
+
+00:36:25.000 --> 00:36:26.000
+rowan: Oh.
+
+00:36:25.000 --> 00:36:28.000
+Ciudadan Mex: Luego también tenemos las especializadas.
+
+00:36:29.000 --> 00:36:36.000
+Ciudadan Mex: Pero sin asignar, porque el que es de asignar es otro campo al que las diferencias que ahorita nos revisamos si quieres.
+
+00:36:36.000 --> 00:36:38.000
+rowan: The rest, salsa?
+
+00:36:36.000 --> 00:36:44.000
+Ciudadan Mex: Pero de tareas especializadas. Hay unas que son sin asignar, y cualquier usuario que tenga esa especialidad.
+
+00:36:47.000 --> 00:36:53.000
+Ciudadan Mex: O sea cual ya no es cualquier usuario, ya es cualquier usuario, pero que tenga esa especialidad.
+
+00:36:58.000 --> 00:37:01.000
+rowan: Phone… yes, especially that, no?
+
+00:37:01.000 --> 00:37:02.000
+Ciudadan Mex: Ajá.
+
+00:37:05.000 --> 00:37:07.000
+rowan: Last resort.
+
+00:37:07.000 --> 00:37:09.000
+Ciudadan Mex: Las puede resolver. Ajá.
+
+00:37:07.000 --> 00:37:10.000
+rowan: As he knows. Okay.
+
+00:37:11.000 --> 00:37:25.000
+Ciudadan Mex: Y finalmente, tenemos las asignadas. Las asignadas son asignadas en concreto a 1 o varios usuarios, pero que vamos que están en una lista especi no se específica. Pueden ser 2, 3, 4, pero están definidos.
+
+00:37:22.000 --> 00:37:23.000
+rowan: Okay.
+
+00:37:25.000 --> 00:37:30.000
+Ciudadan Mex: Están enlistados, entonces esas son ya asignadas a usuarios específicos.
+
+00:37:31.000 --> 00:37:33.000
+Ciudadan Mex: Y esas.
+
+00:37:39.000 --> 00:37:41.000
+rowan: Hello, Pete.
+
+00:37:40.000 --> 00:37:57.000
+Ciudadan Mex: Y esas esas, nada más las puede calificar el socio que las as que las creó y las asignó. Bueno, sobre todo que las asignó. Más bien nada más el mismo que las creó. Pero vamos a usar este criterio las puede u esas nada más las puede calificar el socio que las asignó.
+
+00:37:58.000 --> 00:38:02.000
+rowan: Okay, esa no, tres asesinadas solamente esosos.
+
+00:38:02.000 --> 00:38:08.000
+Ciudadan Mex: Es para la cuestión de calificación. Todas las pueden calificar solamente socios.
+
+00:38:02.000 --> 00:38:04.000
+rowan: O eso tras.
+
+00:38:08.000 --> 00:38:10.000
+rowan: Okay Okay Okay.
+
+00:38:08.000 --> 00:38:10.000
+rowan: Okay, okay, okay.
+
+00:38:08.000 --> 00:38:20.000
+Ciudadan Mex: Pero la diferencia es que, en general, es este: vas a el socio va a calificar las de cualquier usuario. No importa ahí. Le van a hacer para calificar las de cualquier usuario de su agencia.
+
+00:38:21.000 --> 00:38:32.000
+rowan: Okay. Aquí hay un pequeño detalle: todos los socios califican las tareas tanto tareas generales. Tres específicas y 3 asignadas no.
+
+00:38:21.000 --> 00:38:32.000
+rowan: Okay, aqui a un pequeno retalle. Todos los socios qualifican las tareas tantos tareas generales. Teres specificas y tareas de signalas, no?
+
+00:38:31.000 --> 00:38:46.000
+Ciudadan Mex: Todas las especializadas. Cualquier socio o el socio de esa área van a poner cualquier socio de esa área, porque, Por ejemplo, en nuestra agencia hay varios socios de un área, Te acuerdas que hay 5 áreas, No, eso de tareas generales. Estaba, bueno, estaba bien. ¿quién las puede calificar? Eso? Estaba bien.
+
+00:38:45.000 --> 00:38:50.000
+rowan: Está bien, Okay, socios también los puede calificar.
+
+00:38:45.000 --> 00:38:50.000
+rowan: Uh, sorry? Yeah, okay.
+
+00:38:49.000 --> 00:38:52.000
+Ciudadan Mex: Ajá los de esa agencia? Sí.
+
+00:38:52.000 --> 00:38:53.000
+rowan: Okay.
+
+00:38:52.000 --> 00:38:53.000
+rowan: Okay.
+
+00:38:52.000 --> 00:38:57.000
+Ciudadan Mex: Este, las especializadas, los del área específica.
+
+00:38:57.000 --> 00:39:06.000
+Ciudadan Mex: Cada socio pertenece a un área, entonces hay 5 áreas entonces. Las especializadas son del área específica.
+
+00:39:07.000 --> 00:39:09.000
+rowan: Okay, aki…
+
+00:39:07.000 --> 00:39:09.000
+rowan: Okay Aquí.
+
+00:39:08.000 --> 00:39:10.000
+Ciudadan Mex: Para calificar.
+
+00:39:11.000 --> 00:39:15.000
+rowan: Total Associates? Associates, okay.
+
+00:39:11.000 --> 00:39:15.000
+rowan: Todos los socios, socios, Ok.
+
+00:39:13.000 --> 00:39:18.000
+Ciudadan Mex: El socio. Los socios de la sal de del área de la tarea.
+
+00:39:20.000 --> 00:39:22.000
+rowan: Se la tarea.
+
+00:39:20.000 --> 00:39:22.000
+rowan: Yeah, that's right.
+
+00:39:22.000 --> 00:39:26.000
+Ciudadan Mex: La pueden calificar ajá. Califican las tareas? Sí, eso está bien.
+
+00:39:28.000 --> 00:39:31.000
+rowan: That's Wedding Charlie.
+
+00:39:28.000 --> 00:39:31.000
+rowan: Las wedden Carly Pictures.
+
+00:39:31.000 --> 00:39:32.000
+rowan: Ok.
+
+00:39:31.000 --> 00:39:32.000
+rowan: Okay.
+
+00:39:33.000 --> 00:39:38.000
+Ciudadan Mex: Y las asignadas, esas, obviamente las puede calificar el socio que le asignó.
+
+00:39:44.000 --> 00:39:46.000
+rowan: Solamente el.
+
+00:39:48.000 --> 00:39:52.000
+rowan: Socio las puede calificar porque.
+
+00:39:53.000 --> 00:39:56.000
+rowan: Entonces sería.
+
+00:39:54.000 --> 00:40:01.000
+Ciudadan Mex: Ahora esto estamos hablando de los que son de la misma agencia aparte la Agencia Federal.
+
+00:39:56.000 --> 00:39:57.000
+rowan: Ohh.
+
+00:40:02.000 --> 00:40:07.000
+Ciudadan Mex: Para que no te hagas bolas. Todo esto fue, pero con los que sean de su misma agencia.
+
+00:40:09.000 --> 00:40:12.000
+rowan: Ok, esto sería en general.
+
+00:40:12.000 --> 00:40:25.000
+Ciudadan Mex: Porque los usuarios también van a estar a asociados a una agencia. Ahora en la Agencia federal. Puede hacer eso, pero de todas las agencias, es decir, los socios de la Agencia.
+
+00:40:12.000 --> 00:40:13.000
+rowan: Okay.
+
+00:40:26.000 --> 00:40:31.000
+Ciudadan Mex: Federal pueden calificar todas las tareas generales de toda la red.
+
+00:40:32.000 --> 00:40:36.000
+rowan: Ok, es Ok. Primer punto.
+
+00:40:36.000 --> 00:40:40.000
+Ciudadan Mex: Pueden calificar todas las tareas generales de toda la red.
+
+00:40:36.000 --> 00:40:38.000
+rowan: El tumor.
+
+00:40:40.000 --> 00:40:42.000
+Ciudadan Mex: Las generales? Ajá.
+
+00:40:41.000 --> 00:40:44.000
+rowan: Okay, 3 federales.
+
+00:40:42.000 --> 00:40:46.000
+Ciudadan Mex: Pueden calificar, pueden calificar.
+
+00:40:47.000 --> 00:40:50.000
+Ciudadan Mex: Todas las tareas.
+
+00:40:47.000 --> 00:40:49.000
+rowan: Pueden calificar.
+
+00:40:50.000 --> 00:40:52.000
+Ciudadan Mex: Generales.
+
+00:40:55.000 --> 00:40:57.000
+Ciudadan Mex: Es importante que son las generales.
+
+00:40:57.000 --> 00:40:59.000
+rowan: Un qué?
+
+00:40:57.000 --> 00:41:01.000
+Ciudadan Mex: De toda la red de todas las agencias de toda la red.
+
+00:41:06.000 --> 00:41:07.000
+rowan: Okay.
+
+00:41:07.000 --> 00:41:12.000
+Ciudadan Mex: Luego puede calificar todas las tareas, Todas las tareas.
+
+00:41:17.000 --> 00:41:18.000
+rowan: Okay.
+
+00:41:17.000 --> 00:41:20.000
+Ciudadan Mex: De su área.
+
+00:41:20.000 --> 00:41:27.000
+Ciudadan Mex: O sea, el socio de software, puede calificar todas las tareas de de su de su área, pero de toda la red.
+
+00:41:29.000 --> 00:41:37.000
+Ciudadan Mex: El socio de software, pues todas las que ten las que sean del área software de administrativo, todas esas pero de toda la red.
+
+00:41:42.000 --> 00:41:43.000
+rowan: Okay.
+
+00:41:43.000 --> 00:41:45.000
+Ciudadan Mex: Y.
+
+00:41:45.000 --> 00:41:55.000
+Ciudadan Mex: Ahí si no cambia las las asignadas, las asignadas de igual modo que los otros. Nada más puede revis este calificar las que él asignó.
+
+00:41:56.000 --> 00:42:11.000
+Ciudadan Mex: Ahí. Si no cambia, o sea, las asignadas, esas, nada más las puede calificar el socio que las asignó, sea de de agencia federal o de agencia local, no importa solo quien las asignó, las califique si lo quiere repetir o, pero el caso es que no importa que de que estos son.
+
+00:42:07.000 --> 00:42:09.000
+rowan: Okay.
+
+00:42:10.000 --> 00:42:11.000
+rowan: A la.
+
+00:42:12.000 --> 00:42:16.000
+Ciudadan Mex: Pero esas no son generales. Son agencias federales.
+
+00:42:16.000 --> 00:42:18.000
+rowan: Like okay.
+
+00:42:17.000 --> 00:42:25.000
+Ciudadan Mex: En este caso nada más. Es una, pero bueno, está bien que lo pongas, así como concepto o agencia federal para que no te hagas bolas. Es la la maestra.
+
+00:42:24.000 --> 00:42:25.000
+rowan: Okay.
+
+00:42:25.000 --> 00:42:27.000
+Ciudadan Mex: Pero bueno.
+
+00:42:27.000 --> 00:42:41.000
+Ciudadan Mex: Está. Eso estaba bien ajá exacto y para las de asignadas es igual, aunque sea un socio de una agencia federal de todas maneras o las asignadas, solamente puede calificar las que él asignó. Está claro, esa parte no.
+
+00:42:42.000 --> 00:42:44.000
+Ciudadan Mex: Las asignadas esas y es.
+
+00:42:44.000 --> 00:42:49.000
+Ciudadan Mex: Sin importar que sea federal o local, nada más quien las asesinó.
+
+00:42:50.000 --> 00:42:55.000
+rowan: Okay Okay está un poquito complejo.
+
+00:42:54.000 --> 00:42:57.000
+Ciudadan Mex: A ver a ver.
+
+00:42:55.000 --> 00:42:57.000
+rowan: Okay.
+
+00:42:57.000 --> 00:43:04.000
+Ciudadan Mex: Los de agencias. O sea, está muy sencillo. Yo soy un socio, pero soy de una agencia local.
+
+00:42:59.000 --> 00:43:00.000
+rowan: No.
+
+00:43:04.000 --> 00:43:10.000
+Ciudadan Mex: Puedo calificar todas las tareas generales de los usuarios que pertenecen a mi agencia.
+
+00:43:10.000 --> 00:43:18.000
+Ciudadan Mex: Todas las tareas de mi área. Cada socio tiene un área, recuerdas, administración. Este.
+
+00:43:18.000 --> 00:43:26.000
+Ciudadan Mex: Multimedia. Desarrollo. Bueno, software o técnico o didáctico, no.
+
+00:43:26.000 --> 00:43:34.000
+Ciudadan Mex: To. Cada 1 tiene una de las y cualquier socio tiene alguna de las 5 áreas, entonces puede calificar todas las generales de su agencia.
+
+00:43:34.000 --> 00:43:36.000
+Ciudadan Mex: A la que pertenece.
+
+00:43:37.000 --> 00:43:41.000
+Ciudadan Mex: Todas las las especializadas de su área.
+
+00:43:41.000 --> 00:43:43.000
+Ciudadan Mex: Y de su agencia.
+
+00:43:43.000 --> 00:43:46.000
+Ciudadan Mex: Y las que le asignó.
+
+00:43:46.000 --> 00:43:56.000
+Ciudadan Mex: Ahora, suponiendo que estamos hablando de un socio, pero de una agencia federal puede calificar todas las las generales de toda la red.
+
+00:43:56.000 --> 00:44:06.000
+Ciudadan Mex: Todas las vestuarios y es de administración todas las de pero nada más las de administración, pero de toda la red, porque eres socio de una agencia federal, o sea, la nuestra.
+
+00:44:07.000 --> 00:44:13.000
+Ciudadan Mex: Y en el caso de las asignadas, ahí sí es la misma lógica. Nada más las que le asignó.
+
+00:44:17.000 --> 00:44:20.000
+Ciudadan Mex: Más o menos. Está claro, o pregúntame si tienes voz.
+
+00:44:20.000 --> 00:44:25.000
+rowan: Ok, Sí, estamos como un trabalenguas. Eso.
+
+00:44:25.000 --> 00:44:27.000
+rowan: Okay, a ver.
+
+00:44:26.000 --> 00:44:38.000
+Ciudadan Mex: Mira a verlo así, o sea, las las agencias, las agencias federal es la agencia que coordina todo, es la superadment, si así lo quieres llamar a nivel de agencias. Pero cada agencia tiene socios.
+
+00:44:27.000 --> 00:44:28.000
+rowan: No.
+
+00:44:31.000 --> 00:44:32.000
+rowan: Es que.
+
+00:44:39.000 --> 00:44:49.000
+Ciudadan Mex: Entonces vamos de nuevo el de la agencia federal. Hacerse cuenta que es el gobierno federal de la nación. Puede usarse. Puede revisar todas, pero obviamente.
+
+00:44:49.000 --> 00:45:02.000
+Ciudadan Mex: Las generales, esas puede revisar de toda la red las agencias locales. En cambio, las generales, cualquier socio de una local puede revisar todas las generales, pero de su agencia, porque es local.
+
+00:45:02.000 --> 00:45:19.000
+Ciudadan Mex: Ahora las especializadas. Uno de software no va a revisar lo de alguien del administrativo, entonces la federal puede revisar todas las especializadas de su área de toda la red, pero de su área de ese socio, ese socio pertenece a una.
+
+00:45:20.000 --> 00:45:22.000
+Ciudadan Mex: Mira.
+
+00:45:22.000 --> 00:45:27.000
+Ciudadan Mex: No sé si lo quieras con nombres, vamos a tener a la agencia federal.
+
+00:45:27.000 --> 00:45:34.000
+Ciudadan Mex: Te lo va a poner, No las escribas, pero te va a poner así en la agencia federal. Tenemos.
+
+00:45:34.000 --> 00:45:38.000
+Ciudadan Mex: A Enrique Peña Nieto por decir algo.
+
+00:45:38.000 --> 00:45:41.000
+Ciudadan Mex: Y él es del área administrativa.
+
+00:45:42.000 --> 00:45:45.000
+Ciudadan Mex: Y tenemos a.
+
+00:45:46.000 --> 00:45:48.000
+Ciudadan Mex: Osorio Chong.
+
+00:45:49.000 --> 00:45:52.000
+Ciudadan Mex: Del área de software.
+
+00:45:53.000 --> 00:45:57.000
+Ciudadan Mex: Luego tenemos en la agencia local.
+
+00:45:58.000 --> 00:46:05.000
+Ciudadan Mex: Tenemos a clara, brugada, es decir, locales. Nada más es gobernadora, no es federal.
+
+00:46:06.000 --> 00:46:09.000
+Ciudadan Mex: Y en.
+
+00:46:10.000 --> 00:46:15.000
+Ciudadan Mex: Y ella es de administración en una agencia local de la Ciudad de México.
+
+00:46:15.000 --> 00:46:17.000
+Ciudadan Mex: Y en.
+
+00:46:18.000 --> 00:46:21.000
+Ciudadan Mex: Software en esa.
+
+00:46:21.000 --> 00:46:26.000
+Ciudadan Mex: Tenemos a Pablito Pablito, Vázquez.
+
+00:46:26.000 --> 00:46:34.000
+Ciudadan Mex: Tenemos a Pablo. Entonces en la Federal, tenemos en administrativo a Enrique Peña.
+
+00:46:34.000 --> 00:46:38.000
+Ciudadan Mex: Y en software a Osorio Chong.
+
+00:46:38.000 --> 00:46:39.000
+Ciudadan Mex: Ok.
+
+00:46:39.000 --> 00:46:43.000
+Ciudadan Mex: Y en la local de la Ciudad de México. Esas federales, todo el país.
+
+00:46:44.000 --> 00:46:51.000
+Ciudadan Mex: Y en la local de la Ciudad de México tenemos a clara, brugada en administración y a Pablito.
+
+00:46:51.000 --> 00:46:53.000
+Ciudadan Mex: En software.
+
+00:46:53.000 --> 00:46:54.000
+Ciudadan Mex: Okay.
+
+00:46:54.000 --> 00:46:56.000
+Ciudadan Mex: Entonces.
+
+00:46:56.000 --> 00:47:01.000
+Ciudadan Mex: Pablito crea una tarea.
+
+00:47:01.000 --> 00:47:05.000
+Ciudadan Mex: Hay que hacer un módulo para calificar tareas.
+
+00:47:05.000 --> 00:47:08.000
+Ciudadan Mex: Y se le asigna el usuario Rowan.
+
+00:47:09.000 --> 00:47:12.000
+Ciudadan Mex: Entonces de repente viene.
+
+00:47:12.000 --> 00:47:16.000
+Ciudadan Mex: Enrique Peña Nieto la quiere calificar porque es federal.
+
+00:47:16.000 --> 00:47:18.000
+Ciudadan Mex: Sí es federal, pero no puede.
+
+00:47:18.000 --> 00:47:20.000
+Ciudadan Mex: Porque la tarea.
+
+00:47:20.000 --> 00:47:22.000
+Ciudadan Mex: No es una tarea general.
+
+00:47:22.000 --> 00:47:26.000
+Ciudadan Mex: Es una tarea especializada del área de software.
+
+00:47:26.000 --> 00:47:29.000
+Ciudadan Mex: ¿quién sí podría de la Agencia Federal.
+
+00:47:30.000 --> 00:47:32.000
+Ciudadan Mex: Este.
+
+00:47:33.000 --> 00:47:37.000
+Ciudadan Mex: Al que dijimos de software que era Osorio Chong.
+
+00:47:37.000 --> 00:47:44.000
+Ciudadan Mex: De la Federal. Él podría de la Federal, o sea, aunque sea de la Ciudad de México, y si no es ellos. ¿quién podría más.
+
+00:47:44.000 --> 00:47:56.000
+Ciudadan Mex: Es de software de la pero de la Ciudad de México, de esa Agencia, porque a esa agencia pertenece. Supongamos que estás en Ciudad de México. Rowan pertenece a la ciudad de México, a la Agencia de Ciudad de México Local.
+
+00:47:56.000 --> 00:48:04.000
+Ciudadan Mex: Entonces lo puede calificar a nivel local, porque si pertenece a su agencia, lo puede calificar a Osorio, perdón. Este pablito.
+
+00:48:04.000 --> 00:48:07.000
+Ciudadan Mex: Que es el de software de la Ciudad de México.
+
+00:48:07.000 --> 00:48:10.000
+Ciudadan Mex: O lo podría calificar.
+
+00:48:10.000 --> 00:48:20.000
+Ciudadan Mex: Osorio Chong, pero no peña porque Peña es federal, pero no es de software si la tarea fuera general, si se si fuera de un vídeo, lo podría calificar o peña.
+
+00:48:20.000 --> 00:48:24.000
+Ciudadan Mex: Porque es federal, y la tarea es general.
+
+00:48:24.000 --> 00:48:27.000
+Ciudadan Mex: Lo podría calificar.
+
+00:48:27.000 --> 00:48:34.000
+Ciudadan Mex: Osorio Chong, porque la tarea es general y es de de una agencia federal. Lo podría calificar.
+
+00:48:34.000 --> 00:48:39.000
+Ciudadan Mex: Clara, brugada, porque es de su Agencia de la Ciudad de México.
+
+00:48:39.000 --> 00:48:41.000
+Ciudadan Mex: Y es una tarea general.
+
+00:48:42.000 --> 00:48:46.000
+Ciudadan Mex: Y lo podría calificar también este.
+
+00:48:46.000 --> 00:48:57.000
+Ciudadan Mex: Pablito, porque es una tarea general. Y es de eso de de de Rowan que pertenece México. Pero si aparte, tuviéramos una agencia que es la de Oaxaca.
+
+00:48:59.000 --> 00:49:03.000
+Ciudadan Mex: Y tenemos a Ulises Ruiz de administración.
+
+00:49:03.000 --> 00:49:23.000
+Ciudadan Mex: Pues resulta que ni ulises ruiz de administración ni el de software de Oaxaca lo podrían calificar porque Rowan pertenece tiene un todo usuario. Tiene una U, u una agencia local a la que pertenece. Y ya la federal les da súper, ¿no? Pero era la local que pertenece esa ciudad de México, la de Oaxaca no puede. Pero la Federal sí, porque tiene mayor jerarquía.
+
+00:49:23.000 --> 00:49:38.000
+Ciudadan Mex: Sí es tarea general. Cualquiera de los socios federales sí estaría especializada el socio de o cualquier socio federal, pero que sea de esa especialidad o el socio de especialidad, pero de sudo agencia local.
+
+00:49:38.000 --> 00:49:43.000
+Ciudadan Mex: Porque es especialidad. Si fuera local, te digo, cualquier federal podría.
+
+00:49:43.000 --> 00:49:47.000
+Ciudadan Mex: O cualquier local, pero de su agencia, a la que pertenece.
+
+00:49:48.000 --> 00:49:51.000
+Ciudadan Mex: Este. Hasta ahí vamos. Bien.
+
+00:49:51.000 --> 00:49:55.000
+Ciudadan Mex: O te o o lo hacemos en por por.
+
+00:49:55.000 --> 00:49:57.000
+Ciudadan Mex: En esquemita.
+
+00:49:58.000 --> 00:50:02.000
+Ciudadan Mex: Pero te digo, piénsalo como jerarquías, nada más que.
+
+00:50:02.000 --> 00:50:09.000
+Ciudadan Mex: A su vez, piensa en 2 tipos de tarea, o sea, el fe en general, puede calificar de todas las agencias.
+
+00:50:04.000 --> 00:50:06.000
+rowan: Okay. Está bien.
+
+00:50:09.000 --> 00:50:14.000
+Ciudadan Mex: Pero pero generales, o de su área. Me explico.
+
+00:50:14.000 --> 00:50:26.000
+Ciudadan Mex: Y el local nada más a los de su agencia, pero generales tareas generales o de su área y de su agencia nada más. El federal puede todas las tareas.
+
+00:50:26.000 --> 00:50:31.000
+Ciudadan Mex: Generales y las tareas especializadas de su área.
+
+00:50:33.000 --> 00:50:37.000
+rowan: Ok, Ok, Ya ya me quedo más cara Sí.
+
+00:50:36.000 --> 00:50:50.000
+Ciudadan Mex: Y las asignadas. Esas generalizas, esas no importa si es federal o local las asignadas, solamente esas asignadas grábate, la palabrita. Por eso son asignadas porque esas solamente las va a poder calificar el que las asignó.
+
+00:50:50.000 --> 00:50:55.000
+Ciudadan Mex: No importa, sea federal o educar, eso no importa. Es yo, te la asigna a ti y otra la califico a ti. Me explico.
+
+00:50:57.000 --> 00:50:59.000
+rowan: Okay.
+
+00:50:57.000 --> 00:51:02.000
+Ciudadan Mex: Por eso se le estoy asignando a una persona en concreto. Yo voy a supervisar que.
+
+00:51:08.000 --> 00:51:09.000
+rowan: Okay.
+
+00:51:09.000 --> 00:51:13.000
+rowan: Es una parte de tareas asignadas no.
+
+00:51:13.000 --> 00:51:17.000
+rowan: Solamente las califica quien las asignó. Ok.
+
+00:51:13.000 --> 00:51:15.000
+Ciudadan Mex: Ajá.
+
+00:51:16.000 --> 00:51:21.000
+Ciudadan Mex: Si quieres revisar la tabla mientras este.
+
+00:51:21.000 --> 00:51:34.000
+Ciudadan Mex: Vamos a hacer un receso de 2, 3 min. En lo que me pongo, me me preparo un café, y si quieres revisas la tabla, le das una checadita a la tabla para que ahorita la revisemos bien, igual ir viendo cómo va a quedar los cambios en el back.
+
+00:51:34.000 --> 00:51:36.000
+rowan: Okay.
+
+00:51:35.000 --> 00:51:43.000
+Ciudadan Mex: Y también ya nada más para checar el detalle de la tarde de socios.
+
+00:51:43.000 --> 00:51:51.000
+Ciudadan Mex: Cómo se va a mostrar según estos roles, que nada más son 2. Ahora, Ahora, lo checo sirve que también a mí me dejas pensar en eso en lo que tú la revisas. Va.
+
+00:51:51.000 --> 00:51:52.000
+rowan: Okay Bye.
+
+00:51:51.000 --> 00:51:58.000
+Ciudadan Mex: Y pero seguimos aquí en pantalla y todo ahorita. Yo aquí te veo. Queda cheques. Y todo lo que me hago, el café.
+
+00:51:58.000 --> 00:52:03.000
+Ciudadan Mex: Y ahh. Y ya para profundizar en esa parte de calificar qué es lo que va a seguir.
+
+00:52:04.000 --> 00:52:05.000
+rowan: Okay, cuál.
+
+00:52:05.000 --> 00:52:08.000
+Ciudadan Mex: Hecho, voy a prepararme el cafecito. Gracias. Robert.
+
+00:58:08.000 --> 00:58:12.000
+Ciudadan Mex: Dame 2 minutitos más román, ya lo voy a preparar.
+
+01:03:28.000 --> 01:03:31.000
+Ciudadan Mex: Y ando por acá román. Me.
+
+01:05:19.000 --> 01:05:21.000
+Ciudadan Mex: Si me escuchas, roban.
+
+01:05:21.000 --> 01:05:24.000
+Ciudadan Mex: Ya ando por acá de vuelta.
+
+01:12:02.000 --> 01:12:05.000
+rowan: Bueno, bueno, me escucha.
+
+01:12:06.000 --> 01:12:08.000
+Ciudadan Mex: Si hay te escucho.
+
+01:12:08.000 --> 01:12:09.000
+rowan: Tarte.
+
+01:12:09.000 --> 01:12:13.000
+rowan: Sí. Aún sigo tregua.
+
+01:12:09.000 --> 01:12:11.000
+Ciudadan Mex: Favor? Un favor.
+
+01:12:11.000 --> 01:12:12.000
+Ciudadan Mex: Ajá.
+
+01:12:16.000 --> 01:12:31.000
+Ciudadan Mex: Este. No tengo actualizado. Ahorita el back que estoy corriendo un favor. ¿me puedes compartir de nuevo pantalla para que chequemos las proyecciones ya chequea carga de agencia nomás, hay que agregarle un campo. Pero para checar las de tareas.
+
+01:12:31.000 --> 01:12:32.000
+Ciudadan Mex: Por fair.
+
+01:12:35.000 --> 01:12:36.000
+rowan: Okay.
+
+01:12:36.000 --> 01:12:37.000
+Ciudadan Mex: Sí. Gracias.
+
+01:12:42.000 --> 01:12:44.000
+rowan: Bueno, se van a estar yendo.
+
+01:12:45.000 --> 01:12:47.000
+rowan: Semana, cayendo el opencomb.
+
+01:12:48.000 --> 01:12:51.000
+Ciudadan Mex: Se te anda cayendo, que el el V A, C.
+
+01:12:51.000 --> 01:12:54.000
+rowan: No, no. El opencoad.
+
+01:12:54.000 --> 01:12:55.000
+Ciudadan Mex: Ahh.
+
+01:12:55.000 --> 01:12:58.000
+Ciudadan Mex: Ahh okay, sí ayuda bastante.
+
+01:12:59.000 --> 01:13:03.000
+rowan: No es que yo últimamente me quedé sin dinero como para pagar.
+
+01:13:03.000 --> 01:13:07.000
+rowan: Cloud Cut y me metí a opencout de nuevo.
+
+01:13:07.000 --> 01:13:09.000
+rowan: Estoy utilizando Glm Ahorita.
+
+01:13:10.000 --> 01:13:14.000
+Ciudadan Mex: Tienes corriendo un modelo en tu máquina local.
+
+01:13:14.000 --> 01:13:17.000
+rowan: Sí, Uno llevará. G: L: M.
+
+01:13:15.000 --> 01:13:16.000
+Ciudadan Mex: Ahh. Mira.
+
+01:13:17.000 --> 01:13:23.000
+Ciudadan Mex: Ah, mira muy bien a ver si luego nos compartes un poco más de la experiencia.
+
+01:13:22.000 --> 01:13:24.000
+rowan: Claro, es.
+
+01:13:24.000 --> 01:13:26.000
+rowan: Honestamente, sí es muy bueno. No.
+
+01:13:26.000 --> 01:13:33.000
+rowan: Es como un Open Glow donde está el si con el nuevo modelo de inteligencia artificial.
+
+01:13:33.000 --> 01:13:38.000
+rowan: Clouco, Five Fire Fight. No sé cómo se llama, mientras corre el nombre.
+
+01:13:38.000 --> 01:13:39.000
+Ciudadan Mex: Ajá.
+
+01:13:38.000 --> 01:13:42.000
+rowan: Pero hace una competencia. Solo que Helen es más gratis.
+
+01:13:42.000 --> 01:13:49.000
+Ciudadan Mex: Sí, claro, Pero pero tu máquina es muy potente. Tienes C, P: U.
+
+01:13:43.000 --> 01:13:45.000
+rowan: Ahh.
+
+01:13:49.000 --> 01:13:57.000
+rowan: Ahh: Sí, por el momento tengo una una Ram de 18 chicas de Ram, y eso es lo que me ayuda, aunque sí consume algo.
+
+01:13:57.000 --> 01:14:02.000
+Ciudadan Mex: Yo, por ejemplo, de R A. M. Tengo 32. No tengo tanto problema con la R A. M.
+
+01:14:02.000 --> 01:14:04.000
+rowan: No el.
+
+01:14:02.000 --> 01:14:03.000
+Ciudadan Mex: Pero.
+
+01:14:03.000 --> 01:14:08.000
+Ciudadan Mex: Pero el problema es que tengo una G, P: U que no es Nvidia.
+
+01:14:08.000 --> 01:14:15.000
+Ciudadan Mex: Y y no es nada más que no sea envidia, sino que realmente no la puedo usar mucho, porque.
+
+01:14:08.000 --> 01:14:09.000
+rowan: Mhm.
+
+01:14:11.000 --> 01:14:12.000
+rowan: Ahh.
+
+01:14:15.000 --> 01:14:21.000
+Ciudadan Mex: Como tengo unos mon un monitor, unos monitores son digitales y 1 es analógico.
+
+01:14:21.000 --> 01:14:26.000
+Ciudadan Mex: Consume mucha G, P. U estar transmitiendo en los 2 protocolos.
+
+01:14:26.000 --> 01:14:28.000
+Ciudadan Mex: En.
+
+01:14:27.000 --> 01:14:35.000
+rowan: Ahh: Sí, de hecho, igual. No tengo procesadores de en día. Pero bueno, de hecho, como se eje, Bueno, no son locales. Son.
+
+01:14:35.000 --> 01:14:37.000
+rowan: Se ejecutan en la nube. Pero, pues.
+
+01:14:37.000 --> 01:14:45.000
+Ciudadan Mex: Ya entonces igual Sí, sí estaría bueno que luego nos sí sí se ejecuten en la nube, entonces sí, y tienen una capa gratis, eso sí le interesa.
+
+01:14:38.000 --> 01:14:40.000
+rowan: Sí.
+
+01:14:43.000 --> 01:14:44.000
+rowan: Sí.
+
+01:14:45.000 --> 01:14:46.000
+rowan: De hecho.
+
+01:14:45.000 --> 01:14:48.000
+Ciudadan Mex: Oye, pues, a ver si luego nos cuentas un poco de esa parte.
+
+01:14:48.000 --> 01:14:54.000
+rowan: Claro. De hecho, me gustaría compartir esa información, porque, pues creo que es algo que.
+
+01:14:54.000 --> 01:14:58.000
+rowan: Les puede servir tanto a usted como al resto del equipo. De hecho.
+
+01:14:58.000 --> 01:15:06.000
+rowan: Esa nota que usted comparte. Usted la compartió verdad sobre envidia y todo eso que quieren liberar modelos de inteligencia artificial gratis, no.
+
+01:15:06.000 --> 01:15:12.000
+Ciudadan Mex: Sí sí sí que que en lo cerrado resulta más hackear viajar.
+
+01:15:12.000 --> 01:15:21.000
+rowan: Sí, de hecho, ya se volvió muy tendencia. De hecho, los modelos chinos paran muy potentes. Ahora, de hecho, aquí tengo varios.
+
+01:15:21.000 --> 01:15:25.000
+rowan: Estuve probando con varios. Tengo.
+
+01:15:25.000 --> 01:15:28.000
+rowan: Dipse, trabaja con 3 dipsic.
+
+01:15:28.000 --> 01:15:33.000
+rowan: Glm y química, 2, 6. Con ese trabajo.
+
+01:15:34.000 --> 01:15:35.000
+rowan: Pero hay más.
+
+01:15:34.000 --> 01:15:38.000
+Ciudadan Mex: Los voy a volver a probar a ver qué tal me va, porque.
+
+01:15:38.000 --> 01:15:44.000
+Ciudadan Mex: Pues te digo, no, no, no me estaba yendo muy bien, pero también nos han optimizado más.
+
+01:15:44.000 --> 01:15:47.000
+rowan: Sí, últimamente. Plan.
+
+01:15:44.000 --> 01:15:49.000
+Ciudadan Mex: Si si si G, P. Uno me estaba yendo muy bien.
+
+01:15:49.000 --> 01:15:59.000
+rowan: Si no, no necesitas mucha G, P: U De hecho, como le digo como le comento como no se ejecuta en local, porque si fuera local, pues ahí sí le pedían mucho.
+
+01:15:59.000 --> 01:16:03.000
+rowan: Pues con el G, P, U, pero ¿cómo es directamente en la nube? Pero pues no hay ningún problema.
+
+01:16:01.000 --> 01:16:12.000
+Ciudadan Mex: Ahh: Sí, esa parte Sí, es cierto. Así que, como es en la nube, y tienes esos modelos para escoger de la nube. Claro, el detalle. Ese toque de pronto te limita el acceso cuando ya lo usaste.
+
+01:16:08.000 --> 01:16:09.000
+rowan: Sí.
+
+01:16:12.000 --> 01:16:18.000
+rowan: Sí, ese es el detalle. Tiene un límite. De hecho, como estuve trabajo bastante con esto.
+
+01:16:18.000 --> 01:16:19.000
+rowan: Ya me.
+
+01:16:19.000 --> 01:16:21.000
+rowan: Da errores.
+
+01:16:21.000 --> 01:16:24.000
+Ciudadan Mex: Sí igual lo tienes que dejar un rato a que.
+
+01:16:21.000 --> 01:16:23.000
+rowan: Yo tengo muchos errores.
+
+01:16:27.000 --> 01:16:30.000
+Ciudadan Mex: A que.
+
+01:16:30.000 --> 01:16:45.000
+Ciudadan Mex: Hasta donde tengo entendido, esos modelos te limitan por 6 h, y así te lo debería de decir. Pero aunque no te lo diga. De todas maneras, tienen como políticas de uso justos. Así te va a volver a dar ac acceso, pero te va a hacer esperar un rato? No.
+
+01:16:44.000 --> 01:16:45.000
+rowan: Sí.
+
+01:16:45.000 --> 01:16:54.000
+rowan: Sí. De hecho, este aquí. Bueno, yo lo utilizo en en el chat de Copilot, Así, la misma forma, ¿Cómo se programa con Coppilot.
+
+01:16:54.000 --> 01:17:01.000
+rowan: Tengo puesto. Lo tengo integrado dentro del chat de mi código. No lo usen. Consola.
+
+01:17:01.000 --> 01:17:03.000
+rowan: Lo uso directamente en el chat.
+
+01:17:03.000 --> 01:17:05.000
+Ciudadan Mex: Okay.
+
+01:17:03.000 --> 01:17:06.000
+rowan: Es más Bueno, para mí es más fácil.
+
+01:17:06.000 --> 01:17:09.000
+rowan: Es un tip que va a perder por ahí.
+
+01:17:06.000 --> 01:17:10.000
+Ciudadan Mex: No tuviste que poner ninguna extensión extra ni nada.
+
+01:17:10.000 --> 01:17:15.000
+rowan: No solo con E. Es como si fuera. No sé si he escuchado.
+
+01:17:13.000 --> 01:17:18.000
+Ciudadan Mex: Ahí en el chat. Ahí en el chat de compaidos, lo pusiste como proveedor, nada más. Y ya.
+
+01:17:18.000 --> 01:17:22.000
+rowan: Ajá! De De hecho, aquí está.
+
+01:17:23.000 --> 01:17:24.000
+rowan: Por.
+
+01:17:28.000 --> 01:17:30.000
+rowan: Aquí está.
+
+01:17:32.000 --> 01:17:35.000
+rowan: Me querías el modelo, el proveedor.
+
+01:17:36.000 --> 01:17:39.000
+rowan: Y aquí solamente solamente ingresa su.
+
+01:17:40.000 --> 01:17:43.000
+rowan: Su Toc Toquen su api Key.
+
+01:17:42.000 --> 01:17:44.000
+Ciudadan Mex: A Piqué, ajá.
+
+01:17:44.000 --> 01:17:47.000
+rowan: Y ya lo puedes utilizar.
+
+01:17:44.000 --> 01:18:01.000
+Ciudadan Mex: Ok, Sí. Perfecto. Sí, Sí, Sí, Sí. Nomás se pone como proveedor y con su A, P, I, G, Igual que si fuera open Router o igual que si fuera este, pues el mismo de Microsoft o que si fuera la de compagire oto así exacto o si fuera.
+
+01:18:01.000 --> 01:18:06.000
+Ciudadan Mex: O si fuera open ya y también aceptas no del del.
+
+01:18:06.000 --> 01:18:10.000
+rowan: Sí. De hecho. Bueno, como hay varios.
+
+01:18:11.000 --> 01:18:16.000
+Ciudadan Mex: Mhm: Sí, hay varios, sí, aparte de los que dije, hay varios más y.
+
+01:18:17.000 --> 01:18:32.000
+Ciudadan Mex: De hecho, la idea es que te que que corramos los modelos abiertos, pero en local, pero en eso estamos justo. Qué? Bueno, que me recuerdas acabando esto de tengo que escribir a a a quien probablemente nos no nos.
+
+01:18:24.000 --> 01:18:25.000
+rowan: Mhm.
+
+01:18:32.000 --> 01:18:36.000
+Ciudadan Mex: Aporte el el servidor.
+
+01:18:36.000 --> 01:18:46.000
+Ciudadan Mex: Y ya la idea sería que se conecta al servidor. Y ahí, si no le vamos a poner límites, nada más simplemente una cola y como nada más. Vamos a hacer un pues nosotros que ahorita somos 5, pues.
+
+01:18:38.000 --> 01:18:39.000
+rowan: Mhm.
+
+01:18:46.000 --> 01:18:48.000
+Ciudadan Mex: De no habría muchos problemas.
+
+01:18:47.000 --> 01:18:48.000
+rowan: Sí.
+
+01:18:48.000 --> 01:18:57.000
+Ciudadan Mex: Oye si quieres, vamos a revisar nada más la parte de ahorita si quieres, creo que podes, sino que veamos la estructura de nuestra Api.
+
+01:18:48.000 --> 01:18:50.000
+rowan: Sí. De hecho.
+
+01:18:52.000 --> 01:18:54.000
+rowan: Mhm.
+
+01:18:54.000 --> 01:18:56.000
+rowan: Okay.
+
+01:18:58.000 --> 01:19:02.000
+Ciudadan Mex: De la tabla de de la colección de.
+
+01:18:58.000 --> 01:19:02.000
+rowan: Okay a nivel código o.
+
+01:19:02.000 --> 01:19:06.000
+Ciudadan Mex: No en el en la colección, en el Dashboard.
+
+01:19:03.000 --> 01:19:05.000
+rowan: Ahh okay.
+
+01:19:05.000 --> 01:19:07.000
+rowan: Okay.
+
+01:19:07.000 --> 01:19:14.000
+Ciudadan Mex: Cuáles son las que tenemos de tareas tanto para resueltas, porque ahorita. Se me fueron los nombres y el otro día se con eso.
+
+01:19:14.000 --> 01:19:16.000
+Ciudadan Mex: Cuáles fueron las.
+
+01:19:14.000 --> 01:19:16.000
+rowan: Y.
+
+01:19:16.000 --> 01:19:22.000
+rowan: Había 3. ¿no? Skins, que me había comentado ¿no? O son task.
+
+01:19:20.000 --> 01:19:23.000
+Ciudadan Mex: Ahh es que Ask.
+
+01:19:23.000 --> 01:19:25.000
+rowan: Pitas cumplidas. No.
+
+01:19:24.000 --> 01:19:27.000
+Ciudadan Mex: Exactamente claro.
+
+01:19:26.000 --> 01:19:28.000
+rowan: Ok.
+
+01:19:29.000 --> 01:19:32.000
+rowan: Bueno, esas entregas ya creadas.
+
+01:19:29.000 --> 01:19:36.000
+Ciudadan Mex: Bien podemos ver la estructura de la tabla. Si quieres en el contentive vader.
+
+01:19:33.000 --> 01:19:34.000
+rowan: Mhm.
+
+01:19:36.000 --> 01:19:37.000
+rowan: Eso.
+
+01:19:37.000 --> 01:19:39.000
+Ciudadan Mex: Bueno, sí, también. Ahí puede ser.
+
+01:19:40.000 --> 01:19:42.000
+rowan: Okay.
+
+01:19:40.000 --> 01:19:41.000
+Ciudadan Mex: Mhm.
+
+01:19:42.000 --> 01:19:44.000
+rowan: Son varias.
+
+01:19:44.000 --> 01:19:49.000
+Ciudadan Mex: Sí, Sí, Sí, está bien a ver, Permíteme tantito.
+
+01:19:47.000 --> 01:19:57.000
+rowan: A ver qué creo que tengo documentado esa parte a ver. Déjame ver esto en esa sección. Creo que tengo un redmi de comentarios sobre esas tablets.
+
+01:19:55.000 --> 01:19:56.000
+Ciudadan Mex: A ver.
+
+01:19:57.000 --> 01:19:58.000
+Ciudadan Mex: A ver.
+
+01:20:13.000 --> 01:20:15.000
+rowan: Venció del.
+
+01:20:20.000 --> 01:20:23.000
+Ciudadan Mex: Tareas no será a no ser cruz.
+
+01:20:23.000 --> 01:20:26.000
+Ciudadan Mex: Pero en el cruz no lo tendrás.
+
+01:20:26.000 --> 01:20:29.000
+Ciudadan Mex: Ahí no habrá expuesto en el que.
+
+01:20:27.000 --> 01:20:29.000
+rowan: No por nada.
+
+01:20:29.000 --> 01:20:31.000
+Ciudadan Mex: Tareas: cruz.
+
+01:20:32.000 --> 01:20:35.000
+rowan: Sí recuerdo que tengo una documentación sobre.
+
+01:20:35.000 --> 01:20:39.000
+rowan: Sobre eso, porque sí Se me complicó bastante.
+
+01:20:37.000 --> 01:20:43.000
+Ciudadan Mex: No lo tienes en el no lo tienes en el de tareas cruz ahí abajo de más abajo.
+
+01:20:45.000 --> 01:20:47.000
+Ciudadan Mex: Abajo de ese.
+
+01:20:51.000 --> 01:20:54.000
+rowan: Ok, Creo que sí.
+
+01:20:59.000 --> 01:21:06.000
+rowan: No. Aquí no es aquí. Era donde es que siempre con el desarrollo estoy acostumbrado a documentar mis avances.
+
+01:21:06.000 --> 01:21:08.000
+Ciudadan Mex: Okay.
+
+01:21:07.000 --> 01:21:10.000
+rowan: Sí, Esas son. Fueron antes.
+
+01:21:10.000 --> 01:21:12.000
+rowan: Solo son los días que trabajé.
+
+01:21:12.000 --> 01:21:17.000
+rowan: Este en algunas secciones y te comenté lo que se me quedaban pendientes.
+
+01:21:17.000 --> 01:21:19.000
+Ciudadan Mex: Okay.
+
+01:21:18.000 --> 01:21:20.000
+rowan: Eso ya está terminado.
+
+01:21:22.000 --> 01:21:27.000
+Ciudadan Mex: Sí, está bien. Si quieres en el panel, está bien, Nada más. Vamos a ver unos detallitos.
+
+01:21:22.000 --> 01:21:25.000
+rowan: Dónde puse esta documentación.
+
+01:21:28.000 --> 01:21:32.000
+Ciudadan Mex: Ahí en el panel, en el en el Dashboard.
+
+01:21:31.000 --> 01:21:33.000
+rowan: En el Sport Okay.
+
+01:21:32.000 --> 01:21:34.000
+Ciudadan Mex: Ajá.
+
+01:21:34.000 --> 01:21:40.000
+Ciudadan Mex: Pero sí sería mejor en el contenta y builder por cualquier duda que tengamos del tipo de datos que no creo, pero.
+
+01:21:41.000 --> 01:21:46.000
+Ciudadan Mex: En en las opciones. Hasta la izquierda, en el contentic Wder.
+
+01:21:55.000 --> 01:22:00.000
+Ciudadan Mex: Ahora sí en tareas, pero ahora nos va a mostrar de estructura.
+
+01:22:01.000 --> 01:22:03.000
+rowan: De aquel lado, no aquí.
+
+01:22:08.000 --> 01:22:09.000
+rowan: Okay.
+
+01:22:09.000 --> 01:22:12.000
+rowan: Ah, sí, Es más simple.
+
+01:22:12.000 --> 01:22:18.000
+Ciudadan Mex: Ajá desde ahí. Puedes agre modificar la estructura sin meterte al esquema.
+
+01:22:18.000 --> 01:22:24.000
+Ciudadan Mex: Eso sí, cada vez que modifiques la estructura y le des a 6 va a reiniciar el servidor. Obviamente.
+
+01:22:24.000 --> 01:22:27.000
+Ciudadan Mex: Va Bueno, ¿va a bajar el servicio de serapia.
+
+01:22:27.000 --> 01:22:38.000
+Ciudadan Mex: A ver lo que quería es ver dónde son las que están para que identifiques las que son asignadas por ahí hay un campo. Mira.
+
+01:22:38.000 --> 01:22:41.000
+Ciudadan Mex: Hay este como un.
+
+01:22:57.000 --> 01:23:00.000
+rowan: Creo que no está por acá. No.
+
+01:23:00.000 --> 01:23:01.000
+Ciudadan Mex: Ahh. Mira.
+
+01:23:09.000 --> 01:23:10.000
+Ciudadan Mex: Transferible.
+
+01:23:10.000 --> 01:23:13.000
+Ciudadan Mex: ¿cuál es el sexto partido.
+
+01:23:22.000 --> 01:23:23.000
+Ciudadan Mex: Muy difícil.
+
+01:23:27.000 --> 01:23:32.000
+Ciudadan Mex: Ay, dejé de ver tu pantalla, espérame. Creo que la regué yo, pero me voy.
+
+01:23:42.000 --> 01:23:45.000
+Ciudadan Mex: Aquí está. Vamos escribiendo.
+
+01:23:53.000 --> 01:23:55.000
+Ciudadan Mex: Ahh.
+
+01:23:56.000 --> 01:23:58.000
+Ciudadan Mex: Es que quiero.
+
+01:23:58.000 --> 01:24:01.000
+Ciudadan Mex: Que me permitas interactuar, pero.
+
+01:24:03.000 --> 01:24:07.000
+Ciudadan Mex: No me acuerdo, si entonces tienes que ser tú el que lo ponga.
+
+01:24:13.000 --> 01:24:15.000
+Ciudadan Mex: No era tampoco mucho.
+
+01:24:37.000 --> 01:24:46.000
+Ciudadan Mex: A ver en el de compar, en el botón de compartir la pantalla en el D Shave. No te aparecen. Ves que trae una flechita con más opciones, va hacia arriba.
+
+01:24:46.000 --> 01:24:55.000
+Ciudadan Mex: Te aparece la opción de que me permite de que me permitas no me acuerdo cuál es la palabra, pero que me permitas mover tu puntero. Y eso.
+
+01:24:47.000 --> 01:24:49.000
+rowan: Mhm.
+
+01:24:57.000 --> 01:24:59.000
+rowan: Aquí por zoom.
+
+01:24:58.000 --> 01:25:00.000
+Ciudadan Mex: Ajá.
+
+01:25:02.000 --> 01:25:04.000
+Ciudadan Mex: Ahí hay una defensa de compartir.
+
+01:25:05.000 --> 01:25:07.000
+rowan: No es que.
+
+01:25:07.000 --> 01:25:09.000
+rowan: Es que no.
+
+01:25:08.000 --> 01:25:11.000
+Ciudadan Mex: Ahí ya se está compartiendo. Ajá!
+
+01:25:14.000 --> 01:25:16.000
+Ciudadan Mex: No va a haber. Es más.
+
+01:25:20.000 --> 01:25:22.000
+Ciudadan Mex: Mostrar sus virtudes posibles.
+
+01:25:25.000 --> 01:25:29.000
+Ciudadan Mex: A ver a ver ponlo en configuración.
+
+01:25:32.000 --> 01:25:35.000
+Ciudadan Mex: No, no se da de compartir.
+
+01:25:37.000 --> 01:25:38.000
+Ciudadan Mex: No.
+
+01:25:43.000 --> 01:25:51.000
+Ciudadan Mex: No a ver si quieres, ya salga de la configuración. Si no, pues te voy diciendo, no para irlas leyendo.
+
+01:25:51.000 --> 01:25:56.000
+Ciudadan Mex: Ahorita checo. Sí, es importante que sepa hacer eso para verte a lo checo, ya después.
+
+01:25:51.000 --> 01:25:52.000
+rowan: A ti.
+
+01:25:57.000 --> 01:25:59.000
+Ciudadan Mex: Este.
+
+01:26:02.000 --> 01:26:07.000
+Ciudadan Mex: Pero a ver si gus si puedes ir de nuevo a.
+
+01:26:07.000 --> 01:26:10.000
+Ciudadan Mex: A la de a Stratt por Fans.
+
+01:26:14.000 --> 01:26:19.000
+Ciudadan Mex: Estamos sentadas que a ver, déjame irlas, viendo, espérame, espérame tantito. Ahí.
+
+01:26:26.000 --> 01:26:30.000
+Ciudadan Mex: Ámbito a ver, puedes ver ámbito, qué opciones trae por fas.
+
+01:26:33.000 --> 01:26:35.000
+rowan: Mhm.
+
+01:26:36.000 --> 01:26:39.000
+Ciudadan Mex: Okay, Sí, es cierto que sí. Esa no.
+
+01:26:39.000 --> 01:26:41.000
+Ciudadan Mex: Este ya cierra? ¿no? Si quieres.
+
+01:26:41.000 --> 01:26:42.000
+Ciudadan Mex: Sí.
+
+01:26:44.000 --> 01:26:48.000
+Ciudadan Mex: Admito nivel a ver esa desnivel.
+
+01:26:55.000 --> 01:26:57.000
+Ciudadan Mex: Okay.
+
+01:26:57.000 --> 01:27:01.000
+Ciudadan Mex: Ya tienes. Bueno, ya he cerrado.
+
+01:27:08.000 --> 01:27:12.000
+Ciudadan Mex: A ver baja, más más.
+
+01:27:12.000 --> 01:27:15.000
+Ciudadan Mex: Más piensas, espérame tantito, espérame, pérame.
+
+01:27:15.000 --> 01:27:19.000
+Ciudadan Mex: Espérame espérame revisa la fecha de publicación.
+
+01:27:19.000 --> 01:27:25.000
+Ciudadan Mex: Recompense, ahi esta muy bien para mi felica comunicacion, felica ent.
+
+01:27:19.000 --> 01:27:25.000
+Ciudadan Mex: Recompensa. Ahí estamos bien para mi fecha de publicación, fecha de entrega.
+
+01:27:28.000 --> 01:27:31.000
+Ciudadan Mex: I was like, okay, because I was in the pandemic.
+
+01:27:28.000 --> 01:27:31.000
+Ciudadan Mex: No sé que hay que salir si le tengo un negro, pues.
+
+01:27:31.000 --> 01:27:34.000
+Ciudadan Mex: Periodic a verbaja lemas.
+
+01:27:31.000 --> 01:27:34.000
+Ciudadan Mex: Periódica A. Ver. Bájale más.
+
+01:27:36.000 --> 01:27:39.000
+Ciudadan Mex: Thank you. Thank you.
+
+01:27:36.000 --> 01:27:39.000
+Ciudadan Mex: Espérame espérame ahí.
+
+01:27:39.000 --> 01:27:42.000
+Ciudadan Mex: El Rey de Madrid.
+
+01:27:39.000 --> 01:27:42.000
+Ciudadan Mex: It's very, very easy.
+
+01:27:45.000 --> 01:27:47.000
+Ciudadan Mex: So…
+
+01:27:45.000 --> 01:27:47.000
+Ciudadan Mex: O sea.
+
+01:27:48.000 --> 01:27:51.000
+Ciudadan Mex: Avid Rajamas.
+
+01:27:48.000 --> 01:27:51.000
+Ciudadan Mex: A ver baja, más.
+
+01:27:53.000 --> 01:27:54.000
+rowan: Es que.
+
+01:27:53.000 --> 01:27:57.000
+Ciudadan Mex: I don't know. I don't know. I don't know. I don't know.
+
+01:27:53.000 --> 01:27:57.000
+Ciudadan Mex: No a a ver sube de nuevo hasta arriba de chingado.
+
+01:27:57.000 --> 01:27:59.000
+Ciudadan Mex: That's the rest of it, exactly. Thank you.
+
+01:27:57.000 --> 01:27:59.000
+Ciudadan Mex: Vamos a verlas que revisar bien.
+
+01:28:02.000 --> 01:28:04.000
+Ciudadan Mex: Yeah, exactly.
+
+01:28:02.000 --> 01:28:04.000
+Ciudadan Mex: Y de X.
+
+01:28:09.000 --> 01:28:13.000
+Ciudadan Mex: Yes, we've got ideas. Yes, please.
+
+01:28:09.000 --> 01:28:13.000
+Ciudadan Mex: Smith.
+
+01:28:14.000 --> 01:28:16.000
+Ciudadan Mex: A ver. Pon el tipo.
+
+01:28:14.000 --> 01:28:16.000
+Ciudadan Mex: A ver poner tipo?
+
+01:28:18.000 --> 01:28:20.000
+rowan: A ver.
+
+01:28:20.000 --> 01:28:21.000
+rowan: Okay.
+
+01:28:22.000 --> 01:28:25.000
+Ciudadan Mex: Let's see. Nice and nice. Have a nice and nice.
+
+01:28:22.000 --> 01:28:25.000
+Ciudadan Mex: Siento más o menos a ver baja, más.
+
+01:28:28.000 --> 01:28:35.000
+Ciudadan Mex: Ámbito es el que ya abrimos, no ámbito que es bajar privada, plataforma, Sí.
+
+01:28:28.000 --> 01:28:35.000
+Ciudadan Mex: Ambito es que ya brimos, no? Ambito es que es aja privada plataforo, mas si.
+
+01:28:31.000 --> 01:28:32.000
+rowan: Sí.
+
+01:28:36.000 --> 01:28:39.000
+Ciudadan Mex: I'll be back later in the forum.
+
+01:28:36.000 --> 01:28:39.000
+Ciudadan Mex: A nivel del Grupo.
+
+01:28:44.000 --> 01:28:46.000
+Ciudadan Mex: A ver recurrencia.
+
+01:28:44.000 --> 01:28:46.000
+Ciudadan Mex: Avere Porencia.
+
+01:28:51.000 --> 01:28:52.000
+Ciudadan Mex: Okay.
+
+01:28:51.000 --> 01:28:52.000
+Ciudadan Mex: Okay.
+
+01:28:52.000 --> 01:28:55.000
+Ciudadan Mex: No sé si ya lo puedes cerrar.
+
+01:28:52.000 --> 01:28:55.000
+Ciudadan Mex: Non cielo puestra…
+
+01:29:05.000 --> 01:29:08.000
+Ciudadan Mex: Right on me. Right on my friend.
+
+01:29:05.000 --> 01:29:08.000
+Ciudadan Mex: Espérame espérame, espérame.
+
+01:29:08.000 --> 01:29:09.000
+Ciudadan Mex: Ay.
+
+01:29:08.000 --> 01:29:09.000
+Ciudadan Mex: Right.
+
+01:29:09.000 --> 01:29:12.000
+Ciudadan Mex: Hash Beats.
+
+01:29:09.000 --> 01:29:12.000
+Ciudadan Mex: because it's.
+
+01:29:17.000 --> 01:29:20.000
+Ciudadan Mex: A ver baja, más.
+
+01:29:17.000 --> 01:29:20.000
+Ciudadan Mex: Have a great Rafa Mas.
+
+01:29:22.000 --> 01:29:25.000
+Ciudadan Mex: Recuerdan a Blue jeans.
+
+01:29:25.000 --> 01:29:29.000
+Ciudadan Mex: Workas espérame espérame Greg Bait.
+
+01:29:29.000 --> 01:29:31.000
+Ciudadan Mex: Espera algoritmo.
+
+01:29:31.000 --> 01:29:33.000
+Ciudadan Mex: No se me pasó.
+
+01:29:42.000 --> 01:29:46.000
+Ciudadan Mex: A ver en en el en el código del back.
+
+01:29:50.000 --> 01:29:53.000
+Ciudadan Mex: En Api.
+
+01:29:53.000 --> 01:29:55.000
+Ciudadan Mex: Task.
+
+01:30:01.000 --> 01:30:03.000
+rowan: Tarea no.
+
+01:30:03.000 --> 01:30:06.000
+Ciudadan Mex: La chica, pero ya está como task. No.
+
+01:30:07.000 --> 01:30:09.000
+rowan: Aquí me parece como tarea.
+
+01:30:09.000 --> 01:30:16.000
+Ciudadan Mex: Pero ese es el que estás correcto, porque allá está como tal. Ahí Ya apareció como task, no en el en el panel.
+
+01:30:09.000 --> 01:30:11.000
+rowan: En español.
+
+01:30:22.000 --> 01:30:24.000
+rowan: Sí, es verdad.
+
+01:30:30.000 --> 01:30:33.000
+Ciudadan Mex: Es que está.
+
+01:30:33.000 --> 01:30:36.000
+Ciudadan Mex: Porque te aparece como tarea.
+
+01:30:36.000 --> 01:30:40.000
+Ciudadan Mex: Y la de tareas finalizadas.
+
+01:30:40.000 --> 01:30:43.000
+Ciudadan Mex: Está muy raro. Eso a ver, espérame siérame.
+
+01:30:44.000 --> 01:30:46.000
+Ciudadan Mex: Si estás en la carpeta correcta.
+
+01:30:48.000 --> 01:30:50.000
+rowan: Ok, es ser vaqueno.
+
+01:30:51.000 --> 01:30:54.000
+Ciudadan Mex: En el Ajá. Ese es el que estás corriendo.
+
+01:30:54.000 --> 01:30:56.000
+rowan: Sí es la que te cargue.
+
+01:30:56.000 --> 01:31:01.000
+Ciudadan Mex: Es muy raro eso que no te aparezcan las tablas que están mostrando en el.
+
+01:31:01.000 --> 01:31:04.000
+Ciudadan Mex: En el Dashboard. Aquí las muestras.
+
+01:31:12.000 --> 01:31:17.000
+Ciudadan Mex: Estás en la rama que está corriendo, ¿Qué está pasando? Está raro.
+
+01:31:17.000 --> 01:31:19.000
+Ciudadan Mex: Pero bueno, a ver otras.
+
+01:31:19.000 --> 01:31:22.000
+Ciudadan Mex: Es que no van a estar igual, entonces tampoco.
+
+01:31:24.000 --> 01:31:25.000
+rowan: Okay, a ver.
+
+01:31:25.000 --> 01:31:27.000
+rowan: Mhm.
+
+01:31:38.000 --> 01:31:39.000
+rowan: No.
+
+01:32:12.000 --> 01:32:14.000
+rowan: Okay. Estoy en la.
+
+01:32:14.000 --> 01:32:16.000
+rowan: No, Así me parece.
+
+01:32:17.000 --> 01:32:20.000
+rowan: Igual en el drama. May me aparece como tarea.
+
+01:32:27.000 --> 01:32:32.000
+Ciudadan Mex: A ver está corriendo. Se debe de haber parado de ejecución. No.
+
+01:32:36.000 --> 01:32:38.000
+rowan: No, no es tradición.
+
+01:32:38.000 --> 01:32:40.000
+Ciudadan Mex: A ver correo de nuevo.
+
+01:33:29.000 --> 01:33:32.000
+rowan: Pero sigue ofreciendo tareas.
+
+01:33:33.000 --> 01:33:43.000
+Ciudadan Mex: Pero debería de coincidir con, O sea, no importa que te aparezca tarea o tú, pero debe de coincidir la del panel con la del código. Por eso está corriendo desde el.
+
+01:33:44.000 --> 01:33:46.000
+Ciudadan Mex: Pues, desde ese punto de entrada.
+
+01:33:47.000 --> 01:33:49.000
+rowan: No.
+
+01:33:48.000 --> 01:33:52.000
+Ciudadan Mex: Sí, mientras yo estoy revisando acá. Aparte también.
+
+01:33:49.000 --> 01:33:51.000
+rowan: Configure confirmar.
+
+01:33:51.000 --> 01:33:52.000
+rowan: Okay.
+
+01:33:58.000 --> 01:33:59.000
+rowan: Y.
+
+01:33:58.000 --> 01:34:00.000
+Ciudadan Mex: Acá. La tengo.
+
+01:34:01.000 --> 01:34:07.000
+Ciudadan Mex: Yo acá incluso ya la tengo como task. Y eso que ya tiene. Esta Esta no es la versión actualizada.
+
+01:34:08.000 --> 01:34:12.000
+Ciudadan Mex: Habilidades, recurrencia, descripción de enlaces.
+
+01:34:14.000 --> 01:34:18.000
+Ciudadan Mex: Aunque yo algunos todavía no, no, no están traducidos.
+
+01:34:19.000 --> 01:34:20.000
+Ciudadan Mex: Pero.
+
+01:34:25.000 --> 01:34:28.000
+rowan: No en el antiguo R E, P, O también aparece como tarea.
+
+01:34:32.000 --> 01:34:36.000
+Ciudadan Mex: Pero porque en el panel aparece de otro modo. Eso es la pregunta.
+
+01:34:37.000 --> 01:34:41.000
+Ciudadan Mex: O sea, está bien que aparece como tarea, pero porque ahí no aparece como tarea.
+
+01:34:46.000 --> 01:34:48.000
+Ciudadan Mex: Y.
+
+01:34:48.000 --> 01:34:50.000
+rowan: Estaba raro.
+
+01:34:53.000 --> 01:35:01.000
+Ciudadan Mex: A ver, pregúntale A, G, P, T, qué puede estar pasando mientras yo reviso acá en la el campo que falta. Porque si está raro, eso que no.
+
+01:35:02.000 --> 01:35:10.000
+Ciudadan Mex: Y de oye, tengo corriendo Strat Py, pero me muestra un nombre que no corresponde con.
+
+01:35:12.000 --> 01:35:16.000
+Ciudadan Mex: Que no corresponde con el nombre de la tabla, corresponde con una.
+
+01:35:16.000 --> 01:35:20.000
+Ciudadan Mex: Con un cómic que ya no es o algo así.
+
+01:35:23.000 --> 01:35:26.000
+Ciudadan Mex: Realmente vas a sacar revista de Skinman.
+
+01:35:26.000 --> 01:35:28.000
+Ciudadan Mex: Mhm.
+
+01:35:36.000 --> 01:35:39.000
+Ciudadan Mex: Ya probaste, dando de actualizar.
+
+01:35:43.000 --> 01:35:49.000
+rowan: Sí, de hecho. Okay. Bueno, en el antiguo repo, así me aparece también.
+
+01:35:50.000 --> 01:35:55.000
+rowan: Teníamos en el repositorio antiguo de Backend. Me apareció como tal.
+
+01:35:53.000 --> 01:35:55.000
+Ciudadan Mex: Ajá.
+
+01:35:55.000 --> 01:36:00.000
+Ciudadan Mex: Por eso, pero sí, pero acá está apareciendo como tarea. Está apareciendo como task.
+
+01:35:55.000 --> 01:35:57.000
+rowan: Pues lleva años, No.
+
+01:36:00.000 --> 01:36:01.000
+rowan: Qué raro.
+
+01:36:01.000 --> 01:36:04.000
+Ciudadan Mex: Ajá! Exacto. Sí, ¿Dónde podemos resolver eso?
+
+01:36:14.000 --> 01:36:18.000
+Ciudadan Mex: A ver aquí. Estamos en tarea.
+
+01:36:18.000 --> 01:36:24.000
+Ciudadan Mex: Ya vi por qué, porque tiene. Es que lo hiciste desde la esquina, en vez de hacerlo desde.
+
+01:36:26.000 --> 01:36:34.000
+Ciudadan Mex: O sea, viene como símbolo, Arname, Ah, no, pero acá está como A, pero a mí me parece como tarea.
+
+01:36:34.000 --> 01:36:39.000
+Ciudadan Mex: Y en el panel me aparece como tarea. Si te debería aparecer como tarea.
+
+01:36:41.000 --> 01:36:42.000
+Ciudadan Mex: A ver.
+
+01:36:43.000 --> 01:36:50.000
+Ciudadan Mex: Ahh: ¿No es cierto. Parece como task. Sí, es por eso es porque lo tienes en el en la esquina, lo tienes.
+
+01:36:51.000 --> 01:36:55.000
+Ciudadan Mex: Ahí, definido, distinto.
+
+01:36:55.000 --> 01:36:58.000
+Ciudadan Mex: Displaynet dice: task completes.
+
+01:37:06.000 --> 01:37:10.000
+Ciudadan Mex: Pero ahí nos hacemos bodas porque.
+
+01:37:10.000 --> 01:37:13.000
+Ciudadan Mex: Al final de cuentas, el nombre de en podías tarea.
+
+01:37:14.000 --> 01:37:16.000
+Ciudadan Mex: Notask.
+
+01:37:16.000 --> 01:37:19.000
+Ciudadan Mex: Notas que esté.
+
+01:37:19.000 --> 01:37:20.000
+Ciudadan Mex: Blitz.
+
+01:37:29.000 --> 01:37:32.000
+Ciudadan Mex: Pero bueno, eso es tarea.
+
+01:37:34.000 --> 01:37:36.000
+Ciudadan Mex: Ya hechas.
+
+01:37:38.000 --> 01:37:43.000
+Ciudadan Mex: Mances usuario enlaces calificaciones a aplicaciones para numerosos.
+
+01:37:43.000 --> 01:37:46.000
+Ciudadan Mex: Lo que necesitamos es la de.
+
+01:37:46.000 --> 01:37:48.000
+Ciudadan Mex: Los 2.
+
+01:37:52.000 --> 01:37:55.000
+Ciudadan Mex: Content Text. Skin Mak.
+
+01:37:55.000 --> 01:37:59.000
+Ciudadan Mex: Y ahora sí que vamos a buscar.
+
+01:38:02.000 --> 01:38:04.000
+Ciudadan Mex: No digo así.
+
+01:38:07.000 --> 01:38:09.000
+Ciudadan Mex: En estatus.
+
+01:38:09.000 --> 01:38:13.000
+Ciudadan Mex: Es el estatus, es que si no, nos no suena muy.
+
+01:38:13.000 --> 01:38:20.000
+Ciudadan Mex: Está muy escondido, pero está en la tabla status. Es un núm y viene asignada.
+
+01:38:22.000 --> 01:38:25.000
+rowan: Y como tabla status.
+
+01:38:25.000 --> 01:38:37.000
+Ciudadan Mex: No la tabla, pues es que ahí creo que tú hiciste esa parte. Pero a ver este le pus lo hiciste desde la esquina. Entonces le pusiste un alias, aunque de nada sirvió ponerle.
+
+01:38:37.000 --> 01:38:38.000
+Ciudadan Mex: Task.
+
+01:38:39.000 --> 01:38:43.000
+Ciudadan Mex: Porque a final de cuentas, el endpoint es tarea en español.
+
+01:38:44.000 --> 01:38:51.000
+Ciudadan Mex: Por eso te aparece como tarea allá en el código. Pero bueno, es el en el campo estatus.
+
+01:38:51.000 --> 01:38:55.000
+Ciudadan Mex: En el atributo status. Ahí viene asignada.
+
+01:39:00.000 --> 01:39:09.000
+Ciudadan Mex: Pero yo creo que vamos a ver. Sería lo conveniente. Sería agregar un campo más a ver. Déjame, Déjame revisarlo mentalmente, un momento para.
+
+01:39:09.000 --> 01:39:16.000
+Ciudadan Mex: Este tú cuando necesitamos ver que solamente pueden calificar asignada.
+
+01:39:20.000 --> 01:39:25.000
+Ciudadan Mex: El problema es que si no puedes enseñar una tarea que sea asesinada.
+
+01:39:37.000 --> 01:39:40.000
+Ciudadan Mex: Si no, no es tan malo.
+
+01:39:41.000 --> 01:39:43.000
+Ciudadan Mex: Vamos a.
+
+01:39:47.000 --> 01:39:57.000
+Ciudadan Mex: A hacer un body An para que no. Para que sea más legible, vamos a hacer un condicional, un un un un atributo extra de esa colección.
+
+01:39:57.000 --> 01:39:59.000
+Ciudadan Mex: O un campo extra.
+
+01:39:59.000 --> 01:40:02.000
+Ciudadan Mex: En la colección.
+
+01:40:03.000 --> 01:40:06.000
+Ciudadan Mex: Tarea o task.
+
+01:40:06.000 --> 01:40:19.000
+Ciudadan Mex: Este, pero no es esa. Es la col Es la de abajo. Es la tudu. Esas tareas. Es la task. Es que por eso te vas a hacer bodas. Estuvo medio raro que hicieras eso. Pero bueno, lo de lo lo de ponerle esquima.
+
+01:40:19.000 --> 01:40:25.000
+Ciudadan Mex: En la esquina de cada 1, va a saber su verdadero nombre con el que aparece, no su verdadero nombre. Su verdadero nombre. Es ese.
+
+01:40:25.000 --> 01:40:36.000
+Ciudadan Mex: De Gamepoint. Pero el nombre con el que aparece en el panel central contentáis, Pero en tudú, en todos, no en no en tareas en sí. No Estás viendo allá en el código.
+
+01:40:38.000 --> 01:40:39.000
+rowan: Okay.
+
+01:40:39.000 --> 01:40:43.000
+Ciudadan Mex: Pero a en la carpeta de abajo en la de todo.
+
+01:40:43.000 --> 01:40:45.000
+Ciudadan Mex: En Esa, en la de todos.
+
+01:40:46.000 --> 01:40:48.000
+Ciudadan Mex: Abajo de tarea.
+
+01:40:48.000 --> 01:40:50.000
+Ciudadan Mex: Contentáis.
+
+01:40:51.000 --> 01:40:53.000
+Ciudadan Mex: El Skype, Jason.
+
+01:40:53.000 --> 01:41:04.000
+Ciudadan Mex: Y como puedes ver, se llama task. O sea, ¿significa eso nada más. Lo único que existe es que aparece como task en el es lo único, pero dentro coincide siendo todo o todo.
+
+01:40:57.000 --> 01:40:59.000
+rowan: Okay.
+
+01:41:04.000 --> 01:41:11.000
+Ciudadan Mex: Como lo quieras ver. Pero lo único que hiciste ahí fue poner un alias. Por eso es que en el panel aparece como task.
+
+01:41:12.000 --> 01:41:17.000
+Ciudadan Mex: Eso ya no importa. Si tú te entiendes, Pues bueno, entonces haciendo esa parte.
+
+01:41:17.000 --> 01:41:19.000
+Ciudadan Mex: Pero.
+
+01:41:21.000 --> 01:41:29.000
+Ciudadan Mex: En dado caso, hubiera sido cambiarle todo el nombre. Pero desde la configuración para para el End Point y todo.
+
+01:41:25.000 --> 01:41:27.000
+rowan: Sí, Tienes razón. Eh.
+
+01:41:30.000 --> 01:41:33.000
+rowan: Sí tenías razón. Es.
+
+01:41:32.000 --> 01:41:42.000
+Ciudadan Mex: Puedes hacerlo del cambio de nombre o puede quedar pendiente. No es prioridad, ¿no? Pero puedes hacer bien el cambio de nombre que no sea solamente el Display Name. Me explico.
+
+01:41:33.000 --> 01:41:35.000
+rowan: Mhm.
+
+01:41:41.000 --> 01:41:43.000
+rowan: Okay.
+
+01:41:42.000 --> 01:41:45.000
+Ciudadan Mex: Si no es ningún Arné ni el dinero ajá.
+
+01:41:45.000 --> 01:41:53.000
+Ciudadan Mex: Pero bueno, el caso es que ya tienes ubicada, que está la de tudú, que no le estabas. Entendiendo parece que dice todo. Yo lo sé, por eso es que hicimos los cambios y nombres.
+
+01:41:53.000 --> 01:42:00.000
+Ciudadan Mex: Pero la que es todo o tú son las tareas a resolver o las task.
+
+01:42:00.000 --> 01:42:06.000
+Ciudadan Mex: Y las ya resueltas las tienes aquí como tarea, pero esas son las tast resorts.
+
+01:42:06.000 --> 01:42:08.000
+Ciudadan Mex: Estamos.
+
+01:42:08.000 --> 01:42:10.000
+rowan: Okay.
+
+01:42:09.000 --> 01:42:17.000
+Ciudadan Mex: Ahora, entonces estamos en las tareas a secas, las task, que es la todo o todo.
+
+01:42:10.000 --> 01:42:12.000
+rowan: Sí. Ya ya ya capté.
+
+01:42:17.000 --> 01:42:19.000
+Ciudadan Mex: Estamos en esas.
+
+01:42:19.000 --> 01:42:20.000
+rowan: Okay.
+
+01:42:20.000 --> 01:42:30.000
+Ciudadan Mex: Y entonces vamos a agregarle un atributo, ya sea desde aquí o desde el panel del panel, es muy sencillo, como prefieras.
+
+01:42:31.000 --> 01:42:34.000
+rowan: Ok, en la sección de.
+
+01:42:33.000 --> 01:42:38.000
+Ciudadan Mex: No. Ahí es donde estás nada más ve baja del lado derecho baja.
+
+01:42:38.000 --> 01:42:40.000
+rowan: Aquí.
+
+01:42:41.000 --> 01:42:43.000
+Ciudadan Mex: Ajá.
+
+01:42:44.000 --> 01:42:45.000
+Ciudadan Mex: Sí, hay verdad.
+
+01:42:47.000 --> 01:42:49.000
+Ciudadan Mex: Y ahí vas a poner un Woody al.
+
+01:42:50.000 --> 01:42:57.000
+Ciudadan Mex: Y le vamos a poner asignable y que en inglés es igual, o sea, que estamos bien, asignamos.
+
+01:42:59.000 --> 01:43:01.000
+Ciudadan Mex: Finish.
+
+01:43:03.000 --> 01:43:06.000
+Ciudadan Mex: Y ahora, si le das arriba en 6.
+
+01:43:06.000 --> 01:43:09.000
+Ciudadan Mex: Creo que te está tapando la.
+
+01:43:09.000 --> 01:43:10.000
+Ciudadan Mex: Ahh.
+
+01:43:09.000 --> 01:43:12.000
+rowan: Aquí está.
+
+01:43:11.000 --> 01:43:13.000
+Ciudadan Mex: Va a reiniciar.
+
+01:43:38.000 --> 01:43:40.000
+rowan: Okay.
+
+01:43:42.000 --> 01:43:44.000
+Ciudadan Mex: Ya está asignado, ¿verdad?
+
+01:43:44.000 --> 01:43:46.000
+rowan: Sí ya está.
+
+01:43:45.000 --> 01:43:51.000
+Ciudadan Mex: Okay. Ahora, en esta parte necesito que me pongas atención.
+
+01:43:51.000 --> 01:43:58.000
+Ciudadan Mex: Mira ve tantito otra vez a donde estás corriendo la aplicación de ciudadan.
+
+01:44:01.000 --> 01:44:03.000
+Ciudadan Mex: Al al navegador.
+
+01:44:05.000 --> 01:44:07.000
+Ciudadan Mex: En donde lo tienes abierto. Ajá.
+
+01:44:10.000 --> 01:44:12.000
+Ciudadan Mex: Vete a socio.
+
+01:44:17.000 --> 01:44:20.000
+Ciudadan Mex: Herramienta, acting.
+
+01:44:20.000 --> 01:44:23.000
+Ciudadan Mex: Ahhh.
+
+01:44:23.000 --> 01:44:32.000
+Ciudadan Mex: Faltan las de agregar tarea. Y eso no es que porque te quitaste, es porque te quitaste el rol? Sí, Sí, Sí, Sí. ¿quieres ponerte el rol de socio o darme cualquiera de tus cosas.
+
+01:44:25.000 --> 01:44:27.000
+rowan: Sí recuerda que.
+
+01:44:27.000 --> 01:44:28.000
+rowan: Sí.
+
+01:44:28.000 --> 01:44:30.000
+rowan: Exacto.
+
+01:44:30.000 --> 01:44:32.000
+rowan: Mhm.
+
+01:45:04.000 --> 01:45:07.000
+rowan: Tengo que apagar el anís, el cerro, ¿verdad?
+
+01:45:07.000 --> 01:45:10.000
+Ciudadan Mex: Este no.
+
+01:45:13.000 --> 01:45:15.000
+Ciudadan Mex: No, pero actualiza de nuevo.
+
+01:45:19.000 --> 01:45:23.000
+Ciudadan Mex: A lo mejor y se cayó a ver. Fíjate si está corriendo el Front.
+
+01:45:31.000 --> 01:45:34.000
+rowan: No, Eso no, no tiene problema.
+
+01:45:34.000 --> 01:45:35.000
+Ciudadan Mex: Okay.
+
+01:46:55.000 --> 01:46:59.000
+rowan: Okay. Ya si no te parece.
+
+01:47:03.000 --> 01:47:05.000
+Ciudadan Mex: En.
+
+01:47:09.000 --> 01:47:12.000
+Ciudadan Mex: Ok, abren herramientas.
+
+01:47:12.000 --> 01:47:15.000
+Ciudadan Mex: En cowork, en herramientas.
+
+01:47:18.000 --> 01:47:21.000
+rowan: Okay ahorita. Sí, ya paso.
+
+01:47:22.000 --> 01:47:25.000
+Ciudadan Mex: Estereo.
+
+01:47:26.000 --> 01:47:30.000
+Ciudadan Mex: Vamos a tener asignar tarea.
+
+01:47:32.000 --> 01:47:33.000
+Ciudadan Mex: Aparte de los que hay.
+
+01:47:36.000 --> 01:47:39.000
+rowan: O aquí ver una nueva sesión, pero sin a 3.
+
+01:47:41.000 --> 01:47:42.000
+rowan: Okay.
+
+01:47:42.000 --> 01:47:54.000
+Ciudadan Mex: Ahí buscas un icono ahorita ahorita te ayudo a buscar el otro de socio en la van a ser 2. Ahora te te explico esa parte, pero este ahí buscas un icono de los de materia Duy.
+
+01:47:54.000 --> 01:47:58.000
+Ciudadan Mex: Como para asignar tarea puede ser a ver.
+
+01:48:04.000 --> 01:48:06.000
+Ciudadan Mex: No, no.
+
+01:48:08.000 --> 01:48:13.000
+Ciudadan Mex: Este. A ver, se lo voy pidiendo y.
+
+01:48:34.000 --> 01:48:45.000
+Ciudadan Mex: A ver te paso 1 y lo probamos. Sale una vez duplicas 1 de esos botones y nada más. Le pones este icono a ver cómo se ve. Y ya otro, te digo qué es lo que va a llevar.
+
+01:48:45.000 --> 01:48:46.000
+Ciudadan Mex: Ya.
+
+01:48:46.000 --> 01:48:49.000
+rowan: Muy bien. Ya no me funciona.
+
+01:48:48.000 --> 01:48:52.000
+Ciudadan Mex: De Adolfos hay en el en el chatter.
+
+01:48:52.000 --> 01:48:53.000
+rowan: Okay.
+
+01:48:58.000 --> 01:49:03.000
+Ciudadan Mex: Su import. Y bueno, ya hemos podido Sauts Complement.
+
+01:50:53.000 --> 01:50:56.000
+rowan: ¿en qué archivo se encuentra esta.
+
+01:50:56.000 --> 01:50:58.000
+rowan: Toda esta pestañea.
+
+01:50:59.000 --> 01:51:02.000
+Ciudadan Mex: A ver estas.
+
+01:51:01.000 --> 01:51:02.000
+rowan: Mhm.
+
+01:51:03.000 --> 01:51:04.000
+Ciudadan Mex: Work.
+
+01:51:05.000 --> 01:51:07.000
+Ciudadan Mex: Si te vas a.
+
+01:51:09.000 --> 01:51:12.000
+Ciudadan Mex: Tenemos Asset.
+
+01:51:14.000 --> 01:51:16.000
+Ciudadan Mex: Conforme el saber en pages.
+
+01:51:21.000 --> 01:51:22.000
+Ciudadan Mex: Cowork.
+
+01:51:28.000 --> 01:51:33.000
+rowan: Okay. Ya me encontré.
+
+01:51:37.000 --> 01:51:41.000
+rowan: Socios generales especializados.
+
+01:51:43.000 --> 01:51:45.000
+rowan: Ok, Ese es el motor.
+
+01:52:16.000 --> 01:52:22.000
+Ciudadan Mex: No debe de estar. No tenemos traducción, ahorita. Debe estar el texto. La cadena. Así en español.
+
+01:52:22.000 --> 01:52:24.000
+rowan: Hay que regar, no.
+
+01:52:25.000 --> 01:52:28.000
+rowan: No, no me aparece. Vale.
+
+01:52:27.000 --> 01:52:33.000
+Ciudadan Mex: A ver espera es que sigue. No este mira si quieres.
+
+01:52:33.000 --> 01:52:37.000
+Ciudadan Mex: Primero que nada vete a Linkex de Roots.
+
+01:52:37.000 --> 01:52:40.000
+Ciudadan Mex: Si quieres con control? P.
+
+01:52:41.000 --> 01:52:47.000
+Ciudadan Mex: No este cambiar de archivo. Pero para que lo encuentres fácilmente, si quieres darle control, p.
+
+01:52:48.000 --> 01:52:50.000
+Ciudadan Mex: Y ahora Dale Index.
+
+01:52:52.000 --> 01:53:04.000
+Ciudadan Mex: Y te vas a ir. El que vengan roots espérame es de index J de los últimos abajo del cuadrito morado de s. Es ese no aba abajito del cuadrito morado.
+
+01:53:04.000 --> 01:53:07.000
+Ciudadan Mex: El Ese es el de Roots.
+
+01:53:08.000 --> 01:53:10.000
+Ciudadan Mex: Rauls, perdón.
+
+01:53:10.000 --> 01:53:16.000
+Ciudadan Mex: Este. Ahora, ahí busca control F y busca.
+
+01:53:17.000 --> 01:53:20.000
+Ciudadan Mex: Co work, pero es cuando veo.
+
+01:53:25.000 --> 01:53:27.000
+rowan: Ok, Aquí está.
+
+01:53:27.000 --> 01:53:29.000
+Ciudadan Mex: Pero busca el que sea a secas.
+
+01:53:32.000 --> 01:53:34.000
+rowan: Okay. Creo que es esto.
+
+01:53:32.000 --> 01:53:38.000
+Ciudadan Mex: Ese ajá te lleva a. Pero ve qué componente te cargas.
+
+01:53:38.000 --> 01:53:44.000
+Ciudadan Mex: Exacto. Ajá! Ah, pues carga ese componente. Sí, exacto B, de pero ve de qué ruta.
+
+01:53:44.000 --> 01:53:47.000
+Ciudadan Mex: Bueno, ábrelo. Si quieres directo.
+
+01:53:50.000 --> 01:53:57.000
+Ciudadan Mex: Y ahí fíjate qué redirecciones hace? Porque creo que ahí revisa ta otra vez nuevamente la ruta no.
+
+01:53:58.000 --> 01:54:01.000
+rowan: Sí. Nuestros días. ¿dónde estábamos.
+
+01:54:02.000 --> 01:54:03.000
+rowan: En fin.
+
+01:54:04.000 --> 01:54:07.000
+rowan: Estoy Okay, ¿qué es esta.
+
+01:54:07.000 --> 01:54:09.000
+Ciudadan Mex: A ver, entonces hay que agregar.
+
+01:54:07.000 --> 01:54:09.000
+rowan: Historia de pagos.
+
+01:54:10.000 --> 01:54:12.000
+rowan: Está más abajo.
+
+01:54:11.000 --> 01:54:12.000
+Ciudadan Mex: Agregar.
+
+01:54:12.000 --> 01:54:15.000
+Ciudadan Mex: O sea, si quieres con control, ya sea agregar.
+
+01:54:22.000 --> 01:54:26.000
+Ciudadan Mex: Si Gu: quieres con control. F: puedes buscar la palabra, agregar.
+
+01:54:29.000 --> 01:54:32.000
+rowan: Chispas, nada.
+
+01:54:32.000 --> 01:54:34.000
+rowan: Ay, tú.
+
+01:54:34.000 --> 01:54:35.000
+rowan: Qué es esto.
+
+01:54:37.000 --> 01:54:39.000
+rowan: No. Ese es el diálogo.
+
+01:54:39.000 --> 01:54:41.000
+Ciudadan Mex: A ver. Ahora te viene.
+
+01:54:42.000 --> 01:54:44.000
+Ciudadan Mex: Tenemos.
+
+01:54:44.000 --> 01:54:46.000
+Ciudadan Mex: El Black.
+
+01:54:48.000 --> 01:54:52.000
+Ciudadan Mex: Ahh, No, perdón Es en el Front. Entonces.
+
+01:54:53.000 --> 01:54:55.000
+Ciudadan Mex: Ahh.
+
+01:54:56.000 --> 01:54:58.000
+Ciudadan Mex: Index…
+
+01:54:56.000 --> 01:54:58.000
+Ciudadan Mex: Index.
+
+01:54:59.000 --> 01:55:01.000
+Ciudadan Mex: Primero.
+
+01:54:59.000 --> 01:55:01.000
+Ciudadan Mex: You know, it's…
+
+01:55:04.000 --> 01:55:07.000
+Ciudadan Mex: Okay, I'm just gonna scroll back.
+
+01:55:04.000 --> 01:55:07.000
+Ciudadan Mex: Y creemos que es con work.
+
+01:55:23.000 --> 01:55:25.000
+Ciudadan Mex: No ese coworka gente.
+
+01:55:23.000 --> 01:55:25.000
+Ciudadan Mex: No es el cowork agencia.
+
+01:55:29.000 --> 01:55:31.000
+Ciudadan Mex: Artes.
+
+01:55:29.000 --> 01:55:31.000
+Ciudadan Mex: Aren't they?
+
+01:55:29.000 --> 01:55:31.000
+rowan: Agencia no.
+
+01:55:31.000 --> 01:55:32.000
+Ciudadan Mex: How are things?
+
+01:55:31.000 --> 01:55:32.000
+Ciudadan Mex: A ver Thames.
+
+01:55:32.000 --> 01:55:34.000
+Ciudadan Mex: I'm gonna get out.
+
+01:55:32.000 --> 01:55:34.000
+Ciudadan Mex: Agregar.
+
+01:55:35.000 --> 01:55:36.000
+Ciudadan Mex: Nuts.
+
+01:55:35.000 --> 01:55:36.000
+Ciudadan Mex: No.
+
+01:55:37.000 --> 01:55:41.000
+Ciudadan Mex: No, ahora te digo, pues es que hay que ir. Lo siguiente.
+
+01:55:37.000 --> 01:55:41.000
+Ciudadan Mex: No, out of the enterprise. Let's get rid of this again. Same.
+
+01:55:42.000 --> 01:55:44.000
+Ciudadan Mex: Let's get on, let's get on.
+
+01:55:42.000 --> 01:55:44.000
+Ciudadan Mex: Entonces quedamos que eran.
+
+01:55:51.000 --> 01:55:54.000
+Ciudadan Mex: Yeah, I guess that will work.
+
+01:55:51.000 --> 01:55:54.000
+Ciudadan Mex: Y aquí está el Cowork.
+
+01:55:54.000 --> 01:55:57.000
+Ciudadan Mex: Just to start a story, I think.
+
+01:55:54.000 --> 01:55:57.000
+Ciudadan Mex: Yo estoy a donde estabas, Tú ahorita ahí.
+
+01:55:57.000 --> 01:55:59.000
+Ciudadan Mex: Um…
+
+01:55:57.000 --> 01:55:59.000
+Ciudadan Mex: Y.
+
+01:56:00.000 --> 01:56:02.000
+Ciudadan Mex: Sexta.
+
+01:56:00.000 --> 01:56:02.000
+Ciudadan Mex: Set the…
+
+01:56:03.000 --> 01:56:06.000
+Ciudadan Mex: Y dónde usamos el set.
+
+01:56:03.000 --> 01:56:06.000
+Ciudadan Mex: Y donde usamosa y set the…
+
+01:56:07.000 --> 01:56:11.000
+Ciudadan Mex: Más. Bueno, más bien, no me lo cambiamos.
+
+01:56:07.000 --> 01:56:11.000
+Ciudadan Mex: Thank you very much.
+
+01:56:11.000 --> 01:56:13.000
+Ciudadan Mex: Sí, claro.
+
+01:56:11.000 --> 01:56:13.000
+Ciudadan Mex: Let's see now.
+
+01:56:17.000 --> 01:56:20.000
+Ciudadan Mex: Tenemos que buscar Thunderl.
+
+01:56:17.000 --> 01:56:20.000
+Ciudadan Mex: Demos que buscar cande…
+
+01:56:21.000 --> 01:56:27.000
+Ciudadan Mex: Mangle.
+
+01:56:21.000 --> 01:56:27.000
+Ciudadan Mex: And then that's it. Change.
+
+01:56:30.000 --> 01:56:35.000
+Ciudadan Mex: A a.
+
+01:56:30.000 --> 01:56:35.000
+Ciudadan Mex: And… Zoom.
+
+01:56:43.000 --> 01:56:45.000
+Ciudadan Mex: Sucio.
+
+01:56:43.000 --> 01:56:45.000
+Ciudadan Mex: Still here.
+
+01:56:53.000 --> 01:56:57.000
+Ciudadan Mex: Y dentro tenemos.
+
+01:56:53.000 --> 01:56:57.000
+Ciudadan Mex: Ah, eventro tenemos.
+
+01:56:57.000 --> 01:57:04.000
+Ciudadan Mex: Herramientas va en herramientas clave de herramientas, pero que hace esto.
+
+01:56:57.000 --> 01:57:04.000
+Ciudadan Mex: Ramientas, vainer ramientas, david, ramientas, pero que hace esto.
+
+01:57:04.000 --> 01:57:08.000
+Ciudadan Mex: Contenido principal sextap.
+
+01:57:08.000 --> 01:57:10.000
+Ciudadan Mex: Herramientas.
+
+01:57:10.000 --> 01:57:15.000
+Ciudadan Mex: Herramientas, Grif. Componentes, herramientas gris.
+
+01:57:15.000 --> 01:57:17.000
+Ciudadan Mex: Y Star.
+
+01:57:17.000 --> 01:57:24.000
+Ciudadan Mex: Ahora te digo, está en components co work herramientas. Grif: Sm.
+
+01:57:24.000 --> 01:57:28.000
+Ciudadan Mex: Ahora sí, ahí busca agregar ahí. Debe de estar.
+
+01:57:31.000 --> 01:57:33.000
+rowan: ¿en qué herramientas? ¿verdad?
+
+01:57:33.000 --> 01:57:41.000
+Ciudadan Mex: Ajá agregar tarea exactamente, ya viste que ahí ya te aparecen ahí. Estoy de agregar tarea Ahí vamos a agregar el de asignar tarea.
+
+01:57:43.000 --> 01:57:47.000
+Ciudadan Mex: Obviamente importa hasta arriba. Y ahí nada más.
+
+01:57:47.000 --> 01:57:50.000
+Ciudadan Mex: Ajá exacto una una igualdad a S.
+
+01:57:52.000 --> 01:57:54.000
+Ciudadan Mex: Bueno, igualito a ese.
+
+01:58:01.000 --> 01:58:03.000
+Ciudadan Mex: Asignar tareas.
+
+01:58:07.000 --> 01:58:10.000
+Ciudadan Mex: Y ese ajá.
+
+01:58:23.000 --> 01:58:26.000
+Ciudadan Mex: Con el Fonsi Slarrch Ajá.
+
+01:58:33.000 --> 01:58:35.000
+rowan: Algún texto.
+
+01:58:35.000 --> 01:58:38.000
+Ciudadan Mex: A asignar tareas.
+
+01:58:36.000 --> 01:58:38.000
+rowan: Asign.
+
+01:58:38.000 --> 01:58:44.000
+Ciudadan Mex: Y falta que hagas, obviamente, de importación a donde haces. Las importaciones de iconos.
+
+01:58:38.000 --> 01:58:40.000
+rowan: No.
+
+01:58:56.000 --> 01:59:02.000
+Ciudadan Mex: Que creo que no va a ser Todo importa será agregarlo a una bueno si no los tienes en lista, Sí, ponlo así.
+
+01:59:15.000 --> 01:59:18.000
+rowan: Okay ya nos aparece.
+
+01:59:18.000 --> 01:59:22.000
+Ciudadan Mex: Bien este nada más que que sea después de agregar tarea.
+
+01:59:23.000 --> 01:59:26.000
+Ciudadan Mex: Ya ya quedó ya. Nada más es cambiar de orden.
+
+01:59:31.000 --> 01:59:40.000
+Ciudadan Mex: Obviamente por ahí tienes que definir a que vaya a asignar tarea en vez de agregar tarea y, obviamente, pues, hacer su respectivo componente.
+
+01:59:41.000 --> 01:59:44.000
+Ciudadan Mex: Y su ruta y todo no.
+
+01:59:45.000 --> 01:59:47.000
+Ciudadan Mex: Este.
+
+01:59:51.000 --> 01:59:58.000
+Ciudadan Mex: No, pero subiste de calificar, y era era agregar tarea luego asignar tarea y luego calificar tarea.
+
+01:59:58.000 --> 02:00:03.000
+Ciudadan Mex: O sea, calificar, va después y quitaste de asignar.
+
+02:00:03.000 --> 02:00:13.000
+Ciudadan Mex: Si quieres dale para atrás, dale para control Z contra Z, control, Z, ese lo tienes que bajar La pones de control X.
+
+02:00:12.000 --> 02:00:15.000
+rowan: Okay debajo de.
+
+02:00:13.000 --> 02:00:16.000
+Ciudadan Mex: Lo que tienes que bajar ahí exactamente.
+
+02:00:15.000 --> 02:00:17.000
+rowan: Javier Victoria.
+
+02:00:17.000 --> 02:00:19.000
+Ciudadan Mex: Ajá.
+
+02:00:26.000 --> 02:00:28.000
+rowan: Okay, ya.
+
+02:00:30.000 --> 02:00:35.000
+Ciudadan Mex: Digo, hay que cambiarle porque lleve a asignar tarea y etcétera. Pero ya quedó.
+
+02:00:42.000 --> 02:00:48.000
+Ciudadan Mex: Porque estaba le dejaste, obviamente igual el link, pero hay que cambiar, crear la ruta y todo no, pero.
+
+02:00:49.000 --> 02:00:52.000
+Ciudadan Mex: Debe de llevar a asignar tal.
+
+02:00:50.000 --> 02:00:51.000
+rowan: Es que.
+
+02:00:52.000 --> 02:00:53.000
+Ciudadan Mex: El trabajo.
+
+02:00:52.000 --> 02:00:55.000
+rowan: Solamente cambia el texto.
+
+02:00:54.000 --> 02:00:57.000
+Ciudadan Mex: Ajá, pero en el de abajo se estaba viendo, Se está bien.
+
+02:00:56.000 --> 02:00:59.000
+rowan: Ah, es verdad.
+
+02:01:00.000 --> 02:01:02.000
+rowan: Así que no.
+
+02:01:11.000 --> 02:01:14.000
+Ciudadan Mex: Y ahora se te va a llevar una página en blanco.
+
+02:01:14.000 --> 02:01:16.000
+Ciudadan Mex: Ahh.
+
+02:01:15.000 --> 02:01:16.000
+rowan: Marketing.
+
+02:01:16.000 --> 02:01:19.000
+Ciudadan Mex: Sí. Obviamente, hay que crear la ruta y.
+
+02:01:19.000 --> 02:01:22.000
+Ciudadan Mex: Seguir el enrutamiento con la misma lógica que está usando.
+
+02:01:22.000 --> 02:01:24.000
+Ciudadan Mex: Por ahora, al menos.
+
+02:01:24.000 --> 02:01:26.000
+Ciudadan Mex: Este.
+
+02:01:25.000 --> 02:01:26.000
+rowan: Sí.
+
+02:01:27.000 --> 02:01:28.000
+Ciudadan Mex: Y.
+
+02:01:28.000 --> 02:01:31.000
+Ciudadan Mex: En asignar tarea.
+
+02:01:32.000 --> 02:01:34.000
+Ciudadan Mex: De peregrinación.
+
+02:01:42.000 --> 02:01:45.000
+Ciudadan Mex: En asignar tarea.
+
+02:01:49.000 --> 02:01:57.000
+Ciudadan Mex: Solamente van a poder aparecer tareas creadas por ese usuario por ese admin pues.
+
+02:02:00.000 --> 02:02:10.000
+Ciudadan Mex: Va a ser una lista con donde va a aparecer el título de la tarea. Los datos más relevantes no así como lo has hecho en las demás. El título, un icono lo.
+
+02:02:10.000 --> 02:02:17.000
+Ciudadan Mex: Este, así como está, como hiciste de las demás caras. Pero.
+
+02:02:17.000 --> 02:02:25.000
+Ciudadan Mex: Acá nada más van a aparecer. Por otro lado, van a estar filtradas por las que asigna bole, asigna voz a igual a.
+
+02:02:25.000 --> 02:02:27.000
+Ciudadan Mex: True.
+
+02:02:35.000 --> 02:02:37.000
+rowan: Papel.
+
+02:03:16.000 --> 02:03:18.000
+rowan: Okay.
+
+02:03:18.000 --> 02:03:21.000
+rowan: Que seguir no solamente es la lógica, no.
+
+02:03:22.000 --> 02:03:28.000
+rowan: Ok. Tal vez tareas asignada solamente las califica quien las asignó.
+
+02:03:22.000 --> 02:03:25.000
+Ciudadan Mex: Sí es precisamente para Ajá!
+
+02:03:28.000 --> 02:03:35.000
+Ciudadan Mex: Y de igual modo, Pero aquí apenas vamos en el paso de antes en asignarlas.
+
+02:03:28.000 --> 02:03:30.000
+rowan: Es.
+
+02:03:33.000 --> 02:03:35.000
+rowan: Mhm.
+
+02:03:35.000 --> 02:03:37.000
+Ciudadan Mex: Aquí es para calificar.
+
+02:03:37.000 --> 02:03:43.000
+Ciudadan Mex: Y a la hora de calificar las asignadas, nada más les va a poder calificar que las asignó, pero primero hay que asignarlas.
+
+02:03:38.000 --> 02:03:39.000
+rowan: Okay.
+
+02:03:45.000 --> 02:03:51.000
+Ciudadan Mex: Entonces, mira pone atención para que una tarea sea.
+
+02:03:51.000 --> 02:03:57.000
+Ciudadan Mex: Asignada primero tiene que ser asignable, o sea, que tenga asignable igual a True.
+
+02:03:58.000 --> 02:04:00.000
+rowan: Okay, ya.
+
+02:04:02.000 --> 02:04:04.000
+rowan: Debe.
+
+02:04:04.000 --> 02:04:08.000
+rowan: Tener un valor. True.
+
+02:04:08.000 --> 02:04:13.000
+Ciudadan Mex: En la en el campo o en el o en el atributo asignables.
+
+02:04:09.000 --> 02:04:10.000
+rowan: Okay.
+
+02:04:22.000 --> 02:04:24.000
+rowan: Okay.
+
+02:04:24.000 --> 02:04:33.000
+Ciudadan Mex: Ahora, lo óptimo es que a la hora que crea una tarea, el socio.
+
+02:04:33.000 --> 02:04:36.000
+Ciudadan Mex: A esa hora le asigne.
+
+02:04:49.000 --> 02:04:53.000
+rowan: Ok, el socio era asignar una tarea. Ok.
+
+02:04:51.000 --> 02:04:54.000
+Ciudadan Mex: Al crear una tarea.
+
+02:04:54.000 --> 02:04:58.000
+Ciudadan Mex: Cuando creas una tarea, lo que hiciste o de crear tarea.
+
+02:04:58.000 --> 02:05:05.000
+Ciudadan Mex: Debemos agregar un paso más que sea asignarla solamente si es asignable y es opcional.
+
+02:05:04.000 --> 02:05:05.000
+rowan: Okay.
+
+02:05:06.000 --> 02:05:09.000
+rowan: El socio al crear una tarea, Ok.
+
+02:05:09.000 --> 02:05:22.000
+Ciudadan Mex: Opcionalmente. O sea, le aparece ese paso, pero no es obligatorio, Ok, O sea, si le aparece el paso, pero puede, no, no pasa nada. Puede seguir adelante y crear la tarea si no le asignan. Pero a la hora que le asigna.
+
+02:05:22.000 --> 02:05:25.000
+Ciudadan Mex: Si le puso asignable igual a True.
+
+02:05:26.000 --> 02:05:30.000
+Ciudadan Mex: Porque hay que agregarle a tu formulario que hiciste. Hay que agregarle.
+
+02:05:30.000 --> 02:05:32.000
+Ciudadan Mex: Un.
+
+02:05:32.000 --> 02:05:34.000
+Ciudadan Mex: Este.
+
+02:05:34.000 --> 02:05:39.000
+Ciudadan Mex: En el formulario hay que agregarle un un este, un.
+
+02:05:39.000 --> 02:05:41.000
+rowan: Un check, no un.
+
+02:05:39.000 --> 02:05:41.000
+Ciudadan Mex: Un control.
+
+02:05:41.000 --> 02:05:43.000
+Ciudadan Mex: Ajá para para.
+
+02:05:42.000 --> 02:05:43.000
+rowan: Un.
+
+02:05:43.000 --> 02:05:47.000
+Ciudadan Mex: Para sí o no, o sea, un control de de Switch.
+
+02:05:44.000 --> 02:05:46.000
+rowan: Mhm.
+
+02:05:47.000 --> 02:06:00.000
+Ciudadan Mex: De si es asignable la tarea, no a la hora que creas la tarea en el formulario que hiciste ahí, hay que agregar un control de Switch que para si la tarea es asignable.
+
+02:05:50.000 --> 02:05:52.000
+rowan: Sí.
+
+02:06:00.000 --> 02:06:03.000
+Ciudadan Mex: Y si, después de que si es asignable.
+
+02:06:04.000 --> 02:06:13.000
+Ciudadan Mex: Cuando te los pasos que se está creando en el en el último paso. No sé si sea el más conveniente. Tú checarlo, pero yo supongo que sí. Ya en el último paso.
+
+02:06:13.000 --> 02:06:17.000
+Ciudadan Mex: Le va a preguntar si se la quiere asignar a alguien de una vez.
+
+02:06:20.000 --> 02:06:23.000
+rowan: A eso dependerá del área. No.
+
+02:06:24.000 --> 02:06:25.000
+Ciudadan Mex: Dos.
+
+02:06:24.000 --> 02:06:26.000
+rowan: Alguna.
+
+02:06:26.000 --> 02:06:31.000
+Ciudadan Mex: Ahh: Bueno, ¿a quién se le puede asignar? Sí, Sí, Sí, Sí, estás bien, Sí, Sí, Sí, estás bien.
+
+02:06:30.000 --> 02:06:34.000
+rowan: Con una área en.
+
+02:06:33.000 --> 02:06:36.000
+Ciudadan Mex: No, no, no, no, no, no, no, no, no, no.
+
+02:06:34.000 --> 02:06:35.000
+rowan: Sí.
+
+02:06:35.000 --> 02:06:36.000
+rowan: No.
+
+02:06:37.000 --> 02:06:51.000
+Ciudadan Mex: Acuérdate que hay generales. Eso va a depender de a la hora que está creando la tarea si le puso que es general, no va a ser por área si le puso que es especializada, Solamente se le va a poder asignar a socios de esa área.
+
+02:06:53.000 --> 02:06:54.000
+rowan: Okay.
+
+02:06:54.000 --> 02:06:58.000
+Ciudadan Mex: Lo importante es que no es forzoso que le asigne.
+
+02:06:59.000 --> 02:07:05.000
+Ciudadan Mex: Me explico, le puede poner asignarle igual a True y no asignarla en ese momento o no, asignarla nunca no.
+
+02:07:12.000 --> 02:07:27.000
+Ciudadan Mex: En ese caso no sería una tarea asignada. Podría resolverla cualquiera que dependiendo, si es especializada, pues cualquier programador, si es del área de programación, si no es especializada cualquier usuario. Pero si ya es una tarea asignada.
+
+02:07:29.000 --> 02:07:36.000
+Ciudadan Mex: Solamente la pueden resolver los usuarios a los que se le asignó la parte de resolver.
+
+02:07:36.000 --> 02:07:39.000
+Ciudadan Mex: Y calificar, pues solamente quien le asignó.
+
+02:07:44.000 --> 02:07:50.000
+Ciudadan Mex: Entonces me está siguiendo. Estamos en la parte en la que apenas vamos a crear la tarea para resolver.
+
+02:07:46.000 --> 02:07:48.000
+rowan: Okay.
+
+02:07:50.000 --> 02:07:52.000
+rowan: Okay. Entonces.
+
+02:07:50.000 --> 02:08:00.000
+Ciudadan Mex: Entonces le va a aparecer un aparte de todo lo que la ciudad está apareciendo. Le va a aparecer un campo de si es asignable que nada más va a ser un switch, sí o no?
+
+02:07:52.000 --> 02:07:54.000
+rowan: Ohh.
+
+02:07:59.000 --> 02:08:00.000
+rowan: Mhm.
+
+02:08:00.000 --> 02:08:02.000
+rowan: Okay.
+
+02:08:01.000 --> 02:08:08.000
+Ciudadan Mex: Y si le puso que si al final le va a decir, Ok, la quieres asignar de una vez.
+
+02:08:08.000 --> 02:08:12.000
+Ciudadan Mex: Puede o no puede asignarla, pero tiene la opción. Me sigues.
+
+02:08:16.000 --> 02:08:22.000
+rowan: Pero, ¿qué ¿qué se puede manejar un botón de apagado encendido? O mejor un check? Un checkbox.
+
+02:08:22.000 --> 02:08:24.000
+Ciudadan Mex: Un botón de encendido.
+
+02:08:26.000 --> 02:08:35.000
+Ciudadan Mex: Tarea asignable y si lo ponen activado, pues es que si es asignable, y si lo ponen a pagar en desactivado, pues es que no es asignable.
+
+02:08:47.000 --> 02:08:50.000
+rowan: Okay. Ya Ya voy entendiendo.
+
+02:08:56.000 --> 02:09:01.000
+rowan: Esta sección será opcional.
+
+02:09:01.000 --> 02:09:03.000
+rowan: Listo!
+
+02:09:02.000 --> 02:09:06.000
+Ciudadan Mex: O sea, le aparece. Pero si quieres no le asigna o qué.
+
+02:09:05.000 --> 02:09:06.000
+rowan: Mhm.
+
+02:09:07.000 --> 02:09:14.000
+Ciudadan Mex: Ahora es que no te quiero hacer muchas bodas, pero es que una tarea que a su vez que es asignable.
+
+02:09:14.000 --> 02:09:19.000
+Ciudadan Mex: Se le asig y asignada, o sea, que ya se le asigna a un usuario.
+
+02:09:19.000 --> 02:09:25.000
+Ciudadan Mex: A su vez, puede que solamente la puedan resolver los usuarios a los que se le asignó.
+
+02:09:26.000 --> 02:09:30.000
+Ciudadan Mex: No, pero creamos 2 tareas: una asignable.
+
+02:09:31.000 --> 02:09:33.000
+Ciudadan Mex: Sí, déjalo. Así no te quiero hacer bodas.
+
+02:09:33.000 --> 02:09:38.000
+Ciudadan Mex: Ni a nadie para usarlo. Vamos a dejarlo así ahora.
+
+02:09:38.000 --> 02:09:40.000
+Ciudadan Mex: Entonces.
+
+02:09:40.000 --> 02:09:51.000
+Ciudadan Mex: Pero si en ese momento no le asigna, pero la puso como que si es asignable, entonces es donde entra esta vista que acabamos de hacer, la de asignar tareas.
+
+02:09:51.000 --> 02:09:56.000
+Ciudadan Mex: Ahí van a aparecer todas las que sean asignables. Que haya creado este usuario.
+
+02:09:57.000 --> 02:10:00.000
+Ciudadan Mex: Y que no hayan sido asignadas.
+
+02:10:03.000 --> 02:10:08.000
+Ciudadan Mex: Si me entiendes, o sea, si es asignable. Es más, ¿no no es cierto.
+
+02:10:10.000 --> 02:10:14.000
+Ciudadan Mex: Van a aparecer todas las asignables que haya creado este usuario.
+
+02:10:14.000 --> 02:10:18.000
+Ciudadan Mex: ¿por qué? Porque.
+
+02:10:18.000 --> 02:10:24.000
+Ciudadan Mex: Eso, pero eso es en lo de asi en en el en la vista que estamos creando en la de Esta es en la vista de asignar.
+
+02:10:24.000 --> 02:10:32.000
+Ciudadan Mex: Lo que estábamos haciendo antes era en la vista de crear tareas ¿Te acuerdas? Bueno, en la parte de del Stepper, eso de crear tareas.
+
+02:10:32.000 --> 02:10:36.000
+Ciudadan Mex: Esto esto a partir de aparecen todas las tareas asignables.
+
+02:10:38.000 --> 02:10:46.000
+Ciudadan Mex: De que que esto es en ya es en la ruta de asignar tarea en la vista que acabamos de.
+
+02:10:46.000 --> 02:10:48.000
+rowan: Sí, es eso, No.
+
+02:10:47.000 --> 02:10:50.000
+Ciudadan Mex: Ajá Ahí ya van a aparecer.
+
+02:10:50.000 --> 02:10:54.000
+Ciudadan Mex: Las que creó este usuario. El el lasmin en cuestión.
+
+02:10:55.000 --> 02:10:58.000
+Ciudadan Mex: Y que tienen asignable igual a Trump.
+
+02:11:11.000 --> 02:11:13.000
+rowan: Okay.
+
+02:11:12.000 --> 02:11:21.000
+Ciudadan Mex: No es, Y las o sea, son estas mismas las que de dentro de las que creó el usuario las que tengan asignables, o sea.
+
+02:11:21.000 --> 02:11:25.000
+Ciudadan Mex: Pues le Dash Edadmil creó las que.
+
+02:11:26.000 --> 02:11:36.000
+Ciudadan Mex: Las tareas asignables que Darwin creó y que tienen valores igual a todo y que tienen valor igual a trabajar y que tienen valor del campo asignable.
+
+02:11:36.000 --> 02:11:40.000
+Ciudadan Mex: Del campo llamado asignable o entre comillas, o lo que quieras.
+
+02:11:40.000 --> 02:11:42.000
+rowan: ¿por qué?
+
+02:11:41.000 --> 02:11:44.000
+Ciudadan Mex: Campo asignable igual a True.
+
+02:11:54.000 --> 02:12:02.000
+Ciudadan Mex: Y pone así entre comillas, no porque asignable se entiende que un campo asignable, no del campo que se llama asignable.
+
+02:11:54.000 --> 02:11:56.000
+rowan: Okay.
+
+02:12:06.000 --> 02:12:08.000
+Ciudadan Mex: Igual de trompas.
+
+02:12:10.000 --> 02:12:16.000
+Ciudadan Mex: Ahora me faltó algo de donde estás creando las tareas y asignando las a quien se las puede asignar.
+
+02:12:17.000 --> 02:12:20.000
+rowan: Ok, eso vendría.
+
+02:12:17.000 --> 02:12:26.000
+Ciudadan Mex: Allá arriba arriba. Esto ya es abajo. Eso de aparece. En eso. Ya es en otra vista. Yo sí le pondría bien ahí como que ya.
+
+02:12:20.000 --> 02:12:21.000
+rowan: Ahh.
+
+02:12:27.000 --> 02:12:33.000
+Ciudadan Mex: Título aparte o algo, porque eso de aparecer todas las tareas. Eso ya es en la vista de asignar tarea.
+
+02:12:34.000 --> 02:12:39.000
+Ciudadan Mex: Esto es en crear tareas, o todo eso que viene abajo. De ahí de donde pusiste los guiones.
+
+02:12:40.000 --> 02:12:43.000
+rowan: Desde aquí, lo que.
+
+02:12:43.000 --> 02:12:45.000
+Ciudadan Mex: Es crear tarea.
+
+02:12:45.000 --> 02:12:48.000
+Ciudadan Mex: Y lo de asignar tareas Nada más. El último párrafo.
+
+02:12:49.000 --> 02:12:53.000
+Ciudadan Mex: Todo eso es a la hora que todo esto baja para.
+
+02:12:49.000 --> 02:12:51.000
+rowan: Eso es. S.
+
+02:12:51.000 --> 02:12:55.000
+rowan: Este es cocinar para.
+
+02:12:53.000 --> 02:12:57.000
+Ciudadan Mex: No, Eso es en crear tareas.
+
+02:12:55.000 --> 02:12:56.000
+rowan: No.
+
+02:12:59.000 --> 02:13:05.000
+Ciudadan Mex: Ahora que, o sea, esto es en lo que ya hiciste, de crear tarea, hay que modificarlo para cada crear una tarea.
+
+02:13:05.000 --> 02:13:12.000
+Ciudadan Mex: Después tengamos el campo asignado y todo eso. Pero todo esto es en crear tarea, y el último párrafo.
+
+02:13:13.000 --> 02:13:15.000
+rowan: Esto no es.
+
+02:13:15.000 --> 02:13:21.000
+Ciudadan Mex: No abajo aparecen. Eso ya es otra vista. Esa es la de asignar tarea.
+
+02:13:16.000 --> 02:13:18.000
+rowan: Aquí.
+
+02:13:23.000 --> 02:13:24.000
+rowan: Okay.
+
+02:13:24.000 --> 02:13:26.000
+Ciudadan Mex: Esa es otra vista.
+
+02:13:28.000 --> 02:13:30.000
+Ciudadan Mex: Es crear tarea.
+
+02:13:36.000 --> 02:13:38.000
+Ciudadan Mex: Marta Led.
+
+02:13:39.000 --> 02:13:40.000
+Ciudadan Mex: Ahora.
+
+02:13:40.000 --> 02:13:52.000
+Ciudadan Mex: Pero desde que está en crear tarea, también le sale lo de asignar tareas nada más que ahí, No le salen en lista y le sale nada más de esa tarea. Yo creo que eso se entiende, no de la tarea que está creando.
+
+02:13:52.000 --> 02:13:54.000
+Ciudadan Mex: Ahora.
+
+02:13:54.000 --> 02:14:03.000
+Ciudadan Mex: Cuando vamos a mostrar este step de crear tarea, perdón, de asignar tarea. La tarea que está creando en ese momento.
+
+02:14:03.000 --> 02:14:10.000
+Ciudadan Mex: Lo que le vas a mostrar puede agregar, 1, asignarla a 1 o varios. Pero eso es allá reja.
+
+02:14:11.000 --> 02:14:12.000
+rowan: Ay.
+
+02:14:15.000 --> 02:14:21.000
+Ciudadan Mex: Ya se baja de asignar tarea, ya sea cuando la crea o cuando entra desde la vista de asignar tareas no.
+
+02:14:22.000 --> 02:14:24.000
+Ciudadan Mex: Y.
+
+02:14:23.000 --> 02:14:26.000
+rowan: Cuando lo hace bien, no.
+
+02:14:25.000 --> 02:14:27.000
+Ciudadan Mex: Y no.
+
+02:14:26.000 --> 02:14:29.000
+rowan: Cuando entra y cuando.
+
+02:14:28.000 --> 02:14:33.000
+Ciudadan Mex: No cuando la creas, o sea, la puede asignar desde que la crea.
+
+02:14:29.000 --> 02:14:30.000
+rowan: Un qué?
+
+02:14:33.000 --> 02:14:41.000
+Ciudadan Mex: Te acuerdas que al final le pregunta a todo eso que, pues está allá arriba, es más opcional. Ahí la puede asignar o si no le asignó en ese momento.
+
+02:14:46.000 --> 02:14:55.000
+Ciudadan Mex: O desde la lista está cuando entra asignar tarea. Demuestra las que se las muestra de nuevo, porque puede asignarsela. ¿cómo te digo.
+
+02:14:55.000 --> 02:15:06.000
+Ciudadan Mex: O sea, yo le asignó una tarea al usuario Juan el día de hoy. Y yo tengo esa misma tarea, pero digo también la va a ser daniela.
+
+02:15:06.000 --> 02:15:10.000
+Ciudadan Mex: Entonces en asignar tarea, aunque ya le había asignado a Juan.
+
+02:15:11.000 --> 02:15:19.000
+Ciudadan Mex: Me vuelve a pa, me vuelve a aparecer dentro de la lista. Y cuando entro a esa, le puedo agregar más usuarios, o puedo eliminar usuarios a los que se le había asignado.
+
+02:15:20.000 --> 02:15:22.000
+Ciudadan Mex: Ya me seguiste.
+
+02:15:23.000 --> 02:15:25.000
+rowan: Ok, a.
+
+02:15:23.000 --> 02:15:25.000
+Ciudadan Mex: O sea, cuando creo en la tarea.
+
+02:15:25.000 --> 02:15:29.000
+Ciudadan Mex: Me dices, se la quieres asignar a alguien, se le asigna Juan.
+
+02:15:29.000 --> 02:15:44.000
+Ciudadan Mex: Y después se integra el equipo. Daniel le digo, ¿sabes qué? Esa tarea también la va a ser daniela. Entonces me voy a asignar tarea. Ahí me aparecen todas las tareas que sean asignables, incluida la que ya está asignada a Juan Si no fuera asignable, no se le hubiera podido asignar.
+
+02:15:46.000 --> 02:15:53.000
+Ciudadan Mex: Entro a la tarea desde la vista de asignar y me aparece usuarios a los que está asignado.
+
+02:15:46.000 --> 02:15:48.000
+rowan: Okay.
+
+02:15:53.000 --> 02:16:01.000
+Ciudadan Mex: Juan agregar más usuarios, o Juan también lo puedo quitar, no eliminar usuario, agregar más usuarios. Si me expliques.
+
+02:16:01.000 --> 02:16:05.000
+rowan: Okay? Sí.
+
+02:16:03.000 --> 02:16:17.000
+Ciudadan Mex: O sea, yo, en el momento de en el momento inicial, me dice desde ahorita, la quieres agregar órale, pero en cualquier otro momento. Se la puedo agregar a alguien más o quitar a quien se la había agregado desde asigna desde la vista de asignar tareas.
+
+02:16:06.000 --> 02:16:07.000
+rowan: Bien.
+
+02:16:08.000 --> 02:16:09.000
+rowan: Mhm.
+
+02:16:19.000 --> 02:16:24.000
+rowan: Ok. Entonces sería podremos mostrar más bien un.
+
+02:16:25.000 --> 02:16:32.000
+rowan: Un acordeón al momento de crear Simelia se muestra un acordeón con la lista de todos los nuevos usuarios.
+
+02:16:29.000 --> 02:16:33.000
+Ciudadan Mex: A ver, mira si quieres, vamos allá, David, vamos a la vista. Primero, explícate.
+
+02:16:37.000 --> 02:16:38.000
+rowan: Sí.
+
+02:16:38.000 --> 02:16:41.000
+rowan: Esta. Si es una tarea, estamos en crear tarea. No.
+
+02:16:41.000 --> 02:16:42.000
+Ciudadan Mex: Ajá.
+
+02:16:44.000 --> 02:16:46.000
+rowan: Okay Bye.
+
+02:16:46.000 --> 02:16:51.000
+Ciudadan Mex: Por ahí va a tener 1 que diga asignable y sea un.
+
+02:16:53.000 --> 02:17:00.000
+Ciudadan Mex: Anda de ahí abajo de única. No va a tener otro de esos que diga asignable, Pero nada más sea un Switch.
+
+02:17:01.000 --> 02:17:08.000
+rowan: Porque cuando ese sea, cuando se active el asignar este actividad para asignar.
+
+02:17:07.000 --> 02:17:08.000
+Ciudadan Mex: Aceptable.
+
+02:17:08.000 --> 02:17:10.000
+rowan: Tarea ajá asignable.
+
+02:17:08.000 --> 02:17:10.000
+Ciudadan Mex: Asignable.
+
+02:17:11.000 --> 02:17:18.000
+Ciudadan Mex: O sea, ahí le estás preguntando si es asignable si la tarea va a ser asignable o va a ser para cualquiera.
+
+02:17:11.000 --> 02:17:13.000
+rowan: Y.
+
+02:17:18.000 --> 02:17:26.000
+Ciudadan Mex: Entonces dice asignable si le pone que si a True en 1 de los siguientes pasos de crear tarea o Nada más es un paso. Cuántos pasos tienes?
+
+02:17:28.000 --> 02:17:30.000
+Ciudadan Mex: Ahh: está todo en un solo paso.
+
+02:17:29.000 --> 02:17:32.000
+rowan: No, sí.
+
+02:17:32.000 --> 02:17:42.000
+Ciudadan Mex: Lo voy a revisar bien esta parte. Pero bueno, si va a quedar todo en un paso, pues en ese paso. Lo voy a revisar bien. Este El punto es de que hay que ponerle asignable.
+
+02:17:32.000 --> 02:17:34.000
+rowan: Sí.
+
+02:17:42.000 --> 02:17:52.000
+Ciudadan Mex: Y a la hora que llegue a crear tarea. Entonces, ya que no lo tienes en pasos que te salga como un segundo paso solamente si le puso asignable igual a True.
+
+02:17:52.000 --> 02:17:55.000
+Ciudadan Mex: En donde entonces la va a asignar.
+
+02:17:55.000 --> 02:17:57.000
+Ciudadan Mex: Okay.
+
+02:17:57.000 --> 02:17:58.000
+rowan: Okay.
+
+02:17:59.000 --> 02:18:02.000
+Ciudadan Mex: Ahora vamos con esa parte de asignar tarea.
+
+02:18:02.000 --> 02:18:06.000
+Ciudadan Mex: Tanto aquí como si de edades de.
+
+02:18:06.000 --> 02:18:12.000
+Ciudadan Mex: Desde las herramientas. Lo que pasa es que si le da desde las herramientas, le va a aparecer una lista.
+
+02:18:13.000 --> 02:18:18.000
+Ciudadan Mex: Si le va desde asignar tarea, le va a aparecer una lista tipo las que tienes.
+
+02:18:18.000 --> 02:18:24.000
+Ciudadan Mex: Digo ahorita, no tienes nada, obviamente, pero le va a aparecer una lista con botones así exacto, con acciones.
+
+02:18:24.000 --> 02:18:40.000
+Ciudadan Mex: Cuando tú llegues a asignada tarea, te va a aparecer. Digo, la única acción va a ser como asignar, pero ahí le puedes le pones asignar. Y cuando entra asignar, ya le va a mostrar a qué usuarios ya está asignada la opción de quitarlos o de agregar un nuevo usuario asignado a esa tarea.
+
+02:18:24.000 --> 02:18:27.000
+rowan: No ya Okay.
+
+02:18:30.000 --> 02:18:32.000
+rowan: Okay.
+
+02:18:40.000 --> 02:18:48.000
+rowan: Okay. Entonces, Okay ya ya ya me quedó claro, bueno, por por ir a reutilizar ese.
+
+02:18:46.000 --> 02:18:53.000
+Ciudadan Mex: Ahora qué clases de usuarios puede y cómo le van a aparecer los usuarios? ¿lo va a meter su nombre? ¿cómo va a estar ahí? Te va.
+
+02:18:48.000 --> 02:18:49.000
+rowan: Muy bien.
+
+02:18:53.000 --> 02:19:02.000
+Ciudadan Mex: Ya te quedó clara Hasta ahí. No ahora vamos a la vista tal cual de ese modal como lo haremos a manejar que sea el de asignarla.
+
+02:18:53.000 --> 02:18:54.000
+rowan: Ajá.
+
+02:19:02.000 --> 02:19:09.000
+Ciudadan Mex: Aquí vamos a revisar, según sea la agencia de ese socio. O sea, vamos a tener que consultar primero.
+
+02:19:10.000 --> 02:19:25.000
+Ciudadan Mex: Ya tenemos el rol de socio. Sabemos que es un socio, pero vamos a tener que consultar primero a qué Agencia pertenece y luego, sobre esa agencia vamos a tener que consultar el nivel de la Agencia, que ese es un campo que no traía ahorita y que eso es lo otro que vamos a hacer ahorita. Pero.
+
+02:19:25.000 --> 02:19:29.000
+Ciudadan Mex: Pero no te preocupes que yo me acuerdo.
+
+02:19:29.000 --> 02:19:35.000
+Ciudadan Mex: Este. Entonces vamos a checar el campo de la agencia y vamos a ver si es federal.
+
+02:19:35.000 --> 02:19:38.000
+Ciudadan Mex: O estatal, perdón o local.
+
+02:19:39.000 --> 02:19:41.000
+Ciudadan Mex: Ese campo hay que agregárselo.
+
+02:19:44.000 --> 02:19:49.000
+rowan: Cómo se llama el Cam. La tabla agencia no.
+
+02:19:48.000 --> 02:19:50.000
+Ciudadan Mex: Ajá.
+
+02:19:59.000 --> 02:20:03.000
+Ciudadan Mex: Hay que agregarle un campo en Um.
+
+02:20:07.000 --> 02:20:12.000
+Ciudadan Mex: ¡ay, No, no, no es number, No, no es, no, Mer: no es listo. El nombre se llama, creo.
+
+02:20:13.000 --> 02:20:15.000
+Ciudadan Mex: En numeration.
+
+02:20:15.000 --> 02:20:18.000
+Ciudadan Mex: Abajo de password de lado derecho.
+
+02:20:18.000 --> 02:20:20.000
+Ciudadan Mex: Arriba de With.
+
+02:20:21.000 --> 02:20:22.000
+Ciudadan Mex: A a.
+
+02:20:22.000 --> 02:20:24.000
+rowan: ¿para qué?
+
+02:20:24.000 --> 02:20:29.000
+Ciudadan Mex: Vamos a ponerle name este perdón.
+
+02:20:30.000 --> 02:20:35.000
+Ciudadan Mex: Nivel o level como le quieras, poner level, poner una luz.
+
+02:20:37.000 --> 02:20:40.000
+Ciudadan Mex: Poder federal.
+
+02:20:45.000 --> 02:20:47.000
+Ciudadan Mex: No con minúscula.
+
+02:20:51.000 --> 02:20:52.000
+Ciudadan Mex: Enter.
+
+02:20:53.000 --> 02:20:54.000
+Ciudadan Mex: Local.
+
+02:20:56.000 --> 02:20:57.000
+Ciudadan Mex: Listo!
+
+02:20:59.000 --> 02:21:00.000
+Ciudadan Mex: Y listo.
+
+02:21:11.000 --> 02:21:13.000
+Ciudadan Mex: Ya después dar a guardar si quieres.
+
+02:21:51.000 --> 02:21:55.000
+Ciudadan Mex: Bien, ahora vamos a checar la tabla, user.
+
+02:22:00.000 --> 02:22:04.000
+Ciudadan Mex: Y vamos a ver si si trae un campo que se llama agencia, que creo que no.
+
+02:22:08.000 --> 02:22:09.000
+Ciudadan Mex: No.
+
+02:22:09.000 --> 02:22:11.000
+Ciudadan Mex: La, la.
+
+02:22:18.000 --> 02:22:20.000
+Ciudadan Mex: A ver, vamos a agregar lo de una vez.
+
+02:22:24.000 --> 02:22:26.000
+Ciudadan Mex: En relación.
+
+02:22:29.000 --> 02:22:31.000
+Ciudadan Mex: Un Relation.
+
+02:22:32.000 --> 02:22:38.000
+Ciudadan Mex: Selecciona ya alguien sirelado derecho. Primero selecciona la señora. ¿va a cambiar el nombre.
+
+02:22:39.000 --> 02:22:41.000
+Ciudadan Mex: Hay de agencias.
+
+02:22:42.000 --> 02:22:46.000
+Ciudadan Mex: Y así está bien. Este Ajá.
+
+02:22:48.000 --> 02:22:51.000
+Ciudadan Mex: El usuario tiene una agencia así y listo.
+
+02:23:15.000 --> 02:23:25.000
+Ciudadan Mex: Bien, ahora vamos a crear una agencia vete al Containe al Content Manager o ajá.
+
+02:23:26.000 --> 02:23:28.000
+Ciudadan Mex: Vete Aliens Agencias.
+
+02:23:49.000 --> 02:23:52.000
+Ciudadan Mex: No la carbono. A ver si quieres actualizar.
+
+02:23:57.000 --> 02:24:00.000
+Ciudadan Mex: Este, crear un nuevo registro.
+
+02:24:03.000 --> 02:24:08.000
+Ciudadan Mex: Ahí no le pongas nada. Localidad.
+
+02:24:08.000 --> 02:24:11.000
+Ciudadan Mex: Pone. C: D. M. X.
+
+02:24:15.000 --> 02:24:18.000
+Ciudadan Mex: Este era.
+
+02:24:21.000 --> 02:24:32.000
+Ciudadan Mex: En miembros. Jason: déjalo, vacío, ahorita y nombre también el nombre, pues poncela por si si lo llegamos a ocupar, pero creo que nos vamos a ocupar Cdmx.
+
+02:24:35.000 --> 02:24:37.000
+Ciudadan Mex: Pero con minúsculas.
+
+02:24:46.000 --> 02:24:47.000
+Ciudadan Mex: Ajá.
+
+02:24:53.000 --> 02:24:58.000
+Ciudadan Mex: Pues pone alguna de las 2. Ahí vamos a estar haciendo pruebas.
+
+02:24:58.000 --> 02:25:06.000
+Ciudadan Mex: Ese es federal, pero sí vamos a estar para pruebas, Así que, pero, bueno, por ahorita por la federal, así que vamos a estar usando de ambas formas, pero sí ya acuerdo.
+
+02:25:09.000 --> 02:25:15.000
+Ciudadan Mex: Jason. Este pone Siri. No, perdón es.
+
+02:25:15.000 --> 02:25:17.000
+Ciudadan Mex: Country.
+
+02:25:21.000 --> 02:25:26.000
+Ciudadan Mex: Va a ser Country, México.
+
+02:25:28.000 --> 02:25:30.000
+Ciudadan Mex: Country.
+
+02:25:34.000 --> 02:25:41.000
+Ciudadan Mex: Y su valor va a ser, No, este No, No, no. Country es el el nombre de la llave y el valor. Es México.
+
+02:25:52.000 --> 02:25:54.000
+Ciudadan Mex: Pero faltó.
+
+02:25:54.000 --> 02:26:03.000
+Ciudadan Mex: Bueno, lo pusiste como federal, ¿verdad? Bueno, es que supone que Ciudad de México, Ajá Country Ajá! Está bien, está bien Country, México. Pero pone.
+
+02:26:03.000 --> 02:26:05.000
+Ciudadan Mex: Eh.
+
+02:26:05.000 --> 02:26:09.000
+Ciudadan Mex: Cómo se dice en localidad. Hay espérames.
+
+02:26:17.000 --> 02:26:21.000
+Ciudadan Mex: Sí localiti locality.
+
+02:26:25.000 --> 02:26:28.000
+Ciudadan Mex: Ciudad de Mex.
+
+02:26:33.000 --> 02:26:36.000
+Ciudadan Mex: Bueno, Cdmx, perdón.
+
+02:26:44.000 --> 02:26:47.000
+Ciudadan Mex: Ajá y listo!
+
+02:26:48.000 --> 02:26:53.000
+Ciudadan Mex: Ahora vete Ahí Mesman Content Manager a users.
+
+02:26:55.000 --> 02:27:07.000
+Ciudadan Mex: Y de una vez, si quieres todos, ¿eh? Porque todos van a próximamente para lo que sí que vas a hacer. Todos van a necesitar tener una agencia. Entonces, ahora, si quieres ahorita alguno, ya después, ya sabes.
+
+02:27:07.000 --> 02:27:14.000
+Ciudadan Mex: Este ponle, lo tienes que po que llenar ahora su campo agencia y pues la única que hay.
+
+02:27:30.000 --> 02:27:32.000
+Ciudadan Mex: Ajá.
+
+02:27:33.000 --> 02:27:39.000
+Ciudadan Mex: Si si quieres entrar a editar y busca el campo agencia que acabamos de crear, es una relación.
+
+02:27:48.000 --> 02:27:51.000
+Ciudadan Mex: Ajá Exacto.
+
+02:27:52.000 --> 02:27:56.000
+Ciudadan Mex: Ahí te debería de salir la gente, no. Si le das al.
+
+02:28:03.000 --> 02:28:05.000
+Ciudadan Mex: A mí me gusta andar en que no te salga.
+
+02:28:24.000 --> 02:28:26.000
+Ciudadan Mex: Está publicada.
+
+02:28:29.000 --> 02:28:31.000
+Ciudadan Mex: Sí.
+
+02:28:31.000 --> 02:28:34.000
+Ciudadan Mex: Sabes por qué no te está saliendo.
+
+02:28:34.000 --> 02:28:36.000
+Ciudadan Mex: No canse.
+
+02:28:42.000 --> 02:28:53.000
+Ciudadan Mex: Las demás relaciones. Tampoco te salen, ¿verdad? A lo mejor es tema de tu navegador, o sea, si tratas de llenar o o editar algo y otro campo de relación tampoco te sale lo que ahí va.
+
+02:28:53.000 --> 02:28:57.000
+Ciudadan Mex: Mira que otro campo de relación hay arias.
+
+02:28:57.000 --> 02:29:02.000
+Ciudadan Mex: Área. Si le das área, te salen las calles. Y ahí si te salen porque en la agencia no te sale.
+
+02:29:05.000 --> 02:29:07.000
+Ciudadan Mex: A ver en agencia.
+
+02:29:11.000 --> 02:29:14.000
+Ciudadan Mex: A ver reinicia. Strapping.
+
+02:29:21.000 --> 02:29:24.000
+Ciudadan Mex: Tú quieres reírse de servicio.
+
+02:29:39.000 --> 02:29:44.000
+Ciudadan Mex: Sí como que no te está reconociendo todavía el dato para ver, reiniciándolo.
+
+02:29:56.000 --> 02:29:59.000
+Ciudadan Mex: Otro control. Z otro. Hay.
+
+02:30:00.000 --> 02:30:02.000
+Ciudadan Mex: Windows B.
+
+02:30:15.000 --> 02:30:20.000
+Ciudadan Mex: Pero no es vista aquí. En este caso, no es vista. Ahí sí estaba bien, Ajá.
+
+02:30:33.000 --> 02:30:35.000
+Ciudadan Mex: A ver reinicio Strappi.
+
+02:30:37.000 --> 02:30:40.000
+Ciudadan Mex: Este, el servicio.
+
+02:30:40.000 --> 02:30:44.000
+Ciudadan Mex: Desde la consola del del V A, C.
+
+02:30:53.000 --> 02:30:55.000
+Ciudadan Mex: Ese mismo.
+
+02:30:57.000 --> 02:30:59.000
+Ciudadan Mex: Cuánto lo hice? Ya sabes.
+
+02:31:02.000 --> 02:31:03.000
+Ciudadan Mex: Y ahora sí.
+
+02:31:40.000 --> 02:31:50.000
+Ciudadan Mex: Ahorita que ya dejemos visto esta parte de la estructura para que veas cuál va a ser el reto de esto. Nada más va a llevar 2 campos, pero el pequeño reto tampoco es un retazo, ¿no? Pero.
+
+02:31:51.000 --> 02:31:53.000
+Ciudadan Mex: Una taza de pollo.
+
+02:31:53.000 --> 02:31:57.000
+Ciudadan Mex: Pero es hacer un auto, acompletar.
+
+02:31:58.000 --> 02:32:01.000
+Ciudadan Mex: Para la Agencia Federal.
+
+02:32:01.000 --> 02:32:08.000
+Ciudadan Mex: También puede ser para las otras, aunque pues para las otras van a tener 4 o 5 socios. No hay mucho tema. Hasta pueden salir en Madrid.
+
+02:32:08.000 --> 02:32:15.000
+Ciudadan Mex: Pero para la federal que va a manejar cientos o en algún momento miles de registros, hay que hacer un auto a completar.
+
+02:32:16.000 --> 02:32:18.000
+Ciudadan Mex: Ahorita. Te explico.
+
+02:32:28.000 --> 02:32:32.000
+Ciudadan Mex: Ok. Ahora, si ves de nuevo a The User.
+
+02:32:33.000 --> 02:32:35.000
+Ciudadan Mex: Marco a quien usa y.
+
+02:32:39.000 --> 02:32:40.000
+Ciudadan Mex: Ahí está.
+
+02:32:42.000 --> 02:32:44.000
+Ciudadan Mex: Y podrías ir a grabar.
+
+02:32:47.000 --> 02:32:52.000
+Ciudadan Mex: No para que lo tengas claro de una vez. No nos vamos a poner a cojear, pero ya.
+
+02:32:52.000 --> 02:33:06.000
+Ciudadan Mex: Ya tienes un usuario que está en ciudad de Mex. Ahora, a la hora que va a asignar las tareas, Obviamente, va a aparecer la lista con los usuarios a los que ya está asignada en dado caso de que haya de que existan.
+
+02:33:08.000 --> 02:33:22.000
+Ciudadan Mex: Y la de agregar otro usuario no, O sea, si no hay ninguno, pues para agregar usuario y va a agregar al primero a la lista, y puede ser el único, o puede agregar más. Entonces, pues se va a ver la lista y hasta arriba, lo de agregar usuario.
+
+02:33:23.000 --> 02:33:26.000
+Ciudadan Mex: Y bien importante a la hora que le da agregar usuario.
+
+02:33:29.000 --> 02:33:34.000
+Ciudadan Mex: Vamos a tener un campo de búsqueda por nombre de usuario o correo.
+
+02:33:34.000 --> 02:33:36.000
+Ciudadan Mex: Con un auto, a completar.
+
+02:34:16.000 --> 02:34:20.000
+Ciudadan Mex: Entonces este va a tener.
+
+02:34:20.000 --> 02:34:22.000
+Ciudadan Mex: Además.
+
+02:34:31.000 --> 02:34:44.000
+Ciudadan Mex: Obviamente, los usuarios que aparezcan, que que ya están asignados esa tarea, pues desaparece un botoncito de eliminar por si lo quiere qui si lo quiere desasignar de esa tarea. Ok.
+
+02:34:44.000 --> 02:34:52.000
+Ciudadan Mex: Aparece la lista de los que está asignados con su botón de eliminar y agregar nuevos. Vamos a agregar, asignar.
+
+02:34:52.000 --> 02:34:57.000
+Ciudadan Mex: Tarea usuario ahí sería para agregar 1 más a la vista.
+
+02:34:58.000 --> 02:35:03.000
+Ciudadan Mex: Vamos a tener el campo para buscar por nombre o email con un auto a completar.
+
+02:35:17.000 --> 02:35:23.000
+Ciudadan Mex: El auto a completar nada más es si la Agencia es de nivel federal.
+
+02:35:49.000 --> 02:35:51.000
+Ciudadan Mex: ¿por qué?
+
+02:35:49.000 --> 02:35:51.000
+rowan: No es todo.
+
+02:35:51.000 --> 02:35:53.000
+Ciudadan Mex: ¿por qué texting.
+
+02:35:51.000 --> 02:35:53.000
+rowan: Mhm.
+
+02:35:53.000 --> 02:35:56.000
+rowan: Pensé que tenía prendido mi micrófono.
+
+02:35:56.000 --> 02:35:57.000
+Ciudadan Mex: Eh.
+
+02:35:56.000 --> 02:36:01.000
+rowan: Me escucha, Creí que tenía primero mi micrófono me escucha. Pero bueno.
+
+02:35:57.000 --> 02:35:59.000
+Ciudadan Mex: Sí.
+
+02:36:01.000 --> 02:36:04.000
+Ciudadan Mex: Si ya te escucho, pero no estaba prendido a ver dime.
+
+02:36:04.000 --> 02:36:05.000
+rowan: Ahh okay.
+
+02:36:05.000 --> 02:36:07.000
+rowan: Okay.
+
+02:36:07.000 --> 02:36:13.000
+rowan: Pero completado. Es Pa: Es sólo para nivel federal, no el auto completado.
+
+02:36:13.000 --> 02:36:17.000
+Ciudadan Mex: Sí te voy a explicar por qué en esta parte de protección.
+
+02:36:14.000 --> 02:36:16.000
+rowan: Okay Okay.
+
+02:36:17.000 --> 02:36:20.000
+Ciudadan Mex: Las agencias locales. Roboam.
+
+02:36:20.000 --> 02:36:22.000
+rowan: Okay.
+
+02:36:21.000 --> 02:36:26.000
+Ciudadan Mex: Solamente van a tener entre 5, 10 a lo mucho, 15 socios.
+
+02:36:33.000 --> 02:36:35.000
+rowan: Okay.
+
+02:36:35.000 --> 02:36:37.000
+rowan: Cómo, cómo, cómo.
+
+02:36:37.000 --> 02:36:40.000
+Ciudadan Mex: Las agencias de nivel local.
+
+02:36:37.000 --> 02:36:39.000
+rowan: Las agencias.
+
+02:36:40.000 --> 02:36:41.000
+rowan: De nivel local.
+
+02:36:41.000 --> 02:36:44.000
+Ciudadan Mex: Necesito que me pongas atención y ahora tomas las notas.
+
+02:36:44.000 --> 02:36:47.000
+rowan: Ok. Las agencias de nivel local.
+
+02:36:48.000 --> 02:36:53.000
+Ciudadan Mex: Solamente van a tener 5, 10, algo mucho. Quince socios.
+
+02:36:54.000 --> 02:37:00.000
+Ciudadan Mex: Entonces, ¿por qué te digo esto? Esto es importante que me pongas más atención, y ahora lo escribes.
+
+02:36:59.000 --> 02:37:01.000
+rowan: A ver qué.
+
+02:37:00.000 --> 02:37:05.000
+Ciudadan Mex: Porque es muy, sen. Es muy sencillo, pero a la vez es esmera.
+
+02:37:05.000 --> 02:37:19.000
+Ciudadan Mex: Lo que pasa es que las agencias locales, como a lo mucho, van a tener 15 socios. Ahí no vamos a usar el auto a completar ni el campo, de buscar, sino ahí para agregar, cuando le den agregar o asignar a o a un nuevo asignar a a a socio.
+
+02:37:20.000 --> 02:37:30.000
+Ciudadan Mex: Les va a aparecer otro modal más. Ya de procesamos en un modal o en donde usted les va a aparecer otro modal con la lista de los socios.
+
+02:37:30.000 --> 02:37:31.000
+Ciudadan Mex: De esa agencia.
+
+02:37:31.000 --> 02:37:36.000
+Ciudadan Mex: Me explico como nada más son 15, a lo mucho va a ser una pequeña lista.
+
+02:37:36.000 --> 02:37:38.000
+Ciudadan Mex: Ok.
+
+02:37:38.000 --> 02:37:40.000
+rowan: Okay.
+
+02:37:38.000 --> 02:37:42.000
+Ciudadan Mex: Pero, en cambio, si la Agencia es federal.
+
+02:37:43.000 --> 02:37:49.000
+Ciudadan Mex: Van a ser cientos o miles de usuarios. Entonces ahí, en vez de aparecer una lista.
+
+02:37:49.000 --> 02:38:02.000
+Ciudadan Mex: Va a decir un un este, un input text, y con un auto a completar, te va a decir busca por nombre o correo cuando es federal, cuando es local, son poquitos. Entonces va a aparecer una lista.
+
+02:38:03.000 --> 02:38:05.000
+Ciudadan Mex: Me me seguiste hasta aquí.
+
+02:38:03.000 --> 02:38:05.000
+rowan: Okay.
+
+02:38:08.000 --> 02:38:13.000
+Ciudadan Mex: Cuando la Agencia es federal y debe asignar tarea.
+
+02:38:13.000 --> 02:38:20.000
+Ciudadan Mex: Va a ser entre todos los usuarios. Ahorita Va a haber un filtro pero ahorita porque primero quiero que lo conceptualizas. Así, vámonos por escalones.
+
+02:38:20.000 --> 02:38:33.000
+Ciudadan Mex: En cambio, cuando sea lo que es, nada más va a ser una listita. Entonces le va a mostrar todos los usuarios le va a aparecer en cual no, ya que le haga clic, le va a aparecer habilitarse el botón de agregar o asignar.
+
+02:38:33.000 --> 02:38:40.000
+Ciudadan Mex: La asigna, y ya aparece en la lista en esa modal que estábamos en la lista de los usuarios de las que se asignados.
+
+02:38:41.000 --> 02:38:53.000
+Ciudadan Mex: Pero esta pequeña lista es cuando es local, cuando es federal. Quiero que dimensiones. Esto cuando es federal, es enorme, entonces ahí no va a haber tal lista ahí. Tiene que meter.
+
+02:38:53.000 --> 02:38:58.000
+Ciudadan Mex: Las primeras letras del correo o del nombre de usuario.
+
+02:38:59.000 --> 02:39:01.000
+rowan: Norte.
+
+02:39:00.000 --> 02:39:05.000
+Ciudadan Mex: Ahora en ambos casos, tanto en el local, que es una visita.
+
+02:39:05.000 --> 02:39:10.000
+Ciudadan Mex: Como en el Federal, que es, entre todos los usuarios de la plataforma.
+
+02:39:12.000 --> 02:39:20.000
+Ciudadan Mex: Si la tarea es general, no va a importar el área si es federal y general el tipo de tarea, el tipo.
+
+02:39:20.000 --> 02:39:23.000
+Ciudadan Mex: Y el nivel de la agencia es federal.
+
+02:39:23.000 --> 02:39:26.000
+Ciudadan Mex: Se las va a mostrar a todos los usuarios de la red.
+
+02:39:26.000 --> 02:39:29.000
+Ciudadan Mex: Pero si la tarea es federal.
+
+02:39:29.000 --> 02:39:35.000
+Ciudadan Mex: Pero es especializada del área, por ejemplo, de software.
+
+02:39:35.000 --> 02:39:41.000
+Ciudadan Mex: Se la va a mostrar a todos los de la red no nada más a los de esa agencia, sino a todos los de la red, pero.
+
+02:39:41.000 --> 02:39:47.000
+Ciudadan Mex: Que tengan la la el área de software, el área de especialidad de software.
+
+02:39:47.000 --> 02:39:55.000
+Ciudadan Mex: En su perfil o en sus skis. Ahora vemos cómo es esa estructura, pero que con que tengan esa esa área de.
+
+02:39:56.000 --> 02:40:02.000
+Ciudadan Mex: De la que es la especialidad de la tarea, esto es, en las especialidades.
+
+02:40:02.000 --> 02:40:10.000
+Ciudadan Mex: En las generales es para toda su base. Con base, pues me refiero a que si es local, pues para sus 10 o 15 socios, todos.
+
+02:40:10.000 --> 02:40:14.000
+Ciudadan Mex: Y si es general, pues para todos los usuarios de la red.
+
+02:40:16.000 --> 02:40:26.000
+Ciudadan Mex: Entonces vamos ahora a otra si es especializada y es federal, ya quedamos que a todos los usuarios de la red, pero que tengan esa área, no de la que es la especialidad de la tarea.
+
+02:40:28.000 --> 02:40:33.000
+Ciudadan Mex: Y vamos al caso más pequeñito, si es una agencia local.
+
+02:40:34.000 --> 02:40:49.000
+Ciudadan Mex: Y la tarea que va a asignar es de especialidad. Pues sí, vamos. Ahí Sí, se muestra el modal con la lista, porque quedamos que suena lo mucho 15 usuarios, pero no va a mostrar a los 15 o 10, sino nada más a los que tengan a los 2 o 3 que tengan la especialidad.
+
+02:40:49.000 --> 02:40:53.000
+Ciudadan Mex: De la que es la tarea especializada. Me expliqué.
+
+02:40:56.000 --> 02:41:03.000
+Ciudadan Mex: O sea, la Federal se la va a mostrar a todos los usuarios, pero vamos a hacer del filtro si es especializada.
+
+02:41:03.000 --> 02:41:11.000
+Ciudadan Mex: A los que tengan esa área de especialidad y las locales. Solo se las va a mostrar a los socios de esa agencia local.
+
+02:41:12.000 --> 02:41:15.000
+Ciudadan Mex: Si es general a todos los de esa agencia local.
+
+02:41:15.000 --> 02:41:18.000
+Ciudadan Mex: Y si es especializada.
+
+02:41:18.000 --> 02:41:27.000
+Ciudadan Mex: Solo los de esa agencia local y, a su vez, no a todos los de esa agencia local, sino solo los de esa agencia local que, además, tengan la área de especialidad.
+
+02:41:27.000 --> 02:41:30.000
+Ciudadan Mex: De esa tarea. Me expliqué.
+
+02:41:34.000 --> 02:41:35.000
+rowan: No te.
+
+02:41:38.000 --> 02:41:40.000
+Ciudadan Mex: Sí. Me expliqué.
+
+02:41:40.000 --> 02:41:45.000
+rowan: Ok, Va es un poquito más.
+
+02:41:46.000 --> 02:41:48.000
+rowan: Un un poco más de este.
+
+02:41:48.000 --> 02:41:52.000
+rowan: Compuso de Favor Okay.
+
+02:41:52.000 --> 02:41:59.000
+rowan: Eso es en correlación de otro tema. No, esa es la búsqueda da usted completado.
+
+02:41:59.000 --> 02:42:02.000
+rowan: Okay lo busquen.
+
+02:42:00.000 --> 02:42:07.000
+Ciudadan Mex: Esa es la búsqueda a la hora que se va a asignar la tarea, ya sea cuando la crea o después, cuando entre en asignar tareas, el socio.
+
+02:42:02.000 --> 02:42:03.000
+rowan: Mhm.
+
+02:42:08.000 --> 02:42:15.000
+Ciudadan Mex: Aquí. Lo que estamos viendo es que a quien se la puede asignar se la va a asignar a alguien, no a quien se la puede asignar.
+
+02:42:15.000 --> 02:42:18.000
+Ciudadan Mex: Son 2 preguntas.
+
+02:42:18.000 --> 02:42:20.000
+Ciudadan Mex: Primero.
+
+02:42:21.000 --> 02:42:25.000
+Ciudadan Mex: La agencia es local o federal.
+
+02:42:26.000 --> 02:42:37.000
+Ciudadan Mex: Si es local, vamos a hacer un primer grupo que después vamos a hacer un filtrado dependiendo ahí, vamos. Si es local. Vamos a tener un subgrupo que nada más sea.
+
+02:42:37.000 --> 02:42:42.000
+Ciudadan Mex: Los socios de su agencia, perdón. Los usuarios de su Agencia.
+
+02:42:43.000 --> 02:42:47.000
+Ciudadan Mex: Cualquier usuario que en el campo agencia tenga esta agencia no.
+
+02:42:47.000 --> 02:42:49.000
+Ciudadan Mex: Si es local.
+
+02:42:49.000 --> 02:42:54.000
+Ciudadan Mex: Pero si es federal, es a todos los usuarios de la red.
+
+02:42:54.000 --> 02:43:05.000
+Ciudadan Mex: Esta fue la primer pregunta, ya que tenemos nuestro subgrupo, que quedamos que si era una agencia local, pues era nada más a los usuarios de su Agencia.
+
+02:43:05.000 --> 02:43:10.000
+Ciudadan Mex: Quisiera una Agencia Federal. Teníamos un grupo que todavía es a filtrar.
+
+02:43:10.000 --> 02:43:19.000
+Ciudadan Mex: Que era todos los usuarios de la red, sin importar de qué agencia sean, si es federal, es todos los usuarios de la red. Todos los usuarios de México.
+
+02:43:21.000 --> 02:43:26.000
+Ciudadan Mex: Ahora, ya que tenemos ese subgrupo. Vamos a ver si aplica el filtro. No.
+
+02:43:26.000 --> 02:43:34.000
+Ciudadan Mex: Que filtró la tarea es especializada o general. Si es general, ya no se filtra nada. Ya Ya tenemos.
+
+02:43:34.000 --> 02:43:41.000
+Ciudadan Mex: Que si era agencia local, pues entonces sus 10 o 15 socios van a aparecer en una lista.
+
+02:43:44.000 --> 02:43:47.000
+Ciudadan Mex: Hiciera Agencia Federal.
+
+02:43:47.000 --> 02:43:58.000
+Ciudadan Mex: Pues no van a aparecer todos los usuarios, porque son muchos, sino que va a aparecer un input text con un auto a completar en el que va a buscar entre todos los usuarios de la red.
+
+02:44:00.000 --> 02:44:01.000
+Ciudadan Mex: Ahora.
+
+02:44:01.000 --> 02:44:05.000
+Ciudadan Mex: Nos toca responder la segunda pregunta.
+
+02:44:06.000 --> 02:44:09.000
+Ciudadan Mex: La tarea es especializada.
+
+02:44:09.000 --> 02:44:12.000
+Ciudadan Mex: Si la tarea es especializada.
+
+02:44:12.000 --> 02:44:14.000
+Ciudadan Mex: Sí va a llevar filtro.
+
+02:44:16.000 --> 02:44:32.000
+Ciudadan Mex: Si la tarea no estés especializada ya va a quedar así nuestro grupo como como Así pues, quedamos que que Nuestra pregunta anterior fue si era local o federal el que que le está asignando, no la agencia que le está asignando. Si era local. Quedamos que el grupo entonces iba a ser.
+
+02:44:32.000 --> 02:44:38.000
+Ciudadan Mex: Los 10. Vamos a llamarle Diez ahorita. No hablamos o 15 Vamos a llamarle 15 usuarios.
+
+02:44:38.000 --> 02:44:42.000
+Ciudadan Mex: Los ay. Perdón es que no suena más 15.
+
+02:44:42.000 --> 02:44:45.000
+Ciudadan Mex: Bueno, los n canti.
+
+02:44:47.000 --> 02:44:50.000
+Ciudadan Mex: La lógica es la misma.
+
+02:44:50.000 --> 02:44:55.000
+Ciudadan Mex: Nada más que en ambos casos vamos a presentar el auto a completar.
+
+02:44:55.000 --> 02:44:59.000
+Ciudadan Mex: Ya no vamos a hacer lo de mostrar todos los.
+
+02:44:59.000 --> 02:45:01.000
+Ciudadan Mex: Espérate espérame.
+
+02:45:07.000 --> 02:45:10.000
+Ciudadan Mex: No. Si vamos a seguir así como estamos, entonces.
+
+02:45:10.000 --> 02:45:13.000
+Ciudadan Mex: Si la tarea es general.
+
+02:45:14.000 --> 02:45:20.000
+Ciudadan Mex: Pues ya nada más va a mostrarte cómo quedamos si es este del nivel federal.
+
+02:45:20.000 --> 02:45:28.000
+Ciudadan Mex: Va a mostrar el auto a completar y va a poder ahí. Este cualquier usuario aparece en ese autocompletar cualquier usuario.
+
+02:45:30.000 --> 02:45:32.000
+Ciudadan Mex: Porque es general.
+
+02:45:34.000 --> 02:45:37.000
+Ciudadan Mex: Si es especializada.
+
+02:45:37.000 --> 02:45:48.000
+Ciudadan Mex: Se va a traer a todos los usuarios de la red, no nada más a los de esta agencia, pero filtrados nada más por los que tengan el área de especialidad de la tarea.
+
+02:45:49.000 --> 02:45:52.000
+Ciudadan Mex: Que haga Match con el área de especialidad de la tarea.
+
+02:45:52.000 --> 02:45:57.000
+Ciudadan Mex: Ahora, en el caso de que fue agencia local.
+
+02:45:57.000 --> 02:46:06.000
+Ciudadan Mex: Lo mismo si es una tarea general agencia local, pero la tarea no es de especialidad si no es general.
+
+02:46:07.000 --> 02:46:12.000
+Ciudadan Mex: Pues ya no los filtra, ya muestra todos los 20, 30.
+
+02:46:12.000 --> 02:46:14.000
+Ciudadan Mex: Y.
+
+02:46:15.000 --> 02:46:21.000
+Ciudadan Mex: Miembros que tengan en el campo Agencia, pues esa Agencia que pertenezca en esa Agencia.
+
+02:46:21.000 --> 02:46:22.000
+Ciudadan Mex: Todos.
+
+02:46:22.000 --> 02:46:24.000
+Ciudadan Mex: Eeeh.
+
+02:46:24.000 --> 02:46:26.000
+Ciudadan Mex: Sí, sí, en general ajá.
+
+02:46:33.000 --> 02:46:36.000
+Ciudadan Mex: También con el auto. Acompletar el Rowan.
+
+02:46:37.000 --> 02:46:49.000
+Ciudadan Mex: Exactamente ambas que todas sean con el auto a completar, pero ahorita. No nos hagamos bolas. Este lo que importa es qué tip que usuarios puede mostrar, pero todas va a ser con el auto a completar y el Text, en vez de.
+
+02:46:51.000 --> 02:47:00.000
+Ciudadan Mex: Ok. Pero lo que es lo que me está importando es que entiendas la parte de que estamos en la hora en los casos de agencia local.
+
+02:46:52.000 --> 02:46:53.000
+rowan: Okay.
+
+02:47:00.000 --> 02:47:06.000
+Ciudadan Mex: Si es general de, o sea, de ámbito de de nivel local, pues la agencia local.
+
+02:47:06.000 --> 02:47:19.000
+Ciudadan Mex: Pero la tarea es general. Quedamos entonces que les va a permitir el mismo auto completar. Pero los usuarios que van a poder aparecer en ese auto a completar. Son todos los usuarios que s que que pertenezcan a esa agencia.
+
+02:47:19.000 --> 02:47:23.000
+Ciudadan Mex: Y, por otro lado, si es.
+
+02:47:24.000 --> 02:47:29.000
+Ciudadan Mex: Si la agencia o el socio, pues que está creando asignando la tarea.
+
+02:47:29.000 --> 02:47:34.000
+Ciudadan Mex: Per La agencia a la que pertenece este socio es de nivel local.
+
+02:47:34.000 --> 02:47:40.000
+Ciudadan Mex: Y la tarea aparte es una tarea que es de nivel de especialidad.
+
+02:47:40.000 --> 02:47:53.000
+Ciudadan Mex: Se la va a mostrar solamente a los socios de esta G perdón solamente a los usuarios afiliados o relacionados a esta agencia, de entre los que pertenecen esta agencia.
+
+02:47:54.000 --> 02:48:02.000
+Ciudadan Mex: A su vez, va a filtrar nada más los que tengan el área de especialidad que coincide que corresponde a esta tarea. Ok.
+
+02:48:06.000 --> 02:48:11.000
+Ciudadan Mex: Son como 2 filtrados, no general, pues es para todos.
+
+02:48:11.000 --> 02:48:23.000
+Ciudadan Mex: Y segundo filtro, tenemos a todos los usuarios, pero como es especializada en los casos que es especializada de entre todos los usuarios, todos los que tengan el área de especialidad.
+
+02:48:24.000 --> 02:48:32.000
+Ciudadan Mex: Sí es una tarea general, pero de que está siendo asignada por un socio de una agencia local.
+
+02:48:32.000 --> 02:48:36.000
+Ciudadan Mex: Pues van a ser todos los socios. Pero los que están.
+
+02:48:36.000 --> 02:48:40.000
+Ciudadan Mex: Afiliados a esos relacionados a esa agencia.
+
+02:48:40.000 --> 02:48:47.000
+Ciudadan Mex: Y, por otro lado, la que lleva más filtrado es la que, aparte de ser de agencia local.
+
+02:48:47.000 --> 02:48:53.000
+Ciudadan Mex: A su vez, es de especialidad, en cuyo caso nada más se les va a mostrar a los.
+
+02:48:53.000 --> 02:48:57.000
+Ciudadan Mex: Usuarios que estén relacionados a esa Agencia.
+
+02:48:57.000 --> 02:49:02.000
+Ciudadan Mex: Pero no a todos esos, sino nada más a los que, aparte de pertenecer a esa agencia.
+
+02:49:03.000 --> 02:49:16.000
+Ciudadan Mex: Tengan el área de especialidad correspondiente a la A A con la con el área de especialidad de la tarea. Ahora sí me terminé de explicar. O si tienes dudas, tú dime, no hay problema.
+
+02:49:16.000 --> 02:49:18.000
+Ciudadan Mex: Hacemos un ejemplo.
+
+02:49:16.000 --> 02:49:18.000
+rowan: Okay.
+
+02:49:16.000 --> 02:49:18.000
+rowan: Okay.
+
+02:49:18.000 --> 02:49:20.000
+rowan: Uh, please.
+
+02:49:18.000 --> 02:49:20.000
+rowan: Ah, pues.
+
+02:49:20.000 --> 02:49:22.000
+rowan: This is John Toloki, and I can't speak up, please.
+
+02:49:20.000 --> 02:49:22.000
+rowan: He escuchado todo lo que me acabas de explicar, pues.
+
+02:49:23.000 --> 02:49:29.000
+rowan: Uh, honestly, I'm not sure if it extends to the generals, but I'm sure it does.
+
+02:49:23.000 --> 02:49:29.000
+rowan: Honestamente, sí es muy extenso. De hecho, recibo bastante tiempo.
+
+02:49:29.000 --> 02:49:30.000
+rowan: Well…
+
+02:49:29.000 --> 02:49:30.000
+rowan: Sí.
+
+02:49:30.000 --> 02:49:33.000
+rowan: Cuiz, logre puntar lo que…
+
+02:49:30.000 --> 02:49:33.000
+rowan: Pues logré apuntar lo que.
+
+02:49:30.000 --> 02:49:43.000
+Ciudadan Mex: Si te fijas es, si te fijas, es, no es tanto. Más bien, es que lo termines ya de conceptualizar, te voy a encargar que si quieres, empecemos porque hagas un esquema para que lo tengas bien claro, porque.
+
+02:49:34.000 --> 02:49:36.000
+rowan: Uh-huh.
+
+02:49:34.000 --> 02:49:36.000
+rowan: Ajá.
+
+02:49:43.000 --> 02:49:51.000
+Ciudadan Mex: Pues sí nos estamos atorando ya con el tiempo. Eh, esto esto no es para tiempo de otro Sprint, esto ya nada más. Es para que lo entiendas.
+
+02:49:45.000 --> 02:49:47.000
+rowan: Okay.
+
+02:49:45.000 --> 02:49:47.000
+rowan: Sí.
+
+02:49:51.000 --> 02:49:56.000
+Ciudadan Mex: Y estamos hablando de de agregar 2 campos a lo que ya estás.
+
+02:49:56.000 --> 02:50:07.000
+Ciudadan Mex: Uno, que es el de que si es este asignable o no, y luego el segundo es de a quien nada más es que tengas clara la regla de de a quién se puede seleccionar.
+
+02:50:07.000 --> 02:50:12.000
+Ciudadan Mex: Entonces espero que no te tardes demasiado en entenderlo, porque si ya vamos con la premura.
+
+02:50:13.000 --> 02:50:15.000
+rowan: Okay.
+
+02:50:13.000 --> 02:50:15.000
+rowan: Ok.
+
+02:50:15.000 --> 02:50:27.000
+Ciudadan Mex: Entonces este echan a checar y cualquier cosa. Vamos a preguntar por Whats, pero yo espero que sí lo entiendas, sino hasta con tus mismos apuntes. Aunque no sean del todo en orden. Chat, G, P, T, te puede ayudar a explicarte de explicártelo.
+
+02:50:27.000 --> 02:50:34.000
+Ciudadan Mex: ¿para qué? Porque le quité niveles de complejidad. Rowan para que vayas agarrando práctica. Porque si se van a estar agarrar, le digo.
+
+02:50:29.000 --> 02:50:30.000
+rowan: Mm-hmm.
+
+02:50:29.000 --> 02:50:30.000
+rowan: Mhm.
+
+02:50:36.000 --> 02:50:39.000
+rowan: See, I look at… I look at other applications that…
+
+02:50:36.000 --> 02:50:39.000
+rowan: Sí es lo que es lo que veo de la aplicación. Está.
+
+02:50:42.000 --> 02:50:50.000
+Ciudadan Mex: Digo, es así, es relativamente complejidad, pues para cuando se va agarrando práctica, pero ya en proyectos reales no está tan complejo.
+
+02:50:50.000 --> 02:50:55.000
+rowan: Si, bueno, es que, uh, noronmente como trabajo…
+
+02:50:50.000 --> 02:50:55.000
+rowan: Sí bueno es que normalmente, cuando trabajo.
+
+02:50:55.000 --> 02:51:00.000
+rowan: Completos de… de trabajo completos mas grandes, pero…
+
+02:51:00.000 --> 02:51:06.000
+rowan: Pero la forma de trabajo es completamente diferente, trabajamos bajo.
+
+02:51:06.000 --> 02:51:10.000
+rowan: Bajo es quemas y influjos de trabajo.
+
+02:51:08.000 --> 02:51:21.000
+Ciudadan Mex: Sí, claro. Te lo dan ya hecho, pero es que a lo que vamos es de que estás ya resapareciendo la parte de resolver definitivamente. No puedes llegar ni a ser un junior completo. Si no sabes la parte de resolver entonces aquí ya está muy muy claro.
+
+02:51:10.000 --> 02:51:11.000
+rowan: Yep.
+
+02:51:15.000 --> 02:51:17.000
+rowan: Sure.
+
+02:51:21.000 --> 02:51:35.000
+Ciudadan Mex: Pero es pasarla también A. O sea, yo entiendo que hay veces que te dan nombres de campos y todo lo que sí tenía algunos, ¿no? Pero aquí vamos a aplicar la parte de resolver. Digamos que apenas a niveles sencillos porque digo, no lleva tanto.
+
+02:51:27.000 --> 02:51:28.000
+rowan: Two.
+
+02:51:30.000 --> 02:51:32.000
+rowan: Oh, okay.
+
+02:51:35.000 --> 02:51:41.000
+Ciudadan Mex: Si te fijas no es tanto. Son 2 campos extra, pero si necesitamos esa parte resolutiva de que lo comprendas.
+
+02:51:36.000 --> 02:51:37.000
+rowan: Mm-hmm.
+
+02:51:41.000 --> 02:51:45.000
+Ciudadan Mex: De que comprendas los elementos, teoría de conjuntos y demás.
+
+02:51:45.000 --> 02:51:55.000
+Ciudadan Mex: Ya ya ya ya repetí como 4 veces la parte de conjunto, si está la grabación, o sea, ya fue muy claro en en en parte de filtrados. Es.
+
+02:51:54.000 --> 02:51:57.000
+rowan: No, no, no, no, no.
+
+02:51:55.000 --> 02:52:10.000
+Ciudadan Mex: Entonces sí, sí, sí, Sí, te llega a batallar mucho ya me preguntas, pero pasas en la chatg Pt y repasas un montón para que ya al rato lo vas a agarrar más rápido, te va a servir mucho de entender conjuntos. Yo creo que lo viste. Pero aplicarlo.
+
+02:52:00.000 --> 02:52:01.000
+rowan: Okay.
+
+02:52:10.000 --> 02:52:11.000
+rowan: to…
+
+02:52:11.000 --> 02:52:17.000
+Ciudadan Mex: Porque conjuntos, o sea, básicamente por lo que tú estás atorados por no ide definir conjuntos. No.
+
+02:52:17.000 --> 02:52:23.000
+Ciudadan Mex: Ya lo ya repetí muchas veces así los 2 conjuntos, O sea, tenemos el de general.
+
+02:52:23.000 --> 02:52:39.000
+Ciudadan Mex: Y tenemos general y de especialidad. Y, por otro lado, tenemos federal y local, Ya nada más es encontrar las intersecciones. Eso se hace mentalmente con escuchándolo 2 o 3 veces. Pero si se te atora, pues ejercítalo.
+
+02:52:23.000 --> 02:52:24.000
+rowan: Mm-hmm.
+
+02:52:38.000 --> 02:52:39.000
+rowan: Mm-hmm.
+
+02:52:39.000 --> 02:52:45.000
+Ciudadan Mex: Con la info que tienes ahí, ya te va a hacer. Le puedes pedir hasta que te hagas las intersecciones y te lo va a hacer con 2 circulitos.
+
+02:52:45.000 --> 02:52:50.000
+Ciudadan Mex: Es es que me diagramas de Gant, entonces este.
+
+02:52:50.000 --> 02:53:03.000
+Ciudadan Mex: Pues vamos. Es, te digo, nada más. Es identificar bien qué conjunto se excluyen y cuáles se incluyen y cuáles en intersecciones. Y ya lo vas a ir entendiendo más rápido, porque esto a nivel resolver no debería de ser tanto.
+
+02:53:03.000 --> 02:53:17.000
+Ciudadan Mex: Tanto, yo, o sea, las generales, a su vez, pueden ser especializadas, perdón, No, las federales pueden ser a su vez generales o especializadas y, de igual modo, las locales pueden ser generales o especializadas.
+
+02:53:21.000 --> 02:53:30.000
+Ciudadan Mex: Entonces la federal, pues tienes un primer grupo, que es todos los usuarios y un segundo filtro que se aplica o no, que es la especialidad.
+
+02:53:30.000 --> 02:53:47.000
+Ciudadan Mex: Y las locales. Igual nada más que ahí, ya tienes un primer filtro, que es solamente lo su proceso. El hecho de ser local es solamente los usuarios que están relacionados a esta Agencia y un segundo filtro, que es que si son especializadas, pues van a ser solos los que.
+
+02:53:47.000 --> 02:53:58.000
+Ciudadan Mex: Los usuarios que ya quedamos, que ya hicimos un primer filtro, es decir, que sean solamente de esta Agencia, y El segundo filtro va a ser que solamente sean los de la especialidad de esta tarea.
+
+02:53:58.000 --> 02:54:03.000
+Ciudadan Mex: Y si no lleva el filtro, pues ya va a ser, pues todos todos los de esta agencia.
+
+02:54:03.000 --> 02:54:19.000
+Ciudadan Mex: En el caso de las de ámbito nacional, entonces pues ahí ya creo que también, además, te pasó, ahorita la grabación, si es necesario, ya ya escuchaste de nuevo, porque si es necesario ejercitar esta parte, entonces, pues, si la forma de ejercitarla es que vuelvas a entrar a la grabación. Pues ya.
+
+02:54:19.000 --> 02:54:23.000
+Ciudadan Mex: Te serviría para, pues, poder resolverlo. ¿no? ¿cómo ves.
+
+02:54:37.000 --> 02:54:43.000
+Ciudadan Mex: Ahí. Se todavía me escuchas porque se cayó tu tu.
+
+02:54:43.000 --> 02:54:46.000
+Ciudadan Mex: Uno de tus teléfonos, Okay.
+
+02:54:48.000 --> 02:54:52.000
+Ciudadan Mex: Ahí ya te escucho. Bien, bueno, escucho el rollo. Sí.
+
+02:54:50.000 --> 02:54:52.000
+Rowan: Ms. Kucha?
+
+02:54:52.000 --> 02:54:55.000
+Ciudadan Mex: Ahí ya te escuchará si desde tu compu vientos.
+
+02:54:56.000 --> 02:55:01.000
+Rowan: Okay, they have a connection with the prisoners, as if in Germany.
+
+02:55:03.000 --> 02:55:08.000
+Ciudadan Mex: Entonces, yo creo yo, que los escucha.
+
+02:55:39.000 --> 02:55:41.000
+Rowan: Ms. Kutcher, you want to know?
+
+02:55:42.000 --> 02:55:44.000
+Ciudadan Mex: Sí, ahí te escucho.
+
+02:56:01.000 --> 02:56:03.000
+Ciudadan Mex: A ver.
+
+02:56:03.000 --> 02:56:04.000
+Rowan: Brown.
+
+02:56:04.000 --> 02:56:06.000
+Ciudadan Mex: Ahí te escucho. Bien.
+
+02:56:09.000 --> 02:56:12.000
+Rowan: Getting connected makes a lot of difference.
+
+02:56:24.000 --> 02:56:26.000
+Rowan: Can you hear me, Ms. Butcher.
+
+02:56:27.000 --> 02:56:29.000
+Ciudadan Mex: Sí, ahí te escucho.
+
+02:56:41.000 --> 02:56:42.000
+Rowan: No, no.
+
+02:56:43.000 --> 02:56:45.000
+Ciudadan Mex: Sí, ahí te escucho.
+
+02:56:55.000 --> 02:56:57.000
+Ciudadan Mex: Ahí me escuchas.
+
+02:56:57.000 --> 02:56:59.000
+Ciudadan Mex: Ahí me escuchas.
+
+02:57:04.000 --> 02:57:06.000
+Ciudadan Mex: Ahí. Me escuchas jazz.
+
+02:57:09.000 --> 02:57:11.000
+Ciudadan Mex: Si me escuchas.
+
+02:57:11.000 --> 02:57:16.000
+Rowan: Since I was a kid, I've always wanted to have a good time.
+
+02:57:12.000 --> 02:57:14.000
+Ciudadan Mex: Y entonces.
+
+02:57:23.000 --> 02:57:27.000
+Rowan: Excuse me, I have to go to the bathroom.
+
+02:57:44.000 --> 02:57:46.000
+Rowan: Copy.
+
+02:57:46.000 --> 02:57:58.000
+Ciudadan Mex: Entonces Rowan, si me escuchas de la parte de que si necesitas repetir porque ahorita, sí, ya te faltan. Este Sí, sí me escuchaste de la parte de si necesitas repetir la.
+
+02:57:46.000 --> 02:57:48.000
+Rowan: Okay, same as Kucha, right?
+
+02:57:53.000 --> 02:57:54.000
+Rowan: Okay.
+
+02:57:58.000 --> 02:58:01.000
+Rowan: Okay, eh, bueno, eh…
+
+02:57:59.000 --> 02:58:07.000
+Ciudadan Mex: Te paso. Te paso el enlace de la sesión, por si empiezas a repetir esta parte para descargarla, porque ya la repetí muchas cosas.
+
+02:58:06.000 --> 02:58:14.000
+Rowan: Okay, bueno, the ultimate part that I want to talk about is the masculinity of the masculinity.
+
+02:58:06.000 --> 02:58:14.000
+Rowan: Ok. Bueno, la última parte que hablamos sobre la búsqueda y autocompletado, pues ya me queda más claro también lo que habíamos publicado.
+
+02:58:14.000 --> 02:58:20.000
+Rowan: Sobre los 2 campos, 3 generales, 3 especializadas asignadas.
+
+02:58:14.000 --> 02:58:20.000
+Rowan: Eh, for those campus, three generales, three specializadas, espinadas.
+
+02:58:20.000 --> 02:58:25.000
+Rowan: Y agencias federales y locales. Ese día quedó claro, igual. La sesión de.
+
+02:58:20.000 --> 02:58:25.000
+Rowan: Y agentes federales y locales. Este es aqui que lo claro, igual a siciende.
+
+02:58:23.000 --> 02:58:25.000
+Ciudadan Mex: Ahh: Perfecto.
+
+02:58:26.000 --> 02:58:32.000
+Rowan: Crear tarea y asignar tareas de hecho, pues ya con los apuntes que tengo, pues ya.
+
+02:58:26.000 --> 02:58:32.000
+Rowan: Create alteria y signalteria. De hecho, pues, ya con los apuntes que tengo.
+
+02:58:31.000 --> 02:58:44.000
+Ciudadan Mex: Ese excelente oye. Nos falta una parte, aparte de checar lo de lo de resolver, tareas que que que esa parte, no la puedo checar, pero antes acabando con los detalles que hay que hacer ahora.
+
+02:58:32.000 --> 02:58:33.000
+Rowan: Es más claro.
+
+02:58:32.000 --> 02:58:33.000
+Rowan: It's mosquitoes.
+
+02:58:38.000 --> 02:58:40.000
+Rowan: Okay.
+
+02:58:38.000 --> 02:58:40.000
+Rowan: Okay.
+
+02:58:43.000 --> 02:58:44.000
+Rowan: Mhm.
+
+02:58:44.000 --> 02:58:47.000
+Ciudadan Mex: Ahora mismo.
+
+02:58:47.000 --> 02:58:52.000
+Ciudadan Mex: Tenemos, qué roles estás manejando. Me dijiste que admin.
+
+02:58:51.000 --> 02:59:03.000
+Rowan: Ah, okay. Si, bueno, uso admin y tengo el social. So this is this tengo. Porque falo el que tengo para que ser en muestra en la. Las funciones que habiamos que era.
+
+02:58:51.000 --> 02:59:03.000
+Rowan: Ah, Ok, Sí, Bueno, uso Adn y tengo el de socio sólo esos 2. Tengo por default, es la que tengo para que se le muestren las funciones que habíamos quedado.
+
+02:59:04.000 --> 02:59:09.000
+Rowan: Si cuando se le quita el el rol, pues ya queda como usuario muy importante.
+
+02:59:04.000 --> 02:59:09.000
+Rowan: Si, cuando se lequita el rol, pues ya quiera como usario como importante.
+
+02:59:08.000 --> 02:59:11.000
+Ciudadan Mex: Vamos a seguirlos manejando así.
+
+02:59:11.000 --> 02:59:12.000
+Rowan: Okay.
+
+02:59:11.000 --> 02:59:12.000
+Rowan: Okay.
+
+02:59:12.000 --> 02:59:19.000
+Ciudadan Mex: Admin es el administrador de una agencia y vamos a tener un usuario más pero ahorita. Tal vez no se ha usado para nada.
+
+02:59:19.000 --> 02:59:29.000
+Ciudadan Mex: Pero te lo comento para que lo tengas presente. No tienes que hacer ningún cambio de código, pero nada más que sepas que va a existir un usuario más que ese root.
+
+02:59:28.000 --> 02:59:31.000
+Rowan: Okay.
+
+02:59:28.000 --> 02:59:31.000
+Rowan: Ok.
+
+02:59:31.000 --> 02:59:38.000
+Ciudadan Mex: Incluso puede que haya tal vez algo como Ruth y haya plural, porque Ruth.
+
+02:59:38.000 --> 02:59:45.000
+Ciudadan Mex: Tal vez haya varios niveles de ruta. Me voy a terminar de checar hoy, pero lo vamos a manejar como ruth y súper root tal vez.
+
+02:59:45.000 --> 02:59:52.000
+Ciudadan Mex: Pero ahorita. Está bien que esto lo dejes en Admin asmin es el administrador de una agencia, pero, bueno.
+
+02:59:52.000 --> 02:59:56.000
+Ciudadan Mex: Y socio es cualquier socio de una agencia.
+
+02:59:56.000 --> 03:00:05.000
+Ciudadan Mex: Entonces para ti no significa ningún cambio. Ahorita. ¿es este. Eso va a ser para otros módulos, pero bueno para que lo tengas en presente.
+
+02:59:57.000 --> 02:59:58.000
+Rowan: Sí.
+
+03:00:07.000 --> 03:00:17.000
+Rowan: Si es es en los que estuve trabajando de hecho, eso que habiamos trabajo pergamente conozionar llamada. Ok.
+
+03:00:07.000 --> 03:00:17.000
+Rowan: Si es este lo que estuve trabajando, de hecho, es lo que habíamos probado previamente cuando empezaron a llevar.
+
+03:00:08.000 --> 03:00:09.000
+Ciudadan Mex: En el.
+
+03:00:14.000 --> 03:00:20.000
+Ciudadan Mex: Sí está bien. Ahora, la la única diferencia que sí vamos a hacer.
+
+03:00:20.000 --> 03:00:21.000
+Rowan: Mm-hmm.
+
+03:00:20.000 --> 03:00:21.000
+Rowan: Mhm.
+
+03:00:21.000 --> 03:00:24.000
+Ciudadan Mex: Ese icono que va a mostrar.
+
+03:00:25.000 --> 03:00:32.000
+Ciudadan Mex: Entonces bien importante acuérdate que no debe de mostrar el botón de socio ni de admin.
+
+03:00:26.000 --> 03:00:27.000
+Rowan: Okay.
+
+03:00:26.000 --> 03:00:27.000
+Rowan: ¿por qué?
+
+03:00:27.000 --> 03:00:29.000
+Rowan: Y.
+
+03:00:33.000 --> 03:00:35.000
+Ciudadan Mex: En las Taff.
+
+03:00:36.000 --> 03:00:37.000
+Ciudadan Mex: Allá arriba.
+
+03:00:38.000 --> 03:00:45.000
+Ciudadan Mex: A la izquierda ese si no ahorita, sí, porque eres socio o admin ya sea socio o admin.
+
+03:00:39.000 --> 03:00:40.000
+Rowan: Thank you.
+
+03:00:39.000 --> 03:00:40.000
+Rowan: Aquí, ¿verdad?
+
+03:00:42.000 --> 03:00:43.000
+Rowan: Mhm.
+
+03:00:45.000 --> 03:00:50.000
+Ciudadan Mex: Va a mostrar socio o admit, según sea el caso.
+
+03:00:47.000 --> 03:00:49.000
+Rowan: Okay.
+
+03:00:47.000 --> 03:00:49.000
+Rowan: Okay.
+
+03:00:59.000 --> 03:01:03.000
+Rowan: Okay. This time.
+
+03:01:04.000 --> 03:01:10.000
+Ciudadan Mex: Vamos a buscar. Ahorita el icono ahorita, buscamos, tienes ubicado dónde está estatua.
+
+03:01:10.000 --> 03:01:17.000
+Rowan: Si, dicho, eh, yer a bien, dicho, eh, lo que eu lleo en conlo, antes, esperano, a ver a per.
+
+03:01:10.000 --> 03:01:11.000
+Ciudadan Mex: Ahora te lo pico.
+
+03:01:33.000 --> 03:01:36.000
+Ciudadan Mex: A ver, busca la palabra socio.
+
+03:01:36.000 --> 03:01:39.000
+Ciudadan Mex: De hecho, si le das a control, P.
+
+03:01:39.000 --> 03:01:41.000
+Ciudadan Mex: Control. P: D Papá.
+
+03:01:42.000 --> 03:01:49.000
+Ciudadan Mex: Estando ajá ahí si le das a control, P: te aparecen en orden de los que has abierto. Recientemente.
+
+03:01:55.000 --> 03:01:59.000
+Rowan: Okay, is this number?
+
+03:01:59.000 --> 03:02:10.000
+Ciudadan Mex: A exactamente ahorita. No le vamos a meter las condicionales. Ya tú lo haces, pero nada más. Quiero que probemos el otro icono que vamos a usar. Te lo paso de una vez, espérame.
+
+03:02:12.000 --> 03:02:17.000
+Ciudadan Mex: Cómo se llama el que estamos usando ahorita. ¿me puedes dar el importe que estamos usando para socio.
+
+03:02:21.000 --> 03:02:23.000
+Rowan: Okay.
+
+03:02:29.000 --> 03:02:30.000
+Rowan: Saucy.
+
+03:02:35.000 --> 03:02:38.000
+Rowan: Okay, Subaba, Subaba.
+
+03:02:57.000 --> 03:03:00.000
+Rowan: Growth ecom dissolution.
+
+03:03:00.000 --> 03:03:03.000
+Ciudadan Mex: A ver. Búscalo arriba.
+
+03:03:04.000 --> 03:03:06.000
+Ciudadan Mex: Pásame la línea de Import.
+
+03:03:08.000 --> 03:03:13.000
+Rowan: Okay, it's system. Drop, pull, pull, drop, click on.
+
+03:03:09.000 --> 03:03:12.000
+Ciudadan Mex: Esa mira porfa.
+
+03:03:13.000 --> 03:03:14.000
+Rowan: I go.
+
+03:03:13.000 --> 03:03:16.000
+Ciudadan Mex: Qué estás pasando acá por el chat.
+
+03:03:16.000 --> 03:03:19.000
+Rowan: Yes, sister.
+
+03:03:20.000 --> 03:03:22.000
+Ciudadan Mex: Okay.
+
+03:03:23.000 --> 03:03:26.000
+Ciudadan Mex: Dame un momento.
+
+03:03:38.000 --> 03:03:45.000
+Ciudadan Mex: A ver reemplazada, tantito y ahora regresas y ya nada más dejas. La anotación de que esta es la que.
+
+03:03:45.000 --> 03:03:55.000
+Ciudadan Mex: El que se usaría para cuando sea admin el que tienes, ahorita, se va a usar para socio. Y para Admin es el que vamos a probar.
+
+03:03:55.000 --> 03:03:56.000
+Ciudadan Mex: ¿por qué?
+
+03:03:57.000 --> 03:04:03.000
+Ciudadan Mex: De paso, el import y te paso el componente de una vez para que ya sea copiar y pegar.
+
+03:05:07.000 --> 03:05:11.000
+Rowan: Okay.
+
+03:05:12.000 --> 03:05:14.000
+Rowan: Vieira tenemos cambiara.
+
+03:05:14.000 --> 03:05:16.000
+Ciudadan Mex: Me gusta.
+
+03:05:16.000 --> 03:05:19.000
+Ciudadan Mex: Pero a ver, vamos a ver de todas maneras. La otra va.
+
+03:05:19.000 --> 03:05:20.000
+Rowan: Okay.
+
+03:05:20.000 --> 03:05:26.000
+Ciudadan Mex: Nos dio este de paso el import.
+
+03:05:27.000 --> 03:05:35.000
+Ciudadan Mex: Oye, pero no olvides dejar por ahí alguna anotaciones que teníamos para que lo puedas volver a reemplazar para socio.
+
+03:05:36.000 --> 03:05:40.000
+Rowan: Mostly digital tango and question commentarios.
+
+03:05:39.000 --> 03:05:42.000
+Ciudadan Mex: Ah, bien, bien. Bien. Perfecto. Excelente.
+
+03:05:40.000 --> 03:05:43.000
+Rowan: Okay, thank you.
+
+03:05:42.000 --> 03:05:49.000
+Ciudadan Mex: Este, el de socio va a quedar igual. Pero si en vez de ser socio es Ruth.
+
+03:05:49.000 --> 03:05:51.000
+Ciudadan Mex: Perdón de Sasmin.
+
+03:05:51.000 --> 03:05:55.000
+Ciudadan Mex: Va a mostrar algunos de estos que estamos seleccionando.
+
+03:05:56.000 --> 03:06:00.000
+Ciudadan Mex: Y muy importante que si no es socio ni admin, no muestres a ta.
+
+03:06:43.000 --> 03:06:45.000
+Ciudadan Mex: Está checando la.
+
+03:06:47.000 --> 03:06:50.000
+Rowan: Okay, you know.
+
+03:06:49.000 --> 03:06:51.000
+Ciudadan Mex: Me gusta más ese.
+
+03:06:52.000 --> 03:07:03.000
+Ciudadan Mex: Vamos a usar ese. Y, obviamente, en vez de la palabra socio, si no es si es si es socio, pues socio y si es admin pues va a mostrar. En vez de eso, se va a mostrar admin.
+
+03:06:54.000 --> 03:06:55.000
+Rowan: Okay.
+
+03:07:03.000 --> 03:07:07.000
+Ciudadan Mex: Y si no es ninguna de las 2, no debe demostrar esa tabla. Ok.
+
+03:07:07.000 --> 03:07:09.000
+Rowan: Oh, okay.
+
+03:07:12.000 --> 03:07:17.000
+Rowan: So, the key is to say, last season, the commute to econ order.
+
+03:07:19.000 --> 03:07:25.000
+Rowan: Okay, si, si, si, si, si, si, si, si, si, si, si, si, s.
+
+03:07:24.000 --> 03:07:26.000
+Ciudadan Mex: Hazme ni socios.
+
+03:07:25.000 --> 03:07:34.000
+Rowan: Socio. Si es algun otro usuario, como cuenta root, no esta de demostrar el modelo, se queda pacio. Solamente…
+
+03:07:29.000 --> 03:07:31.000
+Ciudadan Mex: Ajá.
+
+03:07:34.000 --> 03:07:38.000
+Rowan: Oh, okay.
+
+03:07:35.000 --> 03:07:39.000
+Ciudadan Mex: Es correcto? Exactamente.
+
+03:07:40.000 --> 03:07:42.000
+Rowan: Come get it.
+
+03:07:48.000 --> 03:07:50.000
+Ciudadan Mex: Para generar eso. Afán.
+
+03:07:54.000 --> 03:08:01.000
+Ciudadan Mex: No, Pero no son Roots está para usuarios que, al contrario que no son ni admi o sea, generales.
+
+03:08:00.000 --> 03:08:02.000
+Rowan: Sorry, miss.
+
+03:08:02.000 --> 03:08:06.000
+Rowan: Okay.
+
+03:08:04.000 --> 03:08:09.000
+Ciudadan Mex: O usuarios que no tienen admin y que no son ni admi ni.
+
+03:08:10.000 --> 03:08:15.000
+Ciudadan Mex: Que no son ni que no son ni admin ni s ni socio.
+
+03:08:16.000 --> 03:08:19.000
+Ciudadan Mex: No tienen ni de admin.
+
+03:08:19.000 --> 03:08:21.000
+Ciudadan Mex: Ni socio.
+
+03:08:22.000 --> 03:08:24.000
+Rowan: Moisture.
+
+03:08:23.000 --> 03:08:33.000
+Ciudadan Mex: Y si sí, ese es menos socio, pues, que que vamos a diferenciar, tenemos para admin va a mostrar admin y su icono y para socio respectivo.
+
+03:08:33.000 --> 03:08:38.000
+Rowan: Okay, eh, eso dependes del icono, no?
+
+03:08:37.000 --> 03:08:44.000
+Ciudadan Mex: Depende del rol. Si eso admin va a mostrar el de admin el icono de admin y la palabra admin.
+
+03:08:39.000 --> 03:08:41.000
+Rowan: Okay, thank you.
+
+03:08:48.000 --> 03:08:51.000
+Ciudadan Mex: Icono y palabra correspondiente.
+
+03:08:52.000 --> 03:08:54.000
+Rowan: Okay, listen.
+
+03:08:54.000 --> 03:08:57.000
+Ciudadan Mex: Exacto César minajmen si es socio socio.
+
+03:08:54.000 --> 03:08:56.000
+Rowan: Please allow me.
+
+03:08:57.000 --> 03:09:06.000
+Rowan: Ayes polara condicional en el section de camidador. Y muy namos llamar.
+
+03:08:57.000 --> 03:08:59.000
+Ciudadan Mex: Bien.
+
+03:09:00.000 --> 03:09:01.000
+Ciudadan Mex: Mhm.
+
+03:09:03.000 --> 03:09:04.000
+Ciudadan Mex: Ajá.
+
+03:09:06.000 --> 03:09:10.000
+Rowan: A distancia cambio de verde. What's your name?
+
+03:09:10.000 --> 03:09:12.000
+Rowan: Oh, la funcione de citrice.
+
+03:09:12.000 --> 03:09:16.000
+Rowan: Okay, this is fascinating.
+
+03:09:15.000 --> 03:09:20.000
+Ciudadan Mex: Sí, eso sí, yo sé que es sencillo. Nada más. Es checar el rol. Y según eso, mostrar.
+
+03:09:20.000 --> 03:09:21.000
+Rowan: Okay.
+
+03:09:20.000 --> 03:09:26.000
+Ciudadan Mex: ¿eh? Y ahora me puedes mostrar la parte de resolver tareas, porque es que ya no me puse de acuerdo.
+
+03:09:27.000 --> 03:09:34.000
+Ciudadan Mex: No resolverlas. Eso lo deberían de ver desde Tar, desde las tareas los que no son socios, no desde las tareas generales.
+
+03:09:35.000 --> 03:09:39.000
+Ciudadan Mex: Ahí es para lo de otro de tarafa. Eso lo vamos a hacer.
+
+03:09:39.000 --> 03:09:44.000
+Rowan: Okay.
+
+03:09:43.000 --> 03:09:45.000
+Ciudadan Mex: No a ver.
+
+03:09:44.000 --> 03:09:45.000
+Rowan: I'll get.
+
+03:09:53.000 --> 03:09:57.000
+Rowan: Have you been here before? Have you been to someone's campus?
+
+03:10:07.000 --> 03:10:09.000
+Ciudadan Mex: A veces editar.
+
+03:10:13.000 --> 03:10:15.000
+Rowan: Do you know Cyprus?
+
+03:10:37.000 --> 03:10:41.000
+Rowan: Okay, eh, no es decinado.
+
+03:10:42.000 --> 03:10:45.000
+Ciudadan Mex: No tiene que estar asignada. Son generales.
+
+03:10:49.000 --> 03:10:51.000
+Rowan: What?
+
+03:10:52.000 --> 03:10:54.000
+Rowan: The kinostari.
+
+03:10:55.000 --> 03:10:58.000
+Rowan: Petrol Industries.
+
+03:10:58.000 --> 03:11:01.000
+Rowan: Por puede que se este malo mala a p.
+
+03:11:02.000 --> 03:11:05.000
+Rowan: Oh, no, I actually sent it back in.
+
+03:11:09.000 --> 03:11:11.000
+Rowan: Please don't forget to send us this.
+
+03:11:11.000 --> 03:11:18.000
+Ciudadan Mex: Ok, vamos a darles a esa parte. Creo que ya estás diferenciando entre editar bien tarea y entre resolverla.
+
+03:11:19.000 --> 03:11:24.000
+Ciudadan Mex: Si quieres, pues te está fallando esa parte. Vamos a trabajar en ella. Va.
+
+03:11:25.000 --> 03:11:31.000
+Ciudadan Mex: Y vamos a meterle velocidad porque ya estamos en lo último, pero si necesitamos meterle un poco de veces en esta parte.
+
+03:11:31.000 --> 03:11:35.000
+Ciudadan Mex: Porque todavía nos falta calificar tarea.
+
+03:11:35.000 --> 03:11:40.000
+Ciudadan Mex: Nos falta resolver. Nos falta calificar, asignar.
+
+03:11:42.000 --> 03:11:53.000
+Ciudadan Mex: Y vamos a tener también algo que es agregar socio, pero ese va a ser muy sencillito. Se va a ser nada más, un formulario para dar a un socio miembro.
+
+03:11:53.000 --> 03:12:01.000
+Ciudadan Mex: Pero entonces todavía faltan unas cosas. Entonces te encargo que te que retoquemos ahí un poco esfuerzos, tendrás que robar.
+
+03:12:01.000 --> 03:12:09.000
+Rowan: Okay. Okay. Okay. Okay. Okay. Okay.
+
+03:12:09.000 --> 03:12:18.000
+Ciudadan Mex: Sí, eso sencillito. El cambio del disco no está acá en mostrar solo admin socio mostrando el icono correspondiente. Eso ya lo tienes Ahí.
+
+03:12:11.000 --> 03:12:13.000
+Rowan: Yes, sir.
+
+03:12:20.000 --> 03:12:26.000
+Ciudadan Mex: Mostrando todo el icono y nombre de rock. Y esa es una parte física.
+
+03:12:27.000 --> 03:12:29.000
+Ciudadan Mex: Ajá ya con eso?
+
+03:12:30.000 --> 03:12:34.000
+Rowan: No, I cannot restrict you to bonsante.
+
+03:12:34.000 --> 03:12:35.000
+Rowan: Glad I didn't.
+
+03:12:36.000 --> 03:12:38.000
+Rowan: Listen to us.
+
+03:12:37.000 --> 03:12:42.000
+Ciudadan Mex: Exacto. Sí, sí, sí, claro. Apoyarnos en las herramientas es.
+
+03:12:47.000 --> 03:12:49.000
+Ciudadan Mex: A la playa.
+
+03:13:10.000 --> 03:13:11.000
+Rowan: Y.
+
+03:13:18.000 --> 03:13:19.000
+Rowan: No.
+
+03:13:19.000 --> 03:13:22.000
+Rowan: Y.
+
+03:13:31.000 --> 03:13:32.000
+Rowan: Y.
+
+03:13:35.000 --> 03:13:37.000
+Rowan: Y.
+
+03:13:40.000 --> 03:13:41.000
+Rowan: Y.
+
+03:13:41.000 --> 03:13:42.000
+Ciudadan Mex: Rockman.
+
+03:13:43.000 --> 03:13:45.000
+Ciudadan Mex: Ahh, un rey music también.
+
+03:13:44.000 --> 03:13:46.000
+Rowan: Y.
+
+03:13:47.000 --> 03:13:49.000
+Rowan: Y.
+
+03:13:49.000 --> 03:13:53.000
+Rowan: Y.
+
+03:14:16.000 --> 03:14:17.000
+Rowan: Ok.
+
+03:14:16.000 --> 03:14:17.000
+Rowan: Okay.
+
+03:14:18.000 --> 03:14:20.000
+Ciudadan Mex: Me das.
+
+03:14:18.000 --> 03:14:21.000
+Rowan: It's like a biospecific anthem.
+
+03:14:18.000 --> 03:14:21.000
+Rowan: Esto es lo que habíamos practicado antes. No.
+
+03:14:20.000 --> 03:14:22.000
+Ciudadan Mex: Ajá.
+
+03:14:23.000 --> 03:14:27.000
+Rowan: Tipos de agencias local y federal.
+
+03:14:23.000 --> 03:14:27.000
+Rowan: Depots de agencias locale federal.
+
+03:14:27.000 --> 03:14:28.000
+Ciudadan Mex: Ajá.
+
+03:14:27.000 --> 03:14:36.000
+Rowan: ¿a qué se le debe nivel local? Entre 10, 15 socios, aproximadamente federal agencia con alcance de red completa todas las agencias.
+
+03:14:27.000 --> 03:14:36.000
+Rowan: Agencia de dibel local entre 10, 15 socias aproximaramente. Federal agencia con el cancer de red completa todas las agencias.
+
+03:14:31.000 --> 03:14:33.000
+Ciudadan Mex: Ajá.
+
+03:14:35.000 --> 03:14:36.000
+Ciudadan Mex: Mhm.
+
+03:14:39.000 --> 03:14:44.000
+Rowan: Tipos de áreas. En general, cualquier usuario puede resolver.
+
+03:14:44.000 --> 03:14:50.000
+Rowan: Resolver estas tareas, todos los socios de la agencia pueden calificarlo.
+
+03:14:51.000 --> 03:14:58.000
+Rowan: Especializada sin asignar solo usuarios, con la especialidad del área correspondiente, pueden resolver.
+
+03:14:56.000 --> 03:15:07.000
+Ciudadan Mex: Eso de sin asignar. Está de más. No eso de sin asignar. No, no tiene nada que ver ahí. Las hace, todas son asignables o no asignables. Ese es un criterio aparte.
+
+03:15:01.000 --> 03:15:03.000
+Rowan: Ok.
+
+03:15:07.000 --> 03:15:08.000
+Rowan: Okay.
+
+03:15:08.000 --> 03:15:23.000
+Ciudadan Mex: Este nesto que que que lo comprendas ya ahorita ya son detallitos ahora donde estamos de anotar tanto, sino que comprendas para que ahorita acabando hagas tus anotaciones, va o si quieres anotalas en otras en otras, pero que, ya sean mínimas, ya ahorita, están limpio, bien.
+
+03:15:08.000 --> 03:15:10.000
+Rowan: Ok, Bueno.
+
+03:15:14.000 --> 03:15:15.000
+Rowan: Mhm.
+
+03:15:23.000 --> 03:15:26.000
+Ciudadan Mex: Entonces ahí sobra ese, de sin asignar.
+
+03:15:26.000 --> 03:15:28.000
+Ciudadan Mex: Regla.
+
+03:15:29.000 --> 03:15:36.000
+Rowan: Entonces la podemos quitar y que eso diga sólo usuarios con la especialidad del área correspondiente pueden resolverla. No.
+
+03:15:36.000 --> 03:15:37.000
+Ciudadan Mex: Ajá.
+
+03:15:37.000 --> 03:15:39.000
+Rowan: Okay.
+
+03:15:39.000 --> 03:15:42.000
+Ciudadan Mex: Ajá, Secretario Federal de Área.
+
+03:15:42.000 --> 03:15:51.000
+Ciudadan Mex: Todos los socios tienen un área, eso de de área no está de más, pero no se lo quites nada más, quiero que entiendas que todo socio tiene un área.
+
+03:15:51.000 --> 03:15:53.000
+Rowan: Okay Bye.
+
+03:15:53.000 --> 03:16:00.000
+Ciudadan Mex: Entonces, si la tarea es especializada, solamente la va a poder resolver los socios que sea necesario.
+
+03:16:03.000 --> 03:16:05.000
+Rowan: Asignada. Ok.
+
+03:16:05.000 --> 03:16:08.000
+Ciudadan Mex: Vamos a hacer algo, repasa lo bastante.
+
+03:16:08.000 --> 03:16:18.000
+Ciudadan Mex: Y me preguntas todas las dudas que te salgan, porque por ahí puso cosas mal, pero te deben de salir dudas si no las logras resolver tú solo, pues ya ten dentro de 2 h y media tenemos la sesión.
+
+03:16:18.000 --> 03:16:25.000
+Ciudadan Mex: Ya checamos detallitos y si no, pues mañana los términos. Pero la idea es que hoy queden lo más les va.
+
+03:16:25.000 --> 03:16:28.000
+Rowan: Okay.
+
+03:16:27.000 --> 03:16:33.000
+Ciudadan Mex: Te voy a pasar también de todas maneras acuérdate de la grabación de ahorita de la de la sesión.
+
+03:16:33.000 --> 03:16:35.000
+Rowan: Ahh.
+
+03:16:33.000 --> 03:16:36.000
+Ciudadan Mex: Y pues puedes apoyarte también en eso.
+
+03:16:35.000 --> 03:16:44.000
+Rowan: Okay. De hecho, esa es mi pequeña duda. Si te e esa sesión la tiene grabada. De hecho, es una idea bastante.
+
+03:16:42.000 --> 03:16:43.000
+Ciudadan Mex: Qué?
+
+03:16:43.000 --> 03:16:49.000
+Ciudadan Mex: Ahh. Excelente para eso. Las grabamos. Sí, claro, ahorita. Te paso la.
+
+03:16:49.000 --> 03:16:50.000
+Ciudadan Mex: Grabada.
+
+03:16:50.000 --> 03:16:52.000
+Ciudadan Mex: Las grabaciones.
+
+03:16:53.000 --> 03:16:55.000
+Rowan: Ok, Va.
+
+03:16:55.000 --> 03:16:57.000
+Ciudadan Mex: Va que va.
+
+03:16:57.000 --> 03:17:06.000
+Ciudadan Mex: Y ya igual, también le puedes pasar la transcripción A, G, P, T, Y más fácil lo aplaude y le dices, oye largas cosas, chécate. Todas las.
+
+03:17:06.000 --> 03:17:14.000
+Ciudadan Mex: Porque sí. Ahí tuvo errores. Pero porque tú también pusiste ahí unas connotaciones no muy claras. Entonces ahorita ya con la transcripción si te la va a agarrar.
+
+03:17:14.000 --> 03:17:16.000
+Ciudadan Mex: Y.
+
+03:17:16.000 --> 03:17:24.000
+Ciudadan Mex: Pues vamos a darle con esta parte que ya te roban y vamos a meterle candela para ya poderla entregar. Va. Ya estamos en ensamblando a.
+
+03:17:23.000 --> 03:17:28.000
+Rowan: Hay una fecha específica en que tiene que entregar el proyecto.
+
+03:17:27.000 --> 03:17:29.000
+Ciudadan Mex: No, Pero por.
+
+03:17:29.000 --> 03:17:36.000
+Ciudadan Mex: Consideración de que todos, de que no todos tenemos la misma necesidad, hay compañeros que ya necesitan empezar a.
+
+03:17:36.000 --> 03:17:44.000
+Ciudadan Mex: Me explico, o sea, cuando ya lo tengamos, Yo ya pido la la la reunión para presentarla, pero la idea es pedirla para dentro de 15 días.
+
+03:17:44.000 --> 03:18:04.000
+Ciudadan Mex: O sea, no es obligatorio que necesitamos que quede, pero si tenemos como objetivo entregar en 15 días Román, entonces vamos a a meterle catella, va mira ya entregando la vamos a si quieres, regresamos al ritmo que estábamos o incluso vas a ir viendo que se va a relajar Ya vas a ver que que nos va a tocar el fruto.
+
+03:17:44.000 --> 03:17:45.000
+Rowan: Okay.
+
+03:17:54.000 --> 03:17:56.000
+Rowan: Okay Bye.
+
+03:18:04.000 --> 03:18:11.000
+Ciudadan Mex: Pero ahorita. Yo diría que estos 15 días, si es para entregarle 15 días. Pero si es redoblar de esfuerzos, te date.
+
+03:18:11.000 --> 03:18:13.000
+Rowan: Okay Bye.
+
+03:18:12.000 --> 03:18:17.000
+Ciudadan Mex: Hecho robar, pues entonces vamos a la sesión de al rato. De todas maneras, cualquier cosa en el Watt.
+
+03:18:13.000 --> 03:18:15.000
+Rowan: Hecho.
+
+03:18:17.000 --> 03:18:24.000
+Rowan: Ok, va este igual. No sé si me podría compartir para empezar.
+
+03:18:21.000 --> 03:18:22.000
+Ciudadan Mex: Sí, claro.
+
+03:18:23.000 --> 03:18:31.000
+Ciudadan Mex: Claro, se tarda unos 3, 4 min en en en terminarla de convertir y te paso detrás. En cuanto me lo de espaba.
+
+03:18:30.000 --> 03:18:32.000
+Rowan: Okay Bye.
+
+03:18:31.000 --> 03:18:35.000
+Ciudadan Mex: Hecho Román, muchas gracias hasta el ratito.
+
+03:18:35.000 --> 03:18:38.000
+Rowan: Hasta el rato, Adiós Bye.
+
+03:18:36.000 --> 03:18:38.000
+Ciudadan Mex: A ver.

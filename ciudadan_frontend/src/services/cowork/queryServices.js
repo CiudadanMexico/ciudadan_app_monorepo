@@ -39,6 +39,28 @@ export const getAvailableRootAreas = (token = null) =>
     'No se pudieron cargar las areas disponibles'
   );
 
+// Subáreas EXISTENTES bajo un área raíz — para que el usuario pueda
+// "elegirla de la lista" (spec 5.3) en vez de siempre tener que proponer
+// (escribir) una nueva, aunque ya exista.
+export const getSubareasDeArea = (parentAreaId, token = null) => {
+  if (!parentAreaId) return Promise.resolve({ data: [] });
+  return fetchJson(
+    `${STRAPI_URL}/api/areas?filters[parent_area][id][$eq]=${parentAreaId}&filters[is_active][$eq]=true&pagination[limit]=200&sort[0]=name:asc`,
+    authHeaders(token),
+    'No se pudieron cargar las subareas'
+  );
+};
+
+// Usuarios con sus áreas + area_details — para la cola de verificación
+// (VerificarUsuarios.jsx). Con pocos usuarios (MVP) alcanza con traer todo
+// y filtrar en cliente los que tienen algo pendiente.
+export const getUsuariosParaVerificacion = (token = null) =>
+  fetchJson(
+    `${STRAPI_URL}/api/users?populate[areas]=*&pagination[limit]=2000`,
+    authHeaders(token),
+    'No se pudieron cargar los usuarios'
+  );
+
 // Tareas pendientes de calificación (status=completada) — para admin/socio.
 export const getTareasPendientesCalificacion = (token = null) =>
   fetchJson(
