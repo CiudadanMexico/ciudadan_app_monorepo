@@ -178,12 +178,13 @@ const Food = ({ filtros = '', parametros = '' }) => {
   // cargar productos
   useEffect(() => {
     if (filtros) return;
+    if (selectedTab !== 0) return;
     let mounted = true;
     handleGetProducts(busqueda, selectedCategory);
     return () => {
       mounted = false;
     };
-  }, [busqueda, selectedCategory, page]);
+  }, [busqueda, selectedCategory, page, selectedTab]);
 
   useEffect(() => {
     if (observerRef.current) {
@@ -301,7 +302,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
           scrollButtons="auto"
           allowScrollButtonsMobile
           sx={{
-            px:1,
+            px: 1,
             minHeight: { xs: 40, sm: 48 },
             '& .MuiTab-root': {
               minHeight: { xs: 40, sm: 48 },
@@ -470,7 +471,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
                       item
                       xs={12}
                       sm={6}
-                      md={3}
+                      md={4}
                       data-id={product?.id ?? ''}
                       ref={(el) => {
                         if (el) itemRefs.current.set(product?.id, el);

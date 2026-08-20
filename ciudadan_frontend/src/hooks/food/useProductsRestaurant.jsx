@@ -16,7 +16,7 @@ export default function useProductsRestaurant() {
   const getProducts = async (params = {}) => {
     try {
       setLoading(true);
-      const populateStr = `populate[0]=imagen_predeterminada&populate[1]=food_categories`;
+      const populateStr = `populate[imagen_predeterminada]=true&populate[food_categories]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true`;
       const filterPagination = `pagination[page]=${page}&pagination[pageSize]=${perPage}`;
       const extraParamsString = new URLSearchParams(params).toString();
       const response = await fetch(`${PRODUCTS_URL}?${populateStr}&${filterPagination}${extraParamsString ? `&${extraParamsString}` : ''}`);
@@ -65,7 +65,7 @@ export default function useProductsRestaurant() {
     try {
       if (!productId) return null;
       setLoading(true);
-      const populateStr = `populate[0]=imagen_predeterminada&populate[1]=imagenes&populate[2]=food_categories&populate[3]=food_restaurant`;
+      const populateStr = `populate[imagen_predeterminada]=true&populate[imagenes]=true&populate[food_categories]=true&populate[food_restaurant][populate][direccion]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true`;
       const response = await fetch(`${PRODUCTS_URL}/${productId}?${populateStr}`);
       const { data } = await response.json();
       console.log("Product get by id:", data)
@@ -83,7 +83,7 @@ export default function useProductsRestaurant() {
       if (!productSlug) return null;
       setLoading(true);
       const filterSlug = `filters[slug][$eq]=${productSlug}`;
-      const populateStr = `populate[imagen_predeterminada]=*&populate[imagenes]=*&populate[food_categories]=*&populate[food_restaurant][populate][direccion]=*`;
+      const populateStr = `populate[imagen_predeterminada]=true&populate[imagenes]=true&populate[food_categories]=true&populate[food_restaurant][populate][direccion]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true`;
       const response = await fetch(`${PRODUCTS_URL}?${filterSlug}&${populateStr}`);
       const { data } = await response.json();
       console.log("Product get by slug:", data)
