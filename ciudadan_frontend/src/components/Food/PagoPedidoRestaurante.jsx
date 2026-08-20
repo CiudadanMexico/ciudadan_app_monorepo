@@ -5,24 +5,15 @@ import { useRoles } from "../../Contexts/RolesContext";
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
 
-/**
- * PagoPorTienda (mejorado)
- * - Deriva estado inicial desde `pedido.attributes` (si ya existe pago/comprobante/status).
- * - Evita crear pagos duplicados: si `pedido.attributes.pago_id` existe -> reutiliza.
- * - Flujo OP.3: crear pago (si no existe) -> upload SIN ref -> asociar al pago -> actualizar pedido.
- * - Limpia UI: desactiva input/boton cuando ya subido, cambia texto/color, muestra link si hay url.
- * - Emite evento global "cart:paymentUploaded" y llama onPagoSubido(...) si existe.
- * - Muchos logs "cart y emojis".
- */
-const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }) => {
+const PagoPedidoRestaurante = ({ pedido, onPagoSubido, tipoPago = "comida" }) => {
   const { user } = useAuth0();
   const { userData } = useRoles();
   // ---------- DERIVAR ESTADO INICIAL desde pedido.attributes ----------
   // Puede venir en diferentes formas según Strapi. Extraemos con defensiva.
-  const initialPagoId = pedido?.attributes?.pago_id || pedido?.attributes?.pagoId || pedido?.attributes?.pago || null;
+  const initialPagoId = pedido?.attributes?.pago_id ?? pedido?.attributes?.pago ?? null;
 
   // posible comprobante ya guardado en attributes.comprobante (expanded) o attributes.comprobante (array)
-  const existingComprobanteData = pedido?.attributes?.comprobante?.data || (Array.isArray(pedido?.attributes?.comprobante) ? pedido.attributes.comprobante[0] : null) || null;
+  const existingComprobanteData = pedido?.attributes?.comprobante?.data ?? (Array.isArray(pedido?.attributes?.comprobante) ? pedido.attributes.comprobante[0] : null) ?? null;
 
   const existingFileId = existingComprobanteData?.id || null;
   const existingFileUrl = existingComprobanteData?.attributes?.url || existingComprobanteData?.url || null;
@@ -40,18 +31,17 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
   const [pagoIdState, setPagoIdState] = useState(initialPagoId);
 
   // ---------- Normalización de la tienda (store) ----------
-  const store =
-    pedido?.attributes?.store || {
-      name: "Tienda sin nombre",
-      banco: "—",
-      clabe_bancaria: "—",
-      nombre_bancario: "—",
-    };
+  const restaurant = pedido?.attributes?.restaurant ?? {
+    name: "Tienda sin nombre",
+    banco: "—",
+    clabe_bancaria: "—",
+    nombre_bancario: "—",
+  };
 
   // LOG: estado inicial del componente al renderizarlo
   console.log("cart y emojis - PagoPorTienda render:", {
     pedido,
-    store,
+    restaurant,
     archivo,
     subiendo,
     error,
@@ -62,14 +52,8 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
   });
 
   // Si el pedido ya está en revisión o pagado explicitamente, renderizamos mensaje y no permitimos subir
-  if (
-    pedido?.attributes?.status === "pendiente_verificacion" ||
-    pedido?.attributes?.status === "pagado"
-  ) {
-    console.log(
-      "cart y emojis - PagoPorTienda: pedido ya tiene pago o está en revisión:",
-      pedido?.attributes?.status
-    );
+  if (pedido?.attributes?.status === "pendiente_verificacion" ?? pedido?.attributes?.status === "pendiente_envio") {
+    console.log("cart y emojis - PagoPorTienda: pedido ya tiene pago o está en revisión:", pedido?.attributes?.status);
     return (
       <div className="pago-tienda bloque-ok">
         <h4>Pago enviado</h4>
@@ -143,17 +127,15 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
 
         const pagoPayload = {
           tipo: tipoPago,
-          pedido: pedido.id,
+          fecha_pagado: new Date().toISOString(),
+          usuario: userData?.id,
           monto: montoNumeric,
           status: "pendiente_verificacion",
+          food_order: pedido.id,
           usuario_email: user?.email,
-          store: store?.id,
-          usuario: userData?.id,
-          fecha_pagado: new Date().toISOString()
+          food_restaurant: restaurant?.id,
         };
-        if (carritoId)
-          pagoPayload.carrito_id = carritoId;
-        
+
         console.log("cart y emojis - creando pago, payload:", pagoPayload);
 
         formPedido.append("data", JSON.stringify(pagoPayload));
@@ -191,13 +173,13 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
       // ---------------- 3) Actualizar pedido asociando pago_id y status ----------------
       const pedidoUpdatePayload = {
         data: {
-          pago_id: pagoId?.id,
+          pago: pagoId?.id,
         },
       };
 
       console.log("cart y emojis - actualizando pedido:", pedido?.id, pedidoUpdatePayload);
 
-      const pedidoRes = await fetch(`${STRAPI_URL}/api/pedidos/${pedido.id}`, {
+      const pedidoRes = await fetch(`${STRAPI_URL}/api/food-orders/${pedido.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -302,17 +284,17 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
       `}
       </style>
 
-      <h3 style={{ marginTop: 0 }}>Pago a {store?.name || "Tienda sin nombre"}</h3>
+      <h3 style={{ marginTop: 0 }}>Pago a {restaurant?.attributes?.nombre || "Tienda sin nombre"}</h3>
 
       <div className="datos-bancarios" style={{ marginBottom: 12 }}>
         <p>
-          <strong>Banco:</strong> {store?.banco || "—"}
+          <strong>Banco:</strong> {restaurant?.attributes?.banco || "—"}
         </p>
         <p>
-          <strong>CLABE:</strong> {store?.clabe_bancaria || "—"}
+          <strong>CLABE:</strong> {restaurant?.attributes?.clabe_bancaria || "—"}
         </p>
         <p>
-          <strong>Beneficiario:</strong> {store?.nombre_bancario || "—"}
+          <strong>Beneficiario:</strong> {restaurant?.attributes?.nombre_bancario || "—"}
         </p>
 
         <p className="monto" style={{ marginTop: 8 }}>
@@ -396,4 +378,4 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
   );
 };
 
-export default PagoPorTienda;
+export default PagoPedidoRestaurante;

@@ -32,7 +32,7 @@ export default function RegistroRestaurante() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user, isAuthenticated, loginWithRedirect } = useAuth0();
-  const { isActivaMembresia, updateExtraRole } = useRoles();
+  const { isActivaMembresia, updateExtraRole, userData } = useRoles();
 
   const [activeStep, setActiveStep] = useState(0);
   const [restaurantName, setRestaurantName] = useState("");
@@ -108,7 +108,7 @@ export default function RegistroRestaurante() {
       const slug = slugify(restaurantName);
       const tiendas = await getRestaurantsBySlug(slug);
       if (tiendas.length) return setError("Ese nombre ya está registrado");
-      const nueva = await createRestaurant({ name: restaurantName, email: user.email });
+      const nueva = await createRestaurant({ name: restaurantName, email: user.email, user_id: userData?.id });
       setRestaurant(nueva.data);
       setActiveStep(1);
     } catch (err) {
@@ -238,6 +238,13 @@ export default function RegistroRestaurante() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeStep === 2) {
+      init();
+    }
+  }, [activeStep])
+
 
   const handleRedirect = () => {
     console.log("Restaurant slug:", restaurant?.attributes?.slug);

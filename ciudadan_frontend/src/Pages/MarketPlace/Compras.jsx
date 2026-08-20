@@ -36,6 +36,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import PagoPorTienda from "../../components/MarketPlace/PagoPorTienda.jsx";
+import FoodOrdersUser from "../../components/Food/FoodOrdersUser.jsx";
 
 /**
  * Hook local: useUserPedidos
@@ -190,7 +191,31 @@ function useUserPedidos(user, isLoadingAuth) {
       setLoadingItemById(false);
     }
   };
-  return { loadingItems, error, page, pageSize, setPage, setPageSize, getPedidosPendientes, getPedidosRecibidosSinCalificar, getHistorialPedidosCalificados, fetchPedidoById, loadingItemById };
+
+  const getOrdenesComida = async (user_id) => {
+    const populateStr = "populate[restaurant]=true&populate[items][populate][product][populate][imagen_predeterminada]=true&populate[direccion_destino]=true&populate[direccion_origen]=true";
+    const sortStr = "sort[0]=fecha_creacion:desc"
+    const response = await fetch(`${STRAPI_URL}/api/food-orders?filters[user][id][$eq]=${user_id}&${populateStr}&${sortStr}`);
+    if (!response.ok) {
+      throw new Error("Error al obtener los pedidos");
+    }
+    return await response.json();
+  };
+
+  return {
+    loadingItems,
+    error,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+    getPedidosPendientes,
+    getPedidosRecibidosSinCalificar,
+    getHistorialPedidosCalificados,
+    fetchPedidoById,
+    loadingItemById,
+    getOrdenesComida
+  };
 }
 const DEFAULT_STATUS_PEDIDO = [
   { key: 'pendiente_pago', label: 'Pendiente pago', color: 'warning' },
@@ -208,7 +233,18 @@ const Compras = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const { user, isLoading } = useAuth0();
-  const { loadingItems, error, fetchPedidoById, loadingItemById, getPedidosPendientes, getHistorialPedidosCalificados, getPedidosRecibidosSinCalificar, setPage, page, } = useUserPedidos(user, isLoading);
+  const {
+    loadingItems,
+    error,
+    fetchPedidoById,
+    loadingItemById,
+    getPedidosPendientes,
+    getHistorialPedidosCalificados,
+    getPedidosRecibidosSinCalificar,
+    setPage,
+    page,
+    getOrdenesComida
+  } = useUserPedidos(user, isLoading);
 
   // Desde RolesContext sacamos userData (tiene id en Strapi)
   const { userData } = useRoles?.() || {}; // evita crash si no existe el provider
@@ -369,8 +405,8 @@ const Compras = () => {
           basePath={basePrueba}
           onTabChange={handleTabChange}
           collapseAt={640}
-          backgroundColor="linear-gradient(90deg, #2b0a3d, #3a0f55, #2b0a3d)"
-          textColor="#d9c9ff"
+          backgroundColor={tabIndex === (tabs.length - 1) ? "linear-gradient(90deg, #E09F00, #FFB703, #E09F00)" : "linear-gradient(90deg, #2b0a3d, #3a0f55, #2b0a3d)"}
+          textColor={tabIndex === (tabs.length - 1) ? "#2B2100" : "#d9c9ff"}
         />
 
         <Box
@@ -583,6 +619,13 @@ const Compras = () => {
             (!loadingItems && !loadingItemById) && tabIndex === 2 && (
               /* ================= HISTORIAL ================= */
               <HistorialPagos items={historial} user={user} />
+            )
+          }
+          {
+            (!loadingItems && tabIndex === 3) && (
+              <FoodOrdersUser
+                obtenerOrdenes={getOrdenesComida}
+              />
             )
           }
           {

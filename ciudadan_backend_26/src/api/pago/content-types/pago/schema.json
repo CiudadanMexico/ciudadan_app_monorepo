@@ -126,6 +126,16 @@
     },
     "fecha_aprobado": {
       "type": "datetime"
+    },
+    "food_restaurant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "food_order": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-order.food-order"
     }
   }
 }
