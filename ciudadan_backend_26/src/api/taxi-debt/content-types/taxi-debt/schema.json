@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "taxi_debts",
+  "info": {
+    "singularName": "taxi-debt",
+    "pluralName": "taxi-debts",
+    "displayName": "Taxi-debt",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "viaje": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::viaje.viaje"
+    },
+    "adeudo": {
+      "type": "float"
+    },
+    "costo_viaje": {
+      "type": "float"
+    },
+    "pagado": {
+      "type": "boolean",
+      "default": false
+    },
+    "conductor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "pasajero": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "conductor_email": {
+      "type": "email"
+    },
+    "pasajero_email": {
+      "type": "email"
+    },
+    "costo_efectivo": {
+      "type": "float"
+    },
+    "fecha_viaje": {
+      "type": "datetime"
+    },
+    "origen_direccion": {
+      "type": "text"
+    },
+    "destino_direccion": {
+      "type": "text"
+    }
+  }
+}

@@ -21,7 +21,6 @@ router.post('/rating-calculate', async (req, res) => {
           url,
           { headers, timeout: 8000 }
         );
-        //console.log('[testTrip] getUserRating response data:', response?.data?.data);
     
         const travels = response.data?.data || [];
         let ratingAvg = 0;
@@ -34,7 +33,6 @@ router.post('/rating-calculate', async (req, res) => {
             ratingAvg += Number(rating);
           }
         }
-        ratingAvg /= travels.length;
         return res.status(200).json({
             ratingAvg: travels.length > 0 ? ratingAvg / travels.length : null
         });

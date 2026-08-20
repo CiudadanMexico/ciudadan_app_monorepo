@@ -4972,6 +4972,60 @@ export interface ApiTareaTarea extends Schema.CollectionType {
   };
 }
 
+export interface ApiTaxiDebtTaxiDebt extends Schema.CollectionType {
+  collectionName: 'taxi_debts';
+  info: {
+    singularName: 'taxi-debt';
+    pluralName: 'taxi-debts';
+    displayName: 'Taxi-debt';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    viaje: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'api::viaje.viaje'
+    >;
+    adeudo: Attribute.Float;
+    costo_viaje: Attribute.Float;
+    pagado: Attribute.Boolean & Attribute.DefaultTo<false>;
+    conductor: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    pasajero: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    conductor_email: Attribute.Email;
+    pasajero_email: Attribute.Email;
+    costo_efectivo: Attribute.Float;
+    fecha_viaje: Attribute.DateTime;
+    origen_direccion: Attribute.Text;
+    destino_direccion: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiTodoTodo extends Schema.CollectionType {
   collectionName: 'todos';
   info: {
@@ -5350,6 +5404,7 @@ declare module '@strapi/types' {
       'api::store.store': ApiStoreStore;
       'api::store-categorie.store-categorie': ApiStoreCategorieStoreCategorie;
       'api::tarea.tarea': ApiTareaTarea;
+      'api::taxi-debt.taxi-debt': ApiTaxiDebtTaxiDebt;
       'api::todo.todo': ApiTodoTodo;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
       'api::viaje.viaje': ApiViajeViaje;

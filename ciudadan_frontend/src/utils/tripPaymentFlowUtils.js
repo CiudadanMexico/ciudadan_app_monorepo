@@ -7,7 +7,7 @@ export const PAYMENT_STATES = {
 
 export const getTripPaymentFlowState = ({ tripStatus, driverPaymentState, passengerPaymentState }) => {
   const normalizedTripStatus = String(tripStatus || '').toLowerCase();
-  const isTripFinished = normalizedTripStatus === 'finished' || normalizedTripStatus === 'unpaid' || normalizedTripStatus === 'partial';
+  const isTripFinished = normalizedTripStatus === 'finalizado' || normalizedTripStatus === 'unpaid' || normalizedTripStatus === 'partial';
 
   const driverPayment = driverPaymentState || PAYMENT_STATES.pending;
   const passengerPayment = passengerPaymentState || PAYMENT_STATES.pending;

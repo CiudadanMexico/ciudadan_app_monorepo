@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const SolicitudCancelar = ({ open, isDriver, onSubmit, onClose }) => {
+const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, onClose, setShowCancelModal }) => {
     const [selectedReason, setSelectedReason] = useState(null);
 
     useEffect(() => {
@@ -14,8 +14,28 @@ const SolicitudCancelar = ({ open, isDriver, onSubmit, onClose }) => {
         ? ['Emergencia', 'Fallas mecánicas', 'Problema con el pasajero', 'Ruta bloqueada', 'Por seguridad', 'Acuerdo mutuo', 'Otro']
         : ['Emergencia', 'Deseo bajar antes', 'Cambio de planes', 'Problema con el conductor', 'Incomodidad', 'Por seguridad', 'Otro'];
 
-    const handleSubmit = () => {
-        if (typeof onSubmit === 'function') onSubmit(selectedReason || null);
+    const handleSubmit = async () => {
+        if (typeof onStatusChange === 'function') onStatusChange(isDriver ? 'fin_solicitado_conductor' : 'fin_solicitado_pasajero');
+
+        const base = process.env.REACT_APP_SOCKET_URL || '';
+        try {
+            const payload = {
+                id: viajeId,
+                reason: selectedReason,
+                cancelledBy: isDriver ? 'driver' : 'user',
+            };
+            await fetch(`${base.replace(/\/$/, '')}/test/cancel-trip`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
+            });
+        } catch (e) {
+            console.warn('[TripView] no se pudo cancelar el viaje', e);
+        } finally {
+            setOpen(false);
+        }
     };
 
     const handleChange = (event) => {
