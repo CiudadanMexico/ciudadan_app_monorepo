@@ -109,6 +109,8 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     userPhoto = `${strapiUrl}${profilePicUrl}`;
   }
 
+  const isTripFree = travel?.freeTrip;
+
   // Helper para obtener coords actuales (Promise)
   const getCurrentPosition = (opts = { enableHighAccuracy: false, timeout: 5000, maximumAge: 10000 }) => {
     return new Promise((resolve, reject) => {
@@ -243,7 +245,7 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
       }}
     >
       <div className='travel-card' style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div className='travel-card-info' style={{ display: 'flex', justifyContent: 'space-between', flex: 1, margin: 8, maxWidth: 800 }}>
+        <div className='travel-card-info' style={{ display: 'flex', justifyContent: 'space-between', flex: 1, margin: 8, maxWidth: 800, gap: 12 }}>
           <div className='travel-card-profile' >
             {userPhoto ? (
               <img
@@ -278,15 +280,15 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
             </div>
           </div>
 
-          <div style={{ margin: 12 }}>
+          <div style={{ flex: 1, padding: 12 }}>
             <div style={{ fontSize: 12, color: '#666' }}>
               <strong>Origen</strong>
             </div>
-            <div style={{ fontSize: 11, marginBottom: 8 }}>{origin}</div>
+            <div style={{ fontSize: 12, marginBottom: 8 }}>{origin}</div>
             <div style={{ fontSize: 12, color: '#666' }}>
               <strong>Destino</strong>
             </div>
-            <div style={{ fontSize: 11, marginBottom: 8 }}>{destination}</div>
+            <div style={{ fontSize: 12, marginBottom: 8 }}>{destination}</div>
           </div>
           {/*<div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
@@ -300,28 +302,34 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
             Tiempo: <strong>{formatMMSS(elapsedSeconds)}</strong>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', padding: 8, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Precio sugerido</div>
-            <center><div style={{ fontSize: 18, fontWeight: 700, color: '#135f13ff' }}>{suggestedFormatted ?? '—'}</div></center>
+          {!isTripFree ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', padding: 8, borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#666' }}>Precio sugerido</div>
+              <center><div style={{ fontSize: 18, fontWeight: 700, color: '#135f13ff' }}>{suggestedFormatted ?? '—'}</div></center>
 
-            <label style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Precio final (MXN)</label>
-            <input
-              aria-label="Precio final"
-              type="number"
-              inputMode="numeric"
-              value={finalPrice}
-              onChange={(e) => {
-                const v = e.target.value;
-                // permitir limpiar
-                if (v === '') return setFinalPrice('');
-                // aceptar sólo números (puede incluir decimales)
-                const n = Number(v);
-                if (!isNaN(n)) setFinalPrice(String(n));
-              }}
-              placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
-            />
-          </div>
+              <label style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Precio final (MXN)</label>
+              <input
+                aria-label="Precio final"
+                type="number"
+                inputMode="numeric"
+                value={finalPrice}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  // permitir limpiar
+                  if (v === '') return setFinalPrice('');
+                  // aceptar sólo números (puede incluir decimales)
+                  const n = Number(v);
+                  if (!isNaN(n)) setFinalPrice(String(n));
+                }}
+                placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
+              />
+            </div>
+          ) : (
+            <h4 style={{ textAlign: 'center', color: '#f5a623' }}>
+              Este viaje es completamente gratuito
+            </h4>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
             <button

@@ -47,6 +47,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   const [hasLabory, setHasLabory] = useState(false);
   const [saldoLabory, setSaldoLabory] = useState(0);
   const status = viaje?.attributes?.status || 'esperando';
+  const isTripFree = viaje?.attributes?.isTripFree || false;
   //const routeInfo = viaje?.attributes?._routeInfo || null;
 
   const cancelarViaje = async () => {
@@ -262,28 +263,48 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                 </div>
                 <div style={{ flex: 1 }}>
                   <div><strong>Precio</strong></div>
-                  <div style={{ fontSize: 16 }}>
-                    <strong style={{ color: '#151bc1' }}>
-                      {price ? `$${price.toFixed(2)} MXN` : 'Sin precio'}
-                    </strong>
-                  </div>
+                  {isTripFree ?
+                    <div style={{ fontSize: 16, flexDirection: 'row' }}>
+                      <strong style={{ color: '#151bc1', opacity: .5, textDecoration: 'line-through' }}>
+                        {`$${price.toFixed(2)} MXN`}
+                      </strong>
+                      <strong style={{ color: '#16b32b', paddingLeft: 12 }}>$0.00 MXN</strong>
+                    </div>
+                    :
+                    <div style={{ fontSize: 16 }}>
+                      <strong style={{ color: '#151bc1' }}>
+                        {`$${price.toFixed(2)} MXN`}
+                      </strong>
+                    </div>
+                  }
                 </div>
               </div>
             )}
             {(status === 'finalizado') && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
-                <div style={{ fontSize: 16, paddingBlock: 8 }}><strong>Monto a pagar</strong></div>
-                <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
-                {(hasLabory && saldoLabory > 0) && (
+                {!isTripFree ?
                   <>
-                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
-                      Pago máximo con
-                      <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
-                    </div>
-                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                    <div style={{ fontSize: 16, paddingBlock: 8 }}><strong>Monto a pagar</strong></div>
+                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Total del viaje: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
+                    {(hasLabory && saldoLabory > 0) && (
+                      <>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
+                          Pago máximo con
+                          <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
+                        </div>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                      </>
+                    )}
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#151bc1', paddingTop: 12 }}>Confirma tu pago con el conductor</div>
                   </>
-                )}
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#151bc1', paddingTop: 12 }}>Confirma tu pago con el conductor</div>
+                  :
+                  <div>
+                    <h4 style={{ textAlign: 'center', color: '#16b32b' }}>
+                      Este viaje es completamente gratuito
+                    </h4>
+                    <h5 style={{ textAlign: 'center' }}>No tienes que pagar nada :D</h5>
+                  </div>
+                }
               </div>
             )}
             {(status === 'partial' || status === 'unpaid') &&

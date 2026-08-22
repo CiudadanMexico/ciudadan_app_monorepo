@@ -832,6 +832,7 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToOne',
       'api::agencia.agencia'
     >;
+    free_trip: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -2628,6 +2629,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
     singularName: 'driver';
     pluralName: 'drivers';
     displayName: 'Driver';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -2732,6 +2734,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
         'blocked'
       ]
     >;
+    free_trips: Attribute.Integer & Attribute.DefaultTo<5>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5299,6 +5302,7 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       'oneToOne',
       'plugin::users-permissions.user'
     >;
+    isTripFree: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

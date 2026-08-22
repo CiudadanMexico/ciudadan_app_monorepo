@@ -270,13 +270,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const getUserData = async (userEmail) => {
     const base = (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE;
     const token = (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN;
-    const url = `${base.replace(/\/$/, '')}/api/users?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`;
+    const url = `${base.replace(/\/$/, '')}/api/users?filters[email][$eq]=${userEmail}&populate=*`;
 
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      }
     });
     if (!response.ok) {
       throw new Error("Error buscando usuario en Strapi");
@@ -287,7 +287,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     if (!userData) {
       throw new Error("No se encontró usuario");
     }
-
+    
     const ratingAvg = await getAvgRating(userEmail);
     return { ...userData, ratingAvg };
   }
@@ -295,13 +295,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const getDriverData = async (driverEmail) => {
     const base = (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE;
     const token = (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN;
-    const url = `${base.replace(/\/$/, '')}/api/drivers?filters[email][$eq]=${encodeURIComponent(driverEmail)}&populate=*`;
+    const url = `${base.replace(/\/$/, '')}/api/drivers?filters[email][$eq]=${driverEmail}&populate=*`;
 
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      }
     });
     if (!response.ok) {
       throw new Error("Error buscando conductor en Strapi");
@@ -318,7 +318,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     const ratingAvg = await getAvgRating(driverEmail, true);
     // Extraer datos del conductor (en Strapi v4 están en .attributes)
     const driverAttributes = driver?.attributes || driver;
-    const driverId = driver?.id;
     return { ...driverAttributes, ratingAvg };
   }
 
@@ -868,6 +867,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         <ViajeConductor
           viaje={viaje}
           userData={userData}
+          driverData={driverData}
           socket={socketRef.current}
           strapiConfig={{ baseUrl: (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE, token: (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN }}
           userCoords={userCoords}

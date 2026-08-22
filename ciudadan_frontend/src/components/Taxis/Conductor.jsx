@@ -1,5 +1,5 @@
 // src/components/Taxis/Conductor.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button, Typography, Box } from '@mui/material';
 import io from 'socket.io-client';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -9,6 +9,7 @@ import ConductorRender from './ConductorRender.jsx'; // tu render (el UI que peg
 import taxiIcon from '../../assets/taxi_marker.png'; // si está en otra ruta ajusta
 import userIcon from '../../assets/user_marker.png'; // si está en otra ruta ajusta
 import { isWithinDistanceKm } from '../../utils/geo';
+import FreeTripConductor from './FreeTripsConductor.jsx';
 // NOTA: asegúrate de tener REACT_APP_GOOGLE_MAPS_API_KEY y REACT_APP_SOCKET_URL en .env
 
 const ZOCALO = { lat: 19.432607, lng: -99.133209 };
@@ -23,12 +24,14 @@ const Conductor = ({
   setShiftToPasajero,
 }) => {
   const { user, isAuthenticated } = useAuth0();
+  const [driver, setDriver] = useState(null);
   const [isWaiting, setIsWaiting] = useState(true);
   const [travelData, setTravelData] = useState([]);
   const [userId, setUserId] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [consultedTravel, setConsultedTravel] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
+  const [freeTripModalOpen, setFreeTripModalOpen] = useState(false);
 
   const mapRef = useRef(null); // guardamos instancia Map en .current
   const socketRef = useRef(null);
@@ -39,6 +42,9 @@ const Conductor = ({
   const driverMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
   const [sheetState, setSheetState] = useState('collapsed');
+
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || '';
+  const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || '';
 
   /* --------------------------
      Helpers: cargar Google Maps
@@ -138,6 +144,42 @@ const Conductor = ({
       );
     }
   };
+
+  const getDriverData = useCallback(async () => {
+    if (!user?.email || !strapiUrl) return;
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (strapiToken) headers.Authorization = `Bearer ${strapiToken}`;
+
+    try {
+      const url = `${strapiUrl}/api/drivers?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar los datos del conductor');
+      }
+      const data = await response.json();
+      const drivers = data?.data || data || [];
+      const driver = Array.isArray(drivers) ? drivers[0] : drivers;
+
+      if (!driver) return null;
+
+      const driverAttributes = driver?.attributes || driver;
+      console.log('[Conductor] datos del conductor cargados:', driverAttributes);
+      setDriver(driverAttributes);
+    } catch (err) {
+      console.warn('[Conductor] no se pudieron cargar los datos del conductor:', err);
+    }
+  }, [strapiToken, strapiUrl, user?.email]);
+
+  useEffect(() => {
+    getDriverData();
+    if (driver?.free_trips > 0) setFreeTripModalOpen(true);
+  }, [getDriverData, driver?.free_trips]);
 
   /* --------------------------
      Inicializa mapa (no bloquear UI)
@@ -303,9 +345,9 @@ const Conductor = ({
               : null;
           const pickupCoords = data.originCoordinates
             ? {
-                lat: Number(data.originCoordinates.lat),
-                lng: Number(data.originCoordinates.lng),
-              }
+              lat: Number(data.originCoordinates.lat),
+              lng: Number(data.originCoordinates.lng),
+            }
             : null;
           const withinDistance =
             driverCoords && pickupCoords
@@ -436,7 +478,7 @@ const Conductor = ({
     const driverCoords =
       userCoords ||
       (mapRef.current.getCenter ? mapRef.current.getCenter().toJSON() : null);
-      
+
     console.log('[Conductor] dibujando ruta: driver -> pickup -> destination', {
       driverCoords,
       pickupCoords,
@@ -804,6 +846,7 @@ const Conductor = ({
         setUserCoords={setUserCoords}
         travelData={travelData}
         consultedTravel={consultedTravel}
+        driver={driver}
         handleTravelCardClick={handleTravelCardClick}
         handleBackButtonClick={handleBackButtonClick}
         handleCloseButtonClick={handleCloseButtonClick}
@@ -824,6 +867,11 @@ const Conductor = ({
       >
         {getSheetContent()}
       </BottomSheet>
+      <FreeTripConductor
+        open={freeTripModalOpen}
+        setOpen={setFreeTripModalOpen}
+        freeTrips={driver?.free_trips}
+      />
     </>
   );
 };

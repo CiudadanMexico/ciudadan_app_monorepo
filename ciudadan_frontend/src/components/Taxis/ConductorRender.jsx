@@ -24,6 +24,7 @@ const ConductorRender = ({
   setUserCoords,
   travelData,
   consultedTravel,
+  driver,
   handleTravelCardClick,
   handleBackButtonClick,
   handleCloseButtonClick,
@@ -58,6 +59,7 @@ const ConductorRender = ({
 
   // Estado para cachear preferencias de conductores
   const [conductorPrefsCache, setConductorPrefsCache] = useState({});
+  const [freeTrip, setFreeTrip] = useState(false);
 
   // Función para comparar preferencias del pasajero con las del conductor
   const comparePreferences = useCallback((passengerSettings, driverVehicle) => {
@@ -226,6 +228,22 @@ const ConductorRender = ({
 
     fetchAll();
   }, [travelData, fetchConductorPreferences]);
+
+  // Verificar si el viaje es gratis
+  useEffect(() => {
+    travelData.forEach((t, idx) => {
+      const driverEmail = t?.userEmail;
+      const userEmail = t?.userData?.email;
+      const userFreeTrip = t?.freeTrip;
+      console.log(`[ConductorRender] free trip user ${userEmail}:`, userFreeTrip);
+
+      const driverFreeTrip = driver?.free_trips > 0;
+      console.log(`[ConductorRender] free trip driver ${driverEmail}:`, driverFreeTrip)
+
+      if ((userFreeTrip || !driverFreeTrip) && (!userFreeTrip || driverFreeTrip)) setFreeTrip(true);
+    });
+  }, [travelData, driver?.free_trips])
+
   const normalizeTravelId = useCallback((travel, fallbackIndex = null) => {
     if (!travel) {
       return fallbackIndex !== null ? String(fallbackIndex) : null;
@@ -606,6 +624,11 @@ const ConductorRender = ({
       const driverEmail = t?.userEmail;
       const passengerSettings = t?.settings;
 
+      if (!freeTrip) {
+        console.log('Solo un usuario tiene configurado un viaje gratis');
+        return false
+      };
+
       if (driverEmail && passengerSettings && conductorPrefsCache[driverEmail]) {
         const driverVehicle = conductorPrefsCache[driverEmail];
         const preferencesMatch = comparePreferences(passengerSettings, driverVehicle);
@@ -663,6 +686,7 @@ const ConductorRender = ({
                   <TravelCard
                     key={tid || index}
                     travel={travel}
+                    driver={driver}
                     index={index}
                     onClick={handleTravelCardClick}
                     onClose={handleCloseButtonClick}
@@ -693,6 +717,11 @@ const ConductorRender = ({
         </div>
       )}
 
+      {driver?.free_trips > 0 && (
+        <h3 style={{ textAlign: 'center', color: '#f5a623', paddingBottom: 6 }}>
+          Te quedan {driver?.free_trips} viajes gratis por realizar
+        </h3>
+      )}
       {/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
       <div
         className="taxis-map"
