@@ -104,14 +104,18 @@ const precotizacionTotal = async (producto, cpDestino) => {
  * useProductos
  * @param {Object} options
  * @param {boolean} options.paginado - si true, el hook devolverá productos en forma { data: [], meta: {} }
+ * @param {number|undefined} options.porPaginaDefault
  */
-const useProductos = ({ paginado } = {}) => {
+const useProductos = ({ paginado, porPaginaDefault = 50 } = {}) => {
   const isPaginado = Boolean(paginado);
   const [productos, setProductos] = useState(isPaginado ? { data: [], meta: {} } : []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [producto, setProducto] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [porPagina, setPorPagina] = useState(porPaginaDefault);
+
 
   const API_ROOT = process.env.REACT_APP_STRAPI_URL + '/api';
   const API_URL_PRODUCTOS = `${API_ROOT}/productos`;
@@ -242,7 +246,6 @@ const useProductos = ({ paginado } = {}) => {
           'pagination[pageSize]': pageSize,
           populate: '*',
         },
-        withCredentials: true,
       });
       return res?.data?.data || [];
     } catch (err) {
@@ -478,7 +481,11 @@ const useProductos = ({ paginado } = {}) => {
       const res = await axios.get(API_URL_PRODUCTOS, {
         params: {
           'filters[slug][$eq]': slug,
-          populate: '*',
+          'populate[store_category]': '*',
+          'populate[imagen_predeterminada]': '*',
+          'populate[imagenes]': '*',
+          'populate[preguntas_productos]': '*',
+          'populate[store][populate][direccion]': '*',
         },
       });
       const data = res.data?.data?.[0] || null;
@@ -514,8 +521,6 @@ const useProductos = ({ paginado } = {}) => {
         const {
           filtros,
           parametros,
-          pagina,
-          porPagina,
           precio_min,
           precio_max,
           marca,
@@ -534,7 +539,7 @@ const useProductos = ({ paginado } = {}) => {
         if (filtros === 'categoria' && parametros) {
           params = {
             ...params,
-            'filters[categoria][slug][$eq]': parametros,
+            'filters[store_category][slug][$eq]': parametros,
           };
         }
 
@@ -572,7 +577,7 @@ const useProductos = ({ paginado } = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [API_URL_PRODUCTOS, setProductosNormalized]);
+  }, [API_URL_PRODUCTOS, setProductosNormalized, pagina, porPagina]);
 
   const getProductosPorCategoria = useCallback(async (categoriaId) => {
     setLoading(true);
@@ -651,6 +656,41 @@ const useProductos = ({ paginado } = {}) => {
     }
   }, [API_URL_PRODUCTOS]);
 
+  const obtenerPrecioMaximo = (productos = []) => {
+    if (!Array.isArray(productos) || productos.length === 0) return null;
+
+    const precios = productos
+      .map((p) => Number(p?.attributes?.precio))
+      .filter((precio) => !isNaN(precio));
+
+    if (precios.length === 0) return null;
+    const maxPrecio = Math.max(...precios);
+    return Math.round(maxPrecio + 1);
+  };
+
+  const getProducts = async (requestParams = {}, onSuccess, onError) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const queryParams = new URLSearchParams({ populate: '*', 'pagination[pageSize]': 50, 'pagination[page]': 1, 'sort[0]': 'precio:asc', ...requestParams });
+      const query = queryParams.toString();
+      const response = await fetch(`${API_URL_PRODUCTOS}?${query}`);
+      const data = await response.json();
+      if (onSuccess)
+        onSuccess();
+      return data;
+
+    } catch (error) {
+      setError(error);
+      console.error('fetchProductos error', error);
+      if (onError)
+        onError(error);
+      return { data: [], meta: {} };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     productos,
     loading,
@@ -683,6 +723,12 @@ const useProductos = ({ paginado } = {}) => {
     contadorRankings,
     calcularPromedioRankingsPorProducto, // { count, avg100, avg5 }
     actualizarCalificacionProducto,     // actualiza producto en Strapi con numero_calificaciones y calificacion (suma de estrellas)
+    pagina,
+    setPagina,
+    porPagina,
+    setPorPagina,
+    obtenerPrecioMaximo,
+    getProducts
   };
 };
 

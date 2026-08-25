@@ -75,7 +75,8 @@
           "localized": true
         }
       },
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "slug": {
       "pluginOptions": {

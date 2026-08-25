@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_modifiers",
+  "info": {
+    "singularName": "food-modifier",
+    "pluralName": "food-modifiers",
+    "displayName": "Food Modifier"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "precio": {
+      "type": "decimal",
+      "default": 0
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "disponible": {
+      "type": "boolean",
+      "default": true
+    },
+    "orden": {
+      "type": "integer",
+      "default": 0
+    },
+    "imagen": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "food_modifier_group": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::food-modifier-group.food-modifier-group",
+      "inversedBy": "food_modifiers"
+    }
+  }
+}

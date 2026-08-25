@@ -500,7 +500,8 @@ export const RolesProvider = ({ children }) => {
         setAdmin,
         setRoot,
         setVerificador,
-        verificado
+        verificado,
+        updateExtraRole,
       }}
     >
       {children}

@@ -4,7 +4,8 @@
   "info": {
     "singularName": "configuracion-usuario",
     "pluralName": "configuraciones-usuarios",
-    "displayName": "configuraciones_usuarios"
+    "displayName": "configuraciones_usuarios",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -21,6 +22,9 @@
     },
     "configuraciones": {
       "type": "json"
+    },
+    "pago_labory": {
+      "type": "boolean"
     }
   }
 }

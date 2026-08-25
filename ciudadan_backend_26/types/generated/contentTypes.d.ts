@@ -816,6 +816,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToMany',
       'api::area.area'
     >;
+    favoritos: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::favorito.favorito'
+    >;
     area_details: Attribute.JSON;
     skills: Attribute.Relation<
       'plugin::users-permissions.user',
@@ -827,6 +832,7 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToOne',
       'api::agencia.agencia'
     >;
+    free_trip: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1005,6 +1011,8 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'oneToMany',
       'admin::user'
     >;
+    walll: Attribute.String;
+    wallet_address: Attribute.String;
     tipo: Attribute.Enumeration<['local', 'federal']> &
       Attribute.DefaultTo<'local'>;
     socios: Attribute.Relation<
@@ -1298,7 +1306,7 @@ export interface ApiCarroCarro extends Schema.CollectionType {
     > &
       Attribute.DefaultTo<'indiferente'>;
     musica: Attribute.Enumeration<
-      ['sin_musica', 'musica_suave', 'pasajero_elige', 'indiferente']
+      ['sin m\u00FAsica', 'm\u00FAsica suave', 'pasajero elige', 'indiferente']
     > &
       Attribute.DefaultTo<'indiferente'>;
     tipo_musica: Attribute.JSON;
@@ -2334,6 +2342,7 @@ export interface ApiConfiguracionUsuarioConfiguracionUsuario
     singularName: 'configuracion-usuario';
     pluralName: 'configuraciones-usuarios';
     displayName: 'configuraciones_usuarios';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -2346,6 +2355,7 @@ export interface ApiConfiguracionUsuarioConfiguracionUsuario
     >;
     email: Attribute.Email;
     configuraciones: Attribute.JSON;
+    pago_labory: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -2591,6 +2601,11 @@ export interface ApiDireccionDireccion extends Schema.CollectionType {
     predeterminada: Attribute.Boolean;
     user_email: Attribute.String;
     usuario_email: Attribute.String;
+    restaurant_id: Attribute.Relation<
+      'api::direccion.direccion',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -2614,6 +2629,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
     singularName: 'driver';
     pluralName: 'drivers';
     displayName: 'Driver';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -2718,6 +2734,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
         'blocked'
       ]
     >;
+    free_trips: Attribute.Integer & Attribute.DefaultTo<5>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -2904,14 +2921,14 @@ export interface ApiFavoritoFavorito extends Schema.CollectionType {
   attributes: {
     usuario: Attribute.Relation<
       'api::favorito.favorito',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     usuario_email: Attribute.Email;
     tipo: Attribute.Enumeration<['producto', 'curso', 'contenido', 'club']>;
     producto: Attribute.Relation<
       'api::favorito.favorito',
-      'oneToOne',
+      'manyToOne',
       'api::producto.producto'
     >;
     club: Attribute.Relation<
@@ -2941,6 +2958,514 @@ export interface ApiFavoritoFavorito extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::favorito.favorito',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodCartFoodCart extends Schema.CollectionType {
+  collectionName: 'food_carts';
+  info: {
+    singularName: 'food-cart';
+    pluralName: 'food-carts';
+    displayName: 'Food Carts';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    usuario: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    items: Attribute.Component<'food-cart.food-cart-item', true>;
+    subtotal: Attribute.Decimal;
+    monto_envio: Attribute.Decimal;
+    monto_total: Attribute.Decimal;
+    moneda: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    estado: Attribute.Enumeration<
+      ['activo', 'procesando', 'convertido', 'abandonado']
+    > &
+      Attribute.DefaultTo<'activo'>;
+    ultima_actualizacion: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodCategorieFoodCategorie extends Schema.CollectionType {
+  collectionName: 'food_categories';
+  info: {
+    singularName: 'food-categorie';
+    pluralName: 'food-categories';
+    displayName: 'Food Categories';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre: Attribute.String & Attribute.Required;
+    descripcion: Attribute.Text;
+    imagen: Attribute.Media<'images'>;
+    slug: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-categorie.food-categorie',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-categorie.food-categorie',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodModifierFoodModifier extends Schema.CollectionType {
+  collectionName: 'food_modifiers';
+  info: {
+    singularName: 'food-modifier';
+    pluralName: 'food-modifiers';
+    displayName: 'Food Modifier';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre: Attribute.String & Attribute.Required;
+    descripcion: Attribute.Text;
+    precio: Attribute.Decimal & Attribute.DefaultTo<0>;
+    activo: Attribute.Boolean & Attribute.DefaultTo<true>;
+    disponible: Attribute.Boolean & Attribute.DefaultTo<true>;
+    orden: Attribute.Integer & Attribute.DefaultTo<0>;
+    imagen: Attribute.Media<'images'>;
+    food_modifier_group: Attribute.Relation<
+      'api::food-modifier.food-modifier',
+      'manyToOne',
+      'api::food-modifier-group.food-modifier-group'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-modifier.food-modifier',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-modifier.food-modifier',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodModifierGroupFoodModifierGroup
+  extends Schema.CollectionType {
+  collectionName: 'food_modifier_groups';
+  info: {
+    singularName: 'food-modifier-group';
+    pluralName: 'food-modifier-groups';
+    displayName: 'Food Modifier Group';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre: Attribute.String & Attribute.Required;
+    descripcion: Attribute.Text;
+    requerido: Attribute.Boolean & Attribute.DefaultTo<false>;
+    orden: Attribute.Integer & Attribute.DefaultTo<0>;
+    activo: Attribute.Boolean & Attribute.DefaultTo<true>;
+    food_restaurant: Attribute.Relation<
+      'api::food-modifier-group.food-modifier-group',
+      'manyToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    food_modifiers: Attribute.Relation<
+      'api::food-modifier-group.food-modifier-group',
+      'oneToMany',
+      'api::food-modifier.food-modifier'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-modifier-group.food-modifier-group',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-modifier-group.food-modifier-group',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodOfferFoodOffer extends Schema.CollectionType {
+  collectionName: 'food_offers';
+  info: {
+    singularName: 'food-offer';
+    pluralName: 'food-offers';
+    displayName: 'Food Offers';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    titulo: Attribute.String &
+      Attribute.Required &
+      Attribute.SetMinMaxLength<{
+        maxLength: 150;
+      }>;
+    descripcion: Attribute.Text;
+    precio: Attribute.Decimal &
+      Attribute.Required &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    cantidad: Attribute.Integer;
+    activa: Attribute.Boolean;
+    fecha_inicio: Attribute.DateTime;
+    fecha_fin: Attribute.DateTime;
+    restaurant: Attribute.Relation<
+      'api::food-offer.food-offer',
+      'manyToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    items: Attribute.Component<'offers.offer-item', true> & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-offer.food-offer',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-offer.food-offer',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
+  collectionName: 'food_orders';
+  info: {
+    singularName: 'food-order';
+    pluralName: 'food-orders';
+    displayName: 'Food Orders';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    items: Attribute.Component<'orders.products-order', true>;
+    fecha_creacion: Attribute.DateTime;
+    user: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    guia: Attribute.String;
+    direccion_origen: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    direccion_destino: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    fecha_envio: Attribute.DateTime;
+    fecha_entrega: Attribute.DateTime;
+    fecha_pagado: Attribute.DateTime;
+    fecha_finalizado: Attribute.DateTime;
+    total_volumetrico: Attribute.Decimal;
+    monto_envio: Attribute.Decimal;
+    monto_total: Attribute.Decimal;
+    moneda: Attribute.String;
+    pago: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::pago.pago'
+    >;
+    status: Attribute.Enumeration<
+      [
+        'pendiente_pago',
+        'pendiente_verificacion',
+        'pendiente_envio',
+        'enviado',
+        'en_camino',
+        'cancelado',
+        'devuelto',
+        'recibido'
+      ]
+    >;
+    finalizado: Attribute.Boolean;
+    calificado: Attribute.Boolean;
+    metadata: Attribute.JSON;
+    restaurant: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    fecha_verificado: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-order.food-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodProductFoodProduct extends Schema.CollectionType {
+  collectionName: 'food_products';
+  info: {
+    singularName: 'food-product';
+    pluralName: 'food-products';
+    displayName: 'Food Products';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre: Attribute.String & Attribute.Required;
+    descripcion: Attribute.Text;
+    imagen_predeterminada: Attribute.Media<'images'>;
+    imagenes: Attribute.Media<'images', true>;
+    precio_base: Attribute.Decimal;
+    activo: Attribute.Boolean & Attribute.DefaultTo<true>;
+    destacado: Attribute.Boolean & Attribute.DefaultTo<false>;
+    slug: Attribute.String;
+    food_categories: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToMany',
+      'api::food-categorie.food-categorie'
+    >;
+    food_restaurant: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    tiempo_preparacion: Attribute.Integer;
+    calorias: Attribute.Integer;
+    peso: Attribute.Decimal;
+    porciones: Attribute.Decimal;
+    es_picante: Attribute.Boolean;
+    nivel_picante: Attribute.Enumeration<
+      ['ninguno', 'leve', 'medio', 'alto', 'extremo']
+    >;
+    vegetariano: Attribute.Boolean;
+    vegano: Attribute.Boolean;
+    sin_gluten: Attribute.Boolean;
+    contiene_lacteos: Attribute.Boolean;
+    contiene_mariscos: Attribute.Boolean;
+    contiene_cerdo: Attribute.Boolean;
+    ingredientes: Attribute.JSON;
+    alergenos: Attribute.JSON;
+    temperatura: Attribute.Enumeration<['caliente', 'frio', 'ambiente']>;
+    disponible: Attribute.Boolean & Attribute.DefaultTo<true>;
+    usa_stock: Attribute.Boolean & Attribute.DefaultTo<false>;
+    stock: Attribute.Integer;
+    calificacion: Attribute.Decimal;
+    calificaciones: Attribute.Integer;
+    vendidos: Attribute.Integer;
+    variantes: Attribute.JSON;
+    combos: Attribute.JSON;
+    horario_disponibilidad: Attribute.JSON;
+    orden_minima: Attribute.Decimal;
+    permite_programar: Attribute.Boolean;
+    fecha_creacion: Attribute.DateTime;
+    food_product_variants: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToMany',
+      'api::food-product-variant.food-product-variant'
+    >;
+    food_modifiers: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToMany',
+      'api::food-modifier.food-modifier'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-product.food-product',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodProductVariantFoodProductVariant
+  extends Schema.CollectionType {
+  collectionName: 'food_product_variants';
+  info: {
+    singularName: 'food-product-variant';
+    pluralName: 'food-product-variants';
+    displayName: 'Food Product Variants';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre: Attribute.String & Attribute.Required;
+    descripcion: Attribute.Text;
+    precio: Attribute.Decimal & Attribute.Required;
+    peso: Attribute.Decimal;
+    calorias: Attribute.Integer;
+    stock: Attribute.Integer;
+    usa_stock: Attribute.Boolean & Attribute.DefaultTo<false>;
+    activo: Attribute.Boolean & Attribute.DefaultTo<true>;
+    orden: Attribute.Integer & Attribute.DefaultTo<0>;
+    food_product: Attribute.Relation<
+      'api::food-product-variant.food-product-variant',
+      'manyToOne',
+      'api::food-product.food-product'
+    >;
+    porciones: Attribute.Decimal;
+    ingredientes: Attribute.JSON;
+    alergenos: Attribute.JSON;
+    imagen_predeterminada: Attribute.Media<'images'>;
+    imagenes: Attribute.Media<'images', true>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-product-variant.food-product-variant',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-product-variant.food-product-variant',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
+  collectionName: 'food_restaurants';
+  info: {
+    singularName: 'food-restaurant';
+    pluralName: 'food-restaurants';
+    displayName: 'Food Restaurants';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre: Attribute.String & Attribute.Required;
+    email: Attribute.Email & Attribute.Required;
+    terminado: Attribute.Boolean & Attribute.DefaultTo<false>;
+    slug: Attribute.String & Attribute.Required;
+    users_permissions_user: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    direccion: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    cp: Attribute.String;
+    localidad: Attribute.String;
+    esquema_impuestos: Attribute.Enumeration<
+      ['sin_iva', 'con_iva', 'optativo']
+    >;
+    imagen: Attribute.Media<'images'>;
+    paso: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+          max: 4;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    nombre_bancario: Attribute.String;
+    clabe_bancaria: Attribute.String;
+    banco: Attribute.String;
+    food_modifier_groups: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
+      'oneToMany',
+      'api::food-modifier-group.food-modifier-group'
+    >;
+    offers: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
+      'oneToMany',
+      'api::food-offer.food-offer'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-restaurant.food-restaurant',
       'oneToOne',
       'admin::user'
     > &
@@ -3014,6 +3539,42 @@ export interface ApiKitjardineroKitjardinero extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::kitjardinero.kitjardinero',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
+  collectionName: 'laborys_payments';
+  info: {
+    singularName: 'laborys-payment';
+    pluralName: 'laborys-payments';
+    displayName: 'laborys_payment';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    origin_wallet: Attribute.String;
+    destination_wallet: Attribute.String;
+    ammount: Attribute.Decimal;
+    type: Attribute.String;
+    timestamp: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    status: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::laborys-payment.laborys-payment',
       'oneToOne',
       'admin::user'
     > &
@@ -3298,7 +3859,8 @@ export interface ApiPagoPago extends Schema.CollectionType {
         'asesoria',
         'servicio',
         'membresia',
-        'carrito'
+        'carrito',
+        'comida'
       ]
     >;
     carrito_id: Attribute.Relation<
@@ -3343,6 +3905,19 @@ export interface ApiPagoPago extends Schema.CollectionType {
       'api::pago.pago',
       'oneToOne',
       'api::pedido.pedido'
+    >;
+    comprobante: Attribute.Media<'images' | 'files'> & Attribute.Required;
+    usuario_email: Attribute.Email;
+    fecha_aprobado: Attribute.DateTime;
+    food_restaurant: Attribute.Relation<
+      'api::pago.pago',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    food_order: Attribute.Relation<
+      'api::pago.pago',
+      'oneToOne',
+      'api::food-order.food-order'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -3426,12 +4001,22 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
       'api::pago.pago'
     >;
     status: Attribute.Enumeration<
-      ['enviar', 'encamino', 'cancelado', 'devuelto', 'recibido', 'impagado']
-    >;
-    finalizado: Attribute.Boolean;
+      [
+        'pendiente_pago',
+        'pendiente_verificacion',
+        'pendiente_envio',
+        'enviado',
+        'en_camino',
+        'cancelado',
+        'devuelto',
+        'recibido'
+      ]
+    > &
+      Attribute.DefaultTo<'pendiente_pago'>;
+    finalizado: Attribute.Boolean & Attribute.DefaultTo<false>;
     fecha_finalizado: Attribute.DateTime;
     metadata: Attribute.JSON;
-    calificado: Attribute.Boolean;
+    calificado: Attribute.Boolean & Attribute.DefaultTo<false>;
     store: Attribute.Relation<
       'api::pedido.pedido',
       'oneToOne',
@@ -3630,6 +4215,8 @@ export interface ApiPreguntaProductoPreguntaProducto
       'oneToOne',
       'api::curso.curso'
     >;
+    respuesta: Attribute.Text;
+    fecha_respuesta: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3674,8 +4261,8 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
-    activo: Attribute.Boolean;
-    destacado: Attribute.Boolean;
+    activo: Attribute.Boolean & Attribute.DefaultTo<false>;
+    destacado: Attribute.Boolean & Attribute.DefaultTo<false>;
     store_id: Attribute.String;
     store_email: Attribute.String;
     store: Attribute.Relation<
@@ -3705,6 +4292,11 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'api::producto.producto',
       'oneToMany',
       'api::pregunta-producto.pregunta-producto'
+    >;
+    favoritos: Attribute.Relation<
+      'api::producto.producto',
+      'oneToMany',
+      'api::favorito.favorito'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -4070,6 +4662,36 @@ export interface ApiServicioServicio extends Schema.CollectionType {
   };
 }
 
+export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
+  collectionName: 'site_settings';
+  info: {
+    singularName: 'site-setting';
+    pluralName: 'site-settings';
+    displayName: 'Site_setting';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    labory_to_pesos_exchange_rate: Attribute.Decimal;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::site-setting.site-setting',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSkillSkill extends Schema.CollectionType {
   collectionName: 'skills';
   info: {
@@ -4280,7 +4902,8 @@ export interface ApiStoreStore extends Schema.CollectionType {
         i18n: {
           localized: true;
         };
-      }>;
+      }> &
+      Attribute.DefaultTo<false>;
     slug: Attribute.String &
       Attribute.SetPluginOptions<{
         i18n: {
@@ -4482,6 +5105,60 @@ export interface ApiTareaTarea extends Schema.CollectionType {
   };
 }
 
+export interface ApiTaxiDebtTaxiDebt extends Schema.CollectionType {
+  collectionName: 'taxi_debts';
+  info: {
+    singularName: 'taxi-debt';
+    pluralName: 'taxi-debts';
+    displayName: 'Taxi-debt';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    viaje: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'api::viaje.viaje'
+    >;
+    adeudo: Attribute.Float;
+    costo_viaje: Attribute.Float;
+    pagado: Attribute.Boolean & Attribute.DefaultTo<false>;
+    conductor: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    pasajero: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    conductor_email: Attribute.Email;
+    pasajero_email: Attribute.Email;
+    costo_efectivo: Attribute.Float;
+    fecha_viaje: Attribute.DateTime;
+    origen_direccion: Attribute.Text;
+    destino_direccion: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiTodoTodo extends Schema.CollectionType {
   collectionName: 'todos';
   info: {
@@ -4670,6 +5347,7 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       'oneToOne',
       'plugin::users-permissions.user'
     >;
+    isTripFree: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4681,6 +5359,51 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::viaje.viaje',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiWalletWallet extends Schema.CollectionType {
+  collectionName: 'wallets';
+  info: {
+    singularName: 'wallet';
+    pluralName: 'wallets';
+    displayName: 'wallet';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Attribute.String;
+    user: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    labory_balance: Attribute.Decimal;
+    cit_history: Attribute.JSON;
+    cit_balance: Attribute.Decimal;
+    status: Attribute.String;
+    agency: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'api::agencia.agencia'
+    >;
+    isagency: Attribute.Boolean;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wallet.wallet',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wallet.wallet',
       'oneToOne',
       'admin::user'
     > &
@@ -4779,8 +5502,18 @@ declare module '@strapi/types' {
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
       'api::favorito.favorito': ApiFavoritoFavorito;
+      'api::food-cart.food-cart': ApiFoodCartFoodCart;
+      'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
+      'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
+      'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;
+      'api::food-offer.food-offer': ApiFoodOfferFoodOffer;
+      'api::food-order.food-order': ApiFoodOrderFoodOrder;
+      'api::food-product.food-product': ApiFoodProductFoodProduct;
+      'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;
+      'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
+      'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
@@ -4800,15 +5533,18 @@ declare module '@strapi/types' {
       'api::resena.resena': ApiResenaResena;
       'api::respuesta.respuesta': ApiRespuestaRespuesta;
       'api::servicio.servicio': ApiServicioServicio;
+      'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::skill.skill': ApiSkillSkill;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;
       'api::store-categorie.store-categorie': ApiStoreCategorieStoreCategorie;
       'api::tarea.tarea': ApiTareaTarea;
+      'api::taxi-debt.taxi-debt': ApiTaxiDebtTaxiDebt;
       'api::todo.todo': ApiTodoTodo;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
       'api::viaje.viaje': ApiViajeViaje;
+      'api::wallet.wallet': ApiWalletWallet;
       'api::world-coin-wallet.world-coin-wallet': ApiWorldCoinWalletWorldCoinWallet;
     }
   }

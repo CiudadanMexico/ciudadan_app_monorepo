@@ -31,6 +31,7 @@ const usePasoProducto = (formData, imagenPredeterminada) => {
   };
 
   const handleBack = () => setActiveStep((prev) => prev - 1);
+  const initializeStep = () => setActiveStep(0);
 
   return {
     activeStep,
@@ -39,6 +40,7 @@ const usePasoProducto = (formData, imagenPredeterminada) => {
     handleBack,
     imagenError,
     setFormSubmitted,
+    initializeStep
   };
 };
 

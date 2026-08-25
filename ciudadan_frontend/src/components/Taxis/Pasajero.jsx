@@ -1,6 +1,6 @@
 // src/components/Taxis/Pasajero.jsx
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Button, Typography, Box } from '@mui/material';
+import { Button, Typography, Box, Switch, TextField, MenuItem, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import io from 'socket.io-client';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
@@ -9,27 +9,61 @@ import useGoogleMaps from '../../hooks/UseGoogleMaps.jsx';
 import BottomSheet from '../BottomSheet.jsx';
 import AcceptTrip from './AcceptTrip.jsx';
 import taxiIcon from '../../assets/taxi_marker.png';
+import FreeTripPasajero from './FreeTripPasajero.jsx';
+import PreferencesModal from './PreferencesModal.jsx';
 
 const DEFAULT_FROM = { lat: 19.432608, lng: -99.133209 };
 //const DEFAULT_TO = { lat: 19.432608, lng: -99.133209 };
 
-const Pasajero = ({ onFoundDrivers = () => {} }) => {
+const DEFAULT_PREFERENCES = {
+  marca: '',
+  nombre: '',
+  modelo: '',
+  puertas: '',
+  charla: 'indiferente',
+  musica: 'indiferente',
+  tipo_musica: [],
+  wifi: false,
+  agua: false,
+  cargador: false,
+  snacks: false,
+  portabici: false,
+  accesibilidad: false,
+  mascotas: false,
+  fumadores: false,
+  aire_acondicionado: false,
+  rockola: false,
+  ambiente_inclusivo: false,
+  otro_genero: false,
+};
+
+const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
   const navigate = useNavigate();
 
   const [fromAddress, setFromAddress] = useState('');
   const [toAddress, setToAddress] = useState('');
 
-  const [fromCoordinates, setFromCoordinates] = useState(DEFAULT_FROM);
-  const [toCoordinates, setToCoordinates] = useState(DEFAULT_FROM);
+  const [fromCoordinates, setFromCoordinates] = useState(null);
+  const [toCoordinates, setToCoordinates] = useState(null);
 
-  const [fromMarkerPosition, setFromMarkerPosition] = useState(DEFAULT_FROM);
-  const [toMarkerPosition, setToMarkerPosition] = useState(DEFAULT_FROM);
+  const [fromMarkerPosition, setFromMarkerPosition] = useState(null);
+  const [toMarkerPosition, setToMarkerPosition] = useState(null);
 
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [error, setError] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [sheetState, setSheetState] = useState('collapsed');
+  const [preferencesModalOpen, setPreferencesModalOpen] = useState(false);
+  const [freeTripModalOpen, setFreeTripModalOpen] = useState(false);
+
+  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [passenger, setPassenger] = useState(null);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [paymentLabory, setPaymentLabory] = useState(false);
+  const [debtsLoading, setDebtsLoading] = useState(false);
+  const [debtsError, setDebtsError] = useState(null);
+  const [debts, setDebts] = useState([]);
 
   const { mapRef, fromMarkerRef, toMarkerRef } = useGoogleMaps(
     fromCoordinates,
@@ -59,6 +93,9 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
+  const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
+
   // Util: stringify safe
   const safeStringify = (obj, max = 2000) => {
     try {
@@ -78,6 +115,188 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
         .replace(/^ws:\/\//i, 'http://');
     } catch (e) {
       return null;
+    }
+  };
+
+  const normalizePreferences = useCallback((prefs = {}) => {
+    const base = { ...DEFAULT_PREFERENCES, ...(prefs || {}) };
+    return {
+      ...base,
+      marca: base.marca ?? '',
+      nombre: base.nombre ?? '',
+      modelo: base.modelo ?? '',
+      puertas: base.puertas ?? '',
+      charla: base.charla ?? 'indiferente',
+      musica: base.musica ?? 'indiferente',
+      tipo_musica: Array.isArray(base.tipo_musica)
+        ? base.tipo_musica.filter(Boolean).map((item) => String(item).trim()).filter(Boolean)
+        : typeof base.tipo_musica === 'string'
+          ? base.tipo_musica.split(',').map((item) => item.trim()).filter(Boolean)
+          : [],
+      wifi: Boolean(base.wifi),
+      agua: Boolean(base.agua),
+      cargador: Boolean(base.cargador),
+      snacks: Boolean(base.snacks),
+      portabici: Boolean(base.portabici),
+      accesibilidad: Boolean(base.accesibilidad),
+      mascotas: Boolean(base.mascotas),
+      fumadores: Boolean(base.fumadores),
+      aire_acondicionado: Boolean(base.aire_acondicionado),
+      rockola: Boolean(base.rockola),
+      ambiente_inclusivo: Boolean(base.ambiente_inclusivo),
+      otro_genero: Boolean(base.otro_genero),
+    };
+  }, []);
+
+  const getUserData = useCallback(async () => {
+    if (!user?.email || !strapiUrl) return;
+
+    try {
+      const url = `${strapiUrl}/api/users?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las preferencias');
+      }
+      const data = await response.json();
+
+      const userData = Array.isArray(data) ? data[0] : null;
+      if (!userData) {
+        throw new Error("No se encontró usuario");
+      }
+      console.log('[Pasajero] datos del usuario cargados:', userData);
+      setPassenger(userData);
+    } catch (err) {
+      console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
+    }
+  }, [strapiToken, strapiUrl, user?.email]);
+
+  const loadUserPreferences = useCallback(async () => {
+    if (!user?.email || !strapiUrl) return;
+
+    try {
+      const url = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error('No se pudieron cargar las preferencias');
+      }
+
+      const userData = await response.json();
+      const savedSettings = userData?.data?.[0]?.attributes?.configuraciones || {};
+      const paymentLabory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      setPreferences(normalizePreferences(savedSettings));
+      setPaymentLabory(paymentLabory);
+    } catch (err) {
+      console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
+      setPreferences(DEFAULT_PREFERENCES);
+    }
+  }, [normalizePreferences, strapiToken, strapiUrl, user?.email]);
+
+  useEffect(() => {
+    getUserData();
+    loadUserPreferences();
+  }, [getUserData, loadUserPreferences]);
+
+  useEffect(() => {
+    if (passenger?.free_trip) setFreeTripModalOpen(true);
+  }, [passenger?.free_trip]);
+
+  // Cargar adeudos del pasajero
+  useEffect(() => {
+    const fetchDebts = async () => {
+      if (!user?.email) return;
+      setDebtsLoading(true);
+      setDebtsError(null);
+      try {
+        // Preferir variable de entorno STRAPI si existe, sino usar localhost:33032
+        //const base = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
+        const url = `${strapiUrl.replace(/\/$/, '')}/api/taxi-debts?filters[pasajero_email][$eq]=${encodeURIComponent(
+          user.email,
+        )}&filters[pagado][$eq]=false&populate=*`;
+
+        const resp = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(strapiToken ? { Authorization: `Bearer ${strapiToken}` } : {}),
+          },
+        });
+        if (!resp.ok) throw new Error('Error consultando adeudos');
+        const json = await resp.json();
+        const items = (json && json.data) || [];
+        setDebts(items);
+      } catch (err) {
+        console.warn('[Pasajero] error cargando adeudos:', err);
+        setDebtsError(err && (err.message || String(err)));
+      } finally {
+        setDebtsLoading(false);
+      }
+    };
+
+    fetchDebts();
+  }, [user?.email]);
+
+  const handlePreferenceFieldChange = (field, value) => {
+    setPreferences((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePaymentLaboryChange = (field, value) => {
+    setPaymentLabory(value);
+  };
+
+  const saveUserPreferences = async () => {
+    if (!user?.email) return;
+
+    setPreferencesSaving(true);
+    try {
+      const normalized = normalizePreferences(preferences);
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const findUrl = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const findResponse = await fetch(findUrl, { headers });
+      const findData = await findResponse.json();
+      const existing = findData?.data?.[0];
+      const body = {
+        data: {
+          email: user.email,
+          configuraciones: normalized,
+          pago_labory: paymentLabory
+        },
+      };
+
+      const endpoint = existing?.id
+        ? `${strapiUrl}/api/configuraciones-usuarios/${existing.id}`
+        : `${strapiUrl}/api/configuraciones-usuarios`;
+      const method = existing?.id ? 'PUT' : 'POST';
+
+      const response = await fetch(endpoint, {
+        method,
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'No se pudieron guardar las preferencias');
+      }
+
+      setPreferencesModalOpen(false);
+    } catch (err) {
+      console.error('[Pasajero] error guardando preferencias:', err);
+      setError(err.message || 'No se pudieron guardar las preferencias');
+    } finally {
+      setPreferencesSaving(false);
     }
   };
 
@@ -152,7 +371,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
       }
 
       try {
-        const { coordinates, price, id } = offer;
+        const { coordinates, price, id, driverId, driverRating } = offer;
         const position = new window.google.maps.LatLng(
           coordinates.lat,
           coordinates.lng,
@@ -218,7 +437,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
 
         // Listener en marker: al click abrir modal y seleccionar oferta
         const markerClickListener = marker.addListener('click', () => {
-          setSelectedOffer({ id, coordinates, price });
+          setSelectedOffer({ id, coordinates, price, driverId, driverRating });
           setIsModalOpen(true);
         });
 
@@ -233,7 +452,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
               elem.style.cursor = 'pointer';
               if (!elem._hasClick) {
                 elem.addEventListener('click', () => {
-                  setSelectedOffer({ id, coordinates, price });
+                  setSelectedOffer({ id, coordinates, price, driverId, driverRating });
                   setIsModalOpen(true);
                 });
                 elem._hasClick = true;
@@ -253,7 +472,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
         // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
         setOffers((prev) => [
           ...prev,
-          { id, coordinates, price, timestamp: offer.timestamp },
+          { id, coordinates, price, driverId, driverRating, timestamp: offer.timestamp },
         ]);
       } catch (e) {
         console.warn('[Pasajero] error creando marker para oferta', e);
@@ -278,11 +497,6 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
     try {
       socketRef.current = io(process.env.REACT_APP_SOCKET_URL, {
         transports: ['websocket'],
-        reconnection: true,
-        reconnectionAttempts: 3,
-        reconnectionDelay: 2000,
-        reconnectionDelayMax: 5000,
-        timeout: 4000,
       });
 
       socketRef.current.on('connect', () => {
@@ -361,7 +575,8 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
         try {
           const coordinates =
             payload.coordinates || payload.coords || payload.location || null;
-          const price = payload.precio ?? payload.price ?? null;
+          const price = payload.precio || payload.price || null;
+          const driverRating = payload.userRating || null;
           if (
             !coordinates ||
             typeof coordinates.lat !== 'number' ||
@@ -373,14 +588,19 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
             );
             return;
           }
-          const id = `offer-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+          const id = payload.meta.travelId;
+          const driverId = payload.meta.driverId || payload.driverId || null;
+          console.log('id de conductor:', driverId);
+
           const offer = {
             id,
+            driverId,
             coordinates: {
               lat: Number(coordinates.lat),
               lng: Number(coordinates.lng),
             },
             price,
+            driverRating,
             timestamp: new Date().toISOString(),
             raw: payload,
           };
@@ -503,7 +723,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
       if (directionsRendererRef.current) {
         try {
           directionsRendererRef.current.setMap(null);
-        } catch (e) {}
+        } catch (e) { }
       }
     };
   }, [mapRef, googleMapsLoaded]);
@@ -620,6 +840,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
     setLoadingSearch(true);
 
     const userEmail = user?.email ?? null;
+    const preferenceSettings = normalizePreferences(preferences);
     const payload = {
       userEmail,
       originCoordinates: fromCoordinates || null,
@@ -627,9 +848,30 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
       originAddress: fromAddress || null,
       destinationAddress: toAddress || null,
       timestamp: new Date().toISOString(),
+      settings: preferenceSettings,
     };
+    console.log('[buscarTaxistas] payload:', safeStringify(payload, 2000));
 
     try {
+      const url = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}&populate=*`;
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      if (strapiToken) {
+        headers.Authorization = `Bearer ${strapiToken}`;
+      }
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        throw new Error("Error buscando usuario en Strapi");
+      }
+
+      const userData = await response.json();
+      const userId = userData?.data?.[0]?.attributes?.usuario?.data?.id || null;
+      console.log('pasajero id', userId);
+      const settings = preferenceSettings;
+      console.log("[AcceptTrip] configuraciones del usuario:", settings);
+
       // 1) Intentar POST a /test/send-trip (backend)
       const backendBase =
         process.env.REACT_APP_SOCKET_URL ||
@@ -644,6 +886,9 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               userEmail,
+              userId,
+              userData: passenger || null,
+              settings,
               originCoordinates: payload.originCoordinates,
               destinationCoordinates: payload.destinationCoordinates,
               originAdress: payload.originAddress,
@@ -727,6 +972,7 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
       // Payload: llenamos los campos que solicitaste en Strapi
       const body = {
         userEmail: user?.email ?? null,
+        driverId: selectedOffer.driverId ?? null,
         origencoords: fromCoordinates ?? null,
         destinocoords: toCoordinates ?? null,
         conductorcoords: selectedOffer.coordinates ?? null,
@@ -799,10 +1045,11 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
 
       // navegar a la ruta del viaje usando travelId retornado por tu endpoint
       if (travelIdReturned) {
-        navigate(`/taxis/viaje/${travelIdReturned}`);
+        navigate(`/taxis/viaje/${travelIdReturned}`, { state: { isDriver: false } });
+        console.log('[acceptOffer] navegando a /taxis/viaje/' + travelIdReturned);
       } else {
         // fallback: si no retornaron travelId, intenta con selectedOffer.id
-        navigate(`/taxis/viaje/${selectedOffer.id}`);
+        navigate(`/taxis/viaje/${selectedOffer.id}`, { state: { isDriver: false } });
       }
     } catch (e) {
       console.error('[acceptOffer] error general:', e);
@@ -813,6 +1060,68 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
   const cancelarBusqueda = () => {
     setLoadingSearch(false);
   };
+
+  const formatDate = (iso) => {
+    try {
+      return new Date(iso).toLocaleString();
+    } catch (e) {
+      return iso;
+    }
+  };
+
+  const AdeudoWarning = ({ debt }) => {
+    if (!debt || !debt.attributes) return null;
+    const a = debt.attributes;
+    const conductor = a.conductor && a.conductor.data && a.conductor.data.attributes ? a.conductor.data.attributes : null;
+    const conductorName = conductor?.nombre_completo || a.conductor_email || 'Conductor';
+    const costoViaje = a.costo_viaje != null ? a.costo_viaje : a.costo_efectivo || 0;
+    const adeudo = a.adeudo != null ? a.adeudo : costoViaje;
+    const fecha = a.fecha_viaje ? formatDate(a.fecha_viaje) : a.createdAt ? formatDate(a.createdAt) : '';
+    const origen = a.origen_direccion || '-';
+    const destino = a.destino_direccion || '-';
+
+    // Intentar obtener teléfono para WhatsApp
+    const phone = conductor && (conductor.telefono || conductor.phone || conductor.celular);
+    /*const whatsappLink = phone
+      ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+        `Hola ${conductorName}, respecto al adeudo del viaje. Mi email: ${user?.email || ''}`,
+      )}`
+      : null;*/
+    const whatsappLink = '+52 55 1234 5678'; // Reemplaza con el número de WhatsApp real del conductor o soporte
+
+    return (
+      <div className='adeudo-warning' style={{ padding: 20, maxWidth: 900, margin: '20px auto', background: '#fff6f6', border: '1px solid #ffb3b3', borderRadius: 8 }}>
+        <Typography variant='h6' sx={{ color: '#a10d0d', marginBottom: 1 }}>Tienes un adeudo pendiente</Typography>
+        <Typography sx={{ mb: 1 }}>No podrás pedir otro viaje hasta resolver este adeudo.</Typography>
+        <Box sx={{ mt: 1, mb: 1 }}>
+          <div><strong>Costo del viaje:</strong> ${Intl.NumberFormat('es-MX').format(costoViaje)}</div>
+          <div><strong>Adeudo:</strong> ${Intl.NumberFormat('es-MX').format(adeudo)}</div>
+          <div><strong>Fecha del viaje:</strong> {fecha}</div>
+          <div><strong>Conductor:</strong> {conductorName}</div>
+          <div><strong>Origen:</strong> {origen}</div>
+          <div><strong>Destino:</strong> {destino}</div>
+        </Box>
+        <Box sx={{ mt: 2 }}>
+          {whatsappLink ? (
+            <Button variant='contained' color='success' href={whatsappLink} target='_blank' rel='noreferrer'>Contactar por WhatsApp</Button>
+          ) : (
+            <Button variant='outlined' color='primary' href={`mailto:${a.conductor_email || ''}`}>Contactar por email</Button>
+          )}
+        </Box>
+      </div>
+    );
+  };
+
+  // Si hay adeudos no pagados, mostrar advertencia y evitar render normal
+  if (!debtsLoading && Array.isArray(debts) && debts.length > 0) {
+    return (
+      <>
+        <div className='taxis-container'>
+          <AdeudoWarning debt={debts[0]} />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -876,6 +1185,20 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
           >
             {loadingSearch ? 'Buscando taxistas...' : 'Buscar Conductores'}
           </button>
+          {!loadingSearch && (
+            <Button
+              variant='outlined'
+              onClick={() => setPreferencesModalOpen(true)}
+              sx={{
+                minWidth: 140,
+                borderColor: '#1d3be2',
+                color: '#1d3be2',
+                ml: 1,
+              }}
+            >
+              Preferencias
+            </Button>
+          )}
           {loadingSearch && (
             <button
               onClick={cancelarBusqueda}
@@ -903,6 +1226,13 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
           </button>
         </div>
 
+        {passenger?.free_trip && (
+          <h3 style={{ textAlign: 'center', color: '#16b32b', paddingBottom: 6 }}>
+            ¡Tienes un viaje gratis disponible! ¡Pide uno ahora!
+          </h3>
+        )}
+        <FreeTripPasajero open={freeTripModalOpen} setOpen={setFreeTripModalOpen} />
+
         {error && (
           <div className='error-text'>
             {typeof error === 'string'
@@ -912,6 +1242,18 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
                 : JSON.stringify(error)}
           </div>
         )}
+
+        <PreferencesModal
+          open={preferencesModalOpen}
+          setOpen={setPreferencesModalOpen}
+          preferences={preferences}
+          setPreferences={setPreferences}
+          paymentLabory={paymentLabory}
+          setPaymentLabory={setPaymentLabory}
+          saving={preferencesSaving}
+          onSavePreferences={saveUserPreferences}
+        />
+
         <div
           className='taxis-map formulario-pasajero'
           style={{
@@ -939,8 +1281,8 @@ const Pasajero = ({ onFoundDrivers = () => {} }) => {
       <BottomSheet
         initialState='collapsed'
         onStateChange={setSheetState}
-        collapsedHeight={90}
-        mediumHeight={380}
+        collapsedHeight={150}
+        mediumHeight={350}
         fullHeight={window.innerHeight - 50}
       >
         {getSheetContent()}

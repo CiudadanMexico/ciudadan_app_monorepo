@@ -1,0 +1,169 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_products",
+  "info": {
+    "singularName": "food-product",
+    "pluralName": "food-products",
+    "displayName": "Food Products",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "imagen_predeterminada": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "imagenes": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "precio_base": {
+      "type": "decimal"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "destacado": {
+      "type": "boolean",
+      "default": false
+    },
+    "slug": {
+      "type": "string"
+    },
+    "food_categories": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-categorie.food-categorie"
+    },
+    "food_restaurant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "tiempo_preparacion": {
+      "type": "integer"
+    },
+    "calorias": {
+      "type": "integer"
+    },
+    "peso": {
+      "type": "decimal"
+    },
+    "porciones": {
+      "type": "decimal"
+    },
+    "es_picante": {
+      "type": "boolean"
+    },
+    "nivel_picante": {
+      "type": "enumeration",
+      "enum": [
+        "ninguno",
+        "leve",
+        "medio",
+        "alto",
+        "extremo"
+      ]
+    },
+    "vegetariano": {
+      "type": "boolean"
+    },
+    "vegano": {
+      "type": "boolean"
+    },
+    "sin_gluten": {
+      "type": "boolean"
+    },
+    "contiene_lacteos": {
+      "type": "boolean"
+    },
+    "contiene_mariscos": {
+      "type": "boolean"
+    },
+    "contiene_cerdo": {
+      "type": "boolean"
+    },
+    "ingredientes": {
+      "type": "json"
+    },
+    "alergenos": {
+      "type": "json"
+    },
+    "temperatura": {
+      "type": "enumeration",
+      "enum": [
+        "caliente",
+        "frio",
+        "ambiente"
+      ]
+    },
+    "disponible": {
+      "type": "boolean",
+      "default": true
+    },
+    "usa_stock": {
+      "type": "boolean",
+      "default": false
+    },
+    "stock": {
+      "type": "integer"
+    },
+    "calificacion": {
+      "type": "decimal"
+    },
+    "calificaciones": {
+      "type": "integer"
+    },
+    "vendidos": {
+      "type": "integer"
+    },
+    "variantes": {
+      "type": "json"
+    },
+    "combos": {
+      "type": "json"
+    },
+    "horario_disponibilidad": {
+      "type": "json"
+    },
+    "orden_minima": {
+      "type": "decimal"
+    },
+    "permite_programar": {
+      "type": "boolean"
+    },
+    "fecha_creacion": {
+      "type": "datetime"
+    },
+    "food_product_variants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-product-variant.food-product-variant",
+      "mappedBy": "food_product"
+    },
+    "food_modifiers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::food-modifier.food-modifier"
+    }
+  }
+}

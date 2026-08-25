@@ -73,7 +73,7 @@ export default function RegistroTienda() {
       }
     };
     init();
-  }, [isAuthenticated, getStoreByEmail, user]);
+  }, [isAuthenticated, user]);
 
   // Mapa y autocomplete
   const { isLoaded } = useLoadScript({

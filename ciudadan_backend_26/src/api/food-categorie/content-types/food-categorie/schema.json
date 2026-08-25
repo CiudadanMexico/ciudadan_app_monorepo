@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_categories",
+  "info": {
+    "singularName": "food-categorie",
+    "pluralName": "food-categories",
+    "displayName": "Food Categories"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "imagen": {
+      "allowedTypes": [
+        "images"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "slug": {
+      "type": "string"
+    }
+  }
+}

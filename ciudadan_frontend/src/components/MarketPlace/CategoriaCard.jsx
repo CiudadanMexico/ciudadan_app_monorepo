@@ -8,17 +8,18 @@ const CategoriaCard = ({
   imagen,
   slug,
   clasifica,
-  forma = 'circle'   // <-- nueva prop con valor por defecto
+  forma = 'circle',   // <-- nueva prop con valor por defecto
+  onSelectCategory
 }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
     if (clasifica === 'contenidos' && slug) {
       navigate(`/contenidos/categoria/${slug}`);
-    } else if (clasifica === 'cursos' && slug){
+    } else if (clasifica === 'cursos' && slug) {
       navigate(`/cursos/categoria/${slug}`);
     }
-    
+
     else if (slug) {
       navigate(`/productos/categoria/${slug}`);
     }
@@ -32,20 +33,20 @@ const CategoriaCard = ({
     forma === 'hexagono'
       ? { overflow: 'hidden', clipPath: hexClip, borderRadius: 0 }
       : forma === 'cuadrado'
-      ? { overflow: 'hidden', borderRadius: 0 }
-      : {}; // circle: no overrides aquí
+        ? { overflow: 'hidden', borderRadius: 0 }
+        : {}; // circle: no overrides aquí
 
   const imgStyle =
     forma === 'hexagono'
       ? { clipPath: hexClip, borderRadius: 0 }
       : forma === 'cuadrado'
-      ? { borderRadius: 0 }
-      : {}; // circle: usa CSS por defecto (puede venir de .categoria-card-img)
+        ? { borderRadius: 0 }
+        : {}; // circle: usa CSS por defecto (puede venir de .categoria-card-img)
 
   return (
     <div className="categoria-card-container">
       <CardActionArea
-        onClick={handleClick}
+        onClick={() => onSelectCategory && onSelectCategory(slug)}
         className="categoria-card-action"
         sx={areaSx}
       >

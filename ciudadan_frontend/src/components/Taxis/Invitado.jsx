@@ -347,7 +347,7 @@ const Invitado = () => {
       <BottomSheet
         initialState='collapsed'
         onStateChange={setSheetState}
-        collapsedHeight={90}
+        collapsedHeight={150}
         mediumHeight={350}
         fullHeight={window.innerHeight - 50}
       >

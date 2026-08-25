@@ -1,6 +1,9 @@
 // src/routes/Rutas.jsx
-import React from 'react';
-import { Routes, Route, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import io from 'socket.io-client';
+import { Routes, Route, useParams, useLocation } from 'react-router-dom';
+import { useRoles } from '../Contexts/RolesContext';
 
 import Probador from '../components/Testers/Probador.jsx';
 
@@ -126,6 +129,14 @@ import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import TestToken from '../components/TestToken.jsx';
+import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
+import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
+import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
+import Restaurant from '../Pages/Food/Restaurant.jsx';
+import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
+import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
+import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
+import FoodCheckout from '../components/Food/FoodCheckout.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -184,6 +195,57 @@ const WikiLayout = ({ children }) => (
     <div style={{ paddingTop: '64px' }}>{children}</div>
   </>
 );
+
+const TripViewRoute = () => {
+  const { user } = useAuth0();
+  const location = useLocation();
+  const { roles: roleNames = [] } = useRoles();
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const socketUrl = process.env.REACT_APP_SOCKET_URL;
+    if (!socketUrl) return undefined;
+
+    const client = io(socketUrl, {
+      transports: ['websocket', 'polling'],
+    });
+
+    setSocket(client);
+
+    return () => {
+      client.disconnect();
+      setSocket(null);
+    };
+  }, []);
+
+  const strapiConfig = useMemo(() => ({
+    baseUrl: process.env.REACT_APP_STRAPI_URL || '',
+    token: process.env.REACT_APP_STRAPI_TOKEN || '',
+  }), []);
+
+  const tripUser = useMemo(() => {
+    const normalizedRoles = Array.isArray(roleNames) ? roleNames : [];
+    const roleValues = normalizedRoles.map((role) => String(role || '').toLowerCase());
+    console.log('TripViewRoute: isDriver', location?.state?.isDriver);
+    const explicitDriver = Boolean(
+      location?.state?.isDriver
+    );
+
+    return {
+      ...(user || {}),
+      role: explicitDriver ? 'driver' : 'user',
+      isDriver: explicitDriver,
+    };
+  }, [location?.state?.isDriver, roleNames, user]);
+
+  return (
+    <TripView
+      user={tripUser}
+      socket={socket}
+      strapiConfig={strapiConfig}
+    />
+  );
+};
 
 const Rutas = () => (
   <Routes>
@@ -254,7 +316,7 @@ const Rutas = () => (
     />
     <Route
       path='/taxis/viaje/:travelId'
-      element={<TripView />}
+      element={<TripViewRoute />}
     />
 
     <Route
@@ -272,6 +334,26 @@ const Rutas = () => (
       element={<Food />}
     />
     <Route
+      path='/comida/afiliar-restaurante'
+      element={<RegistroRestaurante />}
+    />
+    <Route
+      path='/comida/restaurante/:slug/*'
+      element={<Restaurant />}
+    />
+    <Route
+      path='/comida/producto/:slug'
+      element={<ComidaProducto />}
+    />
+    <Route
+      path='/comida/comprar/:slug'
+      element={<ComprarFoodProduct />}
+    />
+    <Route 
+      path='/comida/ofertas'
+      element={<ComidaOfertas />}
+    />
+    <Route
       path='/restaurantes'
       element={<RestaurantesRoute />}
     />
@@ -279,11 +361,11 @@ const Rutas = () => (
     {/* Market / Marketplace / MarketRoute */}
     <Route
       path='/market'
-      element={<MarketPlace />}
+      element={<MarketPage />}
     />
     <Route
       path='/marketplaces'
-      element={<MarketPlace />}
+      element={<MarketPage />}
     />
     <Route
       path='/market/producto/:slug'
@@ -339,7 +421,11 @@ const Rutas = () => (
       element={<FinalizarCompra />}
     />
     <Route
-      path='/market/compras/*'
+      path='/carrito/comida/checkout'
+      element={<FoodCheckout />}
+    />
+    <Route
+      path='/compras/*'
       element={<Compras />}
     />
     <Route
@@ -353,6 +439,10 @@ const Rutas = () => (
     <Route
       path='/productos/eliminar/:slug'
       element={<EliminarProductoWrapper />}
+    />
+    <Route
+      path='/market/comprar/:slug'
+      element={<FinalizarCompraProducto />}
     />
 
     {/* Cartera / OpWallet */}

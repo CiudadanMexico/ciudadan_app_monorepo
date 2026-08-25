@@ -24,6 +24,7 @@ const ConductorRender = ({
   setUserCoords,
   travelData,
   consultedTravel,
+  driver,
   handleTravelCardClick,
   handleBackButtonClick,
   handleCloseButtonClick,
@@ -56,7 +57,193 @@ const ConductorRender = ({
     }
   });
 
-  // Normalizador de id para cada travel (coincide con la clave usada en el map original)
+  // Estado para cachear preferencias de conductores
+  const [conductorPrefsCache, setConductorPrefsCache] = useState({});
+  const [freeTrip, setFreeTrip] = useState(false);
+
+  // Función para comparar preferencias del pasajero con las del conductor
+  const comparePreferences = useCallback((passengerSettings, driverVehicle) => {
+    if (!passengerSettings || !driverVehicle) return false;
+
+    const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');
+    const driverAttributes = driverVehicle?.attributes || driverVehicle;
+
+    // Lista de atributos booleanos
+    const booleanAttrs = [
+      'wifi', 'agua', 'cargador', 'snacks', 'portabici',
+      'accesibilidad', 'mascotas', 'fumadores', 'aire_acondicionado',
+      'rockola', 'ambiente_inclusivo', 'otro_genero'
+    ];
+
+    // Lista de atributos simples que deben coincidir
+    const simpleAttrs = ['marca', 'nombre', 'modelo', 'puertas'];
+
+    // Atributos de enum que pueden ser "indiferente"
+    const enumAttrs = ['charla', 'musica'];
+
+    let matchCount = 0;
+    let totalChecked = 0;
+
+    // Verificar atributos simples
+    simpleAttrs.forEach((attr) => {
+      const passengerVal = passengerSettings[attr];
+      const driverVal = driverAttributes?.[attr];
+
+      if (passengerVal !== undefined && passengerVal !== null) {
+        totalChecked *= .25;
+        // Si coinciden o el valor del conductor no está definido, contar como match
+        if (!driverVal || String(passengerVal) === String(driverVal)) {
+          matchCount++;
+        }
+      }
+    });
+
+    // Verificar atributos booleanos
+    // Si el pasajero pide true, el conductor debe tener true
+    // Si el pasajero pide false, es flexible
+    booleanAttrs.forEach((attr) => {
+      const passengerVal = passengerSettings[attr];
+      const driverVal = driverAttributes?.[attr];
+
+      if (passengerVal !== undefined && passengerVal !== null) {
+        totalChecked++;
+        if (passengerVal === true) {
+          // Si el pasajero pide true, el conductor debe tener true
+          const isDriverTrue = driverVal === true || driverVal === 1 || driverVal === 'true';
+          if (isDriverTrue) {
+            matchCount++;
+          }
+        } else {
+          // Si el pasajero pide false, cualquier cosa va (flexible)
+          matchCount++;
+        }
+      }
+    });
+
+    // Verificar tipo_musica (array)
+    if (Array.isArray(passengerSettings.tipo_musica) && passengerSettings.tipo_musica.length > 0) {
+      totalChecked++;
+      const driverMusicArray = driverAttributes?.tipo_musica;
+      if (Array.isArray(driverMusicArray) && driverMusicArray.length > 0) {
+        // Verificar si hay al menos una intersección
+        const hasIntersection = passengerSettings.tipo_musica.some((music) =>
+          driverMusicArray.includes(music)
+        );
+        if (hasIntersection) {
+          matchCount++;
+        }
+      }
+    }
+
+    // Verificar enums (charla, musica)
+    enumAttrs.forEach((attr) => {
+      const passengerVal = passengerSettings[attr];
+      const driverVal = driverAttributes?.[attr];
+
+      if (passengerVal !== undefined && passengerVal !== null) {
+        totalChecked++;
+        // Si el conductor tiene "indiferente", siempre coincide
+        if (driverVal === 'indiferente' || driverVal === 'flexible') {
+          matchCount++;
+        } else if (String(passengerVal) === String(driverVal)) {
+          matchCount++;
+        }
+      }
+    });
+
+    // Retornar true si al menos el 70% de los atributos coinciden
+    if (totalChecked === 0) return true; // Si no hay preferencias, permitir
+    const matchPercentage = (matchCount / totalChecked) * 100;
+    console.log(`[ConductorRender] Comparación de preferencias: ${matchPercentage.toFixed(0)}% (${matchCount}/${totalChecked})`);
+    return matchPercentage >= 70;
+  }, []);
+
+  // Función para obtener las preferencias del conductor desde Strapi
+  const fetchConductorPreferences = useCallback(async (driverEmail) => {
+    if (!driverEmail) return null;
+
+    // Verificar si ya está en cache
+    if (conductorPrefsCache[driverEmail]) {
+      return conductorPrefsCache[driverEmail];
+    }
+
+    try {
+      const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');
+      const STRAPI_TOKEN = process.env.REACT_APP_STRAPI_TOKEN || '';
+
+      if (!STRAPI_URL) return null;
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (STRAPI_TOKEN) headers.Authorization = `Bearer ${STRAPI_TOKEN}`;
+
+      const url = `${STRAPI_URL}/api/carros?filters[conductoremail][$eq]=${encodeURIComponent(
+        driverEmail
+      )}&populate=*`;
+
+      const response = await fetch(url, { headers });
+      if (!response.ok) return null;
+
+      const data = await response.json();
+      console.log(`[ConductorRender] preferencias obtenidas para ${driverEmail}:`, data);
+      const vehicles = data?.data || [];
+      const vehicle = Array.isArray(vehicles) ? vehicles[0] : vehicles;
+
+      if (!vehicle) return null;
+
+      // Cachear el resultado
+      setConductorPrefsCache((prev) => ({
+        ...prev,
+        [driverEmail]: vehicle,
+      }));
+
+      return vehicle;
+    } catch (err) {
+      console.warn(`[ConductorRender] Error obteniendo preferencias del conductor ${driverEmail}:`, err);
+      return null;
+    }
+  }, [conductorPrefsCache]);
+
+  // Efecto para pre-cargar preferencias de conductores únicos
+  useEffect(() => {
+    if (!Array.isArray(travelData) || travelData.length === 0) return;
+
+    // Obtener emails únicos de conductores
+    const uniqueEmails = new Set();
+    travelData.forEach((travel) => {
+      if (travel?.userEmail) {
+        uniqueEmails.add(travel.userEmail);
+      }
+    });
+
+    // Fetch preferencias en paralelo
+    const fetchAll = async () => {
+      const promises = Array.from(uniqueEmails).map((email) =>
+        fetchConductorPreferences(email).catch((err) => {
+          console.warn(`[ConductorRender] Error en promise para ${email}:`, err);
+          return null;
+        })
+      );
+      await Promise.all(promises);
+    };
+
+    fetchAll();
+  }, [travelData, fetchConductorPreferences]);
+
+  // Verificar si el viaje es gratis
+  useEffect(() => {
+    travelData.forEach((t, idx) => {
+      const driverEmail = t?.userEmail;
+      const userEmail = t?.userData?.email;
+      const userFreeTrip = t?.freeTrip;
+      console.log(`[ConductorRender] free trip user ${userEmail}:`, userFreeTrip);
+
+      const driverFreeTrip = driver?.free_trips > 0;
+      console.log(`[ConductorRender] free trip driver ${driverEmail}:`, driverFreeTrip)
+
+      if ((userFreeTrip || !driverFreeTrip) && (!userFreeTrip || driverFreeTrip)) setFreeTrip(true);
+    });
+  }, [travelData, driver?.free_trips])
+
   const normalizeTravelId = useCallback((travel, fallbackIndex = null) => {
     if (!travel) {
       return fallbackIndex !== null ? String(fallbackIndex) : null;
@@ -185,7 +372,7 @@ const ConductorRender = ({
           if (!STRAPI_URL) {
             console.warn('[ConductorRender] REACT_APP_STRAPI_URL no configurada. No se actualizará Strapi, navegando igual.');
             // navegar aún si no se pudo actualizar
-            navigate(`/taxis/viaje/${travelId}`);
+            navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
             return;
           }
 
@@ -219,16 +406,18 @@ const ConductorRender = ({
           let strapiUserId = null;
           try {
             if (user && user.email) {
-              const usersUrl = `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(user.email)}&pagination[pageSize]=1`;
+              const usersUrl = `${STRAPI_URL}/api/users?filters[email][$eq]=${user.email}&pagination[pageSize]=1`;
               console.log('[ConductorRender] buscando usuario en Strapi por email ->', usersUrl);
               const respU = await fetch(usersUrl, { headers });
+              //console.log('[ConductorRender] respuesta GET users en Strapi:', respU);
               if (!respU.ok) {
                 const txt = await respU.text().catch(() => null);
                 console.warn('[ConductorRender] GET users en Strapi no ok:', respU.status, txt);
               } else {
                 const ju = await respU.json().catch(() => null);
-                if (ju && ju.data && Array.isArray(ju.data) && ju.data.length > 0) {
-                  strapiUserId = ju.data[0].id;
+                console.log('[ConductorRender] respuesta JSON de GET users en Strapi:', ju.data);
+                if (ju || ju.data || Array.isArray(ju.data) || ju.data.length > 0) {
+                  strapiUserId = ju[0].id;
                   console.log('[ConductorRender] strapiUserId obtenido:', strapiUserId);
                 } else {
                   console.warn('[ConductorRender] no se encontró usuario Strapi con email:', user.email);
@@ -278,7 +467,7 @@ const ConductorRender = ({
 
           // Finalmente navegar a la página del viaje
           try {
-            navigate(`/taxis/viaje/${travelId}`);
+            navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
           } catch (navErr) {
             console.warn('[ConductorRender] error navegando a viaje:', navErr);
           }
@@ -287,7 +476,7 @@ const ConductorRender = ({
           // aun así intentar navegar si payload tiene travelId
           try {
             const travelId = payload && (payload.travelId || payload.travelid);
-            if (travelId) navigate(`/taxis/viaje/${travelId}`);
+            if (travelId) navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
           } catch (e) {
             // noop
           }
@@ -421,15 +610,40 @@ const ConductorRender = ({
     return s;
   }, [rejectedIds]);
 
-  // Filtrar travelData para ocultar rechazados inmediatamente (y persistir aunque recargue)
+  // Filtrar travelData para ocultar rechazados y por coincidencia de preferencias
   const visibleTravelData = useMemo(() => {
     if (!Array.isArray(travelData)) return [];
     return travelData.filter((t, idx) => {
       const tid = normalizeTravelId(t, idx);
-      if (!tid) return true; // si no hay id, no lo consideramos rechazado por id (se podría mejorar)
-      return !rejectedSet.has(tid);
+      if (!tid) return true;
+
+      // Filtrar rechazados
+      if (rejectedSet.has(tid)) return false;
+
+      // Filtrar por coincidencia de preferencias
+      const driverEmail = t?.userEmail;
+      const passengerSettings = t?.settings;
+
+      if (!freeTrip) {
+        console.log('Solo un usuario tiene configurado un viaje gratis');
+        return false
+      };
+
+      if (driverEmail && passengerSettings && conductorPrefsCache[driverEmail]) {
+        const driverVehicle = conductorPrefsCache[driverEmail];
+        const preferencesMatch = comparePreferences(passengerSettings, driverVehicle);
+
+        if (!preferencesMatch) {
+          console.log(
+            `[ConductorRender] Viaje ${tid} filtrado: preferencias no coinciden (conductor: ${driverEmail})`
+          );
+          return false;
+        }
+      }
+
+      return true;
     });
-  }, [travelData, normalizeTravelId, rejectedSet]);
+  }, [travelData, normalizeTravelId, rejectedSet, conductorPrefsCache, comparePreferences]);
 
   return (
     <ConductorContainer>
@@ -472,6 +686,7 @@ const ConductorRender = ({
                   <TravelCard
                     key={tid || index}
                     travel={travel}
+                    driver={driver}
                     index={index}
                     onClick={handleTravelCardClick}
                     onClose={handleCloseButtonClick}
@@ -502,28 +717,33 @@ const ConductorRender = ({
         </div>
       )}
 
-{/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
-<div
-  className="taxis-map"
-  style={{
-    width: '100%',
-    height: '60vh',    // ajusta a 50vh / 70vh o a '450px' según prefieras
-    minHeight: 320,    // evita ser demasiado pequeño
-    maxHeight: '95vh',
-    boxSizing: 'border-box',
-    position: 'relative',
-    overflow: 'visible'
-  }}
->
-  <div
-    id="map"
-    style={{
-      width: '100%',
-      height: '100%',
-      display: 'block'
-    }}
-  />
-</div>
+      {driver?.free_trips > 0 && (
+        <h3 style={{ textAlign: 'center', color: '#f5a623', paddingBottom: 6 }}>
+          Te quedan {driver?.free_trips} viajes gratis por realizar
+        </h3>
+      )}
+      {/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
+      <div
+        className="taxis-map"
+        style={{
+          width: '100%',
+          height: '60vh',    // ajusta a 50vh / 70vh o a '450px' según prefieras
+          minHeight: 320,    // evita ser demasiado pequeño
+          maxHeight: '95vh',
+          boxSizing: 'border-box',
+          position: 'relative',
+          overflow: 'visible'
+        }}
+      >
+        <div
+          id="map"
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'block'
+          }}
+        />
+      </div>
 
 
       {!showTabs && !hideTabs ? (

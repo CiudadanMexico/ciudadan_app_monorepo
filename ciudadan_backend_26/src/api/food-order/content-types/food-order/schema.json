@@ -1,0 +1,102 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_orders",
+  "info": {
+    "singularName": "food-order",
+    "pluralName": "food-orders",
+    "displayName": "Food Orders",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "items": {
+      "displayName": "products_order",
+      "type": "component",
+      "repeatable": true,
+      "component": "orders.products-order"
+    },
+    "fecha_creacion": {
+      "type": "datetime"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "guia": {
+      "type": "string"
+    },
+    "direccion_origen": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "direccion_destino": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "fecha_envio": {
+      "type": "datetime"
+    },
+    "fecha_entrega": {
+      "type": "datetime"
+    },
+    "fecha_pagado": {
+      "type": "datetime"
+    },
+    "fecha_finalizado": {
+      "type": "datetime"
+    },
+    "total_volumetrico": {
+      "type": "decimal"
+    },
+    "monto_envio": {
+      "type": "decimal"
+    },
+    "monto_total": {
+      "type": "decimal"
+    },
+    "moneda": {
+      "type": "string"
+    },
+    "pago": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pago.pago"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pendiente_pago",
+        "pendiente_verificacion",
+        "pendiente_envio",
+        "enviado",
+        "en_camino",
+        "cancelado",
+        "devuelto",
+        "recibido"
+      ]
+    },
+    "finalizado": {
+      "type": "boolean"
+    },
+    "calificado": {
+      "type": "boolean"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "restaurant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "fecha_verificado": {
+      "type": "datetime"
+    }
+  }
+}

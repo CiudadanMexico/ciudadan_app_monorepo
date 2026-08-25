@@ -12,11 +12,15 @@ import {
   Chip,
   Button,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import StarIcon from '@mui/icons-material/Star';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 import useProductos from '../../hooks/useProductos.jsx';
 import Resenas from '../../components/MarketPlace/Resenas.jsx';
@@ -26,6 +30,11 @@ import productoImg from '../../assets/placeholders/producto.png';
 
 import '../../styles/Producto.css';
 import '../../styles/DetalleProducto.css';
+import PreguntasProducto from '../../components/MarketPlace/PreguntasProductos.jsx';
+import PreguntasProductoNew from '../../components/MarketPlace/PreguntasProductosNew.jsx';
+import { useRoles } from '../../Contexts/RolesContext.jsx';
+import PreguntasProductoHeader from '../../components/MarketPlace/PreguntasProductoHeader.jsx';
+import { useCarteraUsuario } from '../../hooks/useCarteraUsuario.jsx';
 
 /**
  * Página de detalle de producto (botones movidos a DetalleProducto)
@@ -38,6 +47,7 @@ import '../../styles/DetalleProducto.css';
 const Producto = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { userData } = useRoles();
 
   const {
     getProductoBySlug,
@@ -45,6 +55,8 @@ const Producto = () => {
     calcularPromedioRankingsPorProducto,
     obtenerResenas,
   } = useProductos();
+
+  const { getCarteraUsuario } = useCarteraUsuario();
 
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,6 +66,18 @@ const Producto = () => {
   const [envioEstimado, setEnvioEstimado] = useState(null);
   const [rankingInfo, setRankingInfo] = useState({ count: 0, avg5: null });
   const [resenasData, setResenasData] = useState([]);
+  const [carteraUsuario, setCarteraUsuario] = useState(null);
+
+  const handleGetCarteraUsuario = async () => {
+    try {
+      if (!userData?.id) return;
+      const cartera = await getCarteraUsuario(userData?.id);
+      console.log("Cartera usuario:", cartera);
+      setCarteraUsuario(cartera);
+    } catch (error) {
+      console.error("Error al consultar cartera usuario:", error);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -161,7 +185,10 @@ const Producto = () => {
       }
     };
 
-    if (slug) fetchProducto();
+    if (slug) {
+      fetchProducto();
+      handleGetCarteraUsuario();
+    }
     return () => { mounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, getProductoBySlug, precotizacionTotal, calcularPromedioRankingsPorProducto, obtenerResenas]);
@@ -266,7 +293,17 @@ const Producto = () => {
 
           <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box mb={1}>
-              <Typography variant="h5" fontWeight={900}>{precioFmt}</Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="h5" fontWeight={900}>{precioFmt}</Typography>
+                {
+                  carteraUsuario && (
+                    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
+                      <Typography fontSize={12} color='text.secondary'>Efectivo: {precioFmt}</Typography>
+                      <Typography fontSize={12} color='text.secondary'>Labory: {precioFmt}</Typography>
+                    </Box>
+                  )
+                }
+              </Box>
 
               <Box display="flex" gap={2} alignItems="center" mt={1}>
                 {marca && <Typography variant="body2" color="text.secondary">Marca: <strong>{marca}</strong></Typography>}
@@ -311,13 +348,46 @@ const Producto = () => {
             {descripcion || 'Sin descripción disponible.'}
           </Typography>
         </Box>
-
         <Divider sx={{ mb: 2 }} />
-
-        <Box mb={3}>
-          <Typography variant="h6" fontWeight={700} mb={1}>Reseñas</Typography>
-          <Resenas slug={slug} />
-        </Box>
+        <Accordion
+          defaultExpanded
+          sx={{
+            mt: 2,
+            borderRadius: 2,
+            "&:before": {
+              display: "none"
+            }
+          }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <PreguntasProductoHeader
+              productoId={producto.id}
+            />
+          </AccordionSummary>
+          <AccordionDetails>
+            <PreguntasProductoNew
+              productoId={producto.id}
+              usuarioId={userData?.id}
+              storeId={producto?.attributes?.store?.data?.id}
+            />
+          </AccordionDetails>
+        </Accordion>
+        <Accordion
+          sx={{
+            mt: 2,
+            borderRadius: 2,
+            "&:before": {
+              display: "none"
+            }
+          }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6" fontWeight={700}>Reseñas</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Resenas slug={slug} />
+          </AccordionDetails>
+        </Accordion>
       </Paper>
     </Container>
   );

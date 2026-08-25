@@ -3,7 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 const { calculateFareFromMetersSeconds } = require('../lib/fareServer');
-
+const { getUserRating } = require('../lib/calcRating');
 
 const normalizeAddress = (addr) => {
   if (!addr) return null;
@@ -18,7 +18,7 @@ const normalizeAddress = (addr) => {
 // === helper para guardar viaje en Strapi v4 ===
 async function saveTripToStrapi(data) {
   const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
-
+  console.log('[testTrip] saveTripToStrapi STRAPI_URL:', STRAPI_URL, 'data:', data);
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -93,13 +93,17 @@ router.post('/send-trip', async (req, res) => {
       driverId: body.driverId || null,
       candidateDrivers: Array.isArray(body.candidateDrivers) ? body.candidateDrivers : [],
       createdAt: new Date().toISOString(),
-      userEmail: body.userEmail,
+      userEmail: body.userEmail || null,
+      userId: body.userId || null,
+      userData: body.userData || null,
+      settings: body.settings || {},
       meta: body.meta || {}
     };
+    console.log('[testTrip] send-trip payload:', payload);
 
     // Intentar llamar al endpoint de cálculo de tarifa (interno HTTP)
-    const base = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3033}`;
-    const calcUrl = `${base.replace(/\/$/, '')}/calculataxi/calculate-fare`;
+    const base = process.env.BASE_URL || `http://localhost:${process.env.SOCKET_PORT || 3033}`;
+    const calcUrl = `${base.replace(/\/$/, '')}/api/calculate-fare`;
 
     let suggested = null;
     try {
@@ -156,6 +160,7 @@ router.post('/send-trip', async (req, res) => {
 
     // Redondeo de distancia al STEP_METERS
     const roundedDistanceMeters = suggested && suggested.distanceMeters ? roundToStep(suggested.distanceMeters, STEP_METERS) : STEP_METERS;
+    const userRating = payload.userEmail ? await getUserRating(payload.userEmail) : null;
 
     // Añadimos campos al payload
     payload.suggestedPrice = suggested ? suggested.fare : null;
@@ -163,6 +168,8 @@ router.post('/send-trip', async (req, res) => {
     payload.distanceMeters = suggested ? suggested.distanceMeters : null;
     payload.durationSeconds = suggested ? suggested.durationSeconds : null;
     payload.roundedDistanceMeters = roundedDistanceMeters;
+    payload.userRating = userRating;
+    payload.freeTrip = payload.userData.free_trip;
     payload.meta.suggested = {
       price: payload.suggestedPrice,
       priceFormatted: payload.suggestedPriceFormatted,
@@ -177,8 +184,10 @@ router.post('/send-trip', async (req, res) => {
       origendireccion: normalizeAddress(payload.originAdress) || null,
       destinodireccion: normalizeAddress(payload.destinationAdress) || null,
       pasajeromail: payload.userEmail || null,
+      pasajero: payload.userId || null,
       solicitado: payload.createdAt,
       status: 'solicitado',
+      isTripFree: payload.userData.free_trip,
       travelid: payload.id, // útil para correlación futura
     };
 

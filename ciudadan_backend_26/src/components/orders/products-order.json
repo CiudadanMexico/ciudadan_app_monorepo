@@ -1,0 +1,56 @@
+{
+  "collectionName": "components_orders_products_orders",
+  "info": {
+    "displayName": "products_order",
+    "icon": "shoppingCart"
+  },
+  "options": {},
+  "attributes": {
+    "product": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-product.food-product"
+    },
+    "restaurant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "precio_unitario": {
+      "type": "decimal"
+    },
+    "cantidad": {
+      "type": "integer"
+    },
+    "subtotal": {
+      "type": "decimal"
+    },
+    "envio": {
+      "type": "decimal"
+    },
+    "subtotal_volumetrico": {
+      "type": "decimal"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "comision_plataforma": {
+      "type": "decimal"
+    },
+    "calificado": {
+      "type": "boolean"
+    },
+    "calificacion": {
+      "type": "decimal"
+    },
+    "fecha_calificado": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "string"
+    }
+  }
+}

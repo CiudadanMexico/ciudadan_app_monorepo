@@ -176,7 +176,6 @@ const Pestanas = ({
       style={{
         margin: 0,
         padding: 0,
-        marginLeft: -5,
         // 👉 variables CSS con defaults
         '--pestanas-bg': backgroundColor || 'linear-gradient(90deg, #7b2cff 0%, #b300ff 50%, #7b2cff 100%)',
         '--pestanas-text': textColor || '#ffffff',
@@ -196,7 +195,7 @@ const Pestanas = ({
           box-shadow: 0 1px 6px rgba(0,0,0,0.12);
           margin-bottom: 0px;
           padding-bottom: 0px;
-          margin-left: -15px;
+          margin-left: -5px;
         }
 
         .pestanas-row {
@@ -208,6 +207,8 @@ const Pestanas = ({
           overflow-x:auto;
           -webkit-overflow-scrolling:touch;
           scrollbar-width:none;
+          padding-left:12px;
+          padding-right:12px;
         }
 
         .pestanas-row::-webkit-scrollbar { display:none; }
@@ -247,8 +248,16 @@ const Pestanas = ({
           padding:10px;
           border-radius:8px;
           border:1px solid rgba(255,255,255,0.12);
-          background: rgba(0,0,0,0.06);
+          background: var(--pestanas-bg);
           color: var(--pestanas-text);
+          appearance: base-select;
+        }
+
+        ::picker(select){
+          appearance: base-select;
+          background: var(--pestanas-bg);
+          color: var(--pestanas-text);
+          border-radius:5px;
         }
 
         .pestanas-content { margin-top:12px; }

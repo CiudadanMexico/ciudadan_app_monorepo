@@ -87,11 +87,29 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     travel.dropoff ||
     'Destino desconocido';
 
+  const rating = travel.userRating || null;
   const suggestedPrice = travel.suggestedPrice ?? travel.meta?.suggested?.price ?? null;
   const suggestedFormatted =
     travel.suggestedPriceFormatted ??
     travel.meta?.suggested?.priceFormatted ??
     (suggestedPrice ? currencyFmt(suggestedPrice) : null);
+
+  const passengerName = travel?.userData?.nombre_completo || travel?.username || 'Pasajero desconocido';
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
+
+  let userPhoto = null;
+  const profilePicUrl = travel?.userData?.profilepic?.url;
+  const profilePicThumbnail = travel?.userData?.profilepic?.formats?.thumbnail?.url;
+
+  if (profilePicThumbnail) {
+    // Usar thumbnail si disponible (más pequeño y rápido)
+    userPhoto = `${strapiUrl}${profilePicThumbnail}`;
+  } else if (profilePicUrl) {
+    // Fallback a la imagen original
+    userPhoto = `${strapiUrl}${profilePicUrl}`;
+  }
+
+  const isTripFree = travel?.freeTrip;
 
   // Helper para obtener coords actuales (Promise)
   const getCurrentPosition = (opts = { enableHighAccuracy: false, timeout: 5000, maximumAge: 10000 }) => {
@@ -129,10 +147,13 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     }
 
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
+    const userId = travel?.userEmail ?? travel?.id ?? null;
+    console.log('[TravelCard] driverId:', userId);
 
     const payload = {
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
+      driverId: userId,
       meta: {
         from: 'conductor',
         travelId: resolvedTravelId,
@@ -159,7 +180,7 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     } catch (e) {
       console.warn('[TravelCard] onAccept lanzó error:', e);
     } finally {
-      setSending(true);
+      setSending(false);
     }
   };
 
@@ -184,9 +205,10 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
 
   // Handler para Ver: pasa travel e index al handler padre
   const handleViewClicked = useCallback(() => {
+    console.log('[TravelCard] handleViewClicked:', { travel, index });
     try {
       if (typeof onClick === 'function') {
-        onClick(travel, index);
+        onClick(index);
       }
     } catch (e) {
       console.warn('[TravelCard] error en handleViewClicked:', e);
@@ -218,60 +240,96 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
         marginBottom: 12,
         boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
         background: '#fff',
+        maxHeight: 320,
+        overflowY: 'auto'
       }}
     >
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12, color: '#666' }}>
-            <strong>Origen</strong>
-          </div>
-          <div style={{ fontSize: 15, marginBottom: 8 }}>
-            {origin
-              ?.split(" ")
-              .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-              .join(" ")
-            }
+      <div className='travel-card' style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className='travel-card-info' style={{ display: 'flex', justifyContent: 'space-between', flex: 1, margin: 8, maxWidth: 800, gap: 12 }}>
+          <div className='travel-card-profile' >
+            {userPhoto ? (
+              <img
+                src={userPhoto}
+                alt={travel.username}
+                style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", margin: 12 }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: "50%",
+                  background: "#e8f5e9",
+                  color: "#2e7d32",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 700,
+                }}
+              >
+                {passengerName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 14, marginBottom: 4, fontWeight: 700, color: '#0c1196' }}>
+                {passengerName}
+              </div>
+              <div style={{ fontSize: 18, color: '#333', marginBottom: 4 }}>
+                <strong>{rating ? `${rating.toFixed(1)} ⭐` : '—'}</strong>
+              </div>
+            </div>
           </div>
 
-          <div style={{ fontSize: 12, color: '#666' }}>
-            <strong>Destino</strong>
+          <div style={{ flex: 1, padding: 12 }}>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              <strong>Origen</strong>
+            </div>
+            <div style={{ fontSize: 12, marginBottom: 8 }}>{origin}</div>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              <strong>Destino</strong>
+            </div>
+            <div style={{ fontSize: 12, marginBottom: 8 }}>{destination}</div>
           </div>
-          <div style={{ fontSize: 15 }}>{destination}</div>
-
-          <div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
+          {/*<div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
             {travel.roundedDistanceMeters ? ` • ${travel.roundedDistanceMeters} m` : ''}
             {travel.distanceMeters ? ` • ${(travel.distanceMeters / 1000).toFixed(2)} km` : ''}
-          </div>
+          </div>*/}
         </div>
 
-        <div style={{ width: 220, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className='send-proposal' style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: 8 }}>
           <div style={{ fontSize: 12, color: '#333' }}>
             Tiempo: <strong>{formatMMSS(elapsedSeconds)}</strong>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', padding: 8, borderRadius: 8 }}>
-            <div style={{ fontSize: 12, color: '#666' }}>Precio sugerido</div>
-            <center><div style={{ fontSize: 18, fontWeight: 700, color: '#135f13ff' }}>{suggestedFormatted ?? '—'}</div></center>
+          {!isTripFree ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', padding: 8, borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#666' }}>Precio sugerido</div>
+              <center><div style={{ fontSize: 18, fontWeight: 700, color: '#135f13ff' }}>{suggestedFormatted ?? '—'}</div></center>
 
-            <label style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Precio final (MXN)</label>
-            <input
-              aria-label="Precio final"
-              type="number"
-              inputMode="numeric"
-              value={finalPrice}
-              onChange={(e) => {
-                const v = e.target.value;
-                // permitir limpiar
-                if (v === '') return setFinalPrice('');
-                // aceptar sólo números (puede incluir decimales)
-                const n = Number(v);
-                if (!isNaN(n)) setFinalPrice(String(n));
-              }}
-              placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
-              style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
-            />
-          </div>
+              <label style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Precio final (MXN)</label>
+              <input
+                aria-label="Precio final"
+                type="number"
+                inputMode="numeric"
+                value={finalPrice}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  // permitir limpiar
+                  if (v === '') return setFinalPrice('');
+                  // aceptar sólo números (puede incluir decimales)
+                  const n = Number(v);
+                  if (!isNaN(n)) setFinalPrice(String(n));
+                }}
+                placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
+                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
+              />
+            </div>
+          ) : (
+            <h4 style={{ textAlign: 'center', color: '#f5a623' }}>
+              Este viaje es completamente gratuito
+            </h4>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
             <button
