@@ -136,6 +136,7 @@ import Restaurant from '../Pages/Food/Restaurant.jsx';
 import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
 import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
+import FoodCheckout from '../components/Food/FoodCheckout.jsx';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -418,6 +419,10 @@ const Rutas = () => (
     <Route
       path='/carrito/finalizar'
       element={<FinalizarCompra />}
+    />
+    <Route
+      path='/carrito/comida/checkout'
+      element={<FoodCheckout />}
     />
     <Route
       path='/compras/*'

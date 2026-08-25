@@ -14,7 +14,7 @@ import {
 import TuneIcon from '@mui/icons-material/Tune';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
-const ProductoModificadores = ({
+const SeleccionarProductoModificadores = ({
   modifierGroups = [],
   selectedModifiers = [],
   setSelectedModifiers,
@@ -331,4 +331,4 @@ const ProductoModificadores = ({
   );
 };
 
-export default ProductoModificadores;
+export default SeleccionarProductoModificadores;
