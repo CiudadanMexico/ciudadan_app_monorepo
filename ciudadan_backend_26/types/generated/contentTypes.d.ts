@@ -2962,6 +2962,51 @@ export interface ApiFavoritoFavorito extends Schema.CollectionType {
   };
 }
 
+export interface ApiFoodCartFoodCart extends Schema.CollectionType {
+  collectionName: 'food_carts';
+  info: {
+    singularName: 'food-cart';
+    pluralName: 'food-carts';
+    displayName: 'Food Carts';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    usuario: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    items: Attribute.Component<'food-cart.food-cart-item', true>;
+    subtotal: Attribute.Decimal;
+    monto_envio: Attribute.Decimal;
+    monto_total: Attribute.Decimal;
+    moneda: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    estado: Attribute.Enumeration<
+      ['activo', 'procesando', 'convertido', 'abandonado']
+    > &
+      Attribute.DefaultTo<'activo'>;
+    ultima_actualizacion: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiFoodCategorieFoodCategorie extends Schema.CollectionType {
   collectionName: 'food_categories';
   info: {
@@ -5453,6 +5498,7 @@ declare module '@strapi/types' {
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
       'api::favorito.favorito': ApiFavoritoFavorito;
+      'api::food-cart.food-cart': ApiFoodCartFoodCart;
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;

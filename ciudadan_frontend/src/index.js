@@ -20,6 +20,7 @@ import './styles/index.css';
 
 import AuthGate from './components/AuthGate.jsx';
 import { Capacitor } from '@capacitor/core';
+import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
 
 const domain    = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId  = process.env.REACT_APP_AUTH0_CLIENT_ID;
@@ -119,13 +120,15 @@ root.render(
         <AuthProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
             <RolesProvider>
-                <NotificationsProvider>
-                  <CartProvider>
+              <NotificationsProvider>
+                <CartProvider>
+                  <FoodCartProvider>
                     <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
                       <AppWrapper />
                     </SnackbarProvider>
-                  </CartProvider>
-                </NotificationsProvider>
+                  </FoodCartProvider>
+                </CartProvider>
+              </NotificationsProvider>
             </RolesProvider>
           </LocalizationProvider>
         </AuthProvider>
