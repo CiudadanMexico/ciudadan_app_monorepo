@@ -253,7 +253,6 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
 
         {vehiclePhotos.length > 0 && (
           <div style={{ marginTop: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Imágenes del vehículo</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {vehiclePhotos.length > 2 && (
                 <button

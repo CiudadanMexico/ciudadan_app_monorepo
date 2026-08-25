@@ -1,0 +1,59 @@
+{
+  "collectionName": "components_food_cart_food_cart_items",
+  "info": {
+    "displayName": "Food Cart Item",
+    "icon": "shoppingCart"
+  },
+  "options": {},
+  "attributes": {
+    "producto": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-product.food-product"
+    },
+    "variante": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-product-variant.food-product-variant"
+    },
+    "restaurante": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "item_key": {
+      "type": "string"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "nombre_variante": {
+      "type": "string"
+    },
+    "imagen": {
+      "type": "string"
+    },
+    "precio_base": {
+      "type": "decimal"
+    },
+    "precio_variante": {
+      "type": "decimal"
+    },
+    "precio_unitario": {
+      "type": "decimal"
+    },
+    "cantidad": {
+      "type": "integer",
+      "default": 1
+    },
+    "subtotal": {
+      "type": "decimal"
+    },
+    "modificadores": {
+      "type": "json"
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

@@ -7,6 +7,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 const ViajeConductor = ({
   viaje,
   userData,
+  driverData,
   socket,
   strapiConfig,
   userCoords,
@@ -30,7 +31,7 @@ const ViajeConductor = ({
   const [status, setStatus] = useState(viaje?.attributes?.status || 'pending');
   const [hasLabory, setHasLabory] = useState(false);
   const [saldoLabory, setSaldoLabory] = useState(0);
-  console.log('viaje', viaje);
+  //console.log('viaje', viaje);
   //console.log('userData', userData);
   //const routeInfo = viaje?.attributes?.routeInfo || null;
   const { getAccessTokenSilently } = useAuth0();
@@ -53,6 +54,10 @@ const ViajeConductor = ({
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
   const userEmail = viaje?.attributes?.pasajeromail;
+  const driverEmail = viaje?.attributes?.conductormail;
+  const userId = viaje?.attributes?.pasajero?.data?.id;
+  const driverId = viaje?.attributes?.conductor?.data?.id;
+  const isTripFree = viaje?.attributes?.isTripFree || false;
 
   const iniciarViaje = async () => {
     setStatus('en_curso');
@@ -144,7 +149,7 @@ const ViajeConductor = ({
         method: 'PUT',
         headers,
         body: JSON.stringify({
-          userId: viaje?.attributes?.pasajero?.data?.id,
+          userId,
           amount
         }),
       });
@@ -159,7 +164,7 @@ const ViajeConductor = ({
     }
   };
 
-  const handleDriverPaymentChoice = async (nextState) => {
+  const handlePaymentChoice = async (nextState) => {
     setStatus(nextState);
     if (typeof onStatusChange === 'function') onStatusChange(nextState);
 
@@ -172,6 +177,46 @@ const ViajeConductor = ({
       setCashAmount(paymentAmount);
     }
   };
+
+  const confirmFreeTrip = async () => {
+    if (!userEmail || !strapiConfig?.baseUrl) return;
+    setStatus('cerrado');
+    if (typeof onStatusChange === 'function') onStatusChange('cerrado');
+
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (strapiConfig.token) {
+        headers.Authorization = `Bearer ${strapiConfig.token}`;
+      }
+      await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viajes/${viaje?.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          data: {
+            pagadoefectivo: 0,
+            pagadolabory: 0,
+            concluido: new Date().toISOString()
+          }
+        }),
+      });
+
+      await fetch(`${strapiConfig.baseUrl}/api/users/${userId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          data: { free_trip: false }
+        }),
+      });
+
+      await fetch(`${strapiConfig.baseUrl}/api/drivers/${driverId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          data: { free_trips: driverData?.free_trips - 1 }
+        }),
+      });
+    } catch (e) { console.warn('no pudo actualizar viaje', e); }
+  }
 
   const username = userData?.nombre_completo || userData?.username || 'Usuario';
   let userPhoto = null;
@@ -255,17 +300,28 @@ const ViajeConductor = ({
             )}
             {isTripFinished && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, paddingRight: 4 }}>
-                <div style={{ fontSize: 16, fontWeight: 700, paddingBlock: 8 }}>Confirme el pago del pasajero</div>
-                <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Total a cobrar: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
-                {(hasLabory && saldoLabory > 0) && (
+                {!isTripFree ?
                   <>
-                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
-                      Pago máximo con
-                      <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
-                    </div>
-                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                    <div style={{ fontSize: 16, fontWeight: 700, paddingBlock: 8 }}>Confirme el pago del pasajero</div>
+                    <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Total a cobrar: <strong>${Number(paymentAmount).toFixed(2)} MXN</strong></div>
+                    {(hasLabory && saldoLabory > 0) && (
+                      <>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
+                          Pago máximo con
+                          <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
+                        </div>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                      </>
+                    )}
                   </>
-                )}
+                  :
+                  <div>
+                    <h4 style={{ textAlign: 'center', color: '#f5a623' }}>
+                      Este viaje es completamente gratuito
+                    </h4>
+                    <h5 style={{ textAlign: 'center' }}>Confirma a tu pasajero</h5>
+                  </div>
+                }
               </div>
             )}
             {/*(status === 'partial' || status === 'unpaid') &&
@@ -296,22 +352,28 @@ const ViajeConductor = ({
             )*/}
           </div>
           {status === 'finalizado' && (
-            <>
-              <button onClick={() => handleDriverPaymentChoice('paid')}
+            !isTripFree ?
+              <>
+                <button onClick={() => handlePaymentChoice('paid')}
+                  style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: '#2f6fed', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
+                  Confirmar pago
+                </button>
+                <div style={{ flex: 1, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <button onClick={() => handlePaymentChoice('partial')}
+                    style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: 'none', color: '#f5a623', textDecoration: 'underline', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
+                    El pasajero pagó parcialmente
+                  </button>
+                  <button onClick={() => handlePaymentChoice('unpaid')}
+                    style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: 'none', color: '#f80e0e', textDecoration: 'underline', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
+                    El pasajero no pagó
+                  </button>
+                </div>
+              </>
+              :
+              <button onClick={confirmFreeTrip}
                 style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: '#2f6fed', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
-                Confirmar pago
+                Confirmar viaje gratis
               </button>
-              <div style={{ flex: 1, display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button onClick={() => handleDriverPaymentChoice('partial')}
-                  style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: 'none', color: '#f5a623', textDecoration: 'underline', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
-                  El pasajero pagó parcialmente
-                </button>
-                <button onClick={() => handleDriverPaymentChoice('unpaid')}
-                  style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: 'none', color: '#f80e0e', textDecoration: 'underline', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
-                  El pasajero no pagó
-                </button>
-              </div>
-            </>
           )}
           {status === 'fin_solicitado_conductor' &&
             <div>

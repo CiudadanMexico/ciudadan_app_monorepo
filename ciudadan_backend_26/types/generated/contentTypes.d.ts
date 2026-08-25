@@ -832,6 +832,7 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToOne',
       'api::agencia.agencia'
     >;
+    free_trip: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -2628,6 +2629,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
     singularName: 'driver';
     pluralName: 'drivers';
     displayName: 'Driver';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -2732,6 +2734,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
         'blocked'
       ]
     >;
+    free_trips: Attribute.Integer & Attribute.DefaultTo<5>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -2955,6 +2958,51 @@ export interface ApiFavoritoFavorito extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::favorito.favorito',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodCartFoodCart extends Schema.CollectionType {
+  collectionName: 'food_carts';
+  info: {
+    singularName: 'food-cart';
+    pluralName: 'food-carts';
+    displayName: 'Food Carts';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    usuario: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    items: Attribute.Component<'food-cart.food-cart-item', true>;
+    subtotal: Attribute.Decimal;
+    monto_envio: Attribute.Decimal;
+    monto_total: Attribute.Decimal;
+    moneda: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    estado: Attribute.Enumeration<
+      ['activo', 'procesando', 'convertido', 'abandonado']
+    > &
+      Attribute.DefaultTo<'activo'>;
+    ultima_actualizacion: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-cart.food-cart',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-cart.food-cart',
       'oneToOne',
       'admin::user'
     > &
@@ -5299,6 +5347,7 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       'oneToOne',
       'plugin::users-permissions.user'
     >;
+    isTripFree: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5453,6 +5502,7 @@ declare module '@strapi/types' {
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
       'api::favorito.favorito': ApiFavoritoFavorito;
+      'api::food-cart.food-cart': ApiFoodCartFoodCart;
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;

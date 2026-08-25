@@ -65,7 +65,7 @@ export default function useProductsRestaurant() {
     try {
       if (!productId) return null;
       setLoading(true);
-      const populateStr = `populate[imagen_predeterminada]=true&populate[imagenes]=true&populate[food_categories]=true&populate[food_restaurant][populate][direccion]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true`;
+      const populateStr = `populate[imagen_predeterminada]=true&populate[imagenes]=true&populate[food_categories]=true&populate[food_restaurant][populate][direccion]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true&populate[food_modifiers][populate][food_modifier_group]=true`;
       const response = await fetch(`${PRODUCTS_URL}/${productId}?${populateStr}`);
       const { data } = await response.json();
       console.log("Product get by id:", data)
@@ -83,7 +83,7 @@ export default function useProductsRestaurant() {
       if (!productSlug) return null;
       setLoading(true);
       const filterSlug = `filters[slug][$eq]=${productSlug}`;
-      const populateStr = `populate[imagen_predeterminada]=true&populate[imagenes]=true&populate[food_categories]=true&populate[food_restaurant][populate][direccion]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true`;
+      const populateStr = `populate[imagen_predeterminada]=true&populate[imagenes]=true&populate[food_categories]=true&populate[food_restaurant][populate][direccion]=true&populate[food_product_variants][populate][imagen_predeterminada]=true&populate[food_product_variants][populate][imagenes]=true&populate[food_modifiers][populate][food_modifier_group]=true`;
       const response = await fetch(`${PRODUCTS_URL}?${filterSlug}&${populateStr}`);
       const { data } = await response.json();
       console.log("Product get by slug:", data)

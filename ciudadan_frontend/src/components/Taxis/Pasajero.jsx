@@ -9,6 +9,8 @@ import useGoogleMaps from '../../hooks/UseGoogleMaps.jsx';
 import BottomSheet from '../BottomSheet.jsx';
 import AcceptTrip from './AcceptTrip.jsx';
 import taxiIcon from '../../assets/taxi_marker.png';
+import FreeTripPasajero from './FreeTripPasajero.jsx';
+import PreferencesModal from './PreferencesModal.jsx';
 
 const DEFAULT_FROM = { lat: 19.432608, lng: -99.133209 };
 //const DEFAULT_TO = { lat: 19.432608, lng: -99.133209 };
@@ -35,26 +37,6 @@ const DEFAULT_PREFERENCES = {
   otro_genero: false,
 };
 
-const ENUM_OPTIONS = {
-  charla: ['indiferente', 'silencio', 'ligera', 'social'],
-  musica: ['indiferente', 'sin música', 'música suave', 'pasajero elige'],
-};
-
-const BOOLEAN_OPTIONS = [
-  { label: 'WiFi', value: 'wifi' },
-  { label: 'Agua', value: 'agua' },
-  { label: 'Cargador', value: 'cargador' },
-  { label: 'Snacks', value: 'snacks' },
-  { label: 'Portabici', value: 'portabici' },
-  { label: 'Accesibilidad', value: 'accesibilidad' },
-  { label: 'Mascotas', value: 'mascotas' },
-  { label: 'Fumadores', value: 'fumadores' },
-  { label: 'Aire Acondicionado', value: 'aire_acondicionado' },
-  { label: 'Rócola', value: 'rockola' },
-  { label: 'Ambiente Inclusivo', value: 'ambiente_inclusivo' },
-  { label: 'Otro Género', value: 'otro_genero' }
-];
-
 const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
   const navigate = useNavigate();
@@ -73,11 +55,12 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [sheetState, setSheetState] = useState('collapsed');
   const [preferencesModalOpen, setPreferencesModalOpen] = useState(false);
+  const [freeTripModalOpen, setFreeTripModalOpen] = useState(false);
+
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
   const [passenger, setPassenger] = useState(null);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [paymentLabory, setPaymentLabory] = useState(false);
-  const [saldoLabory, setSaldoLabory] = useState(0);
   const [debtsLoading, setDebtsLoading] = useState(false);
   const [debtsError, setDebtsError] = useState(null);
   const [debts, setDebts] = useState([]);
@@ -222,6 +205,10 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     getUserData();
     loadUserPreferences();
   }, [getUserData, loadUserPreferences]);
+
+  useEffect(() => {
+    if (passenger?.free_trip) setFreeTripModalOpen(true);
+  }, [passenger?.free_trip]);
 
   // Cargar adeudos del pasajero
   useEffect(() => {
@@ -1239,6 +1226,13 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           </button>
         </div>
 
+        {passenger?.free_trip && (
+          <h3 style={{ textAlign: 'center', color: '#16b32b', paddingBottom: 6 }}>
+            ¡Tienes un viaje gratis disponible! ¡Pide uno ahora!
+          </h3>
+        )}
+        <FreeTripPasajero open={freeTripModalOpen} setOpen={setFreeTripModalOpen} />
+
         {error && (
           <div className='error-text'>
             {typeof error === 'string'
@@ -1249,57 +1243,16 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           </div>
         )}
 
-        <Dialog open={preferencesModalOpen} onClose={() => setPreferencesModalOpen(false)} maxWidth='sm' fullWidth>
-          <DialogTitle>Preferencias de viaje</DialogTitle>
-          <DialogContent dividers>
-            <Box sx={{ display: 'grid', gap: 2 }}>
-              <Typography variant='body2' color='text.secondary'>
-                Ajusta tus preferencias para que los conductores puedan ver si encajan contigo antes de aceptar el viaje.
-              </Typography>
-
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                <TextField label='Marca' value={preferences.marca || ''} onChange={(e) => handlePreferenceFieldChange('marca', e.target.value)} fullWidth />
-                <TextField label='Nombre' value={preferences.nombre || ''} onChange={(e) => handlePreferenceFieldChange('nombre', e.target.value)} fullWidth />
-                <TextField label='Modelo' type='number' value={preferences.modelo || ''} onChange={(e) => handlePreferenceFieldChange('modelo', e.target.value)} fullWidth />
-                <TextField label='Puertas' type='number' value={preferences.puertas || ''} onChange={(e) => handlePreferenceFieldChange('puertas', e.target.value)} fullWidth />
-              </Box>
-
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                <TextField select label='Charla' value={preferences.charla || 'indiferente'} onChange={(e) => handlePreferenceFieldChange('charla', e.target.value)} fullWidth>
-                  {ENUM_OPTIONS.charla.map((option) => (
-                    <MenuItem key={option} value={option}>{option}</MenuItem>
-                  ))}
-                </TextField>
-                <TextField select label='Música' value={preferences.musica || 'indiferente'} onChange={(e) => handlePreferenceFieldChange('musica', e.target.value)} fullWidth>
-                  {ENUM_OPTIONS.musica.map((option) => (
-                    <MenuItem key={option} value={option}>{option}</MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-
-              <TextField
-                label='Tipo de música'
-                value={Array.isArray(preferences.tipo_musica) ? preferences.tipo_musica.join(', ') : ''}
-                onChange={(e) => handlePreferenceFieldChange('tipo_musica', e.target.value.split(',').map((item) => item.trim()).filter(Boolean))}
-                placeholder='rock, electrónica, salsa'
-                fullWidth
-              />
-
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>
-                {BOOLEAN_OPTIONS.map((option) => (
-                  <FormControlLabel control={<Switch checked={Boolean(preferences[option.value])} onChange={(e) => handlePreferenceFieldChange(option.value, e.target.checked)} />} label={option.label} />
-                ))}
-                <FormControlLabel control={<Switch checked={Boolean(paymentLabory)} onChange={(e) => handlePaymentLaboryChange('pago_labory', e.target.checked)} />} label='Pagar hasta el 10% con Labory' />
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setPreferencesModalOpen(false)} disabled={preferencesSaving}>Cancelar</Button>
-            <Button variant='contained' onClick={saveUserPreferences} disabled={preferencesSaving}>
-              {preferencesSaving ? 'Guardando...' : 'Guardar'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <PreferencesModal
+          open={preferencesModalOpen}
+          setOpen={setPreferencesModalOpen}
+          preferences={preferences}
+          setPreferences={setPreferences}
+          paymentLabory={paymentLabory}
+          setPaymentLabory={setPaymentLabory}
+          saving={preferencesSaving}
+          onSavePreferences={saveUserPreferences}
+        />
 
         <div
           className='taxis-map formulario-pasajero'
