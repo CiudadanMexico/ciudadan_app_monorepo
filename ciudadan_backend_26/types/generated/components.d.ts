@@ -70,6 +70,42 @@ export interface OffersOfferItem extends Schema.Component {
   };
 }
 
+export interface FoodCartFoodCartItem extends Schema.Component {
+  collectionName: 'components_food_cart_food_cart_items';
+  info: {
+    displayName: 'Food Cart Item';
+    icon: 'shoppingCart';
+  };
+  attributes: {
+    producto: Attribute.Relation<
+      'food-cart.food-cart-item',
+      'oneToOne',
+      'api::food-product.food-product'
+    >;
+    variante: Attribute.Relation<
+      'food-cart.food-cart-item',
+      'oneToOne',
+      'api::food-product-variant.food-product-variant'
+    >;
+    restaurante: Attribute.Relation<
+      'food-cart.food-cart-item',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    item_key: Attribute.String;
+    nombre: Attribute.String;
+    nombre_variante: Attribute.String;
+    imagen: Attribute.String;
+    precio_base: Attribute.Decimal;
+    precio_variante: Attribute.Decimal;
+    precio_unitario: Attribute.Decimal;
+    cantidad: Attribute.Integer & Attribute.DefaultTo<1>;
+    subtotal: Attribute.Decimal;
+    modificadores: Attribute.JSON;
+    metadata: Attribute.JSON;
+  };
+}
+
 export interface CarritosProductoEnCarrito extends Schema.Component {
   collectionName: 'components_carritos_producto_en_carritos';
   info: {
@@ -115,6 +151,7 @@ declare module '@strapi/types' {
     export interface Components {
       'orders.products-order': OrdersProductsOrder;
       'offers.offer-item': OffersOfferItem;
+      'food-cart.food-cart-item': FoodCartFoodCartItem;
       'carritos.producto-en-carrito': CarritosProductoEnCarrito;
     }
   }
