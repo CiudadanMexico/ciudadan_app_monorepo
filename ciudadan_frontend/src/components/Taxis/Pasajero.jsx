@@ -1,6 +1,6 @@
 // src/components/Taxis/Pasajero.jsx
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Button, Typography, Box, Switch, TextField, MenuItem, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Button, Typography, Box } from '@mui/material';
 import io from 'socket.io-client';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
@@ -371,7 +371,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       }
 
       try {
-        const { coordinates, price, id, driverId, driverRating } = offer;
+        const { coordinates, price, id, driver, travel, driverRating } = offer;
         const position = new window.google.maps.LatLng(
           coordinates.lat,
           coordinates.lng,
@@ -437,7 +437,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
         // Listener en marker: al click abrir modal y seleccionar oferta
         const markerClickListener = marker.addListener('click', () => {
-          setSelectedOffer({ id, coordinates, price, driverId, driverRating });
+          setSelectedOffer({ id, coordinates, price, driver, travel, driverRating });
           setIsModalOpen(true);
         });
 
@@ -452,7 +452,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               elem.style.cursor = 'pointer';
               if (!elem._hasClick) {
                 elem.addEventListener('click', () => {
-                  setSelectedOffer({ id, coordinates, price, driverId, driverRating });
+                  setSelectedOffer({ id, coordinates, price, driver, travel, driverRating });
                   setIsModalOpen(true);
                 });
                 elem._hasClick = true;
@@ -472,7 +472,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
         setOffers((prev) => [
           ...prev,
-          { id, coordinates, price, driverId, driverRating, timestamp: offer.timestamp },
+          { id, coordinates, price, driver, travel, driverRating, timestamp: offer.timestamp },
         ]);
       } catch (e) {
         console.warn('[Pasajero] error creando marker para oferta', e);
@@ -576,7 +576,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           const coordinates =
             payload.coordinates || payload.coords || payload.location || null;
           const price = payload.precio || payload.price || null;
+          const travel = payload.travel || payload.rawTravel || null;
           const driverRating = payload.userRating || null;
+          const driver = payload.driver || null;
           if (
             !coordinates ||
             typeof coordinates.lat !== 'number' ||
@@ -589,12 +591,11 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             return;
           }
           const id = payload.meta.travelId;
-          const driverId = payload.meta.driverId || payload.driverId || null;
-          console.log('id de conductor:', driverId);
 
           const offer = {
             id,
-            driverId,
+            driver,
+            travel,
             coordinates: {
               lat: Number(coordinates.lat),
               lng: Number(coordinates.lng),
@@ -972,7 +973,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       // Payload: llenamos los campos que solicitaste en Strapi
       const body = {
         userEmail: user?.email ?? null,
-        driverId: selectedOffer.driverId ?? null,
+        driverEmail: selectedOffer.driver.email ?? null,
         origencoords: fromCoordinates ?? null,
         destinocoords: toCoordinates ?? null,
         conductorcoords: selectedOffer.coordinates ?? null,

@@ -21,8 +21,8 @@ const ViajeConductor = ({
   handleAcceptTrip,
   mapRef,
   onStatusChange,
+  onVerifyPIN,
   onCancel,
-  paymentFlowState,
   paymentAmount,
   setCashAmount,
   setDriverPaymentState
@@ -58,14 +58,6 @@ const ViajeConductor = ({
   const userId = viaje?.attributes?.pasajero?.data?.id;
   const driverId = viaje?.attributes?.conductor?.data?.id;
   const isTripFree = viaje?.attributes?.isTripFree || false;
-
-  const iniciarViaje = async () => {
-    setStatus('en_curso');
-    if (typeof onStatusChange === 'function') await onStatusChange('en_curso');
-    /*try {
-      socket?.emit('trip-action', { viajeId: viaje?.id, action: 'start', ts: new Date().toISOString() });
-    } catch (e) { }*/
-  };
 
   const terminarViaje = async () => {
     setStatus('finalizado');
@@ -332,7 +324,13 @@ const ViajeConductor = ({
           </div>
 
           <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
-            {status === 'iniciando' && <button onClick={iniciarViaje} style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}>Iniciar viaje</button>}
+            {status === 'iniciando' &&
+              <button onClick={onVerifyPIN}
+                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}
+              >
+                Pasajero a bordo
+              </button>}
+            {/*status === 'iniciando' && <button onClick={iniciarViaje} style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}>Iniciar viaje</button>*/}
             {(status === 'en_curso' || status === 'iniciando') && <button onClick={() => {
               if (mapRef?.current && userCoords) { mapRef.current.setCenter(userCoords); mapRef.current.setZoom(16); }
             }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>

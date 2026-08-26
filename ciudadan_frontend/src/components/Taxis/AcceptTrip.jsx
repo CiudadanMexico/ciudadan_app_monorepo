@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 
 export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
-  const [driverData, setDriverData] = useState(null);
+  const [vehicleData, setVehicleData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -11,7 +11,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
 
   // Obtener datos del conductor desde Strapi por email
   useEffect(() => {
-    if (!selectedOffer?.driverId) return;
+    if (!selectedOffer?.driver) return;
 
     const fetchDriverData = async () => {
       setLoading(true);
@@ -28,30 +28,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
           headers.Authorization = `Bearer ${strapiToken}`;
         }
 
-        // Buscar usuario por email (driverId es el email del conductor)
-        const driverEmail = selectedOffer.driverId;
-        const url = `${strapiUrl}/api/drivers?filters[email][$eq]=${driverEmail}&populate=*`;
-
-        const userResponse = await fetch(url, { headers });
-        if (!userResponse.ok) {
-          throw new Error("Error buscando usuario en Strapi");
-        }
-
-        const userData = await userResponse.json();
-        console.log("[AcceptTrip] userData:", userData);
-
-        // Strapi v4 retorna { data: [...] }
-        const drivers = userData?.data || userData || [];
-        const driver = Array.isArray(drivers) ? drivers[0] : drivers;
-
-        if (!driver) {
-          throw new Error("No se encontró conductor");
-        }
-
-        // Extraer datos del conductor (en Strapi v4 están en .attributes)
-        const driverAttributes = driver?.attributes || driver;
-        const driverId = driver?.id;
-
+        const driverEmail = selectedOffer.driver.email;
         // Buscar vehículos asociados al conductor
         let vehiclesData = [];
         try {
@@ -66,11 +43,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
           console.warn("[AcceptTrip] Error obteniendo vehículos:", e);
         }
 
-        setDriverData({
-          id: driverId,
-          user: driverAttributes,
-          vehicles: vehiclesData,
-        });
+        setVehicleData(vehiclesData);
       } catch (err) {
         console.error("[AcceptTrip] Error obteniendo datos del conductor:", err);
         setError(err.message || "Error cargando datos del conductor");
@@ -80,26 +53,27 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
     };
 
     fetchDriverData();
-  }, [selectedOffer?.driverId]);
+  }, [selectedOffer?.driver]);
 
   // Extraer información del conductor
-  const user = driverData?.user;
-  const vehicles = driverData?.vehicles || [];
+  const driver = selectedOffer?.driver;
+  //const user = driverData?.user;
+  const vehicles = vehicleData || [];
   const vehicle = vehicles[0]?.attributes || vehicles[0] || {};
 
   const driverName =
-    user?.firstname && user?.middlename && user?.lastname
-      ? `${user.firstname} ${user.middlename} ${user.lastname}`
-      : user?.firstname ||
-      user?.nombre_completo ||
-      user?.username ||
-      user?.email?.split("@")[0] ||
+    driver?.firstname && driver?.middlename && driver?.lastname
+      ? `${driver.firstname} ${driver.middlename} ${driver.lastname}`
+      : driver?.firstname ||
+      driver?.nombre_completo ||
+      driver?.username ||
+      driver?.email?.split("@")[0] ||
       "Conductor";
 
   // Construir URL de la foto del carro
   let driverPhoto = null;
-  const profilePicUrl = user?.profile_pic?.data?.attributes?.url;
-  const profilePicThumbnail = user?.profile_pic?.data?.attributes?.formats?.thumbnail?.url;
+  const profilePicUrl = driver?.profile_pic?.data?.attributes?.url;
+  const profilePicThumbnail = driver?.profile_pic?.data?.attributes?.formats?.thumbnail?.url;
 
   if (profilePicThumbnail) {
     // Usar thumbnail si disponible (más pequeño y rápido)
@@ -110,15 +84,15 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
   }
 
   const vehicleLabel =
-    [user?.vehicle_brand, user?.vehicle_model]
+    [driver?.vehicle_brand, driver?.vehicle_model]
       .filter(Boolean)
       .join(" ") || "Vehículo no disponible";
 
   const vehiclePhotoFields = [
-    user?.vehicle_front_photo,
-    user?.vehicle_back_photo,
-    user?.vehicle_side_photo,
-    user?.vehicle_interior_photo,
+    driver?.vehicle_front_photo,
+    driver?.vehicle_back_photo,
+    driver?.vehicle_side_photo,
+    driver?.vehicle_interior_photo,
   ];
 
   const vehiclePhotos = vehiclePhotoFields
@@ -156,9 +130,11 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
   }
   const currentVehicleSlide = vehicleSlides[vehiclePhotoIndex] || [];
 
+  const isTripFree = selectedOffer?.travel?.freeTrip;
+
   useEffect(() => {
     setVehiclePhotoIndex(0);
-  }, [selectedOffer?.driverId]);
+  }, [selectedOffer?.driver]);
 
   const goToPrevVehiclePhotos = () => {
     setVehiclePhotoIndex((prev) => {
@@ -236,21 +212,33 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
                 {driverName.charAt(0).toUpperCase()}
               </div>
             )}
+
             <div>
               <div style={{ fontSize: 20, marginTop: 5 }}>
-                <strong style={{ color: '#666' }}>{user?.license_plate}</strong>
+                <strong style={{ color: '#666' }}>{driver?.license_plate}</strong>
               </div>
               <div style={{ fontSize: 16, marginTop: 5 }}>
                 {vehicleLabel}
               </div>
+
               <div style={{ fontSize: 18, marginTop: 5, display: 'flex', justifyContent: 'space-between', width: 200 }}>
                 <strong>{selectedOffer.driverRating ? `${selectedOffer.driverRating.toFixed(1)} ⭐` : '—'}</strong>
-                <strong style={{ color: '#151bc1' }}>${selectedOffer.price} MXN</strong>
+                <strong style={{
+                  color: '#151bc1',
+                  opacity: isTripFree && .5,
+                  textDecoration: isTripFree && 'line-through'
+                }}>
+                  ${selectedOffer.price} MXN
+                </strong>
               </div>
             </div>
           </div>
         )}
-
+        {isTripFree &&
+          <h4 style={{ textAlign: 'center', color: '#16b32b' }}>
+            Este viaje es gratis
+          </h4>
+        }
         {vehiclePhotos.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ViajeConductor from './ViajeConductor.jsx';
 import ViajeUsuario from './ViajeUsuario.jsx';
+import VerifyPIN from './VerifyPIN.jsx';
 import RatingModal from './RatingModal.jsx';
 import ConfirmPayment from './ConfirmPayment.jsx';
 import SolicitudCancelar from './SolicitudCancelar.jsx';
@@ -98,10 +99,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const [consultedTravel, setConsultedTravel] = useState(null);
   const [driverData, setDriverData] = useState(null); // datos del conductor (Strapi)
   const [userData, setUserData] = useState(null); // datos del pasajero (Strapi)
+
+  const [showVerifyPINModal, setShowVerifyPINModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
+
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [cashAmount, setCashAmount] = useState(0);
   const tripStatus = String(viaje?.attributes?.status || 'pending').toLowerCase();
@@ -287,7 +291,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     if (!userData) {
       throw new Error("No se encontró usuario");
     }
-    
+
     const ratingAvg = await getAvgRating(userEmail);
     return { ...userData, ratingAvg };
   }
@@ -789,6 +793,11 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     setShowCancelModal(true);
   }
 
+  const handleVerifyPIN = () => {
+    console.log('Abriendo modal de PIN')
+    setShowVerifyPINModal(true);
+  }
+
   useEffect(() => {
     if (!ratingSubmitted && paymentFlowState.shouldOpenRatingModal) {
       setShowRatingModal(true);
@@ -881,6 +890,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           handleAcceptTrip={handleAcceptTrip}
           mapRef={mapRef}
           onStatusChange={handleTripStatusChange}
+          onVerifyPIN={handleVerifyPIN}
           onCancel={handleCancelTrip}
           paymentFlowState={paymentFlowState}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
@@ -902,6 +912,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           onCancel={handleCancelTrip}
         />
       )}
+      <VerifyPIN
+        open={showVerifyPINModal}
+        setOpen={setShowVerifyPINModal}
+        tripPin={viaje?.attributes?.pincode || null}
+        tripId={viaje?.id || null}
+        onStatusChange={handleTripStatusChange}
+      />
       <RatingModal
         open={showRatingModal}
         isDriver={isDriver}

@@ -5348,6 +5348,10 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       'plugin::users-permissions.user'
     >;
     isTripFree: Attribute.Boolean;
+    pincode: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 4;
+      }>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
