@@ -24,6 +24,8 @@ import {
 
 import { useNavigate } from 'react-router-dom';
 import { useFoodCart } from '../../Contexts/FoodCartContext';
+import { useRoles } from '../../Contexts/RolesContext';
+import DireccionSelector from '../MarketPlace/DireccionSelector';
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
 
@@ -36,7 +38,7 @@ const STEPS = [
 
 const FoodCheckout = () => {
   const navigate = useNavigate();
-
+  const { userData } = useRoles();
   const {
     items = [],
     subtotal = 0,
@@ -47,8 +49,7 @@ const FoodCheckout = () => {
 
   const [activeStep, setActiveStep] = useState(0);
 
-  const [direccionSeleccionada, setDireccionSeleccionada] =
-    useState(null);
+  const [direccionSeleccionada, setDireccionSeleccionada] = useState(null);
 
   const [procesando, setProcesando] =
     useState(false);
@@ -64,10 +65,7 @@ const FoodCheckout = () => {
     const grupos = {};
 
     items.forEach((item) => {
-      const restauranteId =
-        item.restaurante?.id ||
-        item.restaurante?.data?.id ||
-        item.restaurante;
+      const restauranteId = item.restaurante?.id ?? item.restaurante?.data?.id ?? item.restaurante;
 
       if (!restauranteId) {
         return;
@@ -76,34 +74,22 @@ const FoodCheckout = () => {
       if (!grupos[restauranteId]) {
         grupos[restauranteId] = {
           id: restauranteId,
-          nombre:
-            item.restaurante?.nombre ||
-            item.restaurante?.data?.attributes?.nombre ||
-            item.restaurante_nombre ||
-            'Restaurante',
+          nombre: item.restaurante?.nombre ?? item.restaurante?.data?.attributes?.nombre ?? item.restaurante_nombre ?? 'Restaurante',
           items: [],
         };
       }
-
       grupos[restauranteId].items.push(item);
     });
 
     return Object.values(grupos);
   }, [items]);
 
-  const calcularSubtotalRestaurante = (
-    restaurantItems
-  ) => {
-    return restaurantItems.reduce(
-      (total, item) =>
-        total + Number(item.subtotal || 0),
-      0
-    );
+  const calcularSubtotalRestaurante = (restaurantItems) => {
+    return restaurantItems.reduce((total, item) => total + Number(item.subtotal || 0), 0);
   };
 
   /*
-   * Por ahora esta función puede conectarse
-   * posteriormente con tu componente real de direcciones.
+   * Por ahora esta función puede conectarse posteriormente con tu componente real de direcciones.
    */
   const seleccionarDireccion = (direccion) => {
     setDireccionSeleccionada(direccion);
@@ -112,9 +98,7 @@ const FoodCheckout = () => {
 
   const continuarDireccion = () => {
     if (!direccionSeleccionada) {
-      setError(
-        'Debes seleccionar una dirección de entrega.'
-      );
+      setError('Debes seleccionar una dirección de entrega.');
       return;
     }
 
@@ -127,9 +111,7 @@ const FoodCheckout = () => {
    */
   const crearOrdenes = async () => {
     if (!direccionSeleccionada) {
-      setError(
-        'No existe una dirección de entrega seleccionada.'
-      );
+      setError('No existe una dirección de entrega seleccionada.');
       return;
     }
 
@@ -140,94 +122,46 @@ const FoodCheckout = () => {
       const nuevasOrdenes = [];
 
       for (const restaurante of restaurantes) {
-        const subtotalRestaurante =
-          calcularSubtotalRestaurante(
-            restaurante.items
-          );
+        const subtotalRestaurante = calcularSubtotalRestaurante(restaurante.items);
 
         /*
          * IMPORTANTE:
-         *
-         * Aquí NO estamos repartiendo todavía
-         * el envío automáticamente.
-         *
-         * Primero necesitamos definir la lógica
-         * exacta de envío por restaurante.
+         * Aquí NO estamos repartiendo todavía el envío automáticamente.
+         * Primero necesitamos definir la lógica exacta de envío por restaurante.
          */
         const payload = {
           data: {
-            items: restaurante.items.map(
-              (item) => ({
-                producto: item.producto?.id ||
-                  item.producto,
-
-                variante:
-                  item.variante?.id ||
-                  item.variante ||
-                  null,
-
-                nombre: item.nombre,
-
-                nombre_variante:
-                  item.nombre_variante ||
-                  null,
-
-                precio_unitario:
-                  item.precio_unitario,
-
-                cantidad:
-                  item.cantidad,
-
-                subtotal:
-                  item.subtotal,
-
-                modificadores:
-                  item.modificadores || [],
-
-                metadata:
-                  item.metadata || {},
-              })
-            ),
-
-            fecha_creacion:
-              new Date().toISOString(),
-
-            user: null,
-
-            direccion_destino:
-              direccionSeleccionada.id,
-
+            items: restaurante.items.map((item) => ({
+              producto: item.producto?.id ?? item.producto,
+              variante: item.variante?.id ?? item.variante ?? null,
+              nombre: item.nombre,
+              nombre_variante: item.nombre_variante ?? null,
+              precio_unitario: item.precio_unitario,
+              cantidad: item.cantidad,
+              subtotal: item.subtotal,
+              modificadores: item.modificadores ?? [],
+              metadata: item.metadata ?? {},
+            })),
+            fecha_creacion: new Date().toISOString(),
+            user: userData?.id,
+            direccion_destino: direccionSeleccionada.id,
             monto_envio: 0,
-
-            monto_total:
-              subtotalRestaurante,
-
+            monto_total: subtotalRestaurante,
             moneda: 'MXN',
-
-            status:
-              'pendiente_pago',
-
+            status: 'pendiente_pago',
             finalizado: false,
-
             calificado: false,
-
             metadata: {
               origen: 'food_cart',
-              food_cart_item_keys:
-                restaurante.items.map(
-                  (item) => item.item_key
-                ),
+              food_cart_item_keys: restaurante.items.map((item) => item.item_key),
+              user_email: userData?.email,
             },
-
-            restaurant:
-              restaurante.id,
-
+            restaurant: restaurante.id,
             fecha_verificado: null,
           },
         };
 
-        const response = await fetch(
-          `${STRAPI_URL}/api/food-orders`,
+        const response = await fetch(`${STRAPI_URL}/api/food-orders`,
           {
             method: 'POST',
             headers: {
@@ -239,19 +173,11 @@ const FoodCheckout = () => {
         );
 
         if (!response.ok) {
-          const responseData =
-            await response.json().catch(
-              () => null
-            );
-
-          throw new Error(
-            responseData?.error?.message ||
-              `No se pudo crear la orden de ${restaurante.nombre}`
-          );
+          const responseData = await response.json().catch(() => null);
+          throw new Error(responseData?.error?.message || `No se pudo crear la orden de ${restaurante.nombre}`);
         }
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
         nuevasOrdenes.push({
           ...data.data,
@@ -271,15 +197,8 @@ const FoodCheckout = () => {
 
       setActiveStep(2);
     } catch (err) {
-      console.error(
-        'Error creando food_orders:',
-        err
-      );
-
-      setError(
-        err.message ||
-          'No fue posible crear las órdenes.'
-      );
+      console.error('Error creando food_orders:', err);
+      setError(err.message ?? 'No fue posible crear las órdenes.');
     } finally {
       setProcesando(false);
     }
@@ -384,24 +303,14 @@ const FoodCheckout = () => {
               borderRadius: 3,
             }}
           >
-            <Typography
-              color="text.secondary"
-              sx={{ mb: 2 }}
-            >
-              Aquí se mostrará el selector de
-              direcciones del usuario.
+            {/* <Typography color="text.secondary" sx={{ mb: 2 }}>
+              Aquí se mostrará el selector de direcciones del usuario.
             </Typography>
-
-            <Button
-              variant="outlined"
-              onClick={() =>
-                seleccionarDireccion({
-                  id: 1,
-                })
-              }
-            >
+            <Button variant="outlined" onClick={() => seleccionarDireccion({ id: 1 })}>
               Usar dirección de ejemplo
-            </Button>
+            </Button> */}
+            <DireccionSelector onConfi
+              rm={seleccionarDireccion} />
           </Paper>
 
           <Stack
@@ -479,7 +388,7 @@ const FoodCheckout = () => {
                                 $
                                 {Number(
                                   item.subtotal ||
-                                    0
+                                  0
                                 ).toFixed(2)}
                               </Typography>
                             </Stack>
@@ -532,9 +441,7 @@ const FoodCheckout = () => {
 
                   <Typography>
                     $
-                    {Number(
-                      subtotal
-                    ).toFixed(2)}
+                    {Number(subtotal).toFixed(2)}
                   </Typography>
                 </Stack>
 
@@ -548,9 +455,7 @@ const FoodCheckout = () => {
 
                   <Typography>
                     $
-                    {Number(
-                      montoEnvio
-                    ).toFixed(2)}
+                    {Number(montoEnvio).toFixed(2)}
                   </Typography>
                 </Stack>
 
@@ -621,11 +526,7 @@ const FoodCheckout = () => {
       {/* PASO 3 */}
       {activeStep === 2 && (
         <Box>
-          <Typography
-            variant="h6"
-            fontWeight={800}
-            sx={{ mb: 2 }}
-          >
+          <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>
             Realizar pagos
           </Typography>
 
@@ -671,7 +572,7 @@ const FoodCheckout = () => {
                     {Number(
                       orden.attributes
                         ?.monto_total ||
-                        0
+                      0
                     ).toFixed(2)}
                   </Typography>
 
