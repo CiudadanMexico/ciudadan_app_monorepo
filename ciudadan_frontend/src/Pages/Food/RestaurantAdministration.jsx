@@ -20,9 +20,9 @@ import OfertasRestaurante from '../../components/Food/OfertasRestaurante';
 const restaurantSectionKey = '@restaurant-section-key';
 
 const TABS = [
+  { label: 'Modificadores', path: 'modificadores', Icon: RestaurantIcon },
   { label: 'Platillos', path: 'platillos', Icon: FastfoodIcon },
   { label: 'Agregar platillo', path: 'agregar-platillo', Icon: AddCircleIcon },
-  { label: 'Modificadores', path: 'modificadores', Icon: RestaurantIcon },
   { label: 'Pedidos a entregar', path: '', Icon: ShoppingBagOutlinedIcon },
   { label: "Ofertas", path: "ofertas", Icon: LocalOffer }
 ];
@@ -112,7 +112,7 @@ const RestaurantAdministration = ({ restaurantData }) => {
           component="h1"
           sx={{ mt: 2, mb: 1, fontSize: { xs: '1.4rem', sm: '1.7rem', md: '2rem' }, fontWeight: 'bold' }}
         >
-          {restaurantData?.attributes?.slug}
+          {restaurantData?.attributes?.nombre}
         </Typography>
         {/* <Typography sx={{ fontSize: { xs: '0.85rem', sm: '1rem' } }}>
           Productos: <strong>{productos.length}</strong> &nbsp;&nbsp; Ventas: <strong>700</strong>
@@ -126,9 +126,9 @@ const RestaurantAdministration = ({ restaurantData }) => {
           <Typography component="span" sx={{ ml: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>325 calificaciones</Typography>
         </Box>
         <Typography sx={{ mt: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>n reseñas</Typography>
-        <Typography sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' }, wordBreak: 'break-word' }}>
+        {/* <Typography sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' }, wordBreak: 'break-word' }}>
           Usuario Auth0: {user.email}
-        </Typography>
+        </Typography> */}
       </Box>
 
       {/* Columna derecha */}
@@ -146,7 +146,7 @@ const RestaurantAdministration = ({ restaurantData }) => {
               minHeight: { xs: 40, sm: 48 },
               minWidth: { xs: 'auto', sm: 90 },
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
-              px: { xs: 1.25, sm: 2 },
+              px: { xs: 1, sm: 1 },
               whiteSpace: 'nowrap'
             }
           }}
@@ -162,9 +162,9 @@ const RestaurantAdministration = ({ restaurantData }) => {
         {
           restaurantData && (
             <Box sx={{ mt: { xs: 1.5, sm: 2 }, width: '100%' }}>
-              {tabIndex === 0 && <ProductosRestaurante restaurante={restaurantData} />}
-              {tabIndex === 1 && <AgregarProducto restaurante={restaurantData} />}
-              {tabIndex === 2 && <ModificadoresRestaurante restaurante={restaurantData} />}
+              {tabIndex === 0&& <ModificadoresRestaurante restaurante={restaurantData} />}
+              {tabIndex === 1 && <ProductosRestaurante restaurante={restaurantData} />}
+              {tabIndex === 2 && <AgregarProducto restaurante={restaurantData} />}
               {tabIndex === 3 && (<PedidosRestaurante restaurante={restaurantData} />)}
               {tabIndex === 4 && (<OfertasRestaurante restaurante={restaurantData} />)}
               {

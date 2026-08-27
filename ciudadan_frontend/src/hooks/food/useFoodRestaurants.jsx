@@ -65,7 +65,7 @@ export function useFoodRestaurants() {
       const res = await fetch(`${RESTAURANTS_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: { nombre: slug, slug: slug_tmp, email, users_permissions_user: user_id } })
+        body: JSON.stringify({ data: { nombre: name, slug: slug_tmp, email, users_permissions_user: user_id } })
       });
 
       if (!res.ok) {
