@@ -134,8 +134,8 @@ export default function RegisterStoreStepper() {
     try {
       const { data } = await createDireccion({
         data: {
-          direccion: JSON.stringify({ address: direccion }),
-          coords: JSON.stringify({ lat, lng }),
+          direccion: { address: direccion },
+          coords: { lat, lng },
           cp,
           ciudad,
           estado,
@@ -189,7 +189,7 @@ export default function RegisterStoreStepper() {
       setValue(address, false);
       clearSuggestions();
       const results = await getGeocode({ address });
-      const { lat, lng } = await getLatLng(results[0]);
+      const { lat, lng } = getLatLng(results[0]);
       const components = results[0].address_components;
       const comp = { cp: "", ciudad: "", estado: "" };
       components.forEach((c) => {

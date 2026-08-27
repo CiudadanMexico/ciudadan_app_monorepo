@@ -12,18 +12,19 @@ import {
   Typography,
   Autocomplete,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Grid
 } from "@mui/material";
 import { useAuth0 } from "@auth0/auth0-react";
 import { slugify } from "../../utils/slugify.jsx";
-import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { GoogleMap, Marker, useLoadScript, } from "@react-google-maps/api";
 import usePlacesAutocomplete, { getGeocode, getLatLng } from "use-places-autocomplete";
 import { getBankByCLABE, validateCLABE, BANK_OPTIONS } from "../../utils/validacionesBanco.js";
 
 // 🔐 Contexto de roles / membresía
 import { useRoles } from "../../Contexts/RolesContext.jsx";
 
-const LIBRARIES = ["places"];
+const LIBRARIES = ["places", "marker", "maps"];
 const steps = ["Información", "Datos bancarios", "Agregar dirección", "Verificar datos"];
 
 export default function RegistroRestaurante() {
@@ -41,6 +42,9 @@ export default function RegistroRestaurante() {
   const [restaurant, setRestaurant] = useState(null);
   const [direccionData, setDireccionData] = useState({
     direccion: "",
+    calle: "",
+    numero: "",
+    colonia: "",
     lat: null,
     lng: null,
     cp: "",
@@ -52,6 +56,10 @@ export default function RegistroRestaurante() {
   const [bankCLABE, setBankCLABE] = useState('');
   const [bank, setBank] = useState('');
   const [unknownBank, setUnknownBank] = useState(true);
+
+  const [modoDireccionManual, setModoDireccionManual] = useState(false);
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
+  const [mapCenter, setMapCenter] = useState(null);
 
   const {
     createRestaurant,
@@ -123,10 +131,19 @@ export default function RegistroRestaurante() {
     try {
       setValue(address, false);
       clearSuggestions();
+
       const results = await getGeocode({ address });
-      const { lat, lng } = await getLatLng(results[0]);
-      const components = results[0].address_components;
+      if (!results?.length) {
+        setError("No fue posible obtener información de la dirección.");
+        return;
+      }
+      const first = results[0];
+      const { lat, lng } = getLatLng(first);
+
+      const components = first.address_components;
+
       const comp = { cp: "", ciudad: "", estado: "" };
+
       components.forEach((c) => {
         if (c.types.includes("postal_code")) comp.cp = c.long_name;
         if (c.types.includes("administrative_area_level_1"))
@@ -134,9 +151,24 @@ export default function RegistroRestaurante() {
         if (c.types.includes("locality") || c.types.includes("administrative_area_level_2"))
           comp.ciudad = c.long_name;
       });
-      setDireccionData({ direccion: address, lat, lng, ...comp });
+
+      setDireccionData({
+        direccion: first?.formatted_address ?? address,
+        lat,
+        lng,
+        ...comp
+      });
+
+      setMapCenter({
+        lat,
+        lng,
+      });
+
+      setModoDireccionManual(false);
+      setError("");
     } catch (err) {
       console.error("Error en autocomplete:", err);
+      setError("No fue posible obtener las coordenadas de la dirección.");
     }
   };
 
@@ -195,15 +227,52 @@ export default function RegistroRestaurante() {
   };
 
   const handleSaveDireccion = async () => {
-    const { direccion, lat, lng, cp, ciudad, estado } = direccionData;
-    if (!direccion || !lat || !lng) return setError("Selecciona una dirección válida");
+    const {
+      direccion,
+      calle,
+      numero,
+      colonia,
+      lat,
+      lng,
+      cp,
+      ciudad,
+      estado,
+    } = direccionData;
+
+    const tieneCoordenadas = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+
+    if (!tieneCoordenadas) {
+      setError("Debes establecer la ubicación en el mapa.");
+      return;
+    }
+
+    const formattedAddress = direccion || [calle, numero, colonia, ciudad, estado, cp,].filter(Boolean).join(", ");
+    if (!formattedAddress) {
+      setError("Debes proporcionar una dirección.");
+      return;
+    }
+
     setLoading(true);
     setError("");
+
     try {
-      const {data} = await createDireccion({
+      const { data } = await createDireccion({
         data: {
-          direccion: JSON.stringify({ address: direccion }),
-          coords: JSON.stringify({ lat, lng }),
+          direccion: {
+            formatted_address: formattedAddress,
+            street: calle || "",
+            number: numero || "",
+            neighborhood: colonia || "",
+            city: ciudad || "",
+            state: estado || "",
+            postal_code: cp || "",
+            lat: Number(lat),
+            lng: Number(lng),
+          },
+          coords: {
+            lat: Number(lat),
+            lng: Number(lng),
+          },
           cp,
           ciudad,
           estado,
@@ -212,6 +281,7 @@ export default function RegistroRestaurante() {
           restaurant_id: restaurant.id
         }
       });
+
       const updatedRestaurant = await updateRestaurant(restaurant.id, { paso: 3, direccion: data?.id });
       setRestaurant(updatedRestaurant?.data ?? {});
       setActiveStep(3);
@@ -237,6 +307,69 @@ export default function RegistroRestaurante() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const obtenerUbicacionInicial = () => {
+    if (!navigator.geolocation) {
+      setError("Tu navegador no permite obtener la ubicación automáticamente.");
+      return;
+    }
+
+    setObteniendoUbicacion(true);
+    setError("");
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      setDireccionData((prev) => ({
+        ...prev,
+        lat,
+        lng,
+      }));
+
+      setMapCenter({ lat, lng });
+      setObteniendoUbicacion(false);
+    }, (err) => {
+      console.error("Error obteniendo ubicación:", err);
+      setObteniendoUbicacion(false);
+      setError("No fue posible obtener tu ubicación. Puedes mover el marcador manualmente si tienes una ubicación inicial disponible.");
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+  };
+
+  const activarModoManual = () => {
+    setModoDireccionManual(true);
+    clearSuggestions();
+    setValue("");
+
+    setDireccionData((prev) => ({
+      ...prev,
+      direccion: "",
+      lat: null,
+      lng: null,
+      cp: "",
+      ciudad: "",
+      estado: "",
+    }));
+
+    obtenerUbicacionInicial();
+  };
+
+  const handleMarkerDragEnd = (event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+
+    setDireccionData((prev) => ({
+      ...prev,
+      lat,
+      lng,
+    }));
+
+    setMapCenter({ lat, lng });
   };
 
   useEffect(() => {
@@ -354,6 +487,8 @@ export default function RegistroRestaurante() {
     //return <ActivaTuMembresia />;
   }
 
+  const tieneCoordenadas = Number.isFinite(Number(direccionData.lat)) && Number.isFinite(Number(direccionData.lng));
+
   // Autenticado + membresía activa → flujo normal
   return (
     <Box p={3}>
@@ -446,7 +581,7 @@ export default function RegistroRestaurante() {
               fullWidth
               margin="normal"
             />
-            {ready && status === "OK" && (
+            {ready && status === "OK" ? (
               <Box sx={{ maxHeight: 200, overflowY: "auto", bgcolor: "background.paper", mb: 2, borderRadius: 1, boxShadow: 1 }}>
                 {data.map(({ place_id, description }) => (
                   <Box key={place_id} onClick={() => handleSelect(description)} sx={{ p: 1, cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}>
@@ -454,15 +589,150 @@ export default function RegistroRestaurante() {
                   </Box>
                 ))}
               </Box>
+            ) : (
+              <Button onClick={() => activarModoManual()}>Activar modo manual</Button>
             )}
-            {direccionData.lat && (
-              <GoogleMap mapContainerStyle={{ width: "100%", height: "300px" }} zoom={15} center={{ lat: direccionData.lat, lng: direccionData.lng }}>
-                <Marker position={{ lat: direccionData.lat, lng: direccionData.lng }} />
-              </GoogleMap>
+            {modoDireccionManual && (
+              <Box mt={2}>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                  Ingresa tu dirección
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={8}>
+                    <TextField
+                      fullWidth
+                      label="Calle"
+                      value={direccionData.calle || ""}
+                      onChange={(e) =>
+                        setDireccionData((prev) => ({
+                          ...prev,
+                          calle: e.target.value,
+                        }))
+                      }
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    <TextField
+                      fullWidth
+                      label="Número"
+                      value={direccionData.numero || ""}
+                      onChange={(e) =>
+                        setDireccionData((prev) => ({
+                          ...prev,
+                          numero: e.target.value,
+                        }))
+                      }
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Colonia"
+                      value={direccionData.colonia || ""}
+                      onChange={(e) =>
+                        setDireccionData((prev) => ({
+                          ...prev,
+                          colonia: e.target.value,
+                        }))
+                      }
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Código postal"
+                      value={direccionData.cp || ""}
+                      onChange={(e) =>
+                        setDireccionData((prev) => ({
+                          ...prev,
+                          cp: e.target.value,
+                        }))
+                      }
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Ciudad"
+                      value={direccionData.ciudad || ""}
+                      onChange={(e) =>
+                        setDireccionData((prev) => ({
+                          ...prev,
+                          ciudad: e.target.value,
+                        }))
+                      }
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Estado"
+                      value={direccionData.estado || ""}
+                      onChange={(e) =>
+                        setDireccionData((prev) => ({
+                          ...prev,
+                          estado: e.target.value,
+                        }))
+                      }
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+            {tieneCoordenadas && (
+              <Box mt={3}>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={700}
+                  sx={{ mb: 1 }}
+                >
+                  Ubicación en el mapa
+                </Typography>
+
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  Puedes arrastrar el marcador para ajustar
+                  exactamente la ubicación.
+                </Typography>
+
+                <GoogleMap
+                  mapContainerStyle={{
+                    width: "100%",
+                    height: "350px",
+                    borderRadius: 12,
+                  }}
+                  zoom={15}
+                  center={{
+                    lat: direccionData.lat,
+                    lng: direccionData.lng,
+                  }}
+                >
+                  <Marker
+                    visible={true}
+                    position={{
+                      lat: direccionData.lat,
+                      lng: direccionData.lng,
+
+                    }}
+                    draggable
+                    onDragEnd={handleMarkerDragEnd}
+                  />
+                </GoogleMap>
+              </Box>
             )}
             <Button onClick={handleSaveDireccion} disabled={loading} variant="contained" sx={{ mt: 2 }}>
               {loading ? <CircularProgress size={24} /> : "Guardar Dirección"}
             </Button>
+
           </Box>
         ))}
 
