@@ -34,6 +34,7 @@ export default function AgregarSocio() {
   const navigate = useNavigate();
 
   const [query, setQuery] = useState('');
+  const [nombre, setNombre] = useState('');
   const [searching, setSearching] = useState(false);
   const [opciones, setOpciones] = useState([]);
   const [yaTieneAgencia, setYaTieneAgencia] = useState(null);
@@ -132,9 +133,13 @@ export default function AgregarSocio() {
     setAddLoading(true);
     try {
       const token = await getToken();
-      const res = await agregarSocio({ email, roles_extra: ['socio'] }, token);
+      const res = await agregarSocio(
+        { email, username: nombre.trim() || undefined, roles_extra: ['socio'] },
+        token
+      );
       setAddSuccess(res?.message || 'Socio dado de alta correctamente');
       setQuery('');
+      setNombre('');
       setSeleccionado(null);
       setOpciones([]);
       cargarMiembros();
@@ -228,6 +233,17 @@ export default function AgregarSocio() {
                   />
                 )}
               />
+
+              {!seleccionado && (
+                <TextField
+                  label="Nombre (solo si es un socio nuevo)"
+                  placeholder="Nombre completo"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  disabled={addLoading}
+                  helperText="Si el email ya existe como usuario, este campo se ignora."
+                />
+              )}
 
               <Stack direction="row" spacing={2} justifyContent="flex-end">
                 <Button variant="outlined" onClick={() => navigate(-1)} disabled={addLoading}>

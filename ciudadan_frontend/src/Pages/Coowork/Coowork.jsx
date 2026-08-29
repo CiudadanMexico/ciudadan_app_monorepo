@@ -44,6 +44,7 @@ import EventosGrid from './../Eventos/EventosGrid.jsx';
 import HerramientrasGrid from './../../components/Cowork/HerramientrasGrid.jsx';
 import ConductoresAgencia from './../../components/Cowork/ConductoresAgencia.jsx';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useSearchParams } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
@@ -507,7 +508,11 @@ const CooWork = () => {
             centered={!isMobile}
           >
             {tienePermisoCRUD && (
-              <StyledTab value="socio" icon={<GroupIcon />} label={isAdmin() ? 'Admin' : 'Socio'} />
+              <StyledTab
+                value="socio"
+                icon={isAdmin() ? <AdminPanelSettingsIcon /> : <GroupIcon />}
+                label={isAdmin() ? 'Admin' : 'Socio'}
+              />
             )}
             <StyledTab value="generales" icon={<WorkOutlineIcon />} label="Tareas Generales" />
             <StyledTab value="especializadas" icon={<PrecisionManufacturingIcon />} label="Tareas Especializadas" />
