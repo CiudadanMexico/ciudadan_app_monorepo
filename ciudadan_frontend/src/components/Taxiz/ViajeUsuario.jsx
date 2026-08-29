@@ -317,6 +317,17 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               </div>
             }
           </div>
+          
+          {(status === 'iniciando' && routeInfo < 0.15) &&
+            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
+              El conductor ya está cerca de su parada. Espere un momento más.
+            </h4>
+          }
+          {(status === 'en_curso' && routeInfo < 0.15) &&
+            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
+              Ya casi llegas. Revisa todas tus pertenencias antes de bajar.
+            </h4>
+          }
 
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             {(status === 'en_curso' || status === 'iniciando') && <button
@@ -331,14 +342,10 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
             >
               Centrar en pickup / taxi
             </button>}
-            {status === 'en_curso' &&
-              (routeInfo < 0.15 ?
-                <>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#2f6fed' }}>Ya casi llegas</div>
-                  <div style={{ fontSize: 14, color: '#333' }}>Al finalizar el viaje podrás confirmar el pago y revisar tus pertenencias</div>
-                </>
-                : <button onClick={cancelarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>Terminar antes del destino</button>
-              )
+            {(status === 'en_curso' && routeInfo >= 0.15) &&
+              <button onClick={cancelarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>
+                Finalizar antes del destino
+              </button>
             }
           </div>
           {status === 'fin_solicitado_pasajero' &&

@@ -25,7 +25,9 @@ const ViajeConductor = ({
   onCancel,
   paymentAmount,
   setCashAmount,
-  setDriverPaymentState
+  setDriverPaymentState,
+  simulationEnabled,
+  onToggleSimulation,
 }) => {
   const [expanded, setExpanded] = useState(true);
   const [status, setStatus] = useState(viaje?.attributes?.status || 'pending');
@@ -326,22 +328,29 @@ const ViajeConductor = ({
           <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
             {status === 'iniciando' &&
               <button onClick={onVerifyPIN}
-                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}
+                disabled={routeInfo >= 0.15}
+                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5 }}
               >
                 Pasajero a bordo
               </button>}
-            {/*status === 'iniciando' && <button onClick={iniciarViaje} style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700' }}>Iniciar viaje</button>*/}
             {(status === 'en_curso' || status === 'iniciando') && <button onClick={() => {
               if (mapRef?.current && userCoords) { mapRef.current.setCenter(userCoords); mapRef.current.setZoom(16); }
             }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>
               Centrar en mí
             </button>
             }
+            {/*(status === 'en_curso' || status === 'iniciando') && (
+              <button onClick={onToggleSimulation}
+                style={{ padding: 12, borderRadius: 8, border: '1px solid #1d3be2', background: simulationEnabled ? '#1d3be2' : '#fff', color: simulationEnabled ? '#fff' : '#1d3be2', flex: 1, cursor: 'pointer' }}>
+                {simulationEnabled ? 'Detener simulación' : 'Simular recorrido'}
+              </button>
+            )*/}
             {status === 'en_curso' &&
-              (routeInfo < 0.15 ?
-                <button onClick={terminarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>Terminar viaje</button>
-                : <button onClick={cancelarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>Terminar antes del destino</button>
-              )
+              <button
+                onClick={routeInfo < 0.15 ? terminarViaje : cancelarViaje}
+                style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: routeInfo < 0.15 ? '#fb6216' : '#f80e0e', flex: 1, color: '#fff', cursor: 'pointer' }}>
+                {routeInfo < 0.15 ? 'Finalizar viaje' : 'Finalizar antes del destino'}
+              </button>
             }
             {/*(status === 'paid' || status === 'partial' || status === 'unpaid') && (
               <div style={{ color: '#666', fontSize: 13 }}>
