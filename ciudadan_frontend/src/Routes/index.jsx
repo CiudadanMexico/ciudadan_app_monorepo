@@ -15,6 +15,7 @@ import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
 import ComunidadRoute from '../Pages/ComunidadRoute.jsx';
+import CrearComunidad from '../Pages/CrearComunidad.jsx';
 import GenRoute from '../Pages/GenRoute.jsx';
 import OpWalletRoute from '../Pages/OpWalletRoute.jsx';
 import CallbackPage from '../Pages/CallbackPage.jsx';
@@ -253,6 +254,10 @@ const Rutas = () => (
     <Route
       path='/'
       element={<HomeRoute />}
+    />
+    <Route
+      path='/crear-comunidad'
+      element={<CrearComunidad />}
     />
     <Route
       path='/probador'
