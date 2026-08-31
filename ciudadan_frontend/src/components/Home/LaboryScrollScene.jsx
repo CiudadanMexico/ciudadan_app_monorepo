@@ -10,6 +10,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Box, Typography } from "@mui/material";
 import { keyframes } from "@mui/system";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import laborySvg from "../../assets/labory.svg";
 
 const HERO_FONT = '"Space Grotesk", "Poppins", system-ui, sans-serif';
 const TURQUESA = "#2ee6c8";
@@ -66,6 +67,13 @@ export default function LaboryScrollScene() {
   const acumOpacity = useTransform(scrollYProgress, [0.3, 0.42, 0.52, 0.62], [0, 1, 1, 0]);
   const poderOpacity = useTransform(scrollYProgress, [0.4, 0.52, 0.68, 0.8], [0, 1, 1, 0]);
   const sistemaOpacity = useTransform(scrollYProgress, [0.52, 0.64, 0.76, 0.88], [0, 1, 1, 0]);
+
+  // ---- Monedas Labory: protagonista grande + moneditas en paralelo ----
+  const coinOpacity = useTransform(scrollYProgress, [0.04, 0.14, 0.82, 0.92], [0, 1, 1, 0]);
+  const coinRotateY = useTransform(scrollYProgress, [0.05, 1], [0, 540]);
+  const coinY = useTransform(scrollYProgress, [0, 0.5, 1], ["-3vh", "2vh", "-4vh"]);
+  const coinScale = useTransform(scrollYProgress, [0.04, 0.22, 0.9], [0.78, 1.06, 0.94]);
+  const rainOpacity = useTransform(scrollYProgress, [0.02, 0.1, 0.9, 1], [0, 1, 1, 0]);
 
   return (
     <Box
@@ -243,6 +251,73 @@ export default function LaboryScrollScene() {
                 "radial-gradient(circle at center, transparent 35%, rgba(0,0,0,.5) 100%)",
             }}
           />
+        </Box>
+
+        {/* ---- Monedas Labory: protagonista y moneditas en paralelo ---- */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            overflow: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          {/* Moneda protagonista: grande, gira con el scroll y hace parallax */}
+          <motion.div
+            style={{
+              position: "absolute",
+              left: "57%",
+              top: "19%",
+              opacity: coinOpacity,
+              rotateY: coinRotateY,
+              y: coinY,
+              scale: coinScale,
+              transformStyle: "preserve-3d",
+              zIndex: 2,
+            }}
+          >
+            <LaboryCoin width={300} height={280} />
+          </motion.div>
+
+          {/* Moneditas que rotan sin parar (spin infinito) */}
+          <motion.div
+            animate={{ rotateY: [0, 360], y: [0, -12, 0] }}
+            transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
+            style={{ position: "absolute", left: "12%", top: "26%", opacity: rainOpacity, transformStyle: "preserve-3d" }}
+          >
+            <LaboryCoin width={66} height={62} />
+          </motion.div>
+          <motion.div
+            animate={{ rotateY: [360, 0], y: [0, 10, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+            style={{ position: "absolute", right: "12%", top: "60%", opacity: rainOpacity, transformStyle: "preserve-3d" }}
+          >
+            <LaboryCoin width={54} height={50} />
+          </motion.div>
+
+          {/* Moneditas que flotan suavemente en distintas posiciones */}
+          <motion.div
+            animate={{ y: [0, -14, 0], rotate: [-8, 8, -8] }}
+            transition={{ duration: 5.2, repeat: Infinity, ease: "easeInOut" }}
+            style={{ position: "absolute", left: "6%", top: "66%", opacity: rainOpacity }}
+          >
+            <LaboryCoin width={46} height={43} />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 12, 0], rotate: [10, -10, 10] }}
+            transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
+            style={{ position: "absolute", right: "20%", top: "18%", opacity: rainOpacity }}
+          >
+            <LaboryCoin width={40} height={37} />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, -9, 0], rotate: [-6, 6, -6] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            style={{ position: "absolute", left: "38%", top: "78%", opacity: rainOpacity }}
+          >
+            <LaboryCoin width={34} height={32} />
+          </motion.div>
         </Box>
 
         {/* ---- Títulos por fases, con cambio de perspectiva 3D ---- */}
@@ -735,5 +810,24 @@ function SystemFrame() {
         }}
       />
     </div>
+  );
+}
+
+/** Moneda Labory real (SVG de assets) con glow dorado/verde. */
+function LaboryCoin({ width = 90, height = 84 }) {
+  return (
+    <img
+      src={laborySvg}
+      alt=""
+      aria-hidden="true"
+      style={{
+        width,
+        height,
+        objectFit: "contain",
+        display: "block",
+        filter:
+          "drop-shadow(0 0 18px rgba(255,224,102,.5)) drop-shadow(0 0 7px rgba(14,219,154,.4))",
+      }}
+    />
   );
 }
