@@ -35,12 +35,13 @@ const sectionVariants = {
 };
 
 // ----- Efecto neón: luces amarilla y turquesa que atraviesan las letras -----
-// El gradiente (base blanca con bandas neón) se desplaza de un extremo al otro
-// sobre el texto recortado (background-clip: text); al ser cíclico, el barrido
-// es continuo y sin salto.
+// El gradiente DIAGONAL (base blanca con bandas neón) se desplaza en diagonal
+// sobre el texto recortado (background-clip: text). Los recorridos en X e Y son
+// múltiplos exactos del tamaño del patrón (backgroundSize 200% 200% + repeat),
+// así el barrido diagonal es continuo y sin salto al reiniciar el ciclo.
 const neonSweep = keyframes`
   0% { background-position: 200% 0%; }
-  100% { background-position: -200% 0%; }
+  100% { background-position: -200% 200%; }
 `;
 
 // Brillo neón pulsante alrededor de las letras (drop-shadow usa los píxeles
@@ -153,13 +154,13 @@ export default function HeroPrincipal({
                       fontSize: { xs: "2.35rem", sm: "3.45rem", md: "4.7rem" },
                       maxWidth: 760,
                       background:
-                        "linear-gradient(90deg, #ffffff 0%, rgba(255,232,160,0.5) 15%, #ffffff 25%, rgba(150,238,222,0.45) 46%, #ffffff 55%, rgba(255,232,160,0.4) 80%, #ffffff 100%)",
-                      backgroundSize: "200% 100%",
+                        "linear-gradient(135deg, #ffffff 0%, rgba(255,232,160,0.5) 15%, #ffffff 25%, rgba(150,238,222,0.45) 46%, #ffffff 55%, rgba(255,232,160,0.4) 80%, #ffffff 100%)",
+                      backgroundSize: "200% 200%",
                       WebkitBackgroundClip: "text",
                       backgroundClip: "text",
                       color: "transparent",
                       WebkitTextFillColor: "transparent",
-                      animation: `${neonSweep} 7s linear infinite, ${neonPulse} 3s ease-in-out infinite`,
+                      animation: `${neonSweep} 18s linear infinite, ${neonPulse} 5s ease-in-out infinite`,
                       "@media (prefers-reduced-motion: reduce)": {
                         animation: "none",
                         color: "#ffffff",
@@ -179,13 +180,13 @@ export default function HeroPrincipal({
                       fontSize: { xs: "1rem", md: "1.18rem" },
                       maxWidth: 720,
                       background:
-                        "linear-gradient(90deg, rgba(241,255,250,0.92) 0%, rgba(255,236,180,0.5) 20%, rgba(241,255,250,0.92) 32%, rgba(170,240,225,0.45) 54%, rgba(241,255,250,0.92) 70%, rgba(255,236,180,0.4) 90%, rgba(241,255,250,0.92) 100%)",
-                      backgroundSize: "200% 100%",
+                        "linear-gradient(135deg, rgba(241,255,250,0.92) 0%, rgba(255,236,180,0.5) 20%, rgba(241,255,250,0.92) 32%, rgba(170,240,225,0.45) 54%, rgba(241,255,250,0.92) 70%, rgba(255,236,180,0.4) 90%, rgba(241,255,250,0.92) 100%)",
+                      backgroundSize: "200% 200%",
                       WebkitBackgroundClip: "text",
                       backgroundClip: "text",
                       color: "transparent",
                       WebkitTextFillColor: "transparent",
-                      animation: `${neonSweep} 11s linear infinite, ${neonPulse} 4.2s ease-in-out infinite`,
+                      animation: `${neonSweep} 26s linear infinite, ${neonPulse} 7s ease-in-out infinite`,
                       "@media (prefers-reduced-motion: reduce)": {
                         animation: "none",
                         color: "rgba(255,255,255,0.9)",
