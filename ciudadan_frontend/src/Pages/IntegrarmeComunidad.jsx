@@ -51,6 +51,23 @@ const fadeUp = {
   visible: { opacity: 1, y: 0 },
 };
 
+// Sección 9 — cadena visual: PERSONAS → PROYECTOS → CLIENTES → COLABORACIONES → NUEVAS OPORTUNIDADES
+const RED_CADENA = [
+  "Personas",
+  "Proyectos",
+  "Clientes",
+  "Colaboraciones",
+  "Nuevas oportunidades",
+];
+
+// Sección 10 — ejemplos de colaboración flexible entre perfiles
+const EJEMPLOS_FLEX = [
+  "Un programador puede participar en un proyecto multimedia.",
+  "Un diseñador puede participar en marketing.",
+  "Una persona de ventas puede comercializar servicios desarrollados por otros integrantes.",
+  "Un especialista en IA puede ayudar a automatizar procesos de toda la agencia.",
+];
+
 
 // Reveal genérico: anima al entrar en viewport (scroll trigger)
 function Reveal({ children, delay = 0, style }) {

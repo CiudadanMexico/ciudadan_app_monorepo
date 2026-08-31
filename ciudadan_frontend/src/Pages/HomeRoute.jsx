@@ -43,6 +43,7 @@ import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 
 import HeroPrincipal from "../components/Home/HeroPrincipal.jsx";
 import LaboryScrollScene from "../components/Home/LaboryScrollScene.jsx";
+import Intro from "../components/Home/Intro.jsx";
 
 import heroCommunityImage from "../assets/heroCommunityImage.png";
 import economyImage from "../assets/economyImage.png";
@@ -108,6 +109,29 @@ export default function HomeRoute() {
       {/* ESCENA SCROLL-TRIGGER: caída del monigote por el plano cartesiano — Labory */}
       <LaboryScrollScene />
 
+            {/* ECONOMÍA COLABORATIVA 6.0 */}
+      <SectionBlock
+        eyebrow="Economía colaborativa 6.0"
+        title="La economía debe beneficiar a quienes participan"
+        subtitle="Usa Labory, conecta con tu red, comparte servicios y haz que la participación genere valor para conductores, socios, comunidades e inversionistas."
+        image={economyImage}
+        imageAlt="Mercado cooperativo tecnológico con personas intercambiando y colaborando"
+        reverse={false}
+        chips={[
+          { label: "Beneficios por usar la red", title: "Beneficios reales por participar", subtitle: "Cada acción dentro de la red genera valor: descuentos, acceso a servicios y participación en los beneficios colectivos." },
+          { label: "Comercialización", title: "Comercializa dentro de la red", subtitle: "Conecta productos, servicios y comunidades para vender con más alcance y sentido colectivo." },
+          { label: "Redes productivas", title: "Redes productivas colaborativas", subtitle: "La producción se organiza en red: cada nodo aporta y recibe, fortaleciendo la autonomía de todos." },
+          { label: "Economía local", title: "Economía local fortalecida", subtitle: "El intercambio local genera empleo, circulación de riqueza y comunidades más resilientes." },
+        ]}
+        cards={[
+          { icon: <StorefrontRoundedIcon />, title: "Comercializa mejor", text: "Vende y conecta productos o servicios dentro de la red." },
+          { icon: <ForumRoundedIcon />, title: "Recomienda y crece", text: "La colaboración fortalece a toda la comunidad." },
+        ]}
+        primaryAction="Usar Labory"
+        secondaryAction="Ver cómo funciona"
+      />
+
+
       {/* BLOQUE BREVE: imagen desplazada + 2 cuadros de texto (revelado con scroll) */}
       <Box sx={{ py: { xs: 5, md: 7 } }}>
         <Container maxWidth="xl">
@@ -164,65 +188,9 @@ export default function HomeRoute() {
         </Container>
       </Box>
 
-      {/* BLOQUE CONTEXTO / PROBLEMA */}
-      <Box sx={{ py: { xs: 5, md: 8 } }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 4, bgcolor: "#0e1613", color: "#fff", height: "100%" }} elevation={0}>
-                <CardContent sx={{ p: 4 }}>
-                  <Stack spacing={2}>
-                    <Box sx={{ color: "#8ee6b2" }}><TravelExploreRoundedIcon fontSize="large" /></Box>
-                    <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.05 }}>
-                      Aquí la gente no sólo mira una idea.
-                    </Typography>
-                    <Typography sx={{ color: "rgba(255,255,255,0.82)", lineHeight: 1.65 }}>
-                      Entra a una red donde puede organizarse mejor, vender, moverse, aprender, colaborar y obtener beneficios por participar.
-                    </Typography>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ borderRadius: 4, bgcolor: "background.paper", height: "100%" }} elevation={0}>
-                <CardContent sx={{ p: 4 }}>
-                  <Stack spacing={2}>
-                    <Box sx={{ color: "success.main" }}><HandshakeRoundedIcon fontSize="large" /></Box>
-                    <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.05 }}>
-                      Cooperación real, no discurso vacío.
-                    </Typography>
-                    <Typography sx={{ color: "text.secondary", lineHeight: 1.65 }}>
-                      CIUDADAN conecta comunidad, tecnología y economía colaborativa 6.0 para construir soluciones concretas y escalables.
-                    </Typography>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
 
-      {/* ECONOMÍA COLABORATIVA 6.0 */}
-      <SectionBlock
-        eyebrow="Economía colaborativa 6.0"
-        title="La economía debe beneficiar a quienes participan"
-        subtitle="Usa Labory, conecta con tu red, comparte servicios y haz que la participación genere valor para conductores, socios, comunidades e inversionistas."
-        image={economyImage}
-        imageAlt="Mercado cooperativo tecnológico con personas intercambiando y colaborando"
-        reverse={false}
-        chips={[
-          { label: "Beneficios por usar la red", title: "Beneficios reales por participar", subtitle: "Cada acción dentro de la red genera valor: descuentos, acceso a servicios y participación en los beneficios colectivos." },
-          { label: "Comercialización", title: "Comercializa dentro de la red", subtitle: "Conecta productos, servicios y comunidades para vender con más alcance y sentido colectivo." },
-          { label: "Redes productivas", title: "Redes productivas colaborativas", subtitle: "La producción se organiza en red: cada nodo aporta y recibe, fortaleciendo la autonomía de todos." },
-          { label: "Economía local", title: "Economía local fortalecida", subtitle: "El intercambio local genera empleo, circulación de riqueza y comunidades más resilientes." },
-        ]}
-        cards={[
-          { icon: <StorefrontRoundedIcon />, title: "Comercializa mejor", text: "Vende y conecta productos o servicios dentro de la red." },
-          { icon: <ForumRoundedIcon />, title: "Recomienda y crece", text: "La colaboración fortalece a toda la comunidad." },
-        ]}
-        primaryAction="Usar Labory"
-        secondaryAction="Ver cómo funciona"
-      />
+     <Intro />
+
 
       {/* LABORY */}
       <SectionBlock
@@ -246,51 +214,6 @@ export default function HomeRoute() {
         secondaryAction="Conocer beneficios"
       />
 
-      {/* FORMAS DE PARTICIPAR */}
-      <Box sx={{ py: { xs: 7, md: 10 } }}>
-        <Container maxWidth="xl">
-          <Stack spacing={2.5} sx={{ mb: 4 }}>
-            <Chip label="Formas de participar" color="success" variant="outlined" sx={{ alignSelf: "flex-start", fontWeight: 700 }} />
-            <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1.05, fontSize: { xs: "2rem", md: "3rem" } }}>
-              Distintos roles dentro del ecosistema
-            </Typography>
-            <Typography sx={{ color: "text.secondary", maxWidth: 900, lineHeight: 1.65 }}>
-              El home debe mostrar desde el primer vistazo que aquí hay caminos distintos para entrar, crecer y aportar: socios líderes conductores, socios fundadores, comunidad en asambleas, inversionistas, agencia y usuarios de la app.
-            </Typography>
-          </Stack>
-
-          <Grid container spacing={2.5}>
-            <Grid item xs={12} sm={6} lg={3}>
-              <SmallCard
-                icon={<DirectionsCarRoundedIcon fontSize="large" />}
-                title="Socios líderes conductores"
-                text="Afiliación, expansión de red y participación operativa dentro del modelo Labory."
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} lg={3}>
-              <SmallCard
-                icon={<GroupsRoundedIcon fontSize="large" />}
-                title="Socios fundadores"
-                text="Visión transdisciplinaria, consejo federal y formación dentro del master."
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} lg={3}>
-              <SmallCard
-                icon={<ForumRoundedIcon fontSize="large" />}
-                title="Asambleas virtuales"
-                text="Coordinación, votación, colaboración y gobernanza digital de las comunidades."
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} lg={3}>
-              <SmallCard
-                icon={<TokenRoundedIcon fontSize="large" />}
-                title="Inversionistas y tokens"
-                text="Infraestructura económica para crecer, descentralizar y escalar el ecosistema."
-              />
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
 
       {/* ASAMBLEAS */}
       <SectionBlock
@@ -482,8 +405,48 @@ export default function HomeRoute() {
                 </Grid>
               </Grid>
             </CardContent>
+
+            
+
           </Card>
         </Container>
+              {/* BLOQUE CONTEXTO / PROBLEMA */}
+      <Box sx={{ py: { xs: 5, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card sx={{ borderRadius: 4, bgcolor: "#0e1613", color: "#fff", height: "100%" }} elevation={0}>
+                <CardContent sx={{ p: 4 }}>
+                  <Stack spacing={2}>
+                    <Box sx={{ color: "#8ee6b2" }}><TravelExploreRoundedIcon fontSize="large" /></Box>
+                    <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.05 }}>
+                      Aquí la gente no sólo mira una idea.
+                    </Typography>
+                    <Typography sx={{ color: "rgba(255,255,255,0.82)", lineHeight: 1.65 }}>
+                      Entra a una red donde puede organizarse mejor, vender, moverse, aprender, colaborar y obtener beneficios por participar.
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card sx={{ borderRadius: 4, bgcolor: "background.paper", height: "100%" }} elevation={0}>
+                <CardContent sx={{ p: 4 }}>
+                  <Stack spacing={2}>
+                    <Box sx={{ color: "success.main" }}><HandshakeRoundedIcon fontSize="large" /></Box>
+                    <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.05 }}>
+                      Cooperación real, no discurso vacío.
+                    </Typography>
+                    <Typography sx={{ color: "text.secondary", lineHeight: 1.65 }}>
+                      CIUDADAN conecta comunidad, tecnología y economía colaborativa 6.0 para construir soluciones concretas y escalables.
+                    </Typography>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
       </Box>
     </Box>
   );

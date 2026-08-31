@@ -3,6 +3,7 @@
 // Estilo consistente con el home: hero oscuro, Space Grotesk, acentos
 // verde/turquesa/amarillo/morado y revelados con scroll-trigger.
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Box,
@@ -23,6 +24,7 @@ import MovieFilterRoundedIcon from "@mui/icons-material/MovieFilterRounded";
 import DirectionsCarRoundedIcon from "@mui/icons-material/DirectionsCarRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import SchoolRoundedIcon from "@mui/icons-material/SchoolRounded";
+import heroCreaComunidad from "../assets/hero_crea_comunidad_ciudadan.png";
 
 const HERO_FONT = '"Space Grotesk", "Poppins", system-ui, sans-serif';
 const VERDE = "#19d79c";
@@ -93,12 +95,9 @@ function Paso({ n, titulo, children }) {
 
 // Nodo del roadmap visual (preparado para reuso)
 
-const scrollToCta = () => {
-  const el = document.getElementById("sumarse");
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-};
-
 export default function CrearComunidad() {
+  const navigate = useNavigate();
+
   useEffect(() => {
     window.dispatchEvent(new Event("closeTopBar"));
   }, []);
@@ -117,11 +116,25 @@ export default function CrearComunidad() {
         }}
       >
         <Box
+          component="img"
+          src={heroCreaComunidad}
+          alt="Comunidad Ciudadan: talento colaborando en su agencia"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center",
+            filter: "saturate(1.05) contrast(1.04)",
+          }}
+        />
+        <Box
           sx={{
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(circle at 15% 20%, rgba(46,230,200,0.16) 0%, rgba(0,0,0,0) 42%), radial-gradient(circle at 85% 12%, rgba(138,92,245,0.18) 0%, rgba(0,0,0,0) 38%), radial-gradient(circle at 60% 95%, rgba(255,224,102,0.1) 0%, rgba(0,0,0,0) 45%)",
+              "radial-gradient(circle at 15% 20%, rgba(46,230,200,0.14) 0%, rgba(0,0,0,0) 42%), radial-gradient(circle at 85% 12%, rgba(138,92,245,0.16) 0%, rgba(0,0,0,0) 38%), linear-gradient(90deg, rgba(5,10,8,0.92) 0%, rgba(5,10,8,0.78) 42%, rgba(5,10,8,0.45) 70%, rgba(5,10,8,0.22) 100%), linear-gradient(180deg, rgba(5,10,8,0.2) 0%, rgba(5,10,8,0.55) 100%)",
           }}
         />
         <Container maxWidth="lg" sx={{ position: "relative" }}>
@@ -172,7 +185,7 @@ export default function CrearComunidad() {
             <Reveal delay={0.25}>
               <Button
                 variant="contained"
-                onClick={scrollToCta}
+                onClick={() => navigate("/academia")}
                 endIcon={<ArrowForwardRoundedIcon />}
                 sx={{
                   alignSelf: "flex-start",
@@ -675,6 +688,7 @@ export default function CrearComunidad() {
               variant="contained"
               size="large"
               endIcon={<ArrowForwardRoundedIcon />}
+              onClick={() => navigate("/academia")}
               sx={{
                 mt: 4,
                 px: 3.5,
