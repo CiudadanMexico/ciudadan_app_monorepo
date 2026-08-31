@@ -75,6 +75,13 @@ export default function LaboryScrollScene() {
   const coinScale = useTransform(scrollYProgress, [0.04, 0.22, 0.9], [0.78, 1.06, 0.94]);
   const rainOpacity = useTransform(scrollYProgress, [0.02, 0.1, 0.9, 1], [0, 1, 1, 0]);
 
+  // ---- Ensamblaje de la moneda grande (los trazos se van formando) ----
+  const coinCircleO = useTransform(scrollYProgress, [0.05, 0.12], [0, 1]);
+  const coinCircleI = useTransform(scrollYProgress, [0.10, 0.18], [0, 1]);
+  const coinLBlack = useTransform(scrollYProgress, [0.13, 0.23], [0, 1]);
+  const coinLYellow = useTransform(scrollYProgress, [0.22, 0.32], [0, 1]);
+  const coinPieces = useTransform(scrollYProgress, [0.30, 0.38], [0, 1]);
+
   return (
     <Box
       ref={targetRef}
@@ -277,7 +284,15 @@ export default function LaboryScrollScene() {
               zIndex: 2,
             }}
           >
-            <LaboryCoin width={300} height={280} />
+            <LaboryCoinAssemble
+              width={300}
+              height={280}
+              circleO={coinCircleO}
+              circleI={coinCircleI}
+              lBlack={coinLBlack}
+              lYellow={coinLYellow}
+              pieces={coinPieces}
+            />
           </motion.div>
 
           {/* Moneditas que rotan sin parar (spin infinito) */}
@@ -829,5 +844,75 @@ function LaboryCoin({ width = 90, height = 84 }) {
           "drop-shadow(0 0 18px rgba(255,224,102,.5)) drop-shadow(0 0 7px rgba(14,219,154,.4))",
       }}
     />
+  );
+}
+
+/**
+ * Moneda Labory que se va ENSAMBLANDO trazo a trazo con el scroll:
+ * primero los círculos (naranja→verde), después la "L" se dibuja
+ * (pathLength ligado a MotionValues) y al final las piezas negras se ensamblan.
+ */
+function LaboryCoinAssemble({ width = 300, height = 280, circleO, circleI, lBlack, lYellow, pieces }) {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 224 208"
+      aria-hidden="true"
+      style={{
+        overflow: "visible",
+        filter:
+          "drop-shadow(0 0 18px rgba(255,224,102,.5)) drop-shadow(0 0 7px rgba(14,219,154,.4))",
+      }}
+    >
+      {/* Fondo de la moneda: círculo naranja, luego verde */}
+      <motion.circle
+        cx="112"
+        cy="104"
+        r="101"
+        fill="#FF7A18"
+        style={{ opacity: circleO, scale: circleO }}
+      />
+      <motion.circle
+        cx="112"
+        cy="104"
+        r="89"
+        fill="#0EDB9A"
+        style={{ opacity: circleI, scale: circleI }}
+      />
+
+      {/* La "L": contorno negro se dibuja con el scroll */}
+      <motion.path
+        d="M91 60 C80 60 74 68 74 81 L74 119 C74 132 80 143 94 143 L143 143"
+        fill="none"
+        stroke="#000000"
+        strokeWidth="29"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ pathLength: lBlack }}
+      />
+      {/* La "L" amarilla se dibuja encima */}
+      <motion.path
+        d="M91 60 C80 60 74 68 74 81 L74 119 C74 132 80 143 94 143 L143 143"
+        fill="none"
+        stroke="#FFF500"
+        strokeWidth="17"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={{ pathLength: lYellow }}
+      />
+
+      {/* Piezas negras (triángulo invertido, forma superior y rellenos) */}
+      <motion.g style={{ opacity: pieces }}>
+        <motion.path
+          d="M29 65 L184 65 L156 113 L156 151 L136 151 L136 139 L92 139 C77 139 68 130 68 114 L68 65 Z"
+          fill="#000000"
+          style={{ opacity: pieces }}
+        />
+        <motion.path d="M88 139 L136 139 L112 197 Z" fill="#000000" style={{ opacity: pieces, y: 6 }} />
+        <motion.rect x="87" y="140" width="16" height="30" fill="#000000" style={{ opacity: pieces }} />
+        <motion.rect x="113" y="140" width="16" height="30" fill="#000000" style={{ opacity: pieces }} />
+      </motion.g>
+    </svg>
   );
 }
