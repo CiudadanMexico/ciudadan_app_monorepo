@@ -70,8 +70,9 @@ export default function HeroPrincipal({
   eyebrow = "Cooperativismo 6.0",
   title = "Gestiona o sé parte de comunidades sustentables que producen, comercializan y avanzan cooperativamente",
   subtitle = "Tecnología abierta, Labory, economía colaborativa 6.0, asambleas virtuales y redes productivas para que socios, conductores, fundadores e inversionistas construyan autonomía real.",
-  primaryAction = "Explorar el ecosistema",
-  secondaryAction = "Usar Labory",
+  primaryAction = "Crear una Comunidad",
+  secondaryAction = "Integrarme a una Comunidad",
+  tertiaryAction = "Usar Labory",
   tags = [
     "Comunidades autónomas",
     "Economía colaborativa 6.0",
@@ -135,20 +136,7 @@ export default function HeroPrincipal({
             <motion.div initial="hidden" animate="visible" variants={sectionVariants}>
               <Stack spacing={2.3}>
                 <motion.div variants={fadeUp}>
-                  <Chip
-                    icon={<ParkRoundedIcon />}
-                    label={eyebrow}
-                    variant="outlined"
-                    sx={{
-                      alignSelf: "flex-start",
-                      fontFamily: HERO_FONT,
-                      fontWeight: 700,
-                      color: "#eafff5",
-                      borderColor: "rgba(255,255,255,0.35)",
-                      bgcolor: "rgba(0,0,0,0.24)",
-                      backdropFilter: "blur(10px)",
-                    }}
-                  />
+                 
                 </motion.div>
 
                 <motion.div variants={fadeUp}>
@@ -209,7 +197,7 @@ export default function HeroPrincipal({
                 </motion.div>
 
                 <motion.div variants={fadeUp}>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} useFlexGap flexWrap="wrap">
                     <Button
                       variant="contained"
                       size="large"
@@ -229,7 +217,7 @@ export default function HeroPrincipal({
                       {primaryAction}
                     </Button>
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       size="large"
                       sx={{
                         px: 2.8,
@@ -238,13 +226,30 @@ export default function HeroPrincipal({
                         fontFamily: HERO_FONT,
                         fontWeight: 700,
                         color: "#fff",
-                        borderColor: "rgba(255,255,255,0.4)",
-                        bgcolor: "rgba(0,0,0,0.18)",
-                        backdropFilter: "blur(8px)",
-                        "&:hover": { borderColor: "rgba(255,255,255,0.7)", bgcolor: "rgba(0,0,0,0.28)" },
+                        bgcolor: "#0d120f",
+                        border: "1px solid rgba(255,255,255,0.22)",
+                        boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+                        "&:hover": { bgcolor: "#000000", borderColor: "rgba(255,255,255,0.4)" },
                       }}
                     >
                       {secondaryAction}
+                    </Button>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      sx={{
+                        px: 2.8,
+                        py: 1.45,
+                        borderRadius: 999,
+                        fontFamily: HERO_FONT,
+                        fontWeight: 700,
+                        color: "#fff",
+                        bgcolor: "#8A5CF5",
+                        boxShadow: "0 12px 30px rgba(138,92,245,0.35)",
+                        "&:hover": { bgcolor: "#6A3FCB" },
+                      }}
+                    >
+                      {tertiaryAction}
                     </Button>
                   </Stack>
                 </motion.div>
@@ -290,7 +295,7 @@ export default function HeroPrincipal({
               >
                 <Box sx={{ p: { xs: 1.6, md: 2.2 } }}>
                   <Typography sx={{ color: "rgba(255,255,255,0.88)", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", fontSize: 12, mb: 1.6 }}>
-                    Un ecosistema vivo
+                    Cooperativismo 6.0
                   </Typography>
                   <Box
                     sx={{
