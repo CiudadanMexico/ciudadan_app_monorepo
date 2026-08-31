@@ -168,7 +168,7 @@ export default function LaboryScrollScene() {
                 textShadow: "0 4px 40px rgba(255,224,102,0.3)",
               }}
             >
-              DINERO QUE SIRVE
+              DINERO QUE SIRVE A LAS PERSONAS
             </Typography>
           </motion.div>
 
