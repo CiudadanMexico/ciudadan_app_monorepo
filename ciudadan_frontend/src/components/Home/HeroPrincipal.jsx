@@ -13,6 +13,7 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { keyframes } from "@mui/system";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
 
@@ -32,6 +33,27 @@ const sectionVariants = {
     transition: { staggerChildren: 0.08 },
   },
 };
+
+// ----- Efecto neón: luces amarilla y turquesa que atraviesan las letras -----
+// El gradiente (base blanca con bandas neón) se desplaza de un extremo al otro
+// sobre el texto recortado (background-clip: text); al ser cíclico, el barrido
+// es continuo y sin salto.
+const neonSweep = keyframes`
+  0% { background-position: 200% 0%; }
+  100% { background-position: -200% 0%; }
+`;
+
+// Brillo neón pulsante alrededor de las letras (drop-shadow usa los píxeles
+// ya recortados por el texto, a diferencia de text-shadow que se vería como
+// una mancha detrás del relleno transparente).
+const neonPulse = keyframes`
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(255,224,102,0.35)) drop-shadow(0 0 16px rgba(45,230,200,0.25));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(255,224,102,0.65)) drop-shadow(0 0 26px rgba(45,230,200,0.5));
+  }
+`;
 
 /**
  * HeroPrincipal — hero a pantalla completa del home.
@@ -130,8 +152,19 @@ export default function HeroPrincipal({
                       letterSpacing: "-0.05em",
                       fontSize: { xs: "2.35rem", sm: "3.45rem", md: "4.7rem" },
                       maxWidth: 760,
-                      color: "#fff",
-                      textShadow: "0 3px 24px rgba(0,0,0,0.55)",
+                      background:
+                        "linear-gradient(90deg, #ffffff 0%, #ffe066 16%, #ffffff 28%, #2ee6c8 48%, #d9fff6 56%, #ffffff 66%, #ffe066 84%, #ffffff 100%)",
+                      backgroundSize: "200% 100%",
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                      WebkitTextFillColor: "transparent",
+                      animation: `${neonSweep} 7s linear infinite, ${neonPulse} 3s ease-in-out infinite`,
+                      "@media (prefers-reduced-motion: reduce)": {
+                        animation: "none",
+                        color: "#ffffff",
+                        WebkitTextFillColor: "#ffffff",
+                      },
                     }}
                   >
                     {title}
@@ -142,11 +175,22 @@ export default function HeroPrincipal({
                   <Typography
                     variant="h6"
                     sx={{
-                      color: "rgba(255,255,255,0.9)",
                       lineHeight: 1.6,
                       fontSize: { xs: "1rem", md: "1.18rem" },
                       maxWidth: 720,
-                      textShadow: "0 2px 12px rgba(0,0,0,0.42)",
+                      background:
+                        "linear-gradient(90deg, rgba(241,255,250,0.92) 0%, rgba(255,224,102,0.95) 20%, rgba(241,255,250,0.92) 34%, rgba(46,230,200,0.95) 56%, rgba(241,255,250,0.92) 72%, rgba(255,224,102,0.9) 90%, rgba(241,255,250,0.92) 100%)",
+                      backgroundSize: "200% 100%",
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                      WebkitTextFillColor: "transparent",
+                      animation: `${neonSweep} 11s linear infinite, ${neonPulse} 4.2s ease-in-out infinite`,
+                      "@media (prefers-reduced-motion: reduce)": {
+                        animation: "none",
+                        color: "rgba(255,255,255,0.9)",
+                        WebkitTextFillColor: "rgba(255,255,255,0.9)",
+                      },
                     }}
                   >
                     {subtitle}
