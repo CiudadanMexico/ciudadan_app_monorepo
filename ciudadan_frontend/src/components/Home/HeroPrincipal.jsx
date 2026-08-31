@@ -63,6 +63,73 @@ const neonPulse = keyframes`
   }
 `;
 
+// Titileo y flotación de las partículas cósmicas (leves, discretas).
+const particleTwinkle = keyframes`
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+`;
+
+const particleFloat = keyframes`
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+`;
+
+// Configuración fija (sin random en render): 12 motas de polvo de luz que
+// orbitan alrededor del brillo a distintos radios, colores y rezagos —
+// cuánto más lejos/letargas, más "cósmico" se siente el polvo.
+const PARTICLES = [
+  { radius: 90, angle: 0.3, size: 3, color: "rgba(46,230,200,0.9)", glow: "rgba(46,230,200,0.55)", stiffness: 70, damping: 18, twinkle: 3.4, float: 4.2, delay: 0.2, opacity: 0.6 },
+  { radius: 130, angle: 1.1, size: 2, color: "rgba(255,224,102,0.9)", glow: "rgba(255,224,102,0.5)", stiffness: 110, damping: 16, twinkle: 2.7, float: 3.6, delay: 0.9, opacity: 0.55 },
+  { radius: 160, angle: 2.0, size: 3, color: "rgba(255,255,255,0.85)", glow: "rgba(255,255,255,0.45)", stiffness: 90, damping: 20, twinkle: 4.1, float: 5.0, delay: 1.4, opacity: 0.45 },
+  { radius: 70, angle: 2.6, size: 2, color: "rgba(46,230,200,0.9)", glow: "rgba(46,230,200,0.55)", stiffness: 140, damping: 15, twinkle: 2.4, float: 3.2, delay: 0.5, opacity: 0.65 },
+  { radius: 210, angle: 3.3, size: 2, color: "rgba(255,224,102,0.85)", glow: "rgba(255,224,102,0.45)", stiffness: 80, damping: 22, twinkle: 3.8, float: 5.6, delay: 2.0, opacity: 0.4 },
+  { radius: 120, angle: 3.9, size: 4, color: "rgba(46,230,200,0.85)", glow: "rgba(46,230,200,0.5)", stiffness: 120, damping: 17, twinkle: 3.1, float: 4.4, delay: 1.1, opacity: 0.5 },
+  { radius: 250, angle: 4.4, size: 2, color: "rgba(255,255,255,0.8)", glow: "rgba(255,255,255,0.4)", stiffness: 65, damping: 24, twinkle: 4.6, float: 6.0, delay: 2.6, opacity: 0.35 },
+  { radius: 180, angle: 5.0, size: 3, color: "rgba(255,224,102,0.85)", glow: "rgba(255,224,102,0.5)", stiffness: 100, damping: 19, twinkle: 3.5, float: 4.8, delay: 0.7, opacity: 0.5 },
+  { radius: 100, angle: 5.5, size: 2, color: "rgba(46,230,200,0.9)", glow: "rgba(46,230,200,0.55)", stiffness: 160, damping: 14, twinkle: 2.2, float: 3.0, delay: 1.7, opacity: 0.6 },
+  { radius: 280, angle: 0.9, size: 2, color: "rgba(255,255,255,0.75)", glow: "rgba(255,255,255,0.35)", stiffness: 60, damping: 26, twinkle: 5.2, float: 6.5, delay: 3.1, opacity: 0.3 },
+  { radius: 220, angle: 1.6, size: 3, color: "rgba(46,230,200,0.8)", glow: "rgba(46,230,200,0.45)", stiffness: 85, damping: 21, twinkle: 4.0, float: 5.2, delay: 2.3, opacity: 0.4 },
+  { radius: 150, angle: 4.8, size: 2, color: "rgba(255,224,102,0.8)", glow: "rgba(255,224,102,0.4)", stiffness: 130, damping: 16, twinkle: 2.9, float: 3.9, delay: 1.9, opacity: 0.55 },
+];
+
+// Partícula cósmica: persigue al cursor con su propio resorte (rezago único),
+// orbita a un radio fijo alrededor del brillo y titila/flota suavemente.
+function ParticleDot({ sourceX, sourceY, config }) {
+  const x = useSpring(sourceX, { stiffness: config.stiffness, damping: config.damping, mass: 0.6 });
+  const y = useSpring(sourceY, { stiffness: config.stiffness, damping: config.damping, mass: 0.6 });
+  const offsetX = Math.cos(config.angle) * config.radius;
+  const offsetY = Math.sin(config.angle) * config.radius;
+
+  return (
+    <motion.div
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: x,
+        top: y,
+        width: 0,
+        height: 0,
+        pointerEvents: "none",
+      }}
+    >
+      <Box
+        sx={{
+          position: "absolute",
+          left: offsetX,
+          top: offsetY,
+          width: config.size,
+          height: config.size,
+          borderRadius: "50%",
+          bgcolor: config.color,
+          boxShadow: `0 0 ${config.size * 3}px ${config.glow}`,
+          opacity: config.opacity,
+          animation: `${particleTwinkle} ${config.twinkle}s ease-in-out ${config.delay}s infinite, ${particleFloat} ${config.float}s ease-in-out ${config.delay}s infinite`,
+        }}
+      />
+    </motion.div>
+  );
+}
+
 /**
  * HeroPrincipal — hero a pantalla completa del home.
  * Imagen original a pantalla completa en desktop, tablet y mobile.
@@ -201,6 +268,27 @@ export default function HeroPrincipal({
             "radial-gradient(circle, rgba(46,230,200,0.3) 0%, rgba(255,224,102,0.14) 42%, rgba(0,0,0,0) 70%)",
         }}
       />
+
+      {/* PARTÍCULAS CÓSMICAS: polvo de luz alrededor del brillo — cada mota
+          persigue al cursor con su propio resorte (rezagos distintos), titila
+          y flota. Leve y discreto, se desvanece junto con el glow. */}
+      <motion.div
+        aria-hidden
+        initial={false}
+        animate={{ opacity: glowVisible ? 1 : 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 1,
+          mixBlendMode: "screen",
+        }}
+      >
+        {PARTICLES.map((config, i) => (
+          <ParticleDot key={i} sourceX={glowX} sourceY={glowY} config={config} />
+        ))}
+      </motion.div>
 
       <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1, py: { xs: 3, md: 5 } }}>
         <Grid container spacing={3} alignItems="center" sx={{ minHeight: { xs: "auto", md: "100svh" } }}>
