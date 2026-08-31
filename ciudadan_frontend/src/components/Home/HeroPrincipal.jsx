@@ -1,9 +1,9 @@
 // src/components/Home/HeroPrincipal.jsx
 // Hero principal del home — restaurado idéntico a como se veía antes en
 // HomeRoute.jsx, ahora como componente aparte (mismo patrón que HeroIntroGlow).
-import React from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import {
   Box,
   Button,
@@ -87,8 +87,31 @@ export default function HeroPrincipal({
 }) {
   const navigate = useNavigate();
 
+  // Brillo que sigue al cursor: seguimiento con inercia (springs), sin
+  // re-renders por movimiento (motion values actualizan el transform directo).
+  const heroRef = useRef(null);
+  const [glowVisible, setGlowVisible] = useState(false);
+  const glowX = useMotionValue(-600);
+  const glowY = useMotionValue(-600);
+  // Corona: lenta y soñadora | Núcleo: más rápido → sensación de profundidad
+  const haloX = useSpring(glowX, { stiffness: 90, damping: 26, mass: 0.7 });
+  const haloY = useSpring(glowY, { stiffness: 90, damping: 26, mass: 0.7 });
+  const coreX = useSpring(glowX, { stiffness: 170, damping: 24, mass: 0.45 });
+  const coreY = useSpring(glowY, { stiffness: 170, damping: 24, mass: 0.45 });
+
+  const handleMouseMove = (e) => {
+    const rect = heroRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    glowX.set(e.clientX - rect.left);
+    glowY.set(e.clientY - rect.top);
+  };
+
   return (
     <Box
+      ref={heroRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setGlowVisible(true)}
+      onMouseLeave={() => setGlowVisible(false)}
       sx={{
         position: "relative",
         overflow: "hidden",
@@ -133,13 +156,72 @@ export default function HeroPrincipal({
         }}
       />
 
+      {/* BRILLO QUE SIGUE AL CURSOR: corona amplia (lenta) + núcleo turquesa
+          (rápido) para dar profundidad; sobre la imagen pero debajo del
+          contenido (mismo zIndex, antes en el DOM). Se desvanece sin cursor. */}
+      <motion.div
+        aria-hidden
+        initial={false}
+        animate={{ opacity: glowVisible ? 1 : 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        style={{
+          position: "absolute",
+          left: haloX,
+          top: haloY,
+          x: "-50%",
+          y: "-50%",
+          width: 560,
+          height: 560,
+          borderRadius: "50%",
+          pointerEvents: "none",
+          zIndex: 1,
+          mixBlendMode: "screen",
+          background:
+            "radial-gradient(circle, rgba(46,230,200,0.24) 0%, rgba(255,224,102,0.12) 38%, rgba(46,230,200,0.05) 56%, rgba(0,0,0,0) 72%)",
+        }}
+      />
+      <motion.div
+        aria-hidden
+        initial={false}
+        animate={{ opacity: glowVisible ? 1 : 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        style={{
+          position: "absolute",
+          left: coreX,
+          top: coreY,
+          x: "-50%",
+          y: "-50%",
+          width: 200,
+          height: 200,
+          borderRadius: "50%",
+          pointerEvents: "none",
+          zIndex: 1,
+          mixBlendMode: "screen",
+          background:
+            "radial-gradient(circle, rgba(46,230,200,0.3) 0%, rgba(255,224,102,0.14) 42%, rgba(0,0,0,0) 70%)",
+        }}
+      />
+
       <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1, py: { xs: 3, md: 5 } }}>
         <Grid container spacing={3} alignItems="center" sx={{ minHeight: { xs: "auto", md: "100svh" } }}>
           <Grid item xs={12} md={7} lg={6}>
             <motion.div initial="hidden" animate="visible" variants={sectionVariants}>
               <Stack spacing={2.3}>
                 <motion.div variants={fadeUp}>
-                 
+                  <Chip
+                    icon={<ParkRoundedIcon />}
+                    label={eyebrow}
+                    variant="outlined"
+                    sx={{
+                      alignSelf: "flex-start",
+                      fontFamily: HERO_FONT,
+                      fontWeight: 700,
+                      color: "#eafff5",
+                      borderColor: "rgba(255,255,255,0.35)",
+                      bgcolor: "rgba(0,0,0,0.24)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  />
                 </motion.div>
 
                 <motion.div variants={fadeUp}>
