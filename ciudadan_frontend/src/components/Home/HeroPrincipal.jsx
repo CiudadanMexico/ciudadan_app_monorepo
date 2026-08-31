@@ -17,6 +17,11 @@ import { keyframes } from "@mui/system";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
 
+// Tipografía del hero: Space Grotesk — geométrica-humanista con carácter técnico,
+// va con el mensaje eco-futurista y cooperativo del ecosistema (y convive bien
+// con las fuentes tech ya cargadas como Orbitron).
+const HERO_FONT = '"Space Grotesk", "Poppins", system-ui, sans-serif';
+
 // La imagen original que te encanta debe ser esta: la del estilo eco-village/robots/personas.
 import ciudadanCompleto from "../../assets/ciudadanCompleto.jpg";
 import heroCommunityImage from "../../assets/heroCommunityImage.png";
@@ -135,7 +140,8 @@ export default function HeroPrincipal({
                     variant="outlined"
                     sx={{
                       alignSelf: "flex-start",
-                      fontWeight: 900,
+                      fontFamily: HERO_FONT,
+                      fontWeight: 700,
                       color: "#eafff5",
                       borderColor: "rgba(255,255,255,0.35)",
                       bgcolor: "rgba(0,0,0,0.24)",
@@ -148,9 +154,10 @@ export default function HeroPrincipal({
                   <Typography
                     variant="h1"
                     sx={{
-                      fontWeight: 950,
+                      fontFamily: HERO_FONT,
+                      fontWeight: 700,
                       lineHeight: 0.96,
-                      letterSpacing: "-0.05em",
+                      letterSpacing: "-0.03em",
                       fontSize: { xs: "2.35rem", sm: "3.45rem", md: "4.7rem" },
                       maxWidth: 760,
                       background:
@@ -176,6 +183,8 @@ export default function HeroPrincipal({
                   <Typography
                     variant="h6"
                     sx={{
+                      fontFamily: HERO_FONT,
+                      fontWeight: 400,
                       lineHeight: 1.6,
                       fontSize: { xs: "1rem", md: "1.18rem" },
                       maxWidth: 720,
@@ -208,7 +217,8 @@ export default function HeroPrincipal({
                         px: 2.8,
                         py: 1.45,
                         borderRadius: 999,
-                        fontWeight: 900,
+                        fontFamily: HERO_FONT,
+                        fontWeight: 700,
                         bgcolor: "#19d79c",
                         color: "#072015",
                         boxShadow: "0 12px 30px rgba(25,215,156,0.28)",
@@ -224,7 +234,8 @@ export default function HeroPrincipal({
                         px: 2.8,
                         py: 1.45,
                         borderRadius: 999,
-                        fontWeight: 900,
+                        fontFamily: HERO_FONT,
+                        fontWeight: 700,
                         color: "#fff",
                         borderColor: "rgba(255,255,255,0.4)",
                         bgcolor: "rgba(0,0,0,0.18)",
@@ -244,6 +255,7 @@ export default function HeroPrincipal({
                         key={item}
                         label={item}
                         sx={{
+                          fontFamily: HERO_FONT,
                           fontWeight: 700,
                           bgcolor: "rgba(255,255,255,0.12)",
                           color: "#fff",
