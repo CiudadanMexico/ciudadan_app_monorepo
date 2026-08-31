@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Box,
   Button,
@@ -41,6 +42,7 @@ import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 // tokensImage.png
 
 import HeroPrincipal from "../components/Home/HeroPrincipal.jsx";
+import LaboryScrollScene from "../components/Home/LaboryScrollScene.jsx";
 
 import heroCommunityImage from "../assets/heroCommunityImage.png";
 import economyImage from "../assets/economyImage.png";
@@ -53,9 +55,21 @@ import networkImage from "../assets/networkImage.png";
 import closingImage from "../assets/closingImage.png";
 import tokensImage from "../assets/tokensImage.png";
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  visible: { opacity: 1, y: 0 },
+};
+
 function SmallCard({ icon, title, text }) {
   return (
-    <Card
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.25 }}
+      variants={fadeUp}
+      style={{ height: "100%" }}
+    >
+      <Card
       elevation={0}
       sx={{
         height: "100%",
@@ -77,6 +91,7 @@ function SmallCard({ icon, title, text }) {
         </Stack>
       </CardContent>
     </Card>
+    </motion.div>
   );
 }
 
@@ -86,11 +101,14 @@ export default function HomeRoute() {
   }, []);
 
   return (
-    <Box className="home" sx={{ bgcolor: "#f7faf8", minHeight: "100vh", color: "text.primary", overflowX: "hidden", overflowY: "auto", height: "auto" }}>
+    <Box className="home" sx={{ bgcolor: "#f7faf8", minHeight: "100vh", color: "text.primary", overflowX: "clip", height: "auto" }}>
       {/* HERO PRINCIPAL: imagen original a pantalla completa en desktop, tablet y mobile */}
       <HeroPrincipal />
 
-      {/* BLOQUE BREVE: imagen desplazada + 2 cuadros de texto */}
+      {/* ESCENA SCROLL-TRIGGER: caída del monigote por el plano cartesiano — Labory */}
+      <LaboryScrollScene />
+
+      {/* BLOQUE BREVE: imagen desplazada + 2 cuadros de texto (revelado con scroll) */}
       <Box sx={{ py: { xs: 5, md: 7 } }}>
         <Container maxWidth="xl">
           <Grid container spacing={2.5} alignItems="stretch">
@@ -102,6 +120,13 @@ export default function HomeRoute() {
               />
             </Grid>
             <Grid item xs={12} md={4}>
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.25 }}
+                variants={fadeUp}
+                style={{ height: "100%" }}
+              >
               <Box
                 sx={{
                   position: "relative",
@@ -126,6 +151,7 @@ export default function HomeRoute() {
                   </Typography>
                 </Box>
               </Box>
+              </motion.div>
             </Grid>
             <Grid item xs={12} md={4}>
               <SmallCard
