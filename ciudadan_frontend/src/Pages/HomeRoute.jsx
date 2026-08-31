@@ -10,9 +10,9 @@ import {
   Grid,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import SectionBlock from "../components/Home/SectionBlock";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import HandshakeRoundedIcon from "@mui/icons-material/HandshakeRounded";
 import BoltRoundedIcon from "@mui/icons-material/BoltRounded";
@@ -67,191 +67,6 @@ const sectionVariants = {
     transition: { staggerChildren: 0.08 },
   },
 };
-
-function SectionBlock({
-  eyebrow,
-  title,
-  subtitle,
-  image,
-  reverse = false,
-  chips = [],
-  cards = [],
-  primaryAction,
-  secondaryAction,
-  imageAlt,
-}) {
-  const theme = useTheme();
-
-  return (
-    <Box sx={{ py: { xs: 7, md: 10 } }}>
-      <Container maxWidth="xl">
-        <Grid
-          container
-          spacing={4}
-          alignItems="center"
-          direction={reverse ? "row-reverse" : "row"}
-        >
-          <Grid item xs={12} md={6}>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.25 }} variants={fadeUp}>
-              <Stack spacing={2.25}>
-                <Chip
-                  label={eyebrow}
-                  sx={{ alignSelf: "flex-start", fontWeight: 700 }}
-                  color="success"
-                  variant="outlined"
-                />
-                <Typography
-                  variant="h3"
-                  sx={{
-                    fontWeight: 900,
-                    lineHeight: 1.03,
-                    letterSpacing: "-0.03em",
-                    fontSize: { xs: "2rem", md: "3.1rem" },
-                  }}
-                >
-                  {title}
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    color: "text.secondary",
-                    lineHeight: 1.55,
-                    fontSize: { xs: "1rem", md: "1.15rem" },
-                    maxWidth: 640,
-                  }}
-                >
-                  {subtitle}
-                </Typography>
-
-                {chips.length > 0 && (
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                    {chips.map((c) => (
-                      <Chip key={c} label={c} sx={{ fontWeight: 600 }} />
-                    ))}
-                  </Stack>
-                )}
-
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ pt: 0.5 }}>
-                  {primaryAction && (
-                    <Button
-                      variant="contained"
-                      size="large"
-                      endIcon={<ArrowForwardRoundedIcon />}
-                      sx={{ px: 2.4, py: 1.3, borderRadius: 999, fontWeight: 800 }}
-                    >
-                      {primaryAction}
-                    </Button>
-                  )}
-                  {secondaryAction && (
-                    <Button
-                      variant="outlined"
-                      size="large"
-                      sx={{ px: 2.4, py: 1.3, borderRadius: 999, fontWeight: 800 }}
-                    >
-                      {secondaryAction}
-                    </Button>
-                  )}
-                </Stack>
-              </Stack>
-            </motion.div>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 24 }}
-              whileInView={{ opacity: 1, scale: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-            >
-              <Box
-                sx={{
-                  position: "relative",
-                  borderRadius: 6,
-                  overflow: "hidden",
-                  minHeight: { xs: 300, sm: 380, md: 520 },
-                  boxShadow: theme.shadows[10],
-                  background: "linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))",
-                }}
-              >
-                <Box
-                  component="img"
-                  src={image}
-                  alt={imageAlt}
-                  sx={{
-                    width: "100%",
-                    height: "100%",
-                    minHeight: { xs: 300, sm: 380, md: 520 },
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    background:
-                      "linear-gradient(180deg, rgba(5,10,16,0.05) 0%, rgba(5,10,16,0.18) 55%, rgba(5,10,16,0.56) 100%)",
-                  }}
-                />
-                {cards.length > 0 && (
-                  <Stack
-                    spacing={1.25}
-                    sx={{
-                      position: "absolute",
-                      left: { xs: 14, md: 18 },
-                      right: { xs: 14, md: 18 },
-                      bottom: { xs: 14, md: 18 },
-                    }}
-                  >
-                    {cards.map((card) => (
-                      <Card
-                        key={card.title}
-                        sx={{
-                          background: "rgba(10, 15, 20, 0.62)",
-                          backdropFilter: "blur(10px)",
-                          color: "#fff",
-                          borderRadius: 4,
-                          border: "1px solid rgba(255,255,255,0.12)",
-                        }}
-                        elevation={0}
-                      >
-                        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
-                          <Stack direction="row" spacing={1.25} alignItems="center">
-                            <Box
-                              sx={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 2,
-                                bgcolor: "rgba(255,255,255,0.12)",
-                                display: "grid",
-                                placeItems: "center",
-                                flex: "0 0 auto",
-                              }}
-                            >
-                              {card.icon}
-                            </Box>
-                            <Box>
-                              <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.15 }}>
-                                {card.title}
-                              </Typography>
-                              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                {card.text}
-                              </Typography>
-                            </Box>
-                          </Stack>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </Stack>
-                )}
-              </Box>
-            </motion.div>
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
-  );
-}
 
 function SmallCard({ icon, title, text }) {
   return (
@@ -605,7 +420,12 @@ export default function HomeRoute() {
         image={economyImage}
         imageAlt="Mercado cooperativo tecnológico con personas intercambiando y colaborando"
         reverse={false}
-        chips={["Beneficios por usar la red", "Comercialización", "Redes productivas", "Economía local"]}
+        chips={[
+          { label: "Beneficios por usar la red", title: "Beneficios reales por participar", subtitle: "Cada acción dentro de la red genera valor: descuentos, acceso a servicios y participación en los beneficios colectivos." },
+          { label: "Comercialización", title: "Comercializa dentro de la red", subtitle: "Conecta productos, servicios y comunidades para vender con más alcance y sentido colectivo." },
+          { label: "Redes productivas", title: "Redes productivas colaborativas", subtitle: "La producción se organiza en red: cada nodo aporta y recibe, fortaleciendo la autonomía de todos." },
+          { label: "Economía local", title: "Economía local fortalecida", subtitle: "El intercambio local genera empleo, circulación de riqueza y comunidades más resilientes." },
+        ]}
         cards={[
           { icon: <StorefrontRoundedIcon />, title: "Comercializa mejor", text: "Vende y conecta productos o servicios dentro de la red." },
           { icon: <ForumRoundedIcon />, title: "Recomienda y crece", text: "La colaboración fortalece a toda la comunidad." },
@@ -622,7 +442,12 @@ export default function HomeRoute() {
         image={laboryImage}
         imageAlt="Movilidad cooperativa futurista con conductores y rutas digitales"
         reverse
-        chips={["Conductores", "Socios líderes", "Beneficios", "Red cooperativa"]}
+        chips={[
+          { label: "Conductores", title: "Movilidad cooperativa para conductores", subtitle: "Una red para moverse, generar participación económica y obtener beneficios por cada viaje." },
+          { label: "Socios líderes", title: "Socios líderes del ecosistema", subtitle: "Afiliación, expansión de red y participación operativa dentro del modelo Labory." },
+          { label: "Beneficios", title: "Beneficios claros para quienes participan", subtitle: "Quienes aceptan la economía colaborativa 6.0 obtienen ventajas concretas por su participación." },
+          { label: "Red cooperativa", title: "Una red cooperativa en movimiento", subtitle: "Conductores, usuarios y comunidades conectados para construir una economía más viva." },
+        ]}
         cards={[
           { icon: <DirectionsCarRoundedIcon />, title: "Conductores", text: "Una red para moverse y generar participación económica." },
           { icon: <MapRoundedIcon />, title: "Rutas inteligentes", text: "Mapas y coordinación digital para operar mejor." },
@@ -685,7 +510,12 @@ export default function HomeRoute() {
         image={assemblyImage}
         imageAlt="Asamblea digital con pantallas holográficas y participación comunitaria"
         reverse={false}
-        chips={["Decisión colectiva", "Transparencia", "Redes comunitarias", "Participación"]}
+        chips={[
+          { label: "Decisión colectiva", title: "Decisiones que se toman en comunidad", subtitle: "Cada grupo puede coordinarse, votar y decidir con más claridad dentro de sistemas digitales." },
+          { label: "Transparencia", title: "Transparencia en cada acuerdo", subtitle: "Los acuerdos, roles y decisiones quedan registrados en sistemas abiertos y verificables." },
+          { label: "Redes comunitarias", title: "Comunidades conectadas en red", subtitle: "La gobernanza digital conecta grupos y proyectos para coordinar acciones reales." },
+          { label: "Participación", title: "Participación que aterriza en proyectos", subtitle: "La organización se traduce en acción: acuerdos que se convierten en proyectos concretos." },
+        ]}
         cards={[
           { icon: <GroupsRoundedIcon />, title: "Comunidad organizada", text: "Cada grupo puede coordinarse y crecer con más claridad." },
           { icon: <BoltRoundedIcon />, title: "Acción inmediata", text: "La gobernanza digital aterriza acuerdos en proyectos." },
@@ -702,7 +532,12 @@ export default function HomeRoute() {
         image={microfactoryImage}
         imageAlt="Microfábrica cooperativa con impresoras 3D y herramientas open source"
         reverse
-        chips={["CNC", "Impresión 3D", "Open source", "Producción local"]}
+        chips={[
+          { label: "CNC", title: "Fabricación CNC para la comunidad", subtitle: "Máquinas y herramientas accesibles para producir piezas y componentes sin depender de grandes corporaciones." },
+          { label: "Impresión 3D", title: "Impresión 3D distribuida", subtitle: "Tecnología de fabricación aditiva al alcance de la comunidad para crear, reparar y producir." },
+          { label: "Open source", title: "Tecnología abierta y libre", subtitle: "Herramientas open source que cualquiera puede usar, modificar y mejorar para su comunidad." },
+          { label: "Producción local", title: "Producción local y distribuida", subtitle: "La autonomía se construye produciendo cerca: fabricación local con tecnología accesible." },
+        ]}
         cards={[
           { icon: <TerminalRoundedIcon />, title: "Tecnología abierta", text: "Herramientas para producir sin depender de grandes corporaciones." },
           { icon: <TrendingUpRoundedIcon />, title: "Capacidad colectiva", text: "Más producción, más aprendizaje, más autonomía." },
@@ -719,7 +554,12 @@ export default function HomeRoute() {
         image={academyImage}
         imageAlt="Espacio educativo futurista con IA y aprendizaje comunitario"
         reverse={false}
-        chips={["IA", "Educación abierta", "Master", "Conocimiento útil"]}
+        chips={[
+          { label: "IA", title: "Inteligencia artificial para la comunidad", subtitle: "Herramientas de IA que ayudan a coordinar, aprender y escalar proyectos comunitarios." },
+          { label: "Educación abierta", title: "Educación abierta y accesible", subtitle: "Contenido formativo abierto para que cada participante tenga más herramientas para crear." },
+          { label: "Master", title: "Master transdisciplinario", subtitle: "Formación avanzada que conecta tecnología, economía y organización comunitaria." },
+          { label: "Conocimiento útil", title: "Conocimiento que resuelve problemas", subtitle: "Aprender haciendo: contenido práctico para resolver problemas reales de la comunidad." },
+        ]}
         cards={[
           { icon: <SchoolRoundedIcon />, title: "Aprendizaje útil", text: "Contenido para resolver problemas reales de la comunidad." },
           { icon: <TravelExploreRoundedIcon />, title: "Visión transdisciplinaria", text: "Formación para conectar tecnología, economía y organización." },
@@ -736,7 +576,12 @@ export default function HomeRoute() {
         image={infrastructureImage}
         imageAlt="Infraestructura sustentable con paneles solares, vegetación y arquitectura ecofuturista"
         reverse
-        chips={["Solar", "Agua", "Reciclaje", "Agricultura"]}
+        chips={[
+          { label: "Solar", title: "Energía solar comunitaria", subtitle: "Paneles solares y sistemas de energía limpia que reducen costos y dependencia externa." },
+          { label: "Agua", title: "Gestión sustentable del agua", subtitle: "Captación, reciclaje y uso eficiente del agua para comunidades más resilientes." },
+          { label: "Reciclaje", title: "Reciclaje y economía circular", subtitle: "Sistemas de reciclaje que convierten residuos en recursos para la comunidad." },
+          { label: "Agricultura", title: "Agricultura urbana y local", subtitle: "Huertos y producción de alimentos cerca de la comunidad para mayor autonomía." },
+        ]}
         cards={[
           { icon: <ParkRoundedIcon />, title: "Menos dependencia", text: "Más capacidad local para sostener la vida cotidiana." },
           { icon: <BoltRoundedIcon />, title: "Eficiencia real", text: "Tecnología que reduce costos y mejora la operación." },
@@ -753,7 +598,12 @@ export default function HomeRoute() {
         image={networkImage}
         imageAlt="Mapa de comunidades conectadas por líneas luminosas"
         reverse={false}
-        chips={["Descentralización", "Conexión", "Nodos", "Colaboración"]}
+        chips={[
+          { label: "Descentralización", title: "Un ecosistema descentralizado", subtitle: "CIUDADAN no depende de un solo centro: cada comunidad mantiene su autonomía dentro de la red." },
+          { label: "Conexión", title: "Comunidades conectadas entre sí", subtitle: "Nodos, grupos y proyectos comparten conocimiento, producción, movilidad y economía." },
+          { label: "Nodos", title: "Nodos que aportan y reciben", subtitle: "Cada comunidad es un nodo activo que contribuye y se beneficia dentro del ecosistema." },
+          { label: "Colaboración", title: "Crecimiento compartido", subtitle: "Una red fuerte es una red que beneficia a todos: colaboración en lugar de competencia." },
+        ]}
         cards={[
           { icon: <MapRoundedIcon />, title: "Nodos conectados", text: "Cada comunidad aporta y recibe dentro de la red." },
           { icon: <HandshakeRoundedIcon />, title: "Crecimiento compartido", text: "Una red fuerte es una red que beneficia a todos." },
@@ -770,7 +620,12 @@ export default function HomeRoute() {
         image={tokensImage}
         imageAlt="Representación futurista de tokens y economía descentralizada cooperativa"
         reverse
-        chips={["Tokens", "Participación", "Escala", "Infraestructura"]}
+        chips={[
+          { label: "Tokens", title: "Tokens para la economía del ecosistema", subtitle: "Participación económica digital que respalda el desarrollo de nuevas herramientas y servicios." },
+          { label: "Participación", title: "Más formas de participar", subtitle: "Inversión, tokens y aportaciones que abren nuevas vías para expandir el proyecto." },
+          { label: "Escala", title: "Escalar sin perder el enfoque comunitario", subtitle: "Crecimiento colectivo que amplía el alcance manteniendo la visión cooperativa." },
+          { label: "Infraestructura", title: "Infraestructura económica para crecer", subtitle: "Respaldo financiero para desarrollar herramientas y ampliar el alcance de la red." },
+        ]}
         cards={[
           { icon: <AccountBalanceWalletRoundedIcon />, title: "Entrada económica", text: "Más formas de participar en la expansión del proyecto." },
           { icon: <TrendingUpRoundedIcon />, title: "Crecimiento colectivo", text: "Escalar sin perder el enfoque comunitario." },

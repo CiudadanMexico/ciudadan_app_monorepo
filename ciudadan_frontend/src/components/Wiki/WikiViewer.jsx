@@ -9,8 +9,6 @@ const WikiViewer = () => {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
-  
-
   useEffect(() => {
     const fetchWiki = async () => {
       try {
