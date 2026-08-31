@@ -16,7 +16,6 @@ import {
 } from "@mui/material";
 import { keyframes } from "@mui/system";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
 import ciudadanCompleto from "../../assets/ciudadanCompleto.jpg";
 import heroCommunityImage from "../../assets/heroCommunityImage.png";
 
@@ -135,7 +134,6 @@ function ParticleDot({ sourceX, sourceY, config }) {
  * Imagen original a pantalla completa en desktop, tablet y mobile.
  */
 export default function HeroPrincipal({
-  eyebrow = "Cooperativismo 6.0",
   title = "Gestiona o sé parte de comunidades sustentables que producen, comercializan y avanzan cooperativamente",
   subtitle = "Tecnología abierta, Labory, economía colaborativa 6.0, asambleas virtuales y redes productivas para que socios, conductores, fundadores e inversionistas construyan autonomía real.",
   primaryAction = "Crear una Comunidad",
@@ -295,23 +293,6 @@ export default function HeroPrincipal({
           <Grid item xs={12} md={7} lg={6}>
             <motion.div initial="hidden" animate="visible" variants={sectionVariants}>
               <Stack spacing={2.3}>
-                <motion.div variants={fadeUp}>
-                  <Chip
-                    icon={<ParkRoundedIcon />}
-                    label={eyebrow}
-                    variant="outlined"
-                    sx={{
-                      alignSelf: "flex-start",
-                      fontFamily: HERO_FONT,
-                      fontWeight: 700,
-                      color: "#eafff5",
-                      borderColor: "rgba(255,255,255,0.35)",
-                      bgcolor: "rgba(0,0,0,0.24)",
-                      backdropFilter: "blur(10px)",
-                    }}
-                  />
-                </motion.div>
-
                 <motion.div variants={fadeUp}>
                   <Typography
                     variant="h1"
