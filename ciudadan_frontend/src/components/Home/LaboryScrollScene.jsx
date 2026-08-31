@@ -883,7 +883,7 @@ function LaboryCoinAssemble({ width = 300, height = 280, circleO, circleI, lBlac
 
       {/* Triángulo negro invertido (apunta hacia abajo) DETRÁS de la L: se pinta antes */}
       <motion.path
-        d="M46 58 L178 58 L112 155 Z"
+        d="M46 63 L178 63 L112 155 Z"
         fill="#000000"
         style={{ opacity: pieces }}
       />
