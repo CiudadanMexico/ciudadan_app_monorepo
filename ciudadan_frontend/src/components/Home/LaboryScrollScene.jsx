@@ -60,6 +60,13 @@ export default function LaboryScrollScene() {
   const hintOpacity = useTransform(scrollYProgress, [0, 0.07], [1, 0]);
   const exitFadeOpacity = useTransform(scrollYProgress, [0.86, 0.98], [0, 1]);
 
+  // ---- Escenografía integrada (efectos del papel, esferas y la red) ----
+  const decorOpacity = useTransform(scrollYProgress, [0.02, 0.12, 0.8, 0.9], [0, 1, 1, 0]);
+  const bolaOpacity = useTransform(scrollYProgress, [0.05, 0.16, 0.35, 0.5], [0, 1, 1, 0]);
+  const acumOpacity = useTransform(scrollYProgress, [0.3, 0.42, 0.52, 0.62], [0, 1, 1, 0]);
+  const poderOpacity = useTransform(scrollYProgress, [0.4, 0.52, 0.68, 0.8], [0, 1, 1, 0]);
+  const sistemaOpacity = useTransform(scrollYProgress, [0.52, 0.64, 0.76, 0.88], [0, 1, 1, 0]);
+
   return (
     <Box
       ref={targetRef}
@@ -75,6 +82,7 @@ export default function LaboryScrollScene() {
         sx={{
           position: "sticky",
           top: 0,
+          zIndex: 0,
           height: "100svh",
           overflow: "hidden",
           background:
@@ -119,6 +127,122 @@ export default function LaboryScrollScene() {
               <StickFigure drawProgress={figureDraw} />
             </motion.div>
           </motion.div>
+        </Box>
+
+        {/* ---- Escenografía: efectos integrados (papel, esferas, red) ---- */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: -1,
+            overflow: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          {/* Papel milimétrico en perspectiva (gira igual que el plano cartesiano) */}
+          <motion.div
+            style={{
+              position: "absolute",
+              inset: 0,
+              perspective: "1300px",
+              rotateX: planeRotateX,
+              rotateZ: planeRotateZ,
+              scale: planeScale,
+              y: planeY,
+            }}
+          >
+            <PerspectivePaper />
+          </motion.div>
+
+          {/* Cuadrícula fina de fondo */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px)",
+              backgroundSize: "4px 4px",
+              opacity: 0.25,
+            }}
+          />
+
+          {/* Líneas de poder */}
+          <PowerLine left="13%" top="58%" rotate={-8} />
+          <PowerLine left="47%" top="44%" rotate={7} />
+          <PowerLine left="58%" top="64%" rotate={-13} />
+
+          {/* Esferas de dinero flotando */}
+          <motion.div
+            animate={{ y: [0, -9, 0], rotate: [0, 7, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            style={{ position: "absolute", left: "78%", top: "30%", opacity: bolaOpacity }}
+          >
+            <MoneyBall size={0.7} />
+          </motion.div>
+          <motion.div
+            animate={{ y: [0, 7, 0] }}
+            transition={{ duration: 2.7, repeat: Infinity, ease: "easeInOut" }}
+            style={{ position: "absolute", left: "18%", top: "68%", opacity: bolaOpacity }}
+          >
+            <MoneyBall size={0.5} symbol="¢" />
+          </motion.div>
+
+          {/* Personajes de la red (colaboración) */}
+          <motion.div style={{ position: "absolute", inset: 0, opacity: decorOpacity }}>
+            <CharacterMini left="8%" top="60%" scale={0.6} posture="carry" />
+            <CharacterMini left="28%" top="50%" scale={0.72} posture="push" />
+            <CharacterMini left="66%" top="46%" scale={0.78} posture="pull" />
+            <CharacterMini left="84%" top="58%" scale={0.62} posture="normal" />
+          </motion.div>
+
+          {/* Acumulación: pila de esferas + bloque de capital */}
+          <motion.div style={{ position: "absolute", left: "50%", top: "58%", opacity: acumOpacity }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={`stack-${i}`} style={{ marginTop: i === 0 ? 0 : -14, position: "relative" }}>
+                <MoneyBall size={0.34 + i * 0.03} />
+              </div>
+            ))}
+          </motion.div>
+          <motion.div style={{ position: "absolute", left: "22%", top: "74%", opacity: acumOpacity }}>
+            <CapitalBlock size={0.85} />
+          </motion.div>
+
+          {/* Poder central: figura dominante dorada sobre plataforma */}
+          <motion.div style={{ position: "absolute", left: "76%", top: "24%", opacity: poderOpacity, scale: 1.15 }}>
+            <MiniFigure posture="dominate" color="#ffe066" accent="#ffe066" size={1.1} />
+          </motion.div>
+          <motion.div
+            style={{
+              position: "absolute",
+              left: "72%",
+              top: "52%",
+              width: 170,
+              height: 16,
+              border: "2px solid rgba(255,224,102,.55)",
+              background: "rgba(255,224,102,.04)",
+              transform: "skewX(-22deg)",
+              boxShadow: "0 0 25px rgba(255,224,102,.12)",
+              opacity: poderOpacity,
+            }}
+          />
+
+          {/* Red del sistema */}
+          <motion.div style={{ position: "absolute", inset: 0, opacity: sistemaOpacity }}>
+            <SystemFrame />
+            <CharacterMini left="12%" top="54%" scale={0.5} posture="pull" />
+            <CharacterMini left="31%" top="63%" scale={0.45} posture="pull" />
+            <CharacterMini left="63%" top="60%" scale={0.48} posture="pull" />
+          </motion.div>
+
+          {/* Viñeta */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(circle at center, transparent 35%, rgba(0,0,0,.5) 100%)",
+            }}
+          />
         </Box>
 
         {/* ---- Títulos por fases, con cambio de perspectiva 3D ---- */}
@@ -299,5 +423,317 @@ function StickFigure({ drawProgress }) {
         <motion.line x1={60} y1={94} x2={84} y2={146} {...limbs} style={{ pathLength: drawProgress }} />
       </g>
     </svg>
+  );
+}
+
+/* =========================================================
+   EFECTOS INTEGRADOS (escenografía de la red)
+   Mini figuras con posturas · esfera de dinero · bloque de
+   capital · líneas de poder · papel milimétrico · sistema.
+   Se colocan en zIndex: -1 (detrás del plano y los textos).
+========================================================= */
+
+/** Mini figura geométrica con posturas (colaboración de la red). */
+function MiniFigure({
+  size = 0.75,
+  posture = "normal",
+  color = TURQUESA,
+  accent = TURQUESA,
+}) {
+  const postures = {
+    normal: {
+      head: [50, 18],
+      body: [50, 34, 50, 70],
+      arm1: [50, 39, 28, 52],
+      arm2: [50, 39, 72, 52],
+      leg1: [50, 70, 34, 96],
+      leg2: [50, 70, 68, 96],
+    },
+    push: {
+      head: [50, 18],
+      body: [50, 34, 50, 70],
+      arm1: [50, 40, 20, 35],
+      arm2: [50, 40, 22, 50],
+      leg1: [50, 70, 34, 96],
+      leg2: [50, 70, 70, 91],
+    },
+    pull: {
+      head: [50, 18],
+      body: [50, 34, 50, 70],
+      arm1: [50, 40, 77, 31],
+      arm2: [50, 48, 78, 51],
+      leg1: [50, 70, 35, 96],
+      leg2: [50, 70, 69, 96],
+    },
+    carry: {
+      head: [50, 18],
+      body: [50, 34, 50, 70],
+      arm1: [50, 40, 30, 57],
+      arm2: [50, 40, 70, 57],
+      leg1: [50, 70, 35, 96],
+      leg2: [50, 70, 67, 96],
+    },
+    dominate: {
+      head: [50, 18],
+      body: [50, 34, 50, 70],
+      arm1: [50, 38, 20, 25],
+      arm2: [50, 38, 80, 25],
+      leg1: [50, 70, 35, 96],
+      leg2: [50, 70, 70, 96],
+    },
+  };
+
+  const p = postures[posture] || postures.normal;
+
+  const drawLine = (coords, key) => (
+    <line
+      key={key}
+      x1={coords[0]}
+      y1={coords[1]}
+      x2={coords[2]}
+      y2={coords[3]}
+      stroke={color}
+      strokeWidth="3.2"
+      strokeLinecap="round"
+    />
+  );
+
+  return (
+    <svg
+      width={90 * size}
+      height={125 * size}
+      viewBox="0 0 100 125"
+      aria-hidden="true"
+      style={{
+        overflow: "visible",
+        filter: `drop-shadow(0 0 ${6 * size}px ${accent})`,
+      }}
+    >
+      <circle
+        cx={p.head[0]}
+        cy={p.head[1]}
+        r="10"
+        fill="none"
+        stroke={color}
+        strokeWidth="3.2"
+      />
+      {drawLine(p.body, "body")}
+      {drawLine(p.arm1, "arm1")}
+      {drawLine(p.arm2, "arm2")}
+      {drawLine(p.leg1, "leg1")}
+      {drawLine(p.leg2, "leg2")}
+    </svg>
+  );
+}
+
+/** Personaje posicionado de la red (sin animación propia; el padre controla el fade). */
+function CharacterMini({ left, top, scale = 1, posture = "normal", color = TURQUESA, accent = TURQUESA }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left,
+        top,
+        zIndex: 0,
+        transform: `scale(${scale})`,
+        transformOrigin: "center bottom",
+      }}
+    >
+      <MiniFigure size={0.75} posture={posture} color={color} accent={accent} />
+    </div>
+  );
+}
+
+/** Esfera de dinero flotante. */
+function MoneyBall({ size = 1, symbol = "$" }) {
+  return (
+    <div
+      style={{
+        width: 58 * size,
+        height: 58 * size,
+        borderRadius: "50%",
+        border: "2px solid #ffe066",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#ffe066",
+        fontSize: 24 * size,
+        fontWeight: 700,
+        boxShadow: `
+          0 0 ${10 * size}px rgba(255,224,102,.4),
+          inset 0 0 ${12 * size}px rgba(255,224,102,.08)
+        `,
+        background: "rgba(255,224,102,0.035)",
+      }}
+    >
+      {symbol}
+    </div>
+  );
+}
+
+/** Línea de poder dorada (efecto diagonal con glow). */
+function PowerLine({
+  left,
+  top,
+  width = "42%",
+  rotate = -12,
+}) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left,
+        top,
+        width,
+        height: 2,
+        background:
+          "linear-gradient(90deg, transparent, rgba(255,224,102,.7), transparent)",
+        transform: `rotate(${rotate}deg)`,
+        transformOrigin: "left center",
+        boxShadow: "0 0 8px rgba(255,224,102,.3)",
+      }}
+    />
+  );
+}
+
+/** Papel milimétrico en perspectiva (degradado turquesa→amarillo). */
+function PerspectivePaper() {
+  const verticalLines = Array.from({ length: 31 });
+  const horizontalLines = Array.from({ length: 18 });
+
+  return (
+    <svg
+      viewBox="0 0 1600 1000"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+      }}
+    >
+      <defs>
+        <linearGradient id="paperFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2ee6c8" stopOpacity="0.025" />
+          <stop offset="55%" stopColor="#2ee6c8" stopOpacity="0.07" />
+          <stop offset="100%" stopColor="#ffe066" stopOpacity="0.025" />
+        </linearGradient>
+
+        <linearGradient id="fineGrid" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2ee6c8" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#2ee6c8" stopOpacity="0.38" />
+        </linearGradient>
+
+        <linearGradient id="majorGrid" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#2ee6c8" stopOpacity="0.10" />
+          <stop offset="100%" stopColor="#ffe066" stopOpacity="0.30" />
+        </linearGradient>
+      </defs>
+
+      <polygon
+        points="150,885 1450,885 1235,205 365,205"
+        fill="url(#paperFill)"
+        stroke="#2ee6c8"
+        strokeOpacity="0.18"
+        strokeWidth="2"
+      />
+
+      {verticalLines.map((_, i) => {
+        const t = i / (verticalLines.length - 1);
+        const bottomX = 150 + t * 1300;
+        const topX = 365 + t * 870;
+        const major = i % 5 === 0;
+
+        return (
+          <line
+            key={`v-${i}`}
+            x1={bottomX}
+            y1="885"
+            x2={topX}
+            y2="205"
+            stroke={major ? "url(#majorGrid)" : "url(#fineGrid)"}
+            strokeWidth={major ? 1.6 : 0.7}
+          />
+        );
+      })}
+
+      {horizontalLines.map((_, i) => {
+        const t = i / (horizontalLines.length - 1);
+        const y = 885 - t * 680;
+        const leftX = 150 + t * 215;
+        const rightX = 1450 - t * 215;
+        const major = i % 3 === 0;
+
+        return (
+          <line
+            key={`h-${i}`}
+            x1={leftX}
+            y1={y}
+            x2={rightX}
+            y2={y}
+            stroke={major ? "url(#majorGrid)" : "url(#fineGrid)"}
+            strokeWidth={major ? 1.5 : 0.7}
+          />
+        );
+      })}
+
+      <line
+        x1="800"
+        y1="885"
+        x2="800"
+        y2="205"
+        stroke="#ffe066"
+        strokeOpacity="0.30"
+        strokeWidth="2"
+        strokeDasharray="7 9"
+      />
+
+      <circle cx="800" cy="205" r="6" fill="#ffe066" opacity="0.8" />
+      <circle cx="800" cy="205" r="15" fill="none" stroke="#ffe066" strokeOpacity="0.18" />
+    </svg>
+  );
+}
+
+/** Bloque de capital: caja visual con brillo (sin texto para respetar nuestra narrativa). */
+function CapitalBlock({ size = 1 }) {
+  return (
+    <div
+      style={{
+        width: 85 * size,
+        height: 42 * size,
+        border: "2px solid rgba(232,255,249,.85)",
+        background: "rgba(46,230,200,.045)",
+        boxShadow: "0 0 20px rgba(46,230,200,.10)",
+      }}
+    />
+  );
+}
+
+/** Marco del sistema: recuadro con doble borde (sin letras). */
+function SystemFrame() {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: "32%",
+        top: "36%",
+        width: "42%",
+        height: "110px",
+        border: "2px solid rgba(232,255,249,.35)",
+        background: "rgba(46,230,200,.035)",
+        transform: "skewX(-18deg)",
+        boxShadow: "0 0 45px rgba(46,230,200,.07)",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 15,
+          border: "1px solid rgba(255,224,102,.15)",
+        }}
+      />
+    </div>
   );
 }
