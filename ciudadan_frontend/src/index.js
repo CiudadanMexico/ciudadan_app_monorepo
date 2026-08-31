@@ -59,7 +59,8 @@ const AppWrapper = () => {
         flexDirection: "column",
         width: "100%",
         minHeight: "100dvh",
-        overflowX: "hidden",
+        // clip (no hidden): recorta sin crear scroll container, para no romper position:sticky
+        overflowX: "clip",
       }}
     >
       {!isWikiRoute && <NavBar siteSection={siteSection} />}

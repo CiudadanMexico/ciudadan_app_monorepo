@@ -10,7 +10,7 @@ import universitarios from "../../assets/universitarios.png";
 import ciudadanCompleto from "../../assets/ciudadanCompleto.jpg";
 import ciudadanMobile from "../../assets/ciudadanMobile.jpg";
 
-export default function HomeRoute() {
+export default function Intro() {
   const characters = [
     { key: "programadores", img: programadores, title: "Programadores y Profesores" },
     { key: "becarios", img: becarios, title: "Becarios" },

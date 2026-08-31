@@ -69,7 +69,7 @@ export const transformImageStrapi = (object = {}) => {
   const { data } = object;
   if (!data) return ({});
   const { id, attributes } = data;
-  const { formats, name, width, height, hash, ext, mime, size, url, ...rest } = attributes;
+  const { formats, name, width, height, hash, ext, mime, size, url } = attributes;
   const { thumbnail, small, medium, large } = formats;
   const transformedFormats = {
     original: `${STRAPI_URL}${url}`,
