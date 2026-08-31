@@ -6,7 +6,8 @@ html, body, #root {
 }
 
 html, body {
-  overflow-x: hidden;
+  /* clip (no hidden): recorta sin crear scroll container, para no romper position:sticky */
+  overflow-x: clip;
 }
 
 body {
@@ -21,7 +22,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  overflow-x: hidden;
+  /* clip (no hidden): recorta sin crear scroll container, para no romper position:sticky */
+  overflow-x: clip;
 }
 
 *, *::before, *::after {
@@ -35,14 +37,17 @@ img, svg, video, canvas, iframe {
 #ciudadan-app {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  /* clip/visible (no hidden): evita crear scroll container que rompa position:sticky */
+  overflow-x: clip;
+  overflow-y: visible;
 }
   
   .home {
     width: 100%;
-    height: 100vh; /* Esto asegura que el div ocupe el 100% de la altura de la pantalla */
-    overflow: hidden; /* Opcional, oculta cualquier contenido que se desborde del div */
+    height: auto; /* auto (no 100vh): el contenido manda, la escena sticky necesita crecer */
+    /* clip (no hidden): recorta sin crear scroll container, para no romper position:sticky */
+    overflow-x: clip;
+    overflow-y: visible;
   }
   
   .home img {
