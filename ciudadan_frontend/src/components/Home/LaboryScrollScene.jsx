@@ -881,7 +881,14 @@ function LaboryCoinAssemble({ width = 300, height = 280, circleO, circleI, lBlac
         style={{ opacity: circleI, scale: circleI }}
       />
 
-      {/* La "L": contorno negro se dibuja con el scroll */}
+      {/* Triángulo negro invertido (apunta hacia abajo) DETRÁS de la L: se pinta antes */}
+      <motion.path
+        d="M46 58 L178 58 L112 155 Z"
+        fill="#000000"
+        style={{ opacity: pieces }}
+      />
+
+      {/* La "L": contorno negro se dibuja con el scroll (queda por encima del triángulo) */}
       <motion.path
         d="M91 60 C80 60 74 68 74 81 L74 119 C74 132 80 143 94 143 L143 143"
         fill="none"
@@ -902,14 +909,8 @@ function LaboryCoinAssemble({ width = 300, height = 280, circleO, circleI, lBlac
         style={{ pathLength: lYellow }}
       />
 
-      {/* Piezas negras (triángulo invertido, forma superior y rellenos) */}
+      {/* Dos cuadritos negros que tapan segmentos de la línea de la base de la L (encima de la L) */}
       <motion.g style={{ opacity: pieces }}>
-        <motion.path
-          d="M29 65 L184 65 L156 113 L156 151 L136 151 L136 139 L92 139 C77 139 68 130 68 114 L68 65 Z"
-          fill="#000000"
-          style={{ opacity: pieces }}
-        />
-        <motion.path d="M88 139 L136 139 L112 197 Z" fill="#000000" style={{ opacity: pieces, y: 6 }} />
         <motion.rect x="87" y="140" width="16" height="30" fill="#000000" style={{ opacity: pieces }} />
         <motion.rect x="113" y="140" width="16" height="30" fill="#000000" style={{ opacity: pieces }} />
       </motion.g>

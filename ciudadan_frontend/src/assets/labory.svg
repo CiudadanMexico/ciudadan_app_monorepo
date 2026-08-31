@@ -11,32 +11,14 @@
 
   <!-- =========================
        TRIÁNGULO NEGRO INVERTIDO
+       (detrás de la L, apunta hacia abajo)
        ========================= -->
 
-  <path d="M88 139
-       L136 139
-       L112 197
-       Z" fill="#000000"></path>
+  <path d="M46 58 L178 58 L112 155 Z" fill="#000000"></path>
 
 
   <!-- =========================
-       FORMA NEGRA SUPERIOR
-       ========================= -->
-
-  <path d="M29 65
-       L184 65
-       L156 113
-       L156 151
-       L136 151
-       L136 139
-       L92 139
-       C77 139 68 130 68 114
-       L68 65
-       Z" fill="#000000"></path>
-
-
-  <!-- =========================
-       L AMARILLA
+       L REDONDEADA
        ========================= -->
 
   <!-- Contorno negro de la L -->
@@ -55,7 +37,8 @@
 
 
   <!-- =========================
-       EXTENSIÓN INFERIOR NEGRA
+       DOS CUADRITOS NEGROS
+       (tapan un par de segmentos de la línea de la base de la L)
        ========================= -->
 
   <rect x="87" y="140" width="16" height="30" fill="#000000"></rect>
