@@ -2,6 +2,7 @@
 // Hero principal del home — restaurado idéntico a como se veía antes en
 // HomeRoute.jsx, ahora como componente aparte (mismo patrón que HeroIntroGlow).
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Box,
@@ -84,6 +85,8 @@ export default function HeroPrincipal({
   cardImage = heroCommunityImage,
   cardImageAlt = "Imagen secundaria del ecosistema CIUDADAN",
 }) {
+  const navigate = useNavigate();
+
   return (
     <Box
       sx={{
@@ -202,6 +205,7 @@ export default function HeroPrincipal({
                       variant="contained"
                       size="large"
                       endIcon={<ArrowForwardRoundedIcon />}
+                      onClick={() => navigate("/crear-comunidad")}
                       sx={{
                         px: 2.8,
                         py: 1.45,
@@ -231,6 +235,7 @@ export default function HeroPrincipal({
                         boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
                         "&:hover": { bgcolor: "#000000", borderColor: "rgba(255,255,255,0.4)" },
                       }}
+                      onClick={() => navigate("/integrarme-comunidad")}
                     >
                       {secondaryAction}
                     </Button>
