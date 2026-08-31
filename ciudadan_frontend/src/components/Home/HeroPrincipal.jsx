@@ -16,6 +16,8 @@ import {
 import { keyframes } from "@mui/system";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
+import ciudadanCompleto from "../../assets/ciudadanCompleto.jpg";
+import heroCommunityImage from "../../assets/heroCommunityImage.png";
 
 // Tipografía del hero: Space Grotesk — geométrica-humanista con carácter técnico,
 // va con el mensaje eco-futurista y cooperativo del ecosistema (y convive bien
@@ -23,8 +25,7 @@ import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
 const HERO_FONT = '"Space Grotesk", "Poppins", system-ui, sans-serif';
 
 // La imagen original que te encanta debe ser esta: la del estilo eco-village/robots/personas.
-import ciudadanCompleto from "../../assets/ciudadanCompleto.jpg";
-import heroCommunityImage from "../../assets/heroCommunityImage.png";
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
