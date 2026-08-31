@@ -911,8 +911,8 @@ function LaboryCoinAssemble({ width = 300, height = 280, circleO, circleI, lBlac
 
       {/* Dos cuadritos negros que tapan segmentos de la línea de la base de la L (encima de la L) */}
       <motion.g style={{ opacity: pieces }}>
-        <motion.rect x="87" y="140" width="16" height="30" fill="#000000" style={{ opacity: pieces }} />
-        <motion.rect x="113" y="140" width="16" height="30" fill="#000000" style={{ opacity: pieces }} />
+        <motion.rect x="87" y="140" width="16" height="18" fill="#000000" style={{ opacity: pieces }} />
+        <motion.rect x="113" y="140" width="16" height="18" fill="#000000" style={{ opacity: pieces }} />
       </motion.g>
     </svg>
   );

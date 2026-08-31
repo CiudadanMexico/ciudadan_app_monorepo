@@ -41,8 +41,8 @@
        (tapan un par de segmentos de la línea de la base de la L)
        ========================= -->
 
-  <rect x="87" y="140" width="16" height="30" fill="#000000"></rect>
+  <rect x="87" y="140" width="16" height="18" fill="#000000"></rect>
 
-  <rect x="113" y="140" width="16" height="30" fill="#000000"></rect>
+  <rect x="113" y="140" width="16" height="18" fill="#000000"></rect>
 
 </svg>
