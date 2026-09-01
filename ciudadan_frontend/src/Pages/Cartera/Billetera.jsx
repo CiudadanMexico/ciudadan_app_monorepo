@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
-import { Box, Stack, Typography, IconButton, Fade, Paper } from '@mui/material';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Box, CircularProgress, Stack, Typography, IconButton, Fade, Paper } from '@mui/material';
+import { useAuth0 } from '@auth0/auth0-react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import HomeIcon from '@mui/icons-material/Home';
@@ -41,6 +42,51 @@ const Billetera = () => {
   const scrollRef = useRef(null);
   const [selected, setSelected] = useState(monedas[0].nombre);
 
+  // 💰 Saldo real en Laborys: GET /api/cartera (mismo endpoint que usan Taxiz y Coowork).
+  // Los pesos se muestran como conversión con la tasa del ecosistema: 1 Labory = $80 MXN.
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || '';
+  const { getAccessTokenSilently } = useAuth0();
+  const [saldoLaborys, setSaldoLaborys] = useState(null);
+
+  const getToken = useCallback(async () => {
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: 'https://api.ciudadan.org' },
+      });
+    } catch (e) {
+      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+      return null;
+    }
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    let activo = true;
+    const cargarSaldo = async () => {
+      if (!strapiUrl) return;
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = await getToken();
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const response = await fetch(`${strapiUrl}/api/cartera`, { headers });
+        if (!response.ok) throw new Error('No se pudo consultar la cartera del usuario');
+        const data = await response.json();
+        if (activo) setSaldoLaborys(data?.laborysSaldo ?? 0);
+      } catch (err) {
+        console.warn('[Cartera] no se pudo consultar el saldo:', err);
+      }
+    };
+    cargarSaldo();
+    return () => {
+      activo = false;
+    };
+  }, [getToken, strapiUrl]);
+
+  const TASA_PESOS = 80;
+  const saldoNum = saldoLaborys == null ? null : Number(saldoLaborys) || 0;
+  const saldoPesos = saldoNum == null ? null : saldoNum * TASA_PESOS;
+  const formatoPesos = (v) =>
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
+
   const scroll = (dir) => {
     if (!scrollRef.current) return;
     const scrollAmount = 200;
@@ -73,6 +119,7 @@ const Billetera = () => {
           display: 'flex',
           alignItems: 'center',
           
+          position: 'sticky',
           top: 64,
           zIndex: 1000,
           borderBottom: '1px solid rgba(138, 92, 245, 0.28)',
@@ -97,7 +144,7 @@ const Billetera = () => {
             '&::-webkit-scrollbar': { display: 'none' },
           }}
         >
-          <Stack direction="row" spacing={4} sx={{ mx: 2 }}>
+          <Stack direction="row" spacing={{ xs: 4, md: 6 }} sx={{ mx: 2 }}>
             {monedas.map((moneda) => {
               const isActive = moneda.nombre === selected;
               return (
@@ -133,14 +180,14 @@ const Billetera = () => {
                       src={moneda.img}
                       alt={moneda.nombre}
                       sx={{
-                        width: 22,
-                        height: 22,
+                        width: { xs: 22, md: 30 },
+                        height: { xs: 22, md: 30 },
                         borderRadius: '50%',
                         objectFit: 'cover',
                       }}
                     />
                   )}
-                  <Typography sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
+                  <Typography sx={{ whiteSpace: 'nowrap', fontWeight: 600, fontSize: { xs: '0.85rem', md: '1rem' } }}>
                     {moneda.nombre}
                   </Typography>
                 </Stack>
@@ -159,7 +206,7 @@ const Billetera = () => {
       <Fade in={!!selected} timeout={400}>
         <Box
           sx={{
-            p: 5,
+            p: { xs: 3, md: 7 },
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -176,9 +223,10 @@ const Billetera = () => {
               WebkitBackdropFilter: 'blur(16px)',
               border: '1px solid rgba(138,92,245,0.32)',
               boxShadow: '0 24px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
-              p: 4,
-              borderRadius: 4,
-              maxWidth: 600,
+              p: { xs: 3, md: 6 },
+              borderRadius: { xs: 4, md: 6 },
+              maxWidth: { xs: 620, md: 980 },
+              width: '100%',
               textAlign: 'center',
               color: 'white',
             }}
@@ -192,13 +240,15 @@ const Billetera = () => {
                 src={monedaSeleccionada?.img}
                 alt={selected}
                 sx={{
-                  width: 50,
-                  height: 50,
-                  mb: 2,
+                  width: { xs: 76, md: 112 },
+                  height: { xs: 76, md: 112 },
+                  mb: { xs: 2, md: 3 },
                   borderRadius: '50%',
                   // ✨ Aura neón alrededor de la moneda
-                  boxShadow:
-                    '0 0 0 4px rgba(138,92,245,0.16), 0 0 26px rgba(138,92,245,0.4)',
+                  boxShadow: {
+                    xs: '0 0 0 4px rgba(138,92,245,0.16), 0 0 26px rgba(138,92,245,0.4)',
+                    md: '0 0 0 6px rgba(138,92,245,0.18), 0 0 40px rgba(138,92,245,0.5)',
+                  },
                 }}
               />
             )}
@@ -208,6 +258,7 @@ const Billetera = () => {
               variant="h5"
               sx={{
                 mb: 2,
+                fontSize: { xs: '1.55rem', md: '2.3rem' },
                 color: '#c9b4ff',
                 fontWeight: 700,
                 fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
@@ -217,15 +268,54 @@ const Billetera = () => {
               {selected}
             </Typography>
 
+            {/* 💰 Saldo real: Laborys desde /api/cartera y pesos como conversión (1 Labory = $80 MXN) */}
+            {(selected === 'Labory' || selected === 'Pesos MXN') && (
+              <Stack spacing={1} alignItems="center" sx={{ mb: { xs: 2.5, md: 3.5 } }}>
+                <Typography
+                  sx={{
+                    fontSize: { xs: '2.7rem', md: '4.4rem' },
+                    fontWeight: 700,
+                    fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
+                    lineHeight: 1.05,
+                    color: '#fff',
+                    textShadow: '0 0 26px rgba(138,92,245,0.5)',
+                  }}
+                >
+                  {saldoNum == null ? (
+                    '—'
+                  ) : selected === 'Labory' ? (
+                    <>
+                      {saldoNum.toLocaleString('es-MX')}{' '}
+                      <Box component="span" sx={{ fontSize: { xs: '1.05rem', md: '1.5rem' }, color: '#c9b4ff' }}>
+                        Laborys
+                      </Box>
+                    </>
+                  ) : (
+                    formatoPesos(saldoPesos)
+                  )}
+                </Typography>
+                <Typography sx={{ opacity: 0.85, fontSize: { xs: '0.9rem', md: '1.05rem' } }}>
+                  {saldoNum == null
+                    ? 'Cargando saldo…'
+                    : selected === 'Labory'
+                    ? `≈ ${formatoPesos(saldoPesos)} MXN`
+                    : 'Convertido de tus Laborys'}{' '}
+                  · 1 Labory = $80 MXN
+                </Typography>
+              </Stack>
+            )}
+
             {/* Contenido dinámico: componente o placeholders */}
             {monedaSeleccionada?.componente ? (
               monedaSeleccionada.componente
             ) : (
               <>
-                <Typography sx={{ opacity: 0.9 }}>
-                  🔒 <strong>Saldo actual:</strong> [placeholder balance]
-                </Typography>
-                <Typography sx={{ mt: 1, opacity: 0.9 }}>
+                {selected !== 'Labory' && (
+                  <Typography sx={{ opacity: 0.9 }}>
+                    🔒 <strong>Saldo actual:</strong> [placeholder balance]
+                  </Typography>
+                )}
+                <Typography sx={{ mt: selected !== 'Labory' ? 1 : 0, opacity: 0.9 }}>
                   📊 <strong>Historial de transacciones:</strong> [placeholder movimientos]
                 </Typography>
                 <Typography sx={{ mt: 1, opacity: 0.9 }}>
