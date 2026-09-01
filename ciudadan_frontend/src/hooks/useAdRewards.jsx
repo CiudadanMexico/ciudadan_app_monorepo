@@ -11,7 +11,7 @@ import {
   completarAnuncio as apiCompletar,
   refillSesion as apiRefill,
 } from '../services/adRewards/mutationsServices';
-import { STRAPI_URL } from '../../utils/request.utils';
+import { STRAPI_URL } from '../utils/request.utils';
 
 /**
  * Resuelve URLs de media que el backend devuelve relativas (/uploads/xxx).
