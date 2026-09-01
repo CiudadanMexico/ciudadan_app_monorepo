@@ -52,7 +52,7 @@ const Ganar = () => {
       imagen: academicas,
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen',
-      url: '/academia'
+      url: '/coowork/especializadas'
     },
     { 
       titulo: '🏫 Becas:', 
@@ -92,7 +92,7 @@ const Ganar = () => {
       imagen: reciclando,
       monedas: [labory],
       claseimagen: 'opcion-imagen',
-      url: '/reciclando'
+      url: '/proximamente'
     },
     { 
       titulo: '📢 Refiriendo:', 
@@ -102,7 +102,7 @@ const Ganar = () => {
       imagen: refiriendo,
       monedas: [mxn],
       claseimagen: 'opcion-imagen',
-      url: '/referidos'
+      url: '/gana/referidos'
     },
     { 
       titulo: '👨‍🏫 Enseñando:', 
@@ -132,7 +132,7 @@ const Ganar = () => {
       imagen: agencia,
       monedas: [labory],
       claseimagen: 'opcion-imagen-ensanchada',
-      url: '/agencias'
+      url: '/gana/agencias'
     },
     { 
       titulo: '💲 Invirtiendo Inteligente', 
