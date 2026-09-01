@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
@@ -13,6 +12,7 @@ import {
   useTheme,
 } from "@mui/material";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
+import PurpleButton from "../common/PurpleButton.jsx";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -154,23 +154,35 @@ function SectionBlock({
 
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ pt: 0.5 }}>
                   {primaryAction && (
-                    <Button
-                      variant="contained"
+                    <PurpleButton
                       size="large"
                       endIcon={<ArrowForwardRoundedIcon />}
-                      sx={{ px: 2.4, py: 1.3, borderRadius: 999, fontWeight: 800 }}
+                      sx={{ px: 2.4, py: 1.3, fontWeight: 800 }}
                     >
                       {primaryAction}
-                    </Button>
+                    </PurpleButton>
                   )}
                   {secondaryAction && (
-                    <Button
-                      variant="outlined"
+                    <PurpleButton
                       size="large"
-                      sx={{ px: 2.4, py: 1.3, borderRadius: 999, fontWeight: 800 }}
+                      sx={{
+                        px: 2.4,
+                        py: 1.3,
+                        fontWeight: 800,
+                        background: "transparent",
+                        color: "#8A5CF5",
+                        border: "1px solid rgba(138,92,245,0.55)",
+                        boxShadow: "none",
+                        "&::before": { display: "none" },
+                        "&:hover": {
+                          background: "rgba(138,92,245,0.08)",
+                          color: "#6A3FCB",
+                          border: "1px solid #8A5CF5",
+                        },
+                      }}
                     >
                       {secondaryAction}
-                    </Button>
+                    </PurpleButton>
                   )}
                 </Stack>
               </Stack>
