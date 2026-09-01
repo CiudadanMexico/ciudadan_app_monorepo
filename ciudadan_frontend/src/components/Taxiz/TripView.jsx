@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ViajeConductor from './ViajeConductor.jsx';
 import ViajeUsuario from './ViajeUsuario.jsx';
+import VerifyPIN from './VerifyPIN.jsx';
 import RatingModal from './RatingModal.jsx';
 import ConfirmPayment from './ConfirmPayment.jsx';
 import SolicitudCancelar from './SolicitudCancelar.jsx';
@@ -98,15 +99,21 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const [consultedTravel, setConsultedTravel] = useState(null);
   const [driverData, setDriverData] = useState(null); // datos del conductor (Strapi)
   const [userData, setUserData] = useState(null); // datos del pasajero (Strapi)
+
+  const [showVerifyPINModal, setShowVerifyPINModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showAmountModal, setShowAmountModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
+
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [cashAmount, setCashAmount] = useState(0);
+  const [simulationEnabled, setSimulationEnabled] = useState(false);
   const tripStatus = String(viaje?.attributes?.status || 'pending').toLowerCase();
   const isDriver = !!user?.isDriver || user?.role === 'driver';
-  const isTripInProgress = tripStatus === 'en_curso';
+  const isTripFinished = ['finalizado', 'paid', 'partial', 'unpaid', 'cerrado'].includes(tripStatus);
+  const isTripInProgress = tripStatus === 'en_curso' || tripStatus?.includes('fin_solicitado');
+
   const paymentFlowState = getTripPaymentFlowState({
     tripStatus,
     driverPaymentState,
@@ -123,6 +130,10 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const driverMarkerRef = useRef(null);
   const destMarkerRef = useRef(null);
   const userCoordsRef = useRef(userCoords);
+  const tripFinishedRef = useRef(isTripFinished);
+  const simulationDragListenerRef = useRef(null);
+  const simulationRunRef = useRef(false);
+  const simulationRequestRef = useRef(0);
 
   // socket ref (prioriza externalSocket)
   const socketRef = useRef(externalSocket || null);
@@ -287,7 +298,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     if (!userData) {
       throw new Error("No se encontró usuario");
     }
-    
+
     const ratingAvg = await getAvgRating(userEmail);
     return { ...userData, ratingAvg };
   }
@@ -324,6 +335,10 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   useEffect(() => {
     userCoordsRef.current = userCoords;
   }, [userCoords]);
+
+  useEffect(() => {
+    tripFinishedRef.current = isTripFinished;
+  }, [isTripFinished]);
 
   // Inicializar Directions (igual que Conductor.js)
   useEffect(() => {
@@ -364,6 +379,24 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
       console.warn('[TripView] error creando/actualizando driverMarker', e);
     }
 
+    if (isTripFinished && userCoords) {
+      try {
+        if (!pickupMarkerRef.current) {
+          pickupMarkerRef.current = new window.google.maps.Marker({
+            position: driverPos,
+            map: mapRef.current,
+            title: 'Pasajero',
+            icon: userIcon ? { url: userIcon, scaledSize: new window.google.maps.Size(36, 36) } : undefined,
+          });
+        } else {
+          pickupMarkerRef.current.setPosition(driverPos);
+          pickupMarkerRef.current.setMap(mapRef.current);
+        }
+      } catch (e) {
+        console.warn('[TripView] error creando/actualizando passengerMarker', e);
+      }
+    }
+
     try {
       mapRef.current.setCenter(driverPos);
       if (mapRef.current.setZoom) mapRef.current.setZoom(14);
@@ -372,10 +405,11 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     try {
       if (directionsRendererRef.current) directionsRendererRef.current.setOptions({ suppressMarkers: true });
     } catch (e) { }
-  }, [mapRef.current, userCoords]);
+  }, [isTripFinished, mapRef.current, userCoords]);
 
   // Dibujar ruta según el estado del viaje
   useEffect(() => {
+    if (simulationEnabled || isTripFinished) return;
     if (consultedTravel === null) return;
     const travelItem = travelData[consultedTravel];
     if (!travelItem) return;
@@ -383,7 +417,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
     const pickupCoords = travelItem.originCoordinates || null;
     const destinationCoords = travelItem.destinationCoordinates || null;
-    //console.log('[TripView] Dest coords', destinationCoords);
     const driverCoords = userCoords || (mapRef.current.getCenter ? mapRef.current.getCenter().toJSON() : null);
 
     if (!pickupCoords || !destinationCoords || !driverCoords) {
@@ -415,6 +448,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
       };
 
       directionsServiceRef.current.route(request, (result, status) => {
+        if (tripFinishedRef.current) return;
         if (status === 'OK' || status === window.google.maps.DirectionsStatus.OK) {
           directionsRendererRef.current.setDirections(result);
 
@@ -485,7 +519,147 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     } catch (e) {
       console.warn('[TripView] Error solicitando directions', e);
     }
-  }, [consultedTravel, travelData, userCoords, isTripInProgress]);
+  }, [consultedTravel, isTripFinished, simulationEnabled, travelData, userCoords, isTripInProgress]);
+
+  const stopTripSimulation = useCallback(() => {
+    if (simulationDragListenerRef.current) {
+      window.google?.maps?.event.removeListener(simulationDragListenerRef.current);
+      simulationDragListenerRef.current = null;
+    }
+    if (driverMarkerRef.current) {
+      driverMarkerRef.current.setDraggable(false);
+    }
+    simulationRunRef.current = false;
+    simulationRequestRef.current += 1;
+  }, []);
+
+  const startTripSimulation = useCallback(() => {
+    console.log('[TripView] Simulando viaje...');
+    const travelItem = travelData[consultedTravel];
+    const pickupCoords = travelItem?.originCoordinates;
+    const destinationCoords = travelItem?.destinationCoordinates;
+    const startCoords = userCoordsRef.current;
+    const targetCoords = isTripInProgress ? destinationCoords : pickupCoords;
+
+    if (!window.google || !mapRef.current || !startCoords || !targetCoords) {
+      console.warn('[TripView] no hay datos suficientes para simular el viaje');
+      return;
+    }
+
+    stopTripSimulation();
+    simulationRunRef.current = true;
+    const simulationRequest = simulationRequestRef.current;
+    directionsServiceRef.current = directionsServiceRef.current || new window.google.maps.DirectionsService();
+
+    directionsServiceRef.current.route({
+      origin: { lat: Number(startCoords.lat), lng: Number(startCoords.lng) },
+      destination: { lat: Number(targetCoords.lat), lng: Number(targetCoords.lng) },
+      travelMode: window.google.maps.TravelMode.DRIVING,
+    }, (result, status) => {
+      if (!simulationRunRef.current || simulationRequest !== simulationRequestRef.current) return;
+      if (status !== 'OK' && status !== window.google.maps.DirectionsStatus.OK) {
+        console.warn('[TripView] no se pudo crear la ruta de simulación', status);
+        stopTripSimulation();
+        return;
+      }
+
+      const path = result.routes?.[0]?.overview_path || [];
+      if (!path.length) {
+        stopTripSimulation();
+        return;
+      }
+
+      directionsRendererRef.current?.setDirections(result);
+      if (!driverMarkerRef.current) {
+        stopTripSimulation();
+        setSimulationEnabled(false);
+        return;
+      }
+
+      const routePath = path.map((point) => ({ lat: point.lat(), lng: point.lng() }));
+      driverMarkerRef.current.setDraggable(true);
+      driverMarkerRef.current.setTitle('Conductor (arrástrame por la ruta)');
+
+      const projectToRoute = (position) => {
+        const latitudeScale = 111320;
+        const longitudeScale = 111320 * Math.cos(Number(position.lat) * Math.PI / 180);
+        let closest = routePath[0];
+        let closestDistance = Number.POSITIVE_INFINITY;
+
+        for (let index = 0; index < routePath.length - 1; index += 1) {
+          const start = routePath[index];
+          const end = routePath[index + 1];
+          const deltaX = (end.lng - start.lng) * longitudeScale;
+          const deltaY = (end.lat - start.lat) * latitudeScale;
+          const pointX = (position.lng - start.lng) * longitudeScale;
+          const pointY = (position.lat - start.lat) * latitudeScale;
+          const lengthSquared = deltaX * deltaX + deltaY * deltaY;
+          const ratio = lengthSquared === 0
+            ? 0
+            : Math.max(0, Math.min(1, (pointX * deltaX + pointY * deltaY) / lengthSquared));
+          const candidate = {
+            lat: start.lat + (end.lat - start.lat) * ratio,
+            lng: start.lng + (end.lng - start.lng) * ratio,
+          };
+          const distance = Math.hypot(
+            (candidate.lng - position.lng) * longitudeScale,
+            (candidate.lat - position.lat) * latitudeScale,
+          );
+          if (distance < closestDistance) {
+            closest = candidate;
+            closestDistance = distance;
+          }
+        }
+        return closest;
+      };
+
+      simulationDragListenerRef.current = driverMarkerRef.current.addListener('drag', (event) => {
+        const draggedPosition = { lat: event.latLng.lat(), lng: event.latLng.lng() };
+        const nextCoords = projectToRoute(draggedPosition);
+        driverMarkerRef.current.setPosition(nextCoords);
+        setUserCoords(nextCoords);
+        userCoordsRef.current = nextCoords;
+      });
+    });
+  }, [consultedTravel, isTripInProgress, mapRef, setUserCoords, stopTripSimulation, travelData]);
+
+  const toggleTripSimulation = useCallback(() => {
+    if (simulationEnabled) {
+      stopTripSimulation();
+      setSimulationEnabled(false);
+      return;
+    }
+    setSimulationEnabled(true);
+  }, [simulationEnabled, stopTripSimulation]);
+
+  useEffect(() => {
+    if (!simulationEnabled) return;
+    stopTripSimulation();
+    startTripSimulation();
+  }, [isTripInProgress, simulationEnabled, startTripSimulation, stopTripSimulation]);
+
+  useEffect(() => () => stopTripSimulation(), [stopTripSimulation]);
+
+  // Al terminar, retirar la ruta y el destino sin mover los marcadores actuales.
+  useEffect(() => {
+    if (!isTripFinished) return;
+
+    stopTripSimulation();
+    if (directionsRendererRef.current) {
+      directionsRendererRef.current.setMap(null);
+      directionsRendererRef.current = null;
+    }
+    if (destMarkerRef.current) {
+      destMarkerRef.current.setMap(null);
+    }
+    if (driverMarkerRef.current) {
+      driverMarkerRef.current.setDraggable(false);
+      driverMarkerRef.current.setMap(mapRef.current);
+    }
+    if (pickupMarkerRef.current) {
+      pickupMarkerRef.current.setMap(mapRef.current);
+    }
+  }, [isTripFinished, mapRef, stopTripSimulation]);
 
   // Preferir socket pasado por props
   useEffect(() => {
@@ -537,7 +711,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
   useEffect(() => {
     const isDriver = !!user?.isDriver || user?.role === 'driver';
-    if (!isDriver || typeof navigator === 'undefined' || !navigator.geolocation || !travelD) return;
+    if (!isDriver || simulationEnabled || typeof navigator === 'undefined' || !navigator.geolocation || !travelD) return;
 
     const driverId = user?.id || user?.sub || user?.email || 'driver-unknown';
     const channel = `trip:${travelD}`;
@@ -556,16 +730,30 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         return moved ? nextCoords : prev;
       });
 
+      const travelItem = travelData[consultedTravel];
+      const pickupCoordinates = travelItem?.originCoordinates;
+      const destinationCoords = travelItem?.destinationCoordinates;
+
+      const distance = isTripInProgress
+        ? calculateDistanceKm(destinationCoords, nextCoords)
+        : tripStatus === 'iniciando'
+          ? calculateDistanceKm(pickupCoordinates, nextCoords)
+          : null;
+
       const socket = socketRef.current;
       if (!socket) return;
 
       try {
+        console.log('[TripView] actualizando ubicación GPS');
         socket.emit('actualizandoUbicacion', {
           channel,
           payload: {
             travelid: travelD,
             driverId,
             coords: nextCoords,
+            distanceKm: distance,
+            tripStatus,
+            newLocation: true,
             ts: new Date().toISOString(),
           },
         });
@@ -587,7 +775,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     return () => {
       try { navigator.geolocation.clearWatch(watchId); } catch (e) { }
     };
-  }, [travelD, user?.id, user?.sub, user?.email, user?.isDriver, user?.role]);
+  }, [simulationEnabled, isTripInProgress, travelD, user?.id, user?.sub, user?.email, user?.isDriver, user?.role, travelData, consultedTravel]);
 
   // Socket: emitir ubicación si es driver, y push a Strapi cada 60s
   useEffect(() => {
@@ -646,14 +834,22 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
       const emitLocation = () => {
         const currentCoords = userCoordsRef.current;
         const travelItem = travelData[consultedTravel];
+        const pickupCoordinates = travelItem?.originCoordinates;
         const destinationCoords = travelItem?.destinationCoordinates;
+
+        const distance = isTripInProgress
+          ? calculateDistanceKm(destinationCoords, currentCoords)
+          : tripStatus === 'iniciando'
+            ? calculateDistanceKm(pickupCoordinates, currentCoords)
+            : null;
 
         if (!currentCoords) return;
         const payload = {
           travelid: travelD,
           driverId,
           coords: currentCoords,
-          distanceKm: isTripInProgress ? calculateDistanceKm(destinationCoords, currentCoords) : null,
+          distanceKm: distance,
+          tripStatus,
           ts: new Date().toISOString(),
         };
         //console.log('[TripView] emit actualizandoUbicacion', payload);
@@ -789,6 +985,11 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     setShowCancelModal(true);
   }
 
+  const handleVerifyPIN = () => {
+    console.log('Abriendo modal de PIN')
+    setShowVerifyPINModal(true);
+  }
+
   useEffect(() => {
     if (!ratingSubmitted && paymentFlowState.shouldOpenRatingModal) {
       setShowRatingModal(true);
@@ -881,10 +1082,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           handleAcceptTrip={handleAcceptTrip}
           mapRef={mapRef}
           onStatusChange={handleTripStatusChange}
+          onVerifyPIN={handleVerifyPIN}
           onCancel={handleCancelTrip}
           paymentFlowState={paymentFlowState}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
           setCashAmount={setCashAmount}
+          simulationEnabled={simulationEnabled}
+          onToggleSimulation={toggleTripSimulation}
         />
       ) : (
         <ViajeUsuario
@@ -902,6 +1106,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           onCancel={handleCancelTrip}
         />
       )}
+      <VerifyPIN
+        open={showVerifyPINModal}
+        setOpen={setShowVerifyPINModal}
+        tripPin={viaje?.attributes?.pincode || null}
+        tripId={viaje?.id || null}
+        onStatusChange={handleTripStatusChange}
+      />
       <RatingModal
         open={showRatingModal}
         isDriver={isDriver}

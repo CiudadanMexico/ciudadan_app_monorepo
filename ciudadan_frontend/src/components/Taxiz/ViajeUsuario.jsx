@@ -19,7 +19,6 @@ const normalizeCoord = (c) => {
 };
 
 const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUserCoords, mapRef, setConsultedTravel, paymentAmount, onCancel }) => {
-
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
   const { getAccessTokenSilently } = useAuth0();
@@ -47,6 +46,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   const [hasLabory, setHasLabory] = useState(false);
   const [saldoLabory, setSaldoLabory] = useState(0);
   const status = viaje?.attributes?.status || 'esperando';
+  const pincode = viaje?.attributes?.pincode || null;
   const isTripFree = viaje?.attributes?.isTripFree || false;
   //const routeInfo = viaje?.attributes?._routeInfo || null;
 
@@ -115,11 +115,9 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
 
       const userData = await response.json();
       const labory = userData?.data?.[0]?.attributes?.pago_labory || false;
-      console.log('Pago Labory', labory);
       setHasLabory(labory);
       if (labory) {
         const saldo = await consultarSaldo();
-        console.log('Saldo Labory', saldo);
         setSaldoLabory(saldo);
       }
     } catch (err) {
@@ -127,7 +125,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
     }
   }, [strapiToken, strapiUrl, userEmail]);
 
-  const confirmPayment = async (amount) => {
+  /*const confirmPayment = async (amount) => {
     if (!strapiUrl) return;
 
     try {
@@ -154,7 +152,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
     } catch (err) {
       console.warn('[Pasajero] no se pudo confirmar el pago:', err);
     }
-  };
+  };*/
 
   useEffect(() => {
     if (!socket || !viaje?.id) return;
@@ -228,7 +226,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                 )}
                 <div>
                   <div style={{ fontSize: 20, marginBottom: 4 }}>
-                    <strong>{driverData?.license_plate}</strong>
+                    <strong style={{ color: '#666' }}>{driverData?.license_plate}</strong>
                   </div>
                   <div style={{ fontWeight: 600, color: '#444', fontSize: 16 }}>
                     {driverName}
@@ -250,19 +248,19 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
             {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado')) && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
-                  <div><strong>Pickup</strong></div>
+                  <strong>Pickup</strong>
                   <div style={{ fontSize: 12 }}>
                     {pickupNorm ? `${pickupNorm}` : 'Sin pickup'}
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div><strong>Destino</strong></div>
+                  <strong>Destino</strong>
                   <div style={{ fontSize: 12 }}>
                     {destNorm ? `${destNorm}` : 'Sin destino'}
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div><strong>Precio</strong></div>
+                  <strong>Precio</strong>
                   {isTripFree ?
                     <div style={{ fontSize: 16, flexDirection: 'row' }}>
                       <strong style={{ color: '#151bc1', opacity: .5, textDecoration: 'line-through' }}>
@@ -277,6 +275,12 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                       </strong>
                     </div>
                   }
+                </div>
+                <div style={{ flex: 1 }}>
+                  <strong>Código PIN</strong>
+                  <div style={{ fontSize: 18 }}>
+                    <strong style={{ color: '#135f13' }}>{pincode}</strong>
+                  </div>
                 </div>
               </div>
             )}
@@ -313,6 +317,17 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               </div>
             }
           </div>
+          
+          {(status === 'iniciando' && routeInfo < 0.15) &&
+            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
+              El conductor ya está cerca de su parada. Espere un momento más.
+            </h4>
+          }
+          {(status === 'en_curso' && routeInfo < 0.15) &&
+            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
+              Ya casi llegas. Revisa todas tus pertenencias antes de bajar.
+            </h4>
+          }
 
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
             {(status === 'en_curso' || status === 'iniciando') && <button
@@ -327,14 +342,10 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
             >
               Centrar en pickup / taxi
             </button>}
-            {status === 'en_curso' &&
-              (routeInfo < 0.15 ?
-                <>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: '#2f6fed' }}>Ya casi llegas</div>
-                  <div style={{ fontSize: 14, color: '#333' }}>Al finalizar el viaje podrás confirmar el pago y revisar tus pertenencias</div>
-                </>
-                : <button onClick={cancelarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>Terminar antes del destino</button>
-              )
+            {(status === 'en_curso' && routeInfo >= 0.15) &&
+              <button onClick={cancelarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>
+                Finalizar antes del destino
+              </button>
             }
           </div>
           {status === 'fin_solicitado_pasajero' &&

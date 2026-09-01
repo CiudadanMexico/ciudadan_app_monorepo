@@ -230,7 +230,7 @@ const AgregarProducto = ({ restaurante }) => {
   };
 
   const validarPaso5 = (alergenosData = ['']) => {
-    if (alergenosData.length <= 0 || alergenosData.some(a => !a))
+    if (alergenosData.length > 0 && alergenosData.some(a => !a))
       return false;
     return true;
   };

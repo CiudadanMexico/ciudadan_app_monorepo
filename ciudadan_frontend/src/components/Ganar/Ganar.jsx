@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/GanarConCiudadan.css';
+import PurpleButton from '../common/PurpleButton.jsx';
 
 // Importa las imágenes
 import publicidad from '../../assets/publicidad.png';
@@ -51,7 +52,7 @@ const Ganar = () => {
       imagen: academicas,
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen',
-      url: '/academia'
+      url: '/coowork/especializadas'
     },
     { 
       titulo: '🏫 Becas:', 
@@ -91,7 +92,7 @@ const Ganar = () => {
       imagen: reciclando,
       monedas: [labory],
       claseimagen: 'opcion-imagen',
-      url: '/reciclando'
+      url: '/proximamente'
     },
     { 
       titulo: '📢 Refiriendo:', 
@@ -101,7 +102,7 @@ const Ganar = () => {
       imagen: refiriendo,
       monedas: [mxn],
       claseimagen: 'opcion-imagen',
-      url: '/referidos'
+      url: '/gana/referidos'
     },
     { 
       titulo: '👨‍🏫 Enseñando:', 
@@ -131,7 +132,7 @@ const Ganar = () => {
       imagen: agencia,
       monedas: [labory],
       claseimagen: 'opcion-imagen-ensanchada',
-      url: '/agencias'
+      url: '/gana/agencias'
     },
     { 
       titulo: '💲 Invirtiendo Inteligente', 
@@ -181,13 +182,13 @@ const Ganar = () => {
               {openMap[index] ? 'Mostrar menos' : '... Mostrar más'}
             </p>
 
-            <button
-              type="button"
-              className="opcion-boton"
+            <PurpleButton
               onClick={() => handleNavigate(opcion.url)}
+              fullWidth
+              sx={{ py: 1, fontSize: "clamp(0.75rem, 2.4vw, 0.9rem)" }}
             >
               {opcion.boton}
-            </button>
+            </PurpleButton>
 
             <div className="opcion-monedas">
               {opcion.monedas.map((moneda, idx) => (

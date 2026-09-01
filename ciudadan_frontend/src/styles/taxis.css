@@ -248,6 +248,11 @@ html, body {
   .send-proposal { width: 100%; }
 }
 
+@media (max-width: 750px) {
+  .adeudo-warning { flex-direction: column-reverse; }
+  .button-debt { width: 100%; }
+}
+
 /* Responsive: mobile — inputs ocupan TODO el ancho disponible y mapa se superpone */
 @media (max-width: 600px) {
     .taxis-map{

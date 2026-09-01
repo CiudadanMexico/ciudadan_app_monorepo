@@ -17,7 +17,7 @@ const currencyFmt = (v) => {
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(v));
 };
 
-const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAccept }) => {
+const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject, onAccept }) => {
   const [elapsedSeconds, setElapsedSeconds] = useState(null);
   const [finalPrice, setFinalPrice] = useState('');
   const [sending, setSending] = useState(false);
@@ -153,6 +153,7 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
     const payload = {
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
+      driver,
       driverId: userId,
       meta: {
         from: 'conductor',
@@ -302,34 +303,48 @@ const TravelCard = ({ travel = {}, index, onClick, onClose, handleReject, onAcce
             Tiempo: <strong>{formatMMSS(elapsedSeconds)}</strong>
           </div>
 
-          {!isTripFree ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', padding: 8, borderRadius: 8 }}>
-              <div style={{ fontSize: 12, color: '#666' }}>Precio sugerido</div>
-              <center><div style={{ fontSize: 18, fontWeight: 700, color: '#135f13ff' }}>{suggestedFormatted ?? '—'}</div></center>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, background: '#fafafa', padding: 12, borderRadius: 8 }}>
+            <div style={{ fontSize: 12, color: '#666' }}>Precio sugerido</div>
 
-              <label style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Precio final (MXN)</label>
-              <input
-                aria-label="Precio final"
-                type="number"
-                inputMode="numeric"
-                value={finalPrice}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  // permitir limpiar
-                  if (v === '') return setFinalPrice('');
-                  // aceptar sólo números (puede incluir decimales)
-                  const n = Number(v);
-                  if (!isNaN(n)) setFinalPrice(String(n));
-                }}
-                placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
-                style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
-              />
-            </div>
-          ) : (
-            <h4 style={{ textAlign: 'center', color: '#f5a623' }}>
-              Este viaje es completamente gratuito
-            </h4>
-          )}
+            {isTripFree ? (
+              <div style={{ fontSize: 16, display: 'flex', justifyContent: 'center', gap: 24 }}>
+                <strong style={{ fontSize: 18, color: '#135f13', opacity: .5, textDecoration: 'line-through' }}>
+                  {suggestedFormatted ?? '—'}
+                </strong>
+                <strong style={{ fontSize: 18, color: '#16b32b' }}>$0.00 MXN</strong>
+              </div>
+            ) :
+              <strong style={{ fontSize: 18, color: '#135f13', textAlign: 'center' }}>
+                {suggestedFormatted ?? '—'}
+              </strong>
+            }
+
+            {!isTripFree ? (
+              <>
+                <label style={{ fontSize: 12, color: '#666', marginTop: 4 }}>Precio final (MXN)</label>
+                <input
+                  aria-label="Precio final"
+                  type="number"
+                  inputMode="numeric"
+                  value={finalPrice}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    // permitir limpiar
+                    if (v === '') return setFinalPrice('');
+                    // aceptar sólo números (puede incluir decimales)
+                    const n = Number(v);
+                    if (!isNaN(n)) setFinalPrice(String(n));
+                  }}
+                  placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
+                  style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
+                />
+              </>
+            ) :
+              <h4 style={{ textAlign: 'center', color: '#f5a623' }}>
+                Este viaje es completamente gratuito
+              </h4>
+            }
+          </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
             <button
