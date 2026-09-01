@@ -55,20 +55,24 @@ export const AdGrid = ({ ads, playlist, togglePlaylist }) => {
                 boxShadow: selected ? 3 : 1,
               }}
             >
-              {(thumb || a.titulo) && (
-                <CardMedia
-                  component={thumb ? 'img' : 'div'}
-                  {...(thumb
-                    ? { src: thumb, alt: a.titulo, sx: { height: 140, objectFit: 'cover' } }
-                    : { sx: { height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center' } })}
-                >
-                  {!thumb && (
+                            {(thumb || a.titulo) &&
+                (thumb ? (
+                  <CardMedia
+                    component="img"
+                    src={thumb}
+                    alt={a.titulo}
+                    sx={{ height: 140, objectFit: 'cover' }}
+                  />
+                ) : (
+                  <CardMedia
+                    component="div"
+                    sx={{ height: 140, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
                     <Typography variant="caption" color="text.secondary">
                       {a.titulo || 'Sin thumbnail'}
                     </Typography>
-                  )}
-                </CardMedia>
-              )}
+                  </CardMedia>
+                ))}
               <CardContent sx={{ flexGrow: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1, mb: 1 }}>
                   <Typography variant="h6" component="h3" noWrap title={a.titulo}>
