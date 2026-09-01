@@ -15,7 +15,7 @@ import { AdExitMenu, RewardScreen } from '../../components/AnunciosRemunerados/A
 const AnunciosRemunerados = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuth0();
+    const { isAuthenticated, loginWithRedirect } = useAuth0();
   const [snack, setSnack] = useState({ open: false, msg: '', severity: 'info' });
 
   const {
@@ -105,15 +105,33 @@ const AnunciosRemunerados = () => {
   const [exitMenuAbierto, setExitMenuAbierto] = useState(false);
   const intentarSalir = (e) => { e.preventDefault(); e.stopPropagation(); setExitMenuAbierto(true); };
 
-  if (!modoVision) {
+    if (!modoVision) {
     return (
       <Box component="div" sx={{ pb: { xs: 8, sm: 10 }, backgroundColor: 'background.default' }}>
-        {cargandoAds && <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}
-        {errorAds && <Alert severity="error" sx={{ m: 2 }}>{errorAds}</Alert>}
-        {!cargandoAds && !errorAds && <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />}
-        <PlaylistBar ads={ads} playlist={playlist} iniciarVision={iniciarVision} recompensaTotal={recompensaTotal} />
-        <Snackbar open={snack.open} autoHideDuration={4000}
-          onClose={() => setSnack({ open: false, msg: '', severity: 'info' })} message={snack.msg} />
+        {authError ? (
+          // Gate de Auth0: si el token falla (p.ej. "Missing Refresh Token" por
+          // caché vieja), NO mostramos "No hay anuncios": ofrecemos reconectar.
+          <Box sx={{ p: 3, m: 2, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+            <Alert severity="warning">
+              <Typography component="span" fontWeight="bold">Sesión de anuncios.</Typography>{' '}
+              No se pudo obtener el token de Auth0 para cargar los anuncios.
+              <br />
+              <Typography variant="body2">{authError}</Typography>
+            </Alert>
+            <Button variant="contained" onClick={() => loginWithRedirect()}>
+              Reconectar con Auth0
+            </Button>
+          </Box>
+        ) : (
+          <>
+            {cargandoAds && <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}
+            {errorAds && <Alert severity="error" sx={{ m: 2 }}>{errorAds}</Alert>}
+            {!cargandoAds && !errorAds && <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />}
+            <PlaylistBar ads={ads} playlist={playlist} iniciarVision={iniciarVision} recompensaTotal={recompensaTotal} />
+            <Snackbar open={snack.open} autoHideDuration={4000}
+              onClose={() => setSnack({ open: false, msg: '', severity: 'info' })} message={snack.msg} />
+          </>
+        )}
       </Box>
     );
   }
