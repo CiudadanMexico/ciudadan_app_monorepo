@@ -53,7 +53,7 @@ function SectionBlock({
   secondaryAction,
 }) {
   const theme = useTheme();
-  const [activeChip, setActiveChip] = useState(null);
+  const [activeChip, setActiveChip] = useState("eyebrow");
 
   // Selección de texto: "eyebrow" representa el texto original y viene
   // seleccionado por default; cualquier chip con texto propio lo reemplaza.
