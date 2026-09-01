@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, CircularProgress, Stack, Typography, IconButton, Fade, Paper } from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import HomeIcon from '@mui/icons-material/Home';
@@ -41,12 +42,15 @@ const Billetera = () => {
 
   const scrollRef = useRef(null);
   const [selected, setSelected] = useState(monedas[0].nombre);
+  const navigate = useNavigate();
 
   // 💰 Saldo real en Laborys: GET /api/cartera (mismo endpoint que usan Taxiz y Coowork).
   // Los pesos se muestran como conversión con la tasa del ecosistema: 1 Labory = $80 MXN.
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || '';
   const { getAccessTokenSilently } = useAuth0();
   const [saldoLaborys, setSaldoLaborys] = useState(null);
+  const [cargandoSaldo, setCargandoSaldo] = useState(true);
+  const [sinWallet, setSinWallet] = useState(false);
 
   const getToken = useCallback(async () => {
     try {
@@ -62,7 +66,13 @@ const Billetera = () => {
   useEffect(() => {
     let activo = true;
     const cargarSaldo = async () => {
-      if (!strapiUrl) return;
+      if (!strapiUrl) {
+        if (activo) {
+          setSinWallet(true);
+          setCargandoSaldo(false);
+        }
+        return;
+      }
       try {
         const headers = { 'Content-Type': 'application/json' };
         const token = await getToken();
@@ -70,9 +80,18 @@ const Billetera = () => {
         const response = await fetch(`${strapiUrl}/api/cartera`, { headers });
         if (!response.ok) throw new Error('No se pudo consultar la cartera del usuario');
         const data = await response.json();
-        if (activo) setSaldoLaborys(data?.laborysSaldo ?? 0);
+        if (activo) {
+          setSaldoLaborys(data?.laborysSaldo ?? 0);
+          setSinWallet(false);
+          setCargandoSaldo(false);
+        }
       } catch (err) {
         console.warn('[Cartera] no se pudo consultar el saldo:', err);
+        // Sin wallet (o sin sesión): se ofrece crear la cartera.
+        if (activo) {
+          setSinWallet(true);
+          setCargandoSaldo(false);
+        }
       }
     };
     cargarSaldo();
@@ -281,27 +300,62 @@ const Billetera = () => {
                     textShadow: '0 0 26px rgba(138,92,245,0.5)',
                   }}
                 >
-                  {saldoNum == null ? (
+                  {cargandoSaldo ? (
                     '—'
-                  ) : selected === 'Labory' ? (
-                    <>
-                      {saldoNum.toLocaleString('es-MX')}{' '}
-                      <Box component="span" sx={{ fontSize: { xs: '1.05rem', md: '1.5rem' }, color: '#c9b4ff' }}>
-                        Laborys
-                      </Box>
-                    </>
+                  ) : saldoNum != null ? (
+                    selected === 'Labory' ? (
+                      <>
+                        {saldoNum.toLocaleString('es-MX')}{' '}
+                        <Box component="span" sx={{ fontSize: { xs: '1.05rem', md: '1.5rem' }, color: '#c9b4ff' }}>
+                          Laborys
+                        </Box>
+                      </>
+                    ) : (
+                      formatoPesos(saldoPesos)
+                    )
                   ) : (
-                    formatoPesos(saldoPesos)
+                    '—'
                   )}
                 </Typography>
                 <Typography sx={{ opacity: 0.85, fontSize: { xs: '0.9rem', md: '1.05rem' } }}>
-                  {saldoNum == null
+                  {cargandoSaldo
                     ? 'Cargando saldo…'
+                    : sinWallet
+                    ? 'Tu cartera aún no está activa.'
                     : selected === 'Labory'
                     ? `≈ ${formatoPesos(saldoPesos)} MXN`
                     : 'Convertido de tus Laborys'}{' '}
-                  · 1 Labory = $80 MXN
+                  {!sinWallet && '· 1 Labory = $80 MXN'}
                 </Typography>
+              </Stack>
+            )}
+
+            {/* 💛 Si no tiene wallet: enlace amarillo para crear la cartera (/cartera/crear) */}
+            {sinWallet && !cargandoSaldo && (
+              <Stack alignItems="center" spacing={0.5} sx={{ mb: 3 }}>
+                <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
+                  Aún no tienes cartera activa.
+                </Typography>
+                <Box
+                  component="button"
+                  onClick={() => navigate('/cartera/crear')}
+                  sx={{
+                    cursor: 'pointer',
+                    background: 'none',
+                    border: 'none',
+                    p: 0,
+                    m: 0,
+                    color: '#ffe066',
+                    fontWeight: 700,
+                    fontSize: { xs: '1.05rem', md: '1.25rem' },
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 3,
+                    fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
+                    '&:hover': { color: '#fff3b8' },
+                  }}
+                >
+                  Crear cartera →
+                </Box>
               </Stack>
             )}
 
