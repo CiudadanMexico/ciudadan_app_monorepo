@@ -99,7 +99,10 @@
     margin-bottom: 15px;
   }
   
-  .opcion-card button {
+  /* Botón de tarjeta: ahora es PurpleButton (components/common/PurpleButton.jsx).
+     Los selectores legacy se renombran a .opcion-boton para que ya no pisen
+     los estilos morados del nuevo componente. */
+  .opcion-card .opcion-boton {
     background-color: #007bff;
     color: white;
     border: none;
@@ -109,7 +112,7 @@
     font-size: 0.9em;
   }
   
-  .opcion-card button:hover {
+  .opcion-card .opcion-boton:hover {
     background-color: #0056b3;
   }
   
@@ -126,7 +129,7 @@
       font-size: 0.8em;
     }
   
-    .opcion-card button {
+    .opcion-card .opcion-boton {
       padding: 8px 16px;
       font-size: 0.8em;
     }
@@ -141,7 +144,7 @@
       font-size: 0.7em;
     }
   
-    .opcion-card button {
+    .opcion-card .opcion-boton {
       padding: 6px 12px;
       font-size: 0.7em;
     }

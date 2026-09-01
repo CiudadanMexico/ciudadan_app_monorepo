@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/GanarConCiudadan.css';
+import PurpleButton from '../common/PurpleButton.jsx';
 
 // Importa las imágenes
 import publicidad from '../../assets/publicidad.png';
@@ -181,13 +182,13 @@ const Ganar = () => {
               {openMap[index] ? 'Mostrar menos' : '... Mostrar más'}
             </p>
 
-            <button
-              type="button"
-              className="opcion-boton"
+            <PurpleButton
               onClick={() => handleNavigate(opcion.url)}
+              fullWidth
+              sx={{ py: 1, fontSize: "clamp(0.75rem, 2.4vw, 0.9rem)" }}
             >
               {opcion.boton}
-            </button>
+            </PurpleButton>
 
             <div className="opcion-monedas">
               {opcion.monedas.map((moneda, idx) => (
