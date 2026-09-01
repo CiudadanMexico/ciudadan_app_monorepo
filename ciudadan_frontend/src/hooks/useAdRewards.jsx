@@ -11,6 +11,21 @@ import {
   completarAnuncio as apiCompletar,
   refillSesion as apiRefill,
 } from '../services/adRewards/mutationsServices';
+import { STRAPI_URL } from '../../utils/request.utils';
+
+/**
+ * Resuelve URLs de media que el backend devuelve relativas (/uploads/xxx).
+ * El seed usa https absolutas (funciona directo); los anuncios subidos a
+ * Strapi vía admin panel salen como /uploads/<file> → hay que anteponer
+ * REACT_APP_STRAPI_URL. Igual patrón que getThumbnail en AdGrid.
+ */
+const resolveUrl = (url) => {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = STRAPI_URL || '';
+  return base ? `${base}${url}` : url;
+};
+
 
 /**
  * Hook orquestador del flujo completo /gana/ver-anuncios.
@@ -155,12 +170,17 @@ export const useAdRewards = () => {
       return;
     }
     const it = sesion.items[indiceActual];
+        const rawArchivo = it.archivo_url || it.anuncio?.archivo?.url || it.anuncio?.metadata?.archivo_url;
     setItemActual({
       ...it,
       titulo: it.anuncio?.titulo || it.titulo,
       duracion: it.anuncio?.duracion || it.duracion || 0,
       decisionWindow: it.anuncio?.decisionWindow || it.decisionWindow || 5,
       recompensa: it.recompensa || 0,
+      // el backend devuelve URLs de media relativas (/uploads/...) cuando el
+      // anuncio fue subido a Strapi; el frontend las resuelve contra
+      // REACT_APP_STRAPI_URL (mismo patrón que getThumbnail en AdGrid).
+      archivo_url: resolveUrl(rawArchivo),
     });
     if (it.estado !== 'playing' && it.estado !== 'completed') {
       setEstadoItem(it.id, 'playing').catch(() => {});
