@@ -24,7 +24,6 @@ import {
 import {
   MdAccountBalance,
   MdCheckCircle,
-  MdChevronDown,
   MdCloudUpload,
   MdContentCopy,
   MdDescription,
@@ -35,6 +34,7 @@ import {
   MdUploadFile,
 } from "react-icons/md";
 
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 /**
  * ============================================================
@@ -608,7 +608,7 @@ const FoodCheckoutPago = ({
                 ================================================== */}
 
                 <AccordionSummary
-                  expandIcon={<MdChevronDown />}
+                  expandIcon={<KeyboardArrowDownIcon />}
                   sx={{
                     px: {
                       xs: 2,

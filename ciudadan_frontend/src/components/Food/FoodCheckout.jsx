@@ -313,16 +313,8 @@ const FoodCheckout = () => {
         });
 
         if (!pagoRes.ok) {
-          const errBody = await parseResponse(pagoRes);
-          console.groupCollapsed("cart y emojis - ERROR creando pago (detalle)");
-          console.warn("cart y emojis - status:", pagoRes.status, pagoRes.statusText);
-          console.warn("cart y emojis - headers:", Array.from(pagoRes.headers.entries()));
-          console.warn("cart y emojis - body:", errBody);
-          console.groupEnd();
           throw new Error(
-            `Error creando pago: ${pagoRes.status} ${pagoRes.statusText} — ${JSON.stringify(
-              errBody
-            )}`
+            `Error creando pago: ${pagoRes.status} ${pagoRes.statusText}`
           );
         }
 
@@ -355,16 +347,8 @@ const FoodCheckout = () => {
       });
 
       if (!pedidoRes.ok) {
-        const pedidoBody = await parseResponse(pedidoRes);
-        console.groupCollapsed("cart y emojis - ERROR actualizando pedido (detalle)");
-        console.warn("cart y emojis - status:", pedidoRes.status, pedidoRes.statusText);
-        console.warn("cart y emojis - headers:", Array.from(pedidoRes.headers.entries()));
-        console.warn("cart y emojis - body:", pedidoBody);
-        console.groupEnd();
         throw new Error(
-          `Error actualizando pedido: ${pedidoRes.status} ${pedidoRes.statusText} — ${JSON.stringify(
-            pedidoBody
-          )}`
+          `Error actualizando pedido: ${pedidoRes.status} ${pedidoRes.statusText}`
         );
       }
 
@@ -378,7 +362,6 @@ const FoodCheckout = () => {
       );
     } finally {
       console.log("cart y emojis - handleSubirComprobante finalizado, limpiando estado subiendo");
-      setSubiendo(false);
     }
   };
 
@@ -805,7 +788,6 @@ const FoodCheckout = () => {
           <FoodCheckoutPago
             ordenes={ordenes}
             subirComprobante={subirComprobante}
-            onPagoSubido={handlePagoSubido}
             onTodosLosPagosSubidos={setTodosLosPagosSubidos}
           />
           <Stack
