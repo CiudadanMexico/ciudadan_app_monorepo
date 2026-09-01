@@ -3043,6 +3043,72 @@ export interface ApiFoodCategorieFoodCategorie extends Schema.CollectionType {
   };
 }
 
+export interface ApiFoodDeliveryFoodDelivery extends Schema.CollectionType {
+  collectionName: 'food_deliveries';
+  info: {
+    singularName: 'food-delivery';
+    pluralName: 'food-deliveries';
+    displayName: 'Food Delivery';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    food_order: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'api::food-order.food-order'
+    >;
+    restaurant: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    user: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    provider: Attribute.String & Attribute.DefaultTo<'uber_direct'>;
+    quote_id: Attribute.String & Attribute.Required;
+    uber_delivery_id: Attribute.String;
+    status: Attribute.Enumeration<
+      [
+        'pending',
+        'processing',
+        'pickup',
+        'in_transit',
+        'delivered',
+        'cancelled',
+        'failed'
+      ]
+    > &
+      Attribute.DefaultTo<'pending'>;
+    fee: Attribute.Decimal;
+    currency: Attribute.String;
+    tracking_url: Attribute.String;
+    pickup: Attribute.JSON;
+    dropoff: Attribute.JSON;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiFoodModifierFoodModifier extends Schema.CollectionType {
   collectionName: 'food_modifiers';
   info: {
@@ -5508,6 +5574,7 @@ declare module '@strapi/types' {
       'api::favorito.favorito': ApiFavoritoFavorito;
       'api::food-cart.food-cart': ApiFoodCartFoodCart;
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
+      'api::food-delivery.food-delivery': ApiFoodDeliveryFoodDelivery;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;
       'api::food-offer.food-offer': ApiFoodOfferFoodOffer;
