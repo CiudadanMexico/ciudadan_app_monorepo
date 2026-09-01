@@ -6,7 +6,7 @@ import { initAutocomplete } from '../utils/autocompleteMaps.jsx'; // tu helper e
 // Mantuvimos la misma firma que tú tenías para evitar cambiar llamadas:
 // useGoogleMaps(fromCoordinates, setFromCoordinates, setFromMarkerPosition, toCoordinates, setToCoordinates, setToMarkerPosition, setFromAddress, setToAddress, setGoogleMapsLoaded, googleMapsLoaded)
 
-const KEY = process.env.REACT_APP_GOOGLE_MAPS_KEY || process.env.REACT_APP_GOOGLE_MAPS_API_KEY || process.env.REACT_APP_PLACES_KEY;
+const KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || null;
 
 const useGoogleMaps = (
   fromCoordinates,

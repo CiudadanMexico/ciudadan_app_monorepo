@@ -18,7 +18,7 @@ const normalizeAddress = (addr) => {
 // === helper para guardar viaje en Strapi v4 ===
 async function saveTripToStrapi(data) {
   const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
-  console.log('[testTrip] saveTripToStrapi STRAPI_URL:', STRAPI_URL, 'data:', data);
+  //console.log('[testTrip] saveTripToStrapi STRAPI_URL:', STRAPI_URL, 'data:', data);
   try {
     const headers = {
       'Content-Type': 'application/json',
@@ -37,8 +37,6 @@ async function saveTripToStrapi(data) {
         timeout: 8000,
       }
     );
-
-    console.log('[testTrip] Viaje guardado en Strapi ID:', response.data?.data?.id);
     return response.data;
   } catch (err) {
     console.error(
@@ -99,7 +97,7 @@ router.post('/send-trip', async (req, res) => {
       settings: body.settings || {},
       meta: body.meta || {}
     };
-    console.log('[testTrip] send-trip payload:', payload);
+    //console.log('[testTrip] send-trip payload:', payload);
 
     // Intentar llamar al endpoint de cálculo de tarifa (interno HTTP)
     const base = process.env.BASE_URL || `http://localhost:${process.env.SOCKET_PORT || 3033}`;

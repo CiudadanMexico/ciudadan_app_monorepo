@@ -127,6 +127,25 @@ export const getAgencias = (token = null) =>
     'No se pudieron cargar las agencias'
   );
 
+// Busca usuarios SIN agencia por email/username (para "Agregar socio").
+// El backend exige un mínimo de caracteres en `q` (ver buscar-socios.js).
+export const buscarSociosSinAgencia = (q, token = null) => {
+  if (!q) return Promise.resolve({ ok: true, data: [], yaTieneAgencia: null });
+  return fetchJson(
+    `${STRAPI_URL}/api/agencias/mi-agencia/socios/buscar?q=${encodeURIComponent(q)}`,
+    authHeaders(token),
+    'No se pudo buscar socios'
+  );
+};
+
+// Lista los miembros actuales de la agencia del admin/socio autenticado.
+export const getMiembrosAgencia = (token = null) =>
+  fetchJson(
+    `${STRAPI_URL}/api/agencias/mi-agencia/socios`,
+    authHeaders(token),
+    'No se pudieron cargar los miembros de la agencia'
+  );
+
 // Todos con asignable=true (Fase 5/6) — el filtro por "creados por el socio
 // en sesión" se aplica en el frontend (AsignarTareaPage) porque admin ve todas.
 export const getTodosAsignables = (token = null) =>

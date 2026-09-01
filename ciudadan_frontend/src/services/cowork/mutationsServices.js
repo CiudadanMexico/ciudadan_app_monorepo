@@ -318,17 +318,17 @@ export const revisarSubarea = (userId, { areaId, nombre, decision, motivo }, tok
   );
 };
 
-// Asigna un todo a varios usuarios (Fase 5/6). Usa el endpoint
-// POST /tareas/asignar que requiere la policy can-asignar-tarea.
-// Da de alta (o actualiza) un usuario como socio miembro de una agencia.
-// Solo admin/socio. El backend crea el usuario si no existe (provider auth0).
-export const agregarSocio = (agenciaId, { email, username, roles_extra }, token) => {
-  if (!agenciaId) return Promise.reject(new Error('Falta el id de la agencia'));
+// Da de alta (o afilia) un usuario como socio miembro de LA AGENCIA PROPIA
+// de quien hace la petición — ya no se elige agencia (chat.md: "la agencia
+// no se debe seleccionar ahí"). Solo admin/socio. El backend crea el
+// usuario si no existe (provider auth0), y rechaza si el usuario ya
+// pertenece a otra agencia.
+export const agregarSocio = ({ email, username, roles_extra }, token) => {
   if (!email) return Promise.reject(new Error('Falta el email del socio'));
   if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
 
   return fetchJson(
-    `${STRAPI_URL}/api/agencias/${agenciaId}/socios`,
+    `${STRAPI_URL}/api/agencias/mi-agencia/socios`,
     {
       method: 'POST',
       headers: {
@@ -338,6 +338,26 @@ export const agregarSocio = (agenciaId, { email, username, roles_extra }, token)
       body: JSON.stringify({ email, username, roles_extra }),
     },
     'No se pudo dar de alta al socio'
+  );
+};
+
+// Quita a un usuario de la agencia propia de quien hace la petición —
+// seleccionado de la lista de miembros, sin confirmación por correo ni por
+// nombre escrito (chat.md descarta esas dos ideas intermedias).
+export const darDeBajaSocio = (userId, token) => {
+  if (!userId) return Promise.reject(new Error('Falta el id del usuario'));
+  if (!token) return Promise.reject(new Error('Falta el token de autenticación'));
+
+  return fetchJson(
+    `${STRAPI_URL}/api/agencias/mi-agencia/socios/${userId}/baja`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    },
+    'No se pudo dar de baja al socio'
   );
 };
 
