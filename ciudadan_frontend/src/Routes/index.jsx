@@ -130,6 +130,7 @@ import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
+import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
@@ -332,6 +333,10 @@ const Rutas = () => (
     <Route
       path='/herramientas/agencia/conductores'
       element={<ConductoresAgencia />}
+    />
+    <Route
+      path='/validations/:validationId/review'
+      element={<DriverVerificationPage />}
     />
 
     {/* Food / Restaurantes */}

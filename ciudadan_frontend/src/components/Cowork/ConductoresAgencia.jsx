@@ -72,7 +72,9 @@ const ConductoresAgencia = () => {
       try {
         const token = await getToken();
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const url = `${STRAPI_URL}/api/agendas?filters[descripcion][$containsi]=Preregistro conductor&filters[$or][0][estado][$eq]=pendiente&filters[$or][1][estado][$eq]=en_revision&filters[$or][2][estado][$eq]=resubir_archivos&sort=createdAt:desc`;
+        // Endpoint dedicado: ya filtra por agencia matriz (o sin agencia) en
+        // el backend, en vez del find REST directo sin filtrar por agencia.
+        const url = `${STRAPI_URL}/api/agendas/conductores-pendientes`;
 
         const res = await fetch(url, { headers });
         const json = await res.json();

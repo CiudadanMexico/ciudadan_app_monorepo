@@ -1,54 +1,74 @@
 'use strict';
 
 /**
- * POST /api/agencias/:id/socios
+ * POST /api/agencias/mi-agencia/socios
  *
- * Da de alta (o actualiza) un usuario como socio miembro de una agencia.
+ * Da de alta (o afilia) un usuario como socio miembro de la agencia del
+ * admin/socio autenticado. La agencia YA NO se elige por parámetro: se
+ * resuelve siempre de la propia cuenta que hace la petición (chat.md,
+ * "la agencia no se debe seleccionar ahí").
+ *
  * Body: { email, username?, roles_extra? }
  *   - email:        obligatorio. Si el usuario no existe, se crea.
  *   - username:     opcional. Si no se envía, se usa el email.
  *   - roles_extra:  opcional. Array de roles extra (por defecto ['socio']).
  *
+ * Un usuario no puede pertenecer a dos agencias (chat.md, "un usuario no
+ * puede tener dos agencias"): si el email ya existe y ya tiene una agencia
+ * distinta, se rechaza con un mensaje explícito en vez de reasignarla en
+ * silencio (bug del comportamiento anterior).
+ *
  * Solo admin/socio pueden invocar (policy global::is-admin-or-socio).
- * El usuario autenticado queda en ctx.state.strapiUser (lo setea la policy).
  */
 
 const USER_UID = 'plugin::users-permissions.user';
-const AGENCIA_UID = 'api::agencia.agencia';
 
 module.exports = {
   async agregarSocio(ctx) {
-    const { id: agenciaId } = ctx.params;
     const { email, username, roles_extra } = ctx.request.body || {};
 
-    if (!agenciaId) {
-      return ctx.badRequest('Falta el id de la agencia');
-    }
     if (!email || typeof email !== 'string' || !email.includes('@')) {
       return ctx.badRequest('Email inválido');
     }
 
-    // 1. Verificar que la agencia existe
-    const agencia = await strapi.entityService.findOne(AGENCIA_UID, agenciaId);
-    if (!agencia) {
-      return ctx.notFound('Agencia no encontrada');
+    // 1. Resolver la agencia propia de quien hace la petición.
+    const caller = await strapi.db.query(USER_UID).findOne({
+      where: { id: ctx.state.strapiUser.id },
+      populate: { agencia: true },
+    });
+    const agenciaId = caller?.agencia?.id || null;
+    if (!agenciaId) {
+      return ctx.badRequest('Tu cuenta no tiene una agencia asignada, no puedes agregar socios');
     }
 
-    // 2. Buscar usuario por email; crearlo si no existe
-    const existing = await strapi.db.query(USER_UID).findOne({ where: { email } });
+    // 2. Buscar usuario por email.
+    const existing = await strapi.db.query(USER_UID).findOne({
+      where: { email },
+      populate: { agencia: true },
+    });
 
-    let user;
     const extra = Array.isArray(roles_extra) && roles_extra.length > 0
       ? roles_extra
       : ['socio'];
 
+    let user;
     if (existing) {
-      // Actualizar: asignar agencia + roles.extra
+      // Un usuario no puede tener dos agencias: si ya tiene una (distinta o
+      // no), se rechaza y se pide darlo de baja de la suya primero.
+      if (existing.agencia && Number(existing.agencia.id) !== Number(agenciaId)) {
+        return ctx.badRequest(
+          `Este usuario ya pertenece a una agencia (${existing.agencia.nombre || existing.agencia.id}). Debe darse de baja de esa agencia antes de poder agregarlo aquí.`
+        );
+      }
+      if (existing.agencia && Number(existing.agencia.id) === Number(agenciaId)) {
+        return ctx.badRequest('Este usuario ya es socio de tu agencia');
+      }
+
       user = await strapi.db.query(USER_UID).update({
         where: { id: existing.id },
         data: {
           agencia: agenciaId,
-          roles: { extra: extra },
+          roles: { extra },
           confirmed: true,
         },
       });
@@ -62,7 +82,7 @@ module.exports = {
           blocked: false,
           provider: 'auth0',
           agencia: agenciaId,
-          roles: { extra: extra },
+          roles: { extra },
         },
       });
     }
@@ -85,7 +105,7 @@ module.exports = {
         agencia: populated.agencia
           ? { id: populated.agencia.id, nombre: populated.agencia.nombre }
           : null,
-        roles: populated.roles || { extra: extra },
+        roles: populated.roles || { extra },
       },
     };
   },
