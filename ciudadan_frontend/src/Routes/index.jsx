@@ -104,6 +104,7 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 
 // Anuncios / Comunidad
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
+import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
 
@@ -289,11 +290,17 @@ const Rutas = () => (
       element={<Notificacion />}
     />
 
-    {/* Gana / GanaRoute */}
+                {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
     />
+    <Route
+      path='/gana/ver-anuncios'
+      element={<AnunciosRemunerados />}
+    />
+    {/* Taxis */}
+    
 
     {/* Taxis */}
     <Route
