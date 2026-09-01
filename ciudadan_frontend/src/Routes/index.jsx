@@ -87,6 +87,7 @@ import Prueba from '../Pages/Prueba.jsx';
 // Cartera / Coowork / Academia
 import ITokens from '../Pages/Cartera/ITokens.jsx';
 import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
+import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 
@@ -468,6 +469,10 @@ const Rutas = () => (
     <Route
       path='/cartera/FreeBoocks'
       element={<Catalogo />}
+    />
+    <Route
+      path='/cartera/crear'
+      element={<CrearCarteraPage />}
     />
     <Route
       path='/cartera/:moneda'

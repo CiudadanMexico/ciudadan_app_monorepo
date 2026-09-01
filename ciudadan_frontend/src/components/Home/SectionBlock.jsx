@@ -33,6 +33,9 @@ const fadeUp = {
  *                     Cada chip es un botón: al hacer clic cambia el título y
  *                     subtítulo de la sección por los valores del chip.
  *                     Si el chip no trae title/subtitle, solo actúa como tag.
+ *                     El eyebrow superior también es clickable: al hacer clic
+ *                     vuelve al texto original, y viene seleccionado (fondo
+ *                     verde) por default.
  *  - cards:          array  — [{ icon, title, text }] tarjetas superpuestas sobre la imagen
  *  - primaryAction:  string — texto del botón primario
  *  - secondaryAction:string — texto del botón secundario
@@ -50,17 +53,24 @@ function SectionBlock({
   secondaryAction,
 }) {
   const theme = useTheme();
-  const [activeChip, setActiveChip] = useState(null);
+  const [activeChip, setActiveChip] = useState("eyebrow");
 
-  // Si hay un chip activo con texto propio, se muestra su título/subtítulo.
+  // Selección de texto: "eyebrow" representa el texto original y viene
+  // seleccionado por default; cualquier chip con texto propio lo reemplaza.
+  // "eyebrow" es un string, así que `activeChip?.title` es undefined y
+  // displayTitle/displaySubtitle caen automáticamente al texto original.
   const displayTitle = activeChip?.title || title;
   const displaySubtitle = activeChip?.subtitle || subtitle;
+  const isDefaultSelected = activeChip === "eyebrow";
+
+  // Clic en el eyebrow: vuelve al texto original de la sección.
+  const handleEyebrowClick = () => setActiveChip("eyebrow");
 
   const handleChipClick = (chip) => {
     // Si el chip no trae texto alternativo, no cambia nada (solo tag).
     if (!chip.title && !chip.subtitle) return;
-    // Toggle: clic en el mismo chip restaura el texto original.
-    setActiveChip(activeChip === chip ? null : chip);
+    // Toggle: clic en el mismo chip restaura el texto original (eyebrow activo).
+    setActiveChip(activeChip === chip ? "eyebrow" : chip);
   };
 
   return (
@@ -77,9 +87,18 @@ function SectionBlock({
               <Stack spacing={2.25}>
                 <Chip
                   label={eyebrow}
-                  sx={{ alignSelf: "flex-start", fontWeight: 700 }}
+                  onClick={handleEyebrowClick}
+                  sx={{
+                    alignSelf: "flex-start",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    ...(!isDefaultSelected && {
+                      "&:hover": { bgcolor: "success.light", color: "#fff" },
+                    }),
+                  }}
                   color="success"
-                  variant="outlined"
+                  variant={isDefaultSelected ? "filled" : "outlined"}
                 />
                 <Typography
                   variant="h3"
