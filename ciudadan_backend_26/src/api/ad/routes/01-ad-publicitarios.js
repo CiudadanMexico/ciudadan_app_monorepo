@@ -10,7 +10,7 @@ module.exports = {
   routes: [
     {
       method: 'GET',
-      path: '/publicitarios',
+      path: '/ads/publicitarios',
       handler: 'ad.findPublicitarios',
       config: {
         auth: false,
