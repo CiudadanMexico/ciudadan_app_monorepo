@@ -294,6 +294,28 @@ const Rutas = () => (
       path='/gana'
       element={<GanaRoute />}
     />
+    {/* Gana: Ver Anuncios (reutiliza la página de anuncios de comunidad) */}
+    <Route
+      path='/gana/ver-anuncios'
+      element={<Anuncios />}
+    />
+    <Route
+      path='/gana/ver-anuncios/:slug'
+      element={<Anuncios />}
+    >
+      <Route
+        path='programados'
+        element={<Anuncios />}
+      />
+      <Route
+        path='historial'
+        element={<Anuncios />}
+      />
+      <Route
+        path='configuracion'
+        element={<Anuncios />}
+      />
+    </Route>
 
     {/* Taxis */}
     <Route

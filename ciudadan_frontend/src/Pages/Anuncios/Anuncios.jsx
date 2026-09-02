@@ -25,7 +25,12 @@ const Anuncios = () => {
     typeof window !== 'undefined' ? window.innerWidth < 768 : false
   );
 
-  const basePrueba = '/comunidad/mis-anuncios';
+  // Base de las pestañas según punto de entrada: la misma página se sirve en
+  // /comunidad/mis-anuncios y en /gana/ver-anuncios (hub "Ganar"). Dinámico
+  // para que Pestanas navegue dentro del base correcto y no te cambie de sección.
+  const basePrueba = (location.pathname || '').startsWith('/gana/ver-anuncios')
+    ? '/gana/ver-anuncios'
+    : '/comunidad/mis-anuncios';
   const tabs = [
     { label: 'Por defecto', path: '' },
     { label: 'Programados', path: 'programados' },
