@@ -18,6 +18,7 @@ const PORT = Number(process.env.SOCKET_PORT || 33032);
 const defaultAccept = [
   "http://localhost:3000",
   "http://localhost",
+  "http://localhost:3001",
   "http://localhost:33422",
   "https://chatbot.publia.mx",
   "https://marihuanas.club",
@@ -61,6 +62,11 @@ const testTrip = require('./routes/testTrip');
 const calculateFare = require('./routes/calculateFare');
 const aceptarViajeRoute = require('./routes/aceptarViaje');
 
+const { ConfigDatabase } = require('./dist/config/ConfigDatabase');
+const { DocumentRepositoryImpl } = require('./dist/repository/impl/DocumentRepositoryImpl');
+const { WikiService } = require('./dist/services/WikiService');
+const { WikiWatcherService } = require('./dist/services/WikiWatcherService');
+
 const { getUserRating } = require('./lib/calcRating');
 
 let openpayRoute;
@@ -70,6 +76,11 @@ try {
   console.error("❌ Error cargando ./routes/openpay:", err);
 }
 if (openpayRoute) app.use("/api", openpayRoute);
+
+// Inicializas las dependencias de la Wiki
+const db = ConfigDatabase.getConnection();
+const documentRepository = new DocumentRepositoryImpl(db);
+const wikiService = new WikiService(documentRepository);
 
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);
