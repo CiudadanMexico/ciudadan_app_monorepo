@@ -8,10 +8,11 @@ import {
   CardActions,
   Typography,
   Chip,
-  Button,
   useTheme,
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+// Botón morado de marca (unificado con el resto de la plataforma)
+import PurpleButton from '../common/PurpleButton.jsx';
 
 /**
  * Grid de anuncios publicitarios.
@@ -116,14 +117,17 @@ export const AdGrid = ({ ads, playlist, togglePlaylist }) => {
               </CardContent>
 
               <CardActions>
-                <Button
-                  variant={selected ? 'outlined' : 'contained'}
+                <PurpleButton
                   size="small"
                   onClick={() => togglePlaylist(a.id)}
                   startIcon={selected ? null : <CheckCircleOutlineIcon />}
+                  // El estado seleccionado ("Quitar") apaga el glow y atenúa el
+                  // botón para conservar la distinción visual sin salir de marca.
+                  glowPulse={!selected}
+                  sx={selected ? { filter: 'brightness(0.8)', boxShadow: 'none' } : undefined}
                 >
                   {selected ? 'Quitar' : 'Agregar'}
-                </Button>
+                </PurpleButton>
               </CardActions>
             </Card>
           </Grid>

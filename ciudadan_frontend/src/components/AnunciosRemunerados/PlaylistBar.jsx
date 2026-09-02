@@ -3,11 +3,12 @@ import {
   Box,
   Paper,
   Typography,
-  Button,
   Chip,
   Stack,
 } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
+// Botón morado de marca (unificado con el resto de la plataforma)
+import PurpleButton from '../common/PurpleButton.jsx';
 
 /**
  * Barra fixed inferior que muestra la playlist (anuncios seleccionados)
@@ -47,15 +48,14 @@ export const PlaylistBar = ({ playlist, ads, iniciarVision, recompensaTotal = 0 
           )}
         </Box>
 
-        <Button
-          variant="contained"
+        <PurpleButton
           size="large"
           startIcon={<PlayCircleOutlineIcon />}
           onClick={iniciarVision}
-          disabled={false} // si playlist está vacío el backend elige aleatorios
+          // Si la playlist está vacía el backend elige aleatorios
         >
           Empezar a visualizar
-        </Button>
+        </PurpleButton>
       </Stack>
     </Paper>
   );
