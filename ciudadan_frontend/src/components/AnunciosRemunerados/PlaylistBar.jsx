@@ -26,7 +26,7 @@ export const PlaylistBar = ({ playlist, ads, iniciarVision, recompensaTotal = 0 
       elevation={3}
       sx={{
         position: 'fixed',
-        bottom: 0,
+        bottom: 30,
         left: 0,
         right: 0,
         p: 2,

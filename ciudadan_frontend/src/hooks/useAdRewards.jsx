@@ -170,7 +170,7 @@ export const useAdRewards = () => {
       return;
     }
     const it = sesion.items[indiceActual];
-        const rawArchivo = it.archivo_url || it.anuncio?.archivo?.url || it.anuncio?.metadata?.archivo_url;
+    const rawArchivo = it.archivo_url || it.anuncio?.archivo?.url || it.anuncio?.metadata?.archivo_url;
     setItemActual({
       ...it,
       titulo: it.anuncio?.titulo || it.titulo,
@@ -181,6 +181,7 @@ export const useAdRewards = () => {
       // anuncio fue subido a Strapi; el frontend las resuelve contra
       // REACT_APP_STRAPI_URL (mismo patrón que getThumbnail en AdGrid).
       archivo_url: resolveUrl(rawArchivo),
+      thumbnail: resolveUrl(it.thumbnail_url || it.anuncio?.thumbnail?.url),
     });
     if (it.estado !== 'playing' && it.estado !== 'completed') {
       setEstadoItem(it.id, 'playing').catch(() => {});

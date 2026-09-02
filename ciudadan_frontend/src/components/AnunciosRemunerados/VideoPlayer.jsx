@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography, CircularProgress } from '@mui/material';
 
 /**
  * Reproductor de video personalizado para anuncios.
@@ -14,10 +14,11 @@ import { Box } from '@mui/material';
  *  - onEnded: () => void
  *  - autoPlay: boolean
  */
-export const VideoPlayer = ({ src, currentTime, onTimeUpdate, onEnded, autoPlay = true }) => {
+export const VideoPlayer = ({ src, poster, currentTime, onTimeUpdate, onEnded, autoPlay = true }) => {
   const videoRef = useRef(null);
   const [visible, setVisible] = useState(true);
   const [focused, setFocused] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   // Sincroniza la posición del video con `currentTime` solo cuando el usuario
   // no esté arrastrando el seek (no disponible: seek está deshabilitado).
@@ -77,11 +78,50 @@ export const VideoPlayer = ({ src, currentTime, onTimeUpdate, onEnded, autoPlay 
     v.controls = false;
   }, []);
 
+    if (loadError) {
+    // El video no pudo cargarse: se muestra el thumbnail (poster) y un aviso
+    // claramente arrastrable, en vez de una pantalla negra sin feedback
+    // (spec §4: el reproductor nunca debe dejar al usuario sin saber el estado).
+    return (
+      <Box
+        sx={{
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'black',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: 2,
+          cursor: 'pointer',
+        }}
+        onClick={() => setLoadError(false)}
+        title="Haz clic para reintentar"
+      >
+        {poster ? (
+          <Box
+            component="img"
+            src={poster}
+            alt="Miniatura del anuncio"
+            sx={{ maxWidth: '90vw', maxHeight: '80vh', objectFit: 'contain' }}
+          />
+        ) : (
+          <CircularProgress color="inherit" />
+        )}
+        <Typography variant="body2" sx={{ opacity: 0.85 }}>
+          No se pudo cargar el video. Toca para reintentar.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box
       component="video"
       ref={videoRef}
       src={src}
+      poster={poster || undefined}
       autoPlay={autoPlay}
       muted
       playsInline
@@ -90,6 +130,7 @@ export const VideoPlayer = ({ src, currentTime, onTimeUpdate, onEnded, autoPlay 
       controlsList="nodownload noplaybackrate noremaining"
       onContextMenu={handleContextMenu}
       onEnded={onEnded}
+      onError={() => setLoadError(true)}
       sx={{
         width: '100vw',
         height: '100vh',

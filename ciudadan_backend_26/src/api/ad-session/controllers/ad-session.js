@@ -183,8 +183,9 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       duracion: Number(a.duracion || 0),
       decisionWindow: Number(a.decisionWindow || 5),
       recompensa: Number(it.recompensa || a.recompensa || 0),
-      archivo_url: a.metadata?.archivo_url || a.archivo?.url || '',
-      thumbnail_url: a.metadata?.thumbnail_url || a.thumbnail?.url || '',
+      // Prioridad: archivo REAL subido en Strapi > fallback del seed (metadata).
+      archivo_url: a.archivo?.url || a.metadata?.archivo_url || '',
+      thumbnail_url: a.thumbnail?.url || a.metadata?.thumbnail_url || '',
     }));
 
     ctx.body = { data: { sesionId: sesion.id, token, items: itemsOut } };
@@ -509,8 +510,9 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
           descripcion: it.anuncio?.texto || it.anuncio?.descripcion || '',
           duracion: it.anuncio?.duracion || 0,
           decisionWindow: it.anuncio?.decisionWindow || 5,
-          archivo_url: it.anuncio?.metadata?.archivo_url || it.anuncio?.archivo?.url || '',
-          thumbnail_url: it.anuncio?.metadata?.thumbnail_url || it.anuncio?.thumbnail?.url || '',
+          // Prioridad: archivo REAL subido en Strapi > fallback del seed.
+          archivo_url: it.anuncio?.archivo?.url || it.anuncio?.metadata?.archivo_url || '',
+          thumbnail_url: it.anuncio?.thumbnail?.url || it.anuncio?.metadata?.thumbnail_url || '',
         })),
       },
     };

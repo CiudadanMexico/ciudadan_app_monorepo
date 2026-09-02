@@ -142,7 +142,8 @@ const AnunciosRemunerados = () => {
             position: 'fixed', top: 0, left: 0, zIndex: 1300 }}>
       {itemActual ? (
         <>
-          <VideoPlayer key={`v-${itemActual.id}`} src={itemActual.archivo_url || ''} autoPlay
+                    <VideoPlayer key={`v-${itemActual.id}`} src={itemActual.archivo_url || ''}
+            poster={itemActual.thumbnail || ''} autoPlay
             onTimeUpdate={handlePlaybackTick} onEnded={handleVideoEnded} />
           <DecisionWindow key={`d-${itemActual.id}`} decisionWindow={itemActual.decisionWindow}
             onContinuar={() => { setComprometido(true); setEstadoItem(itemActual.id, 'committed').catch(() => {}); }}
