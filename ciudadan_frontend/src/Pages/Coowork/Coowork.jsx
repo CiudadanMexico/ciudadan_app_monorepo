@@ -42,6 +42,9 @@ import Tareas, { TareaCard } from './../../components/Cowork/Tareas.jsx';
 import TareasEspecializadas, { EmptyState } from './../../components/Cowork/TareasEspecializadas.jsx';
 import EventosGrid from './../Eventos/EventosGrid.jsx';
 import HerramientrasGrid from './../../components/Cowork/HerramientrasGrid.jsx';
+import ConductoresAgencia from './../../components/Cowork/ConductoresAgencia.jsx';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useSearchParams } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
@@ -80,7 +83,7 @@ const MAX_ARCHIVOS_RESOLVER = 10;
 // nombre elimina esa clase de bug de raíz.
 const getTabFromSearchParams = (searchParams) => {
   const tabParam = searchParams.get('tab');
-  if (['socio', 'mistareas', 'generales', 'especializadas'].includes(tabParam)) {
+  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores'].includes(tabParam)) {
     return tabParam;
   }
   return null;
@@ -166,8 +169,11 @@ const SubTabs = styled((props) => (
 });
 
 const CooWork = () => {
-  const { userData, isAdmin, isSocio } = useRoles();
+  const { userData, isAdmin, isSocio, isVerificador } = useRoles();
   const tienePermisoCRUD = isAdmin() || isSocio();
+  // chat.md: verificador (sin admin/socio) NO ve "Herramientas" ni el resto
+  // del tab Socio — solo le aparece "Verificar Conductores", nada más.
+  const soloVerificador = isVerificador() && !tienePermisoCRUD;
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState(() => {
     return getTabFromSearchParams(searchParams) || (tienePermisoCRUD ? 'socio' : 'generales');
@@ -502,10 +508,17 @@ const CooWork = () => {
             centered={!isMobile}
           >
             {tienePermisoCRUD && (
-              <StyledTab value="socio" icon={<GroupIcon />} label={isAdmin() ? 'Admin' : 'Socio'} />
+              <StyledTab
+                value="socio"
+                icon={isAdmin() ? <AdminPanelSettingsIcon /> : <GroupIcon />}
+                label={isAdmin() ? 'Admin' : 'Socio'}
+              />
             )}
             <StyledTab value="generales" icon={<WorkOutlineIcon />} label="Tareas Generales" />
             <StyledTab value="especializadas" icon={<PrecisionManufacturingIcon />} label="Tareas Especializadas" />
+            {soloVerificador && (
+              <StyledTab value="conductores" icon={<DirectionsCarIcon />} label="Verificar Conductores" />
+            )}
             {/* "Mis Tareas": antes el único lugar para entregar una tarea ya
                 tomada (con archivos/enlaces/notas) vivía dentro del tab
                 Socio -> sub-tab Tareas, inalcanzable para cualquier usuario
@@ -633,6 +646,17 @@ const CooWork = () => {
             transition={{ duration: 0.4 }}
           >
             <Tareas userId={userData?.id} subTab={0} />
+          </motion.div>
+        )}
+
+        {tab === 'conductores' && soloVerificador && (
+          <motion.div
+            key="conductores"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <ConductoresAgencia />
           </motion.div>
         )}
 

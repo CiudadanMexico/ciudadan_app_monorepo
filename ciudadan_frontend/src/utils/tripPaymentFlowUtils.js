@@ -12,7 +12,7 @@ export const getTripPaymentFlowState = ({ tripStatus, driverPaymentState, passen
   const driverPayment = driverPaymentState || PAYMENT_STATES.pending;
   const passengerPayment = passengerPaymentState || PAYMENT_STATES.pending;
 
-  console.log('[getTripPaymentFlowState] tripStatus', isTripFinished, 'driverPayment', driverPayment);
+  //console.log('[getTripPaymentFlowState] tripStatus', isTripFinished, 'driverPayment', driverPayment);
 
   const isPaymentFlowActive = isTripFinished;
   const showDriverPaymentOptions = isPaymentFlowActive && driverPayment === PAYMENT_STATES.pending;

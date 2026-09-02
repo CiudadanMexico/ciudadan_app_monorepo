@@ -935,12 +935,131 @@ export interface ApiAdAd extends Schema.CollectionType {
     cuerpo: Attribute.RichText;
     porcentaje: Attribute.Decimal;
     area: Attribute.Relation<'api::ad.ad', 'manyToOne', 'api::area.area'>;
+    esPublicitario: Attribute.Boolean & Attribute.DefaultTo<false>;
+    duracion: Attribute.Integer;
+    recompensa: Attribute.Decimal;
+    decisionWindow: Attribute.Integer & Attribute.DefaultTo<5>;
+    thumbnail: Attribute.Media<'images'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::ad.ad', 'oneToOne', 'admin::user'> &
       Attribute.Private;
     updatedBy: Attribute.Relation<'api::ad.ad', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAdSessionAdSession extends Schema.CollectionType {
+  collectionName: 'ad_sessions';
+  info: {
+    singularName: 'ad-session';
+    pluralName: 'ad-sessions';
+    displayName: 'Sesiones de Anuncios';
+    description: 'Sesi\u00F3n de reproducci\u00F3n de anuncios remunerados. El backend valida la visualizaci\u00F3n y emite recompensas.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    usuario: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    > &
+      Attribute.Required;
+    token: Attribute.String & Attribute.Required & Attribute.Unique;
+    estado: Attribute.Enumeration<
+      ['activa', 'completada', 'expirada', 'abandonada']
+    > &
+      Attribute.DefaultTo<'activa'>;
+    inicio: Attribute.DateTime & Attribute.Required;
+    fin: Attribute.DateTime;
+    indice_actual: Attribute.Integer & Attribute.DefaultTo<0>;
+    recompensa_total: Attribute.Decimal & Attribute.DefaultTo<0>;
+    metadata: Attribute.JSON;
+    items: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'oneToMany',
+      'api::ad-session-item.ad-session-item'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAdSessionItemAdSessionItem extends Schema.CollectionType {
+  collectionName: 'ad_session_items';
+  info: {
+    singularName: 'ad-session-item';
+    pluralName: 'ad-session-items';
+    displayName: 'Items de Sesi\u00F3n de Anuncios';
+    description: 'Cada anuncio dentro de una sesi\u00F3n de reproducci\u00F3n; guarda cobertura y validaci\u00F3n antifraude.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    sesion: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'manyToOne',
+      'api::ad-session.ad-session'
+    > &
+      Attribute.Required;
+    anuncio: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'manyToOne',
+      'api::ad.ad'
+    > &
+      Attribute.Required;
+    orden: Attribute.Integer & Attribute.Required;
+    estado: Attribute.Enumeration<
+      [
+        'queued',
+        'playing',
+        'decision_window',
+        'committed',
+        'completed',
+        'skipped',
+        'abandoned',
+        'invalid'
+      ]
+    > &
+      Attribute.DefaultTo<'queued'>;
+    cobertura: Attribute.JSON;
+    segmentos_totales: Attribute.Integer;
+    tiempo_efectivo_ms: Attribute.Integer & Attribute.DefaultTo<0>;
+    ultimo_tick: Attribute.DateTime;
+    ultima_posicion_seg: Attribute.Decimal;
+    recompensa: Attribute.Decimal & Attribute.DefaultTo<0>;
+    recompensa_emitida: Attribute.Boolean & Attribute.DefaultTo<false>;
+    inicio: Attribute.DateTime;
+    fin: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'oneToOne',
+      'admin::user'
+    > &
       Attribute.Private;
   };
 }
@@ -3036,6 +3155,72 @@ export interface ApiFoodCategorieFoodCategorie extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::food-categorie.food-categorie',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodDeliveryFoodDelivery extends Schema.CollectionType {
+  collectionName: 'food_deliveries';
+  info: {
+    singularName: 'food-delivery';
+    pluralName: 'food-deliveries';
+    displayName: 'Food Delivery';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    food_order: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'api::food-order.food-order'
+    >;
+    restaurant: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    user: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    provider: Attribute.String & Attribute.DefaultTo<'uber_direct'>;
+    quote_id: Attribute.String & Attribute.Required;
+    uber_delivery_id: Attribute.String;
+    status: Attribute.Enumeration<
+      [
+        'pending',
+        'processing',
+        'pickup',
+        'in_transit',
+        'delivered',
+        'cancelled',
+        'failed'
+      ]
+    > &
+      Attribute.DefaultTo<'pending'>;
+    fee: Attribute.Decimal;
+    currency: Attribute.String;
+    tracking_url: Attribute.String;
+    pickup: Attribute.JSON;
+    dropoff: Attribute.JSON;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-delivery.food-delivery',
       'oneToOne',
       'admin::user'
     > &
@@ -5348,6 +5533,10 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       'plugin::users-permissions.user'
     >;
     isTripFree: Attribute.Boolean;
+    pincode: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 4;
+      }>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5470,6 +5659,8 @@ declare module '@strapi/types' {
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
       'api::ad.ad': ApiAdAd;
+      'api::ad-session.ad-session': ApiAdSessionAdSession;
+      'api::ad-session-item.ad-session-item': ApiAdSessionItemAdSessionItem;
       'api::ad-view.ad-view': ApiAdViewAdView;
       'api::agencia.agencia': ApiAgenciaAgencia;
       'api::agenda.agenda': ApiAgendaAgenda;
@@ -5504,6 +5695,7 @@ declare module '@strapi/types' {
       'api::favorito.favorito': ApiFavoritoFavorito;
       'api::food-cart.food-cart': ApiFoodCartFoodCart;
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
+      'api::food-delivery.food-delivery': ApiFoodDeliveryFoodDelivery;
       'api::food-modifier.food-modifier': ApiFoodModifierFoodModifier;
       'api::food-modifier-group.food-modifier-group': ApiFoodModifierGroupFoodModifierGroup;
       'api::food-offer.food-offer': ApiFoodOfferFoodOffer;

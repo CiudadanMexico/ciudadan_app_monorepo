@@ -87,6 +87,7 @@ import Prueba from '../Pages/Prueba.jsx';
 // Cartera / Coowork / Academia
 import ITokens from '../Pages/Cartera/ITokens.jsx';
 import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
+import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 
@@ -104,6 +105,7 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 
 // Anuncios / Comunidad
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
+import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
 
@@ -130,6 +132,7 @@ import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
+import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
@@ -289,11 +292,17 @@ const Rutas = () => (
       element={<Notificacion />}
     />
 
-    {/* Gana / GanaRoute */}
+                {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
     />
+    <Route
+      path='/gana/ver-anuncios'
+      element={<AnunciosRemunerados />}
+    />
+    {/* Taxis */}
+    
 
     {/* Taxis */}
     <Route
@@ -332,6 +341,10 @@ const Rutas = () => (
     <Route
       path='/herramientas/agencia/conductores'
       element={<ConductoresAgencia />}
+    />
+    <Route
+      path='/validations/:validationId/review'
+      element={<DriverVerificationPage />}
     />
 
     {/* Food / Restaurantes */}
@@ -463,6 +476,10 @@ const Rutas = () => (
     <Route
       path='/cartera/FreeBoocks'
       element={<Catalogo />}
+    />
+    <Route
+      path='/cartera/crear'
+      element={<CrearCarteraPage />}
     />
     <Route
       path='/cartera/:moneda'

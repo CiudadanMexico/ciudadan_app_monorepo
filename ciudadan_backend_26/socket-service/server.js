@@ -122,8 +122,7 @@ io.on("connection", (socket) => {
     try {
       const id = payload && (payload.id || payload.travelId || payload.travelid);
       const coords = payload && (payload.coordinates || payload.coords || payload.location);
-      const price = payload && (payload.price ?? payload.precio ?? null);
-      console.log('ofertaviaje payload:', JSON.stringify(payload, null, 2));
+      //console.log('ofertaviaje payload:', JSON.stringify(payload, null, 2));
       if (!coords || typeof coords.lat !== 'number' || typeof coords.lng !== 'number') {
         if (typeof ack === 'function') ack({ ok: false, error: 'payload inválido: coordinates lat/lng requeridos' });
         return;
@@ -133,8 +132,10 @@ io.on("connection", (socket) => {
       const out = {
         fromSocketId: socket.id,
         coordinates: { lat: Number(coords.lat), lng: Number(coords.lng) },
+        driver: payload.driver,
         driverId: payload.driverId || null,
-        price,
+        travel: payload.rawTravel,
+        price: payload.price,
         userRating,
         meta: payload.meta || null,
         timestamp: new Date().toISOString(),
@@ -153,7 +154,7 @@ io.on("connection", (socket) => {
         console.error('Error en actualizandoUbicacion: payload inválido');
         return;
       }
-      //console.log(payload.payload);
+      console.log(payload.payload);
       io.emit('driver-location', payload.payload);
     } catch (e) {
       console.error('Error en actualizandoUbicacion:', e);

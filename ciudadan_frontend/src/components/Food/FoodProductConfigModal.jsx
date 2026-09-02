@@ -14,6 +14,7 @@ import {
   Radio,
   RadioGroup,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material';
 
@@ -92,7 +93,7 @@ const FoodProductConfigModal = ({
   const totalModificadores = useMemo(() => {
     return modificadoresSeleccionados.reduce((total, modificador) => {
       const precio = Number(modificador.precio ?? modificador.attributes?.precio ?? 0);
-      const cantidadModificador = Number(modificador.cantidad || 1);
+      const cantidadModificador = Number(modificador?.cantidad ?? 1);
       return total + precio * cantidadModificador;
     }, 0);
   }, [modificadoresSeleccionados]);
@@ -100,18 +101,19 @@ const FoodProductConfigModal = ({
   /*
    * Precio unitario final.
    */
-  const precioUnitario = useMemo(() => {
-    if (precioVariante)
-      return (precioVariante + totalModificadores);
-    return (precioBase + totalModificadores);
-  }, [precioBase, precioVariante, totalModificadores,]);
+  // const precioUnitario = useMemo(() => {
+  //   if (precioVariante)
+  //     return (precioVariante + total | Modificadores);
+  //   return (precioBase + totalModificadores);
+  // }, [precioBase, precioVariante, totalModificadores,]);
 
   /*
    * Subtotal considerando cantidad.
    */
   const subtotal = useMemo(() => {
-    return precioUnitario * cantidad;
-  }, [precioUnitario, cantidad]);
+    const aux = precioVariante ? (precioVariante * cantidad) : (precioBase * cantidad);
+    return aux + totalModificadores;
+  }, [precioBase, precioVariante, totalModificadores, cantidad]);
 
   const modificarCantidad = (delta) => {
     setCantidad((actual) => {
@@ -155,6 +157,31 @@ const FoodProductConfigModal = ({
     });
   };
 
+  const modificarCantidadModificador = (modificador, nuevaCantidad) => {
+    const id = modificador.id ?? modificador.documentId;
+
+    let cantidad = Number(nuevaCantidad);
+
+    if (!Number.isFinite(cantidad) || cantidad < 1) {
+      cantidad = 1;
+    }
+
+    if (cantidad > 99) {
+      cantidad = 99;
+    }
+
+    setModificadoresSeleccionados((actuales) =>
+      actuales.map((item) =>
+        (item.id ?? item.documentId) === id
+          ? {
+            ...item,
+            cantidad,
+          }
+          : item
+      )
+    );
+  };
+
   const estaSeleccionado = (modificador) => {
     const id = modificador.id ?? modificador.documentId;
     return modificadoresSeleccionados.some((item) => (item.id ?? item.documentId) === id);
@@ -190,7 +217,7 @@ const FoodProductConfigModal = ({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={()=>{}}
       fullWidth
       maxWidth="sm"
       scroll="paper"
@@ -334,58 +361,82 @@ const FoodProductConfigModal = ({
                   const id = modificador.id ?? modificador.documentId;
                   const nombre = attrs?.nombre ?? 'Modificador';
                   const descripcion = attrs.descripcion;
-                  const precio = Number(attrs.precio || 0);
+                  const precio = Number(attrs?.precio ?? 0);
                   const seleccionado = estaSeleccionado(modificador);
+                  const modificadorSeleccionado = modificadoresSeleccionados.find((item) => (item.id ?? item.documentId) === id);
+                  const cantidadModificador = modificadorSeleccionado?.cantidad ?? 1;
 
                   return (
                     <Box
                       key={id}
                       sx={{
                         border: '1px solid',
-                        borderColor: seleccionado
-                          ? 'primary.main'
-                          : 'divider',
+                        borderColor: seleccionado ? 'primary.main' : 'divider',
                         borderRadius: 2,
                         px: 1.5,
                         py: 1,
                       }}
                     >
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={seleccionado}
-                            onChange={() =>
-                              toggleModificador(
-                                modificador
-                              )
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        spacing={1}
+                      >
+                        {/* INFORMACIÓN DEL MODIFICADOR */}
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={seleccionado}
+                              onChange={() => toggleModificador(modificador)}
+                            />
+                          }
+                          label={
+                            <Box>
+                              <Typography variant="body2" fontWeight={600}>
+                                {nombre}
+                              </Typography>
+
+                              {descripcion && (
+                                <Typography variant="caption" color="text.secondary" display="block">
+                                  {descripcion}
+                                </Typography>
+                              )}
+
+                              {precio > 0 && (
+                                <Typography variant="caption" color="text.secondary">
+                                  + ${precio.toFixed(2)}
+                                </Typography>
+                              )}
+                            </Box>
+                          }
+                          sx={{
+                            flex: 1,
+                            m: 0,
+                            minWidth: 0,
+                          }}
+                        />
+
+                        {/* CANTIDAD DEL MODIFICADOR */}
+                        {seleccionado && (
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={cantidadModificador}
+                            onChange={(event) =>
+                              modificarCantidadModificador(modificador, event.target.value)
                             }
+                            inputProps={{
+                              min: 1,
+                              max: 99,
+                            }}
+                            sx={{
+                              width: 80,
+                              flexShrink: 0,
+                            }}
                           />
-                        }
-                        label={
-                          <Box>
-                            <Typography variant="body2" fontWeight={600} >
-                              {nombre}
-                            </Typography>
-
-                            {descripcion && (
-                              <Typography variant="caption" color="text.secondary" display="block" >
-                                {descripcion}
-                              </Typography>
-                            )}
-
-                            {precio > 0 && (
-                              <Typography variant="caption" color="text.secondary">
-                                + $
-                                {precio.toFixed(2)}
-                              </Typography>
-                            )}
-                          </Box>
-                        }
-                        sx={{
-                          width: '100%',
-                          m: 0,
-                        }}
-                      />
+                        )}
+                      </Stack>
                     </Box>
                   );
                 })}
@@ -456,13 +507,11 @@ const FoodProductConfigModal = ({
                 justifyContent="space-between"
               >
                 <Typography variant="body2">
-                  Producto
+                  Presentación
                 </Typography>
 
                 <Typography variant="body2">
-                  ${
-                    precioVariante ? precioVariante.toFixed(2) : precioBase.toFixed(2)
-                  }
+                  ${precioVariante ? precioVariante.toFixed(2) : precioBase.toFixed(2)}
                 </Typography>
               </Stack>
 
@@ -498,7 +547,7 @@ const FoodProductConfigModal = ({
                 </Stack>
               )}
 
-              <Stack
+              {/* <Stack
                 direction="row"
                 justifyContent="space-between"
               >
@@ -509,7 +558,7 @@ const FoodProductConfigModal = ({
                 <Typography variant="body2">
                   ${precioUnitario.toFixed(2)}
                 </Typography>
-              </Stack>
+              </Stack> */}
 
               <Divider sx={{ my: 0.5 }} />
 
