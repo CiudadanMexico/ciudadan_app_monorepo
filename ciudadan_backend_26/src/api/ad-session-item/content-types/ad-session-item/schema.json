@@ -1,0 +1,77 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ad_session_items",
+  "info": {
+    "singularName": "ad-session-item",
+    "pluralName": "ad-session-items",
+    "displayName": "Items de Sesión de Anuncios",
+    "description": "Cada anuncio dentro de una sesión de reproducción; guarda cobertura y validación antifraude."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "sesion": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ad-session.ad-session",
+      "inversedBy": "items",
+      "required": true
+    },
+    "anuncio": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::ad.ad",
+      "required": true
+    },
+    "orden": {
+      "type": "integer",
+      "required": true
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": [
+        "queued",
+        "playing",
+        "decision_window",
+        "committed",
+        "completed",
+        "skipped",
+        "abandoned",
+        "invalid"
+      ],
+      "default": "queued"
+    },
+    "cobertura": {
+      "type": "json"
+    },
+    "segmentos_totales": {
+      "type": "integer"
+    },
+    "tiempo_efectivo_ms": {
+      "type": "integer",
+      "default": 0
+    },
+    "ultimo_tick": {
+      "type": "datetime"
+    },
+    "ultima_posicion_seg": {
+      "type": "decimal"
+    },
+    "recompensa": {
+      "type": "decimal",
+      "default": 0
+    },
+    "recompensa_emitida": {
+      "type": "boolean",
+      "default": false
+    },
+    "inicio": {
+      "type": "datetime"
+    },
+    "fin": {
+      "type": "datetime"
+    }
+  }
+}

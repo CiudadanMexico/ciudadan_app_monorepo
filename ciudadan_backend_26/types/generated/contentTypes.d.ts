@@ -935,12 +935,131 @@ export interface ApiAdAd extends Schema.CollectionType {
     cuerpo: Attribute.RichText;
     porcentaje: Attribute.Decimal;
     area: Attribute.Relation<'api::ad.ad', 'manyToOne', 'api::area.area'>;
+    esPublicitario: Attribute.Boolean & Attribute.DefaultTo<false>;
+    duracion: Attribute.Integer;
+    recompensa: Attribute.Decimal;
+    decisionWindow: Attribute.Integer & Attribute.DefaultTo<5>;
+    thumbnail: Attribute.Media<'images'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::ad.ad', 'oneToOne', 'admin::user'> &
       Attribute.Private;
     updatedBy: Attribute.Relation<'api::ad.ad', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAdSessionAdSession extends Schema.CollectionType {
+  collectionName: 'ad_sessions';
+  info: {
+    singularName: 'ad-session';
+    pluralName: 'ad-sessions';
+    displayName: 'Sesiones de Anuncios';
+    description: 'Sesi\u00F3n de reproducci\u00F3n de anuncios remunerados. El backend valida la visualizaci\u00F3n y emite recompensas.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    usuario: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    > &
+      Attribute.Required;
+    token: Attribute.String & Attribute.Required & Attribute.Unique;
+    estado: Attribute.Enumeration<
+      ['activa', 'completada', 'expirada', 'abandonada']
+    > &
+      Attribute.DefaultTo<'activa'>;
+    inicio: Attribute.DateTime & Attribute.Required;
+    fin: Attribute.DateTime;
+    indice_actual: Attribute.Integer & Attribute.DefaultTo<0>;
+    recompensa_total: Attribute.Decimal & Attribute.DefaultTo<0>;
+    metadata: Attribute.JSON;
+    items: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'oneToMany',
+      'api::ad-session-item.ad-session-item'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::ad-session.ad-session',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAdSessionItemAdSessionItem extends Schema.CollectionType {
+  collectionName: 'ad_session_items';
+  info: {
+    singularName: 'ad-session-item';
+    pluralName: 'ad-session-items';
+    displayName: 'Items de Sesi\u00F3n de Anuncios';
+    description: 'Cada anuncio dentro de una sesi\u00F3n de reproducci\u00F3n; guarda cobertura y validaci\u00F3n antifraude.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    sesion: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'manyToOne',
+      'api::ad-session.ad-session'
+    > &
+      Attribute.Required;
+    anuncio: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'manyToOne',
+      'api::ad.ad'
+    > &
+      Attribute.Required;
+    orden: Attribute.Integer & Attribute.Required;
+    estado: Attribute.Enumeration<
+      [
+        'queued',
+        'playing',
+        'decision_window',
+        'committed',
+        'completed',
+        'skipped',
+        'abandoned',
+        'invalid'
+      ]
+    > &
+      Attribute.DefaultTo<'queued'>;
+    cobertura: Attribute.JSON;
+    segmentos_totales: Attribute.Integer;
+    tiempo_efectivo_ms: Attribute.Integer & Attribute.DefaultTo<0>;
+    ultimo_tick: Attribute.DateTime;
+    ultima_posicion_seg: Attribute.Decimal;
+    recompensa: Attribute.Decimal & Attribute.DefaultTo<0>;
+    recompensa_emitida: Attribute.Boolean & Attribute.DefaultTo<false>;
+    inicio: Attribute.DateTime;
+    fin: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::ad-session-item.ad-session-item',
+      'oneToOne',
+      'admin::user'
+    > &
       Attribute.Private;
   };
 }
@@ -5540,6 +5659,8 @@ declare module '@strapi/types' {
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
       'api::ad.ad': ApiAdAd;
+      'api::ad-session.ad-session': ApiAdSessionAdSession;
+      'api::ad-session-item.ad-session-item': ApiAdSessionItemAdSessionItem;
       'api::ad-view.ad-view': ApiAdViewAdView;
       'api::agencia.agencia': ApiAgenciaAgencia;
       'api::agenda.agenda': ApiAgendaAgenda;

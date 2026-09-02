@@ -91,6 +91,28 @@
       "relation": "manyToOne",
       "target": "api::area.area",
       "inversedBy": "ads"
+    },
+    "esPublicitario": {
+      "type": "boolean",
+      "default": false
+    },
+    "duracion": {
+      "type": "integer"
+    },
+    "recompensa": {
+      "type": "decimal"
+    },
+    "decisionWindow": {
+      "type": "integer",
+      "default": 5
+    },
+    "thumbnail": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
     }
   }
 }
