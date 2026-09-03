@@ -39,6 +39,7 @@ import EditarCurso from '../Pages/Cursos/EditarCurso.jsx';
 import EliminarCurso from '../Pages/Cursos/EliminarCurso.jsx';
 //import Wiki from '../Pages/Wiki.jsx'; // si lo usas en algún lado
 import WikiViewer from '../components/Wiki/WikiViewer.jsx';
+import WikiApp from '../components/Wiki/WikiApp.tsx';
 import WikiHome from '../Pages/Wiki/WikiHome.jsx';
 
 // ---------- Componentes / Pages adicionales ----------
@@ -589,7 +590,7 @@ const Rutas = () => (
     {/* Info / Wiki / Help */}
     <Route
       path='/wiki'
-      element={<WikiHome />}
+      element={<WikiApp />}
     />
     <Route
       path='/wiki/:slug'
@@ -790,3 +791,7 @@ const Rutas = () => (
 );
 
 export default Rutas;
+
+
+
+

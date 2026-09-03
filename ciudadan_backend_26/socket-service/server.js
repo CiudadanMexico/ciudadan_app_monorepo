@@ -18,6 +18,7 @@ const PORT = Number(process.env.SOCKET_PORT || 33032);
 const defaultAccept = [
   "http://localhost:3000",
   "http://localhost",
+  "http://localhost:3001",
   "http://localhost:33422",
   "https://chatbot.publia.mx",
   "https://marihuanas.club",
@@ -55,12 +56,17 @@ app.set("io", io);
 const priceCalculatingRoute = require("./routes/priceCalculating");
 const ratingCalculatingRoute = require("./routes/calcRating");
 const sendMessageRoute = require("./routes/trip-request");
-const wikiRoute = require("./routes/wiki");
 const notificaRoute = require("./routes/notifica");
 const testTrip = require('./routes/testTrip');
 const calculateFare = require('./routes/calculateFare');
 const aceptarViajeRoute = require('./routes/aceptarViaje');
 
+const { ConfigDatabase } = require('./dist/config/ConfigDatabase');
+const { DocumentRepositoryImpl } = require('./dist/repository/impl/DocumentRepositoryImpl');
+const { WikiService } = require('./dist/services/WikiService');
+const { WikiWatcherService } = require('./dist/services/WikiWatcherService');
+
+const WikiRouter = require("./routes/WikiRouter");
 const { getUserRating } = require('./lib/calcRating');
 
 let openpayRoute;
@@ -71,11 +77,22 @@ try {
 }
 if (openpayRoute) app.use("/api", openpayRoute);
 
+// Inicializas las dependencias de la Wiki
+const db = ConfigDatabase.getConnection();
+const documentRepository = new DocumentRepositoryImpl(db);
+const wikiService = new WikiService(documentRepository);
+
+// Montar router de la Wiki (arbol + documentos)
+app.use("/wiki", WikiRouter);
+
+// Iniciar watcher de archivos .md
+const wikiWatcher = new WikiWatcherService(wikiService);
+wikiWatcher.start();
+
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);
 app.use("/", ratingCalculatingRoute);
 app.use("/", sendMessageRoute);
-app.use("/wiki", wikiRoute);
 app.use("/notifica", notificaRoute);
 app.use('/test', testTrip);
 app.use('/api', calculateFare);
@@ -213,3 +230,12 @@ server.listen(PORT, () => {
   console.log(`🌐 CORS habilitado para: ${JSON.stringify(accept)}`);
   printRoutes(app);
 });
+
+
+
+
+
+
+
+
+
