@@ -1,80 +1,83 @@
 import React, { useState } from 'react';
 import { TreeNodeDTO } from '../../types/wiki';
-import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
-import FolderIcon from '@mui/icons-material/Folder';
+import {
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  IconButton,
+} from '@mui/material';
 import DescriptionIcon from '@mui/icons-material/Description';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 export interface WikiTreeViewProps {
-    nodes: TreeNodeDTO[] | any[];
-    onSelectDocument?: (fullPath: string) => void;
-    onSelectFolder?: () => void;
+  nodes: TreeNodeDTO[] | any[];
+  onSelectDocument?: (fullPath: string) => void;
+  onSelectFolder?: () => void;
 }
 
 const WikiTreeView: React.FC<WikiTreeViewProps> = ({ nodes, onSelectDocument, onSelectFolder }) => {
-    const [expanded, setExpanded] = useState<string[]>([]);
-    const [selected, setSelected] = useState<string>('');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-    const handleToggle = (event: React.SyntheticEvent | null, nodeIds: string[]) => {
-        setExpanded(nodeIds);
-    };
+  const toggleExpand = (path: string) => {
+    setExpanded((prev) => ({ ...prev, [path]: !prev[path] }));
+  };
 
-    const handleSelect = (event: React.SyntheticEvent | null, itemId: string | null) => {
-        if (!itemId) return;
-        
-        const cleanId = decodeURIComponent(itemId);
-        setSelected(cleanId);
-
-        // Validamos si es un archivo (tiene extensión o punto)
-        const isFile = cleanId.includes('.');
-
-        if (isFile) {
-            if (onSelectDocument) {
-                onSelectDocument(cleanId);
-            }
-        } else {
-            if (onSelectFolder) {
-                onSelectFolder();
-            }
-        }
-    };
-
-    // Renderizamos recursivamente los nodos que ya vienen estructurados y limpios desde el backend
-    const renderTree = (items: any[]) => {
-        if (!Array.isArray(items)) return null;
-
-        return items.map((node) => {
-            const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-            const isFolder = node.type === 'folder' || hasChildren;
-            const nodeId = node.path || node.documentId || node.name;
-
-            return (
-                <TreeItem
-                    key={nodeId}
-                    itemId={nodeId}
-                    label={node.name}
-                    slots={{
-                        icon: isFolder ? FolderIcon : DescriptionIcon,
-                    }}
-                >
-                    {hasChildren ? renderTree(node.children) : null}
-                </TreeItem>
-            );
-        });
-    };
+  const renderTree = (items: any[], depth = 0) => {
+    if (!Array.isArray(items)) return null;
 
     return (
-        <div className="wiki-tree-container" style={{ padding: '1rem', minWidth: '250px' }}>
-            <SimpleTreeView
-                aria-label="wiki tree"
-                expandedItems={expanded}
-                selectedItems={selected}
-                onExpandedItemsChange={handleToggle}
-                onSelectedItemsChange={handleSelect}
-            >
-                {renderTree(nodes)}
-            </SimpleTreeView>
-        </div>
+      <List dense disablePadding>
+        {items.map((node) => {
+          const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+          const isFolder = node.type === 'folder' || hasChildren;
+          const nodeId = node.path || node.documentId || node.name;
+          const isExpanded = !!expanded[nodeId];
+
+          return (
+            <React.Fragment key={nodeId}>
+              <ListItem
+                sx={{ pl: 2 + depth * 2, cursor: 'pointer' }}
+                onClick={() => {
+                  if (isFolder) {
+                    toggleExpand(nodeId);
+                    if (onSelectFolder) onSelectFolder();
+                  } else if (onSelectDocument) {
+                    onSelectDocument(nodeId);
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 32, color: isFolder ? '#f9a825' : '#4caf50' }}>
+                  {isFolder ? (
+                    <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleExpand(nodeId); }}>
+                      {isExpanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+                    </IconButton>
+                  ) : (
+                    <DescriptionIcon fontSize="small" />
+                  )}
+                </ListItemIcon>
+                <ListItemText primary={node.name} primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: isFolder ? 600 : 400 }} />
+              </ListItem>
+              {isFolder && hasChildren && (
+                <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                  {renderTree(node.children, depth + 1)}
+                </Collapse>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </List>
     );
+  };
+
+  return (
+    <div style={{ padding: '0.5rem 0' }}>
+      {renderTree(nodes)}
+    </div>
+  );
 };
 
 export default WikiTreeView;
+

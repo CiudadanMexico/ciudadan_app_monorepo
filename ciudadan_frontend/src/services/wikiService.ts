@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { TreeNodeDTO, DocumentResponseDTO } from '../types/wiki';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:33032/wiki';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:33035/wiki';
 
 export const wikiService = {
   // Método nuevo adaptado para pedir la sección dinámicamente

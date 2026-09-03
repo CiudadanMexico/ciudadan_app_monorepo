@@ -8,7 +8,7 @@ import {
     SearchResultDTO
 } from '../dto/TreeNodeDTO';
 import { DocumentEntity } from '../entities/DocumentEntity';
-import { MarkdownParser } from '../utils/MarkdownParser';
+import { MarkdownParser } from '../routes/utils/MarkdownParser';
 import { WikiSectionResponseDTO } from '../dto/WikiDTO';
 
 export class WikiService {
@@ -285,3 +285,4 @@ export class WikiService {
         return root;
     }
 }
+

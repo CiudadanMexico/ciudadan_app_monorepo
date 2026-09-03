@@ -1,5 +1,5 @@
 import { marked } from 'marked';
-import { ParsedMarkdownResponseDTO, ParsedWikiLink } from '../dto/WikiDTO';
+import { ParsedMarkdownResponseDTO, ParsedWikiLink } from '../../dto/WikiDTO';
 
 export class MarkdownParser {
     /**

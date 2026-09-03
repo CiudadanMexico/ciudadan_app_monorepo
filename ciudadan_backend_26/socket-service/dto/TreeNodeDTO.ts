@@ -17,8 +17,8 @@ export interface DocumentResponseDTO {
     rawContent: string;
     htmlContent: string;
     wikiLinks: ParsedWikiLink[];
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 // DTO para los resultados de búsqueda de archivos y carpetas
@@ -30,3 +30,4 @@ export interface SearchResultDTO {
     createdAt?: string;
     updatedAt?: string;
 }
+
