@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
-  Button,
   Paper,
   Stack,
 } from '@mui/material';
+import PurpleButton from '../common/PurpleButton.jsx';
 
 /**
  * Overlay de ventana de decisión (0 a `decisionWindow` segundos).
@@ -76,12 +76,11 @@ export const DecisionWindow = ({
       </Box>
 
       <Stack direction="row" spacing={3} sx={{ gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Button variant="contained" color="success" size="large" onClick={onContinuar}>
+        <PurpleButton size="large" onClick={onContinuar}>
           Continuar
-        </Button>
-        <Button
-          variant="outlined"
-          color="inherit"
+        </PurpleButton>
+        <PurpleButton
+          outlined
           size="large"
           onClick={() => {
             // Saltar NO compromete el anuncio: el padre decide (skipped o aviso).
@@ -89,7 +88,7 @@ export const DecisionWindow = ({
           }}
         >
           Pasar al siguiente
-        </Button>
+        </PurpleButton>
       </Stack>
     </Paper>
   );

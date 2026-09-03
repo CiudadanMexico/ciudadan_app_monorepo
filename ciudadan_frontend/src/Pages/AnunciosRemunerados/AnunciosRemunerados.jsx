@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Box, Typography, CircularProgress, Snackbar, Alert, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Box, Typography, CircularProgress, Snackbar, Alert, Stack, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import PurpleButton from '../../components/common/PurpleButton.jsx';
 import { useAdRewards } from '../../hooks/useAdRewards.jsx';
 import { AdGrid } from '../../components/AnunciosRemunerados/AdGrid.jsx';
 import { PlaylistBar } from '../../components/AnunciosRemunerados/PlaylistBar.jsx';
@@ -171,10 +172,10 @@ const AnunciosRemunerados = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={() => setAvisoSalir(false)}>Seguir viendo</Button>
-          <Button variant="outlined" color="error" onClick={() => { setAvisoSalir(false); saltarActual(); }}>
+          <PurpleButton onClick={() => setAvisoSalir(false)}>Seguir viendo</PurpleButton>
+          <PurpleButton outlined onClick={() => { setAvisoSalir(false); saltarActual(); }}>
             Pasar al siguiente
-          </Button>
+          </PurpleButton>
         </DialogActions>
       </Dialog>
 

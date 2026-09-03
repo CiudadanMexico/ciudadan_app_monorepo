@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Button,
   Paper,
   Stack,
   Dialog,
@@ -11,6 +10,7 @@ import {
   DialogActions,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PurpleButton from '../common/PurpleButton.jsx';
 
 /**
  * Menú ligero que aparece al intentar abandonar el flujo completo de
@@ -40,15 +40,15 @@ export const AdExitMenu = ({ open, onClose, onSalir, onContinuar, onVolverGrid, 
         )}
       </DialogContent>
       <DialogActions sx={{ flexDirection: 'column', gap: 1, pb: 2 }}>
-        <Button variant="contained" color="primary" fullWidth onClick={onContinuar}>
+        <PurpleButton fullWidth onClick={onContinuar}>
           Continuar viendo
-        </Button>
-        <Button variant="outlined" color="inherit" fullWidth onClick={onVolverGrid}>
+        </PurpleButton>
+        <PurpleButton outlined fullWidth onClick={onVolverGrid}>
           Volver a mis anuncios
-        </Button>
-        <Button variant="outlined" color="error" fullWidth onClick={onSalir} startIcon={<LogoutIcon />}>
+        </PurpleButton>
+        <PurpleButton outlined fullWidth onClick={onSalir} startIcon={<LogoutIcon />}>
           Salir de visualización
-        </Button>
+        </PurpleButton>
       </DialogActions>
     </Dialog>
   );
@@ -85,12 +85,12 @@ export const RewardScreen = ({ recompensaTotal, onRefill, onVolverGrid }) => {
       </Box>
 
       <Stack direction="row" spacing={2} sx={{ gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Button variant="contained" color="success" size="large" onClick={onRefill}>
+        <PurpleButton size="large" onClick={onRefill}>
           Ver más anuncios
-        </Button>
-        <Button variant="outlined" color="inherit" size="large" onClick={onVolverGrid}>
+        </PurpleButton>
+        <PurpleButton outlined size="large" onClick={onVolverGrid}>
           Volver a mis anuncios
-        </Button>
+        </PurpleButton>
       </Stack>
     </Paper>
   );
