@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Box, Typography, CircularProgress, Snackbar, Alert, Stack, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Snackbar, Alert, Stack, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import PurpleButton from '../../components/common/PurpleButton.jsx';
 import { useAdRewards } from '../../hooks/useAdRewards.jsx';
 import { AdGrid } from '../../components/AnunciosRemunerados/AdGrid.jsx';
@@ -195,3 +195,4 @@ const AnunciosRemunerados = () => {
 };
 
 export default AnunciosRemunerados;
+
