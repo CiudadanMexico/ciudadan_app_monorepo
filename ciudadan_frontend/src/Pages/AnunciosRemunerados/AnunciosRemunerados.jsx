@@ -72,9 +72,20 @@ const AnunciosRemunerados = () => {
 
   useEffect(() => {
     if (!modoVision || !itemActual) return undefined;
+    // Cooldown: una sola rueda del mouse dispara múltiples eventos wheel con
+    // deltaY > 40. Sin este refresco se saltaban varios videos por gesto.
+    let cooldown = false;
     const onWheel = (e) => {
-      if (e.deltaY > 40) intentarSiguiente();
-      else if (e.deltaY < -40) prevItem();
+      if (cooldown) return;
+      if (e.deltaY > 60) {
+        cooldown = true;
+        setTimeout(() => { cooldown = false; }, 900);
+        intentarSiguiente();
+      } else if (e.deltaY < -60) {
+        cooldown = true;
+        setTimeout(() => { cooldown = false; }, 900);
+        prevItem();
+      }
     };
     const onKey = (e) => {
       if (['ArrowDown', 'PageDown'].includes(e.key)) intentarSiguiente();

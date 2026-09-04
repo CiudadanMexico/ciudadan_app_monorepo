@@ -123,7 +123,6 @@ export const VideoPlayer = ({ src, poster, currentTime, onTimeUpdate, onEnded, a
       src={src}
       poster={poster || undefined}
       autoPlay={autoPlay}
-      muted
       playsInline
       controls={false}
       disablePictureInPicture
