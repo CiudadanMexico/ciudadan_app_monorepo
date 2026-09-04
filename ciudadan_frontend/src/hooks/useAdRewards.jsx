@@ -61,6 +61,9 @@ export const useAdRewards = () => {
   const [playlist, setPlaylist] = useState([]);
   const [cargandoAds, setCargandoAds] = useState(false);
   const [errorAds, setErrorAds] = useState(null);
+  // true solo después de que la petición de anuncios terminó (éxito o error).
+  // Evita el parpadeo del estado vacío ("ya viste todos") en el render inicial.
+  const [cargado, setCargado] = useState(false);
 
     // -- Estado de la sesión de reproducción --
   const [sesion, setSesion] = useState(null);
@@ -84,6 +87,7 @@ export const useAdRewards = () => {
       setErrorAds(err.message || 'Error al cargar anuncios');
     } finally {
       setCargandoAds(false);
+      setCargado(true);
     }
   }, [authToken]);
 
@@ -199,6 +203,7 @@ export const useAdRewards = () => {
     indiceActual,
     cargandoAds,
     errorAds,
+    cargado,
     modoVision,
     recompensaTotal,
     sesionFinalizada,

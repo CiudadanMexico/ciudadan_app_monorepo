@@ -21,7 +21,7 @@ const AnunciosRemunerados = () => {
 
   const {
     ads, playlist, sesion, itemActual, indiceActual,
-    cargandoAds, errorAds, modoVision, recompensaTotal,
+    cargandoAds, errorAds, cargado, modoVision, recompensaTotal,
     sesionFinalizada, tieneToken, authToken, authError,
     togglePlaylist, iniciarVision, nextItem, prevItem,
     setEstadoItem, iniciarHeartbeat, completarItemActual,
@@ -138,7 +138,10 @@ const AnunciosRemunerados = () => {
           <>
             {cargandoAds && <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}
             {errorAds && <Alert severity="error" sx={{ m: 2 }}>{errorAds}</Alert>}
-            {!cargandoAds && !errorAds && (
+            {!errorAds && !cargandoAds && !cargado && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>
+            )}
+            {!errorAds && cargado && !cargandoAds && (
               ads.length > 0 ? (
                 <>
                   <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />
