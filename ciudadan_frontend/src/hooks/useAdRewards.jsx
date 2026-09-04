@@ -132,13 +132,13 @@ export const useAdRewards = () => {
   }, []);
 
   const startHeartbeat = useCallback(
-    ({ itemId, currentTime, playing, visible, focused }) => {
+    ({ itemId, currentTime, duration, playing, visible, focused }) => {
       if (!sesion) return;
       apiHeartbeat(
         sesion.sesionId,
         sesion.token,
         authToken,
-        { itemId, currentTime, playing, visible, focused }
+        { itemId, currentTime, duration, playing, visible, focused }
       ).catch(() => {});
     },
     [sesion, authToken]
