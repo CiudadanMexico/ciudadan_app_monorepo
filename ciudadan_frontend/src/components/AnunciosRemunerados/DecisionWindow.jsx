@@ -17,6 +17,7 @@ import PurpleButton from '../common/PurpleButton.jsx';
  */
 export const DecisionWindow = ({
   decisionWindow = 5,
+  recompensa = 0,
   onContinuar,
   onNext,
 }) => {
@@ -83,6 +84,26 @@ export const DecisionWindow = ({
         <Typography variant="body1" color="inherit">
           Tienes <strong>{restante}s</strong> para decidir.
         </Typography>
+        {/* Recompensa que se gana al ver el anuncio completo */}
+        <Box
+          sx={{
+            mt: 1.5,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1,
+            px: 2,
+            py: 0.75,
+            borderRadius: 999,
+            border: '1.5px solid rgba(255,224,102,.55)',
+            backgroundColor: 'rgba(255,224,102,.10)',
+            boxShadow: '0 0 14px rgba(255,224,102,.18)',
+          }}
+        >
+          <Typography component="span" sx={{ fontSize: '1.1rem' }}>🪙</Typography>
+          <Typography component="span" sx={{ fontWeight: 800, color: '#ffe066', letterSpacing: '.02em' }}>
+            +{recompensa} laborys al completarlo
+          </Typography>
+        </Box>
         <Typography variant="body2" color="inherit" sx={{ mt: 1, opacity: 0.85 }}>
           Si continúas hasta el final, ganas la recompensa.
         </Typography>

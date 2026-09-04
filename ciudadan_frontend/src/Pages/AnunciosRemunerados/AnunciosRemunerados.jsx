@@ -195,13 +195,16 @@ const AnunciosRemunerados = () => {
             poster={itemActual.thumbnail || ''} autoPlay
             onTimeUpdate={handlePlaybackTick} onEnded={handleVideoEnded} />
           <DecisionWindow key={`d-${itemActual.id}`} decisionWindow={itemActual.decisionWindow}
+            recompensa={itemActual.recompensa || 0}
             onContinuar={() => { setComprometido(true); setEstadoItem(itemActual.id, 'committed').catch(() => {}); }}
             onNext={intentarSiguiente} />
-          <Box sx={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', color: 'warning.light' }}>
-            <Typography variant="body2">
-              {itemActual.estado === 'decision_window'
-                ? `Decisión: ${itemActual.decisionWindow}s restantes`
-                : 'Si sales ahora, no se contabilizará esta visualización'}
+          <Box sx={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: comprometido || itemActual.estado === 'committed' ? '#7CFC9B' : 'warning.light' }}>
+              {comprometido || itemActual.estado === 'committed'
+                ? `✔ Recompensa ganada: +${itemActual.recompensa || 0} laborys — termina el video para cobrarla`
+                : itemActual.estado === 'decision_window'
+                  ? `Decisión: ${itemActual.decisionWindow}s restantes · +${itemActual.recompensa || 0} laborys si la completas`
+                  : 'Si sales ahora, no se contabilizará esta visualización'}
             </Typography>
           </Box>
         </>
