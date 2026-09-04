@@ -21,10 +21,17 @@ export const DecisionWindow = ({
   onNext,
 }) => {
   const [restante, setRestante] = useState(decisionWindow);
+  // El popup se cierra al decidir (click en Continuar) o al agotarse el
+  // tiempo. Vuelve a abrirse automáticamente con el siguiente video porque
+  // el padre lo monta con key={item.id} (remount completo).
+  const [abierto, setAbierto] = useState(true);
 
   // Callbacks en ref: evitan que el countdown se reinicie en cada render del padre.
   const cbRef = useRef({ onContinuar, onNext });
   cbRef.current = { onContinuar, onNext };
+
+  // Evita doble commit: el timeout no debe dispararse si el usuario ya decidió.
+  const decididoRef = useRef(false);
 
   useEffect(() => {
     setRestante(decisionWindow);
@@ -32,7 +39,11 @@ export const DecisionWindow = ({
       setRestante((prev) => {
         if (prev <= 1) {
           clearInterval(t);
-          cbRef.current.onContinuar(); // timeout → se compromete el anuncio
+          if (!decididoRef.current) {
+            decididoRef.current = true;
+            setAbierto(false);          // cierra el popup
+            cbRef.current.onContinuar(); // timeout → se compromete el anuncio
+          }
           return 0;
         }
         return prev - 1;
@@ -41,6 +52,8 @@ export const DecisionWindow = ({
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decisionWindow]);
+
+  if (!abierto) return null;
 
   return (
     <Paper
@@ -76,7 +89,15 @@ export const DecisionWindow = ({
       </Box>
 
       <Stack direction="row" spacing={3} sx={{ gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <PurpleButton size="large" onClick={onContinuar}>
+        <PurpleButton
+          size="large"
+          onClick={() => {
+            if (decididoRef.current) return;
+            decididoRef.current = true;
+            setAbierto(false); // cierra el popup inmediatamente
+            onContinuar();
+          }}
+        >
           Continuar
         </PurpleButton>
         <PurpleButton
