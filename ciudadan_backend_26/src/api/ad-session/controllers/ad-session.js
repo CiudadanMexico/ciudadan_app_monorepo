@@ -90,12 +90,13 @@ async function cargarSesionValida(ctx, sesionId, strapi) {
 async function idsVistosHoy(strapi, userId) {
   if (!userId) return [];
   const inicioHoy = new Date(); inicioHoy.setHours(0, 0, 0, 0);
+  // ad es RELACIÓN con tabla de enlaces: no admite select directo, se popula.
   const vistas = await strapi.db.query('api::ad-view.ad-view').findMany({
     where: {
       usuario: { id: userId },
       timestamp: { $gte: inicioHoy.toISOString() },
     },
-    select: ['ad'],
+    populate: ['ad'],
   });
   return vistas.map((v) => Number(v.ad?.id ?? v.ad)).filter((n) => Number.isFinite(n) && n > 0);
 }

@@ -31,12 +31,15 @@ module.exports = createCoreController('api::ad.ad', ({ strapi }) => ({
     // en ad_views). "Hoy" = medianoche del server (mismo patrón que el tope
     // diario de ad-session).
     const inicioHoy = new Date(); inicioHoy.setHours(0, 0, 0, 0);
+    // NOTA: ad y usuario son RELACIONES con tabla de enlaces (ad_views_ad_links /
+    // ad_views_usuario_links) — NO se puede select:['ad'] (no existe como columna).
+    // Se usa populate y se lee v.ad.id.
     const vistasHoy = await strapi.db.query('api::ad-view.ad-view').findMany({
       where: {
         usuario: { id: userId },
         timestamp: { $gte: inicioHoy.toISOString() },
       },
-      select: ['ad'],
+      populate: ['ad'],
     });
     const idsVistos = vistasHoy
       .map((v) => Number(v.ad?.id ?? v.ad))
