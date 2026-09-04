@@ -138,8 +138,23 @@ const AnunciosRemunerados = () => {
           <>
             {cargandoAds && <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}
             {errorAds && <Alert severity="error" sx={{ m: 2 }}>{errorAds}</Alert>}
-            {!cargandoAds && !errorAds && <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />}
-            <PlaylistBar ads={ads} playlist={playlist} iniciarVision={iniciarVision} recompensaTotal={recompensaTotal} />
+            {!cargandoAds && !errorAds && (
+              ads.length > 0 ? (
+                <>
+                  <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />
+                  <PlaylistBar ads={ads} playlist={playlist} iniciarVision={iniciarVision} recompensaTotal={recompensaTotal} />
+                </>
+              ) : (
+                <Box sx={{ p: 6, m: 2, textAlign: 'center' }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Ya viste todos los anuncios disponibles por hoy 👀
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Vuelve mañana: cada día se renuevan los anuncios y las recompensas.
+                  </Typography>
+                </Box>
+              )
+            )}
             <Snackbar open={snack.open} autoHideDuration={4000}
               onClose={() => setSnack({ open: false, msg: '', severity: 'info' })} message={snack.msg} />
           </>

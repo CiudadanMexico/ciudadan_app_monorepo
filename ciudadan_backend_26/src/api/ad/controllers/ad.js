@@ -26,12 +26,28 @@ module.exports = createCoreController('api::ad.ad', ({ strapi }) => ({
 
     const limit = parseInt(ctx.query.limit, 10) || 20;
 
+    // Excluye los anuncios que el usuario ya vio HOY: un anuncio visto un día
+    // no reaparece hasta el siguiente (las vistas se registran al completar,
+    // en ad_views). "Hoy" = medianoche del server (mismo patrón que el tope
+    // diario de ad-session).
+    const inicioHoy = new Date(); inicioHoy.setHours(0, 0, 0, 0);
+    const vistasHoy = await strapi.db.query('api::ad-view.ad-view').findMany({
+      where: {
+        usuario: { id: userId },
+        timestamp: { $gte: inicioHoy.toISOString() },
+      },
+      select: ['ad'],
+    });
+    const idsVistos = vistasHoy
+      .map((v) => Number(v.ad?.id ?? v.ad))
+      .filter((n) => Number.isFinite(n) && n > 0);
+
     const ads = await strapi.entityService.findMany('api::ad.ad', {
       filters: {
         esPublicitario: true,
         activo: true,
         tipo: 'video',
-        $and: [{ publishedAt: { $notNull: true } }],
+        $and: [{ publishedAt: { $notNull: true } }, ...(idsVistos.length > 0 ? [{ id: { $notIn: idsVistos } }] : [])],
       },
       sort: { createdAt: 'DESC' },
       limit,

@@ -81,6 +81,25 @@ async function cargarSesionValida(ctx, sesionId, strapi) {
   return sesion;
 }
 
+/**
+ * IDs de anuncios que el usuario ya VIO hoy (vista válida = ad_view creado al
+ * completar). "Hoy" = medianoche del server (mismo patrón que TOPE_DIARIO_MIN).
+ * Se usa para excluirlos del grid / sesión / refill: un anuncio visto un día
+ * no vuelve a aparecer hasta el día siguiente.
+ */
+async function idsVistosHoy(strapi, userId) {
+  if (!userId) return [];
+  const inicioHoy = new Date(); inicioHoy.setHours(0, 0, 0, 0);
+  const vistas = await strapi.db.query('api::ad-view.ad-view').findMany({
+    where: {
+      usuario: { id: userId },
+      timestamp: { $gte: inicioHoy.toISOString() },
+    },
+    select: ['ad'],
+  });
+  return vistas.map((v) => Number(v.ad?.id ?? v.ad)).filter((n) => Number.isFinite(n) && n > 0);
+}
+
 module.exports = createCoreController('api::ad-session.ad-session', ({ strapi }) => ({
   /**
    * POST /ads/sesiones
@@ -94,18 +113,24 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
     const { adIds } = ctx.request.body || {};
     const ids = Array.isArray(adIds) ? adIds.map((i) => Number(i)).filter((i) => i > 0) : [];
 
-    // Anuncios publicitarios activos publicados (video).
+    // Anuncios publicitarios activos publicados (video), excluyendo los que
+    // el usuario ya vio hoy (un anuncio visto no reaparece hasta el día siguiente).
+    const vistosHoy = await idsVistosHoy(strapi, userId);
     const disponibles = await strapi.db.query('api::ad.ad').findMany({
       where: {
         esPublicitario: true,
         activo: true,
         tipo: 'video',
         publishedAt: { $notNull: true },
+        ...(vistosHoy.length > 0 ? { id: { $notIn: vistosHoy } } : {}),
       },
       populate: ['archivo', 'thumbnail'],
     });
 
     if (disponibles.length === 0) {
+      if (vistosHoy.length > 0) {
+        return ctx.throw(404, 'Ya viste todos los anuncios disponibles por hoy. Vuelve mañana.');
+      }
       return ctx.throw(404, 'No hay anuncios publicitarios disponibles');
     }
 
@@ -324,6 +349,20 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       return ctx.throw(409, 'La recompensa de este anuncio ya fue emitida');
     }
 
+    // Anti-fraude: un anuncio solo se paga una vez por usuario por día. Si ya
+    // existe una vista de este anuncio HOY (otra sesión en paralelo), se rechaza.
+    const inicioHoyDup = new Date(); inicioHoyDup.setHours(0, 0, 0, 0);
+    const vistaDuplicada = await strapi.db.query('api::ad-view.ad-view').findOne({
+      where: {
+        usuario: { id: sesion.usuario.id },
+        ad: { id: anuncio.id },
+        timestamp: { $gte: inicioHoyDup.toISOString() },
+      },
+    });
+    if (vistaDuplicada) {
+      return ctx.throw(409, 'Ya viste este anuncio hoy. No se emitirá otra recompensa.');
+    }
+
     const anuncio = item.anuncio;
     const duracion = Number(anuncio.duracion || 0);
     if (duracion <= 0) return ctx.throw(400, 'Anuncio sin duración válida');
@@ -430,6 +469,21 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
                     recompensa_total: colSuma(strapi, sesion.recompensa_total, recompensa),
         },
       });
+
+      // 5) Registrar la VISTA en ad_views: un anuncio visto hoy no vuelve a
+      // aparecer para este usuario hasta el día siguiente (findPublicitarios,
+      // crearSesion y refill excluyen los ids presentes aquí). publishedAt
+      // obligatorio: el content-type tiene draftAndPublish y el historial
+      // consulta vía REST que solo devuelve publicados.
+      await strapi.entityService.create('api::ad-view.ad-view', {
+        data: {
+          ad: anuncio.id,
+          usuario: sesion.usuario.id,
+          tipo: anuncio.tipo || 'video',
+          timestamp: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
     });
 
         ctx.body = { data: { completed: true, valid: true, reward: true, recompensa } };
@@ -445,12 +499,14 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
     const sesion = await cargarSesionValida(ctx, id, strapi);
     if (!sesion) return ctx.throw(403, 'Sesión inválida o expirada');
 
+    const vistosHoy = await idsVistosHoy(strapi, sesion.usuario.id);
     const disponibles = await strapi.db.query('api::ad.ad').findMany({
       where: {
         esPublicitario: true,
         activo: true,
         tipo: 'video',
         publishedAt: { $notNull: true },
+        ...(vistosHoy.length > 0 ? { id: { $notIn: vistosHoy } } : {}),
       },
     });
     const nuevos = disponibles.sort(() => Math.random() - 0.5).slice(0, 3);
