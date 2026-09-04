@@ -46,9 +46,12 @@ const AnunciosRemunerados = () => {
     if (itemActual && sesion) setEstadoItem(itemActual.id, 'decision_window').catch(() => {});
   }, [itemActual, sesion, setEstadoItem]);
 
-  // Heartbeat: VideoPlayer emite { currentTime, playing, visible, focused } cada 1s.
+  // Heartbeat: VideoPlayer emite { currentTime, duration, playing, visible, focused } cada 1s.
   // El backend exige itemId + currentTime: se agrega el id del item actual.
+  // Se guarda el último tick en un ref para el heartbeat final al terminar.
+  const ultimoTickRef = useRef(null);
   const handlePlaybackTick = useCallback((t) => {
+    ultimoTickRef.current = t;
     if (!itemActual || !sesion) return;
     iniciarHeartbeat({ ...t, itemId: itemActual.id });
   }, [iniciarHeartbeat, itemActual, sesion]);
@@ -103,6 +106,20 @@ const AnunciosRemunerados = () => {
 
   const handleVideoEnded = async () => {
     if (!itemActual) return;
+    try {
+      // Heartbeat FINAL con ended=true + duración real: el servidor registra
+      // duracion_real ANTES de que completar valide cobertura (evita la carrera).
+      const t = ultimoTickRef.current || {};
+      await iniciarHeartbeat({
+        itemId: itemActual.id,
+        currentTime: Number(t.currentTime || 0),
+        duration: Number(t.duration || 0),
+        playing: false,
+        visible: true,
+        focused: true,
+        ended: true,
+      });
+    } catch (e) { /* el heartbeat es best-effort */ }
     try {
       const res = await completarItemActual();
       setSnack({

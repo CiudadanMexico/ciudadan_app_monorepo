@@ -59,6 +59,10 @@
     "ultima_posicion_seg": {
       "type": "decimal"
     },
+    "duracion_real": {
+      "type": "decimal",
+      "default": 0
+    },
     "recompensa": {
       "type": "decimal",
       "default": 0

@@ -58,6 +58,8 @@ export const VideoPlayer = ({ src, poster, currentTime, onTimeUpdate, onEnded, a
     const id = setInterval(() => {
       onTimeUpdate({
         currentTime: v.currentTime,
+        // Duración REAL del medio (puede diferir de la declarada en el anuncio).
+        duration: Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0,
         playing: !v.paused && !v.ended,
         visible,
         focused,

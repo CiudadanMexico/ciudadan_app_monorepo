@@ -290,6 +290,15 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
     const ahora = new Date();
     const updates = { ultimo_tick: ahora.toISOString() };
 
+    // Duración REAL del medio (reportada por el video element del cliente).
+    // Las duraciones declaradas en el seed/admin pueden no coincidir con el
+    // archivo real; completar usará esta para calcular cobertura y tiempo.
+    const duracionReportada = Number(body.duration || 0);
+    if (Number.isFinite(duracionReportada) && duracionReportada > 0) {
+      const dr = Math.max(Number(item.duracion_real || 0), duracionReportada);
+      updates.duracion_real = dr;
+    }
+
     if (playing && visible && focused && !['completed', 'skipped', 'abandoned', 'invalid'].includes(item.estado)) {
       const avancePermitido = prevPos + MAX_AVANCE_POR_TICK_SEG;
       const posMarcada = Math.min(currentTime, avancePermitido, duracion);
@@ -373,9 +382,14 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
     const segVistos = Array.isArray(item.cobertura)
       ? item.cobertura.filter((s) => s === 1).length
       : 0;
-    const cobertura = segTotales > 0 ? segVistos / segTotales : 0;
+    // Duración EFECTIVA: si el medio reportó una duración real menor a la
+    // declarada (el archivo acabó antes), la cobertura se mide contra la real.
+    const duracionReal = Number(item.duracion_real || 0);
+    const duracionEfectiva = duracionReal > 0 ? Math.min(duracion, duracionReal) : duracion;
+    const segEsperados = Math.max(1, Math.round((duracionEfectiva * 1000) / SEGMENTO_MS));
+    const cobertura = segEsperados > 0 ? Math.min(1, segVistos / segEsperados) : 0;
         const tiempoEfectivoMin = (Number(item.tiempo_efectivo_ms || 0) / 1000 / 60);
-    const tiempoRequeridoMin = duracion / 60 * MIN_TIEMPO_EFECTIVO;
+    const tiempoRequeridoMin = duracionEfectiva / 60 * MIN_TIEMPO_EFECTIVO;
 
     if (cobertura < MIN_COBERTURA) {
       await strapi.db.query('api::ad-session-item.ad-session-item').update({
