@@ -47,9 +47,11 @@ const AnunciosRemunerados = () => {
   }, [itemActual, sesion, setEstadoItem]);
 
   // Heartbeat: VideoPlayer emite { currentTime, playing, visible, focused } cada 1s.
+  // El backend exige itemId + currentTime: se agrega el id del item actual.
   const handlePlaybackTick = useCallback((t) => {
-    iniciarHeartbeat(t);
-  }, [iniciarHeartbeat]);
+    if (!itemActual || !sesion) return;
+    iniciarHeartbeat({ ...t, itemId: itemActual.id });
+  }, [iniciarHeartbeat, itemActual, sesion]);
 
   // Saltar el anuncio actual: durante la ventana de decisión se sale sin
   // penalidad (skipped); comprometido → abandoned (pierde la recompensa).

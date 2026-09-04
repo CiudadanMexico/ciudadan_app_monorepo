@@ -352,11 +352,12 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
 
     // Anti-fraude: un anuncio solo se paga una vez por usuario por día. Si ya
     // existe una vista de este anuncio HOY (otra sesión en paralelo), se rechaza.
+    // NOTA: se usa item.anuncio (anuncio aún no está declarado en este punto).
     const inicioHoyDup = new Date(); inicioHoyDup.setHours(0, 0, 0, 0);
     const vistaDuplicada = await strapi.db.query('api::ad-view.ad-view').findOne({
       where: {
         usuario: { id: sesion.usuario.id },
-        ad: { id: anuncio.id },
+        ad: { id: item.anuncio.id },
         timestamp: { $gte: inicioHoyDup.toISOString() },
       },
     });
