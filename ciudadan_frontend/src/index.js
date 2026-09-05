@@ -71,6 +71,22 @@ const AppWrapper = () => {
           <Asistente />
         </AuthGate>
       </Box>
+
+      {/* Separador vertical global: reserva el espacio de la barra amarilla fija
+          inferior (.bottom-bar, 72px según lo que la app misma asume en
+          split-action-button) para que no tape el final del contenido en
+          ninguna página. En /wiki la barra no existe, así que no se inserta. */}
+      {!isWikiRoute && (
+        <Box
+          aria-hidden="true"
+          sx={{
+            width: "100%",
+            flexShrink: 0,
+            height: 88,
+            pointerEvents: "none",
+          }}
+        />
+      )}
     </Box>
   );
 };

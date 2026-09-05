@@ -16,8 +16,14 @@ import {
   Typography,
   Stack,
 } from "@mui/material";
+import {
+  GoogleMap,
+  Marker,
+  useLoadScript,
+} from "@react-google-maps/api";
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL || "";
+const LIBRARIES = ["places"];
 
 /**
  * DireccionSelector (sin mapa, sin columna de previsualización)
@@ -49,6 +55,10 @@ export default function DireccionSelector({ onConfirm }) {
   // 🔴 SELECCIÓN ACTIVA (NUEVO)
   const [selectedId, setSelectedId] = useState(null);
 
+  const [modoDireccionManual, setModoDireccionManual] = useState(false);
+  const [mapCenter, setMapCenter] = useState(null);
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
+
   const {
     ready,
     value,
@@ -56,6 +66,11 @@ export default function DireccionSelector({ onConfirm }) {
     suggestions: { status, data },
     clearSuggestions,
   } = usePlacesAutocomplete({ debounce: 300, requestOptions: { componentRestrictions: { country: "mx" } } });
+
+  const { isLoaded: isMapLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries: LIBRARIES
+  });
 
   useEffect(() => {
     if (isAuthenticated && user?.email) fetchSaved();
@@ -194,6 +209,11 @@ export default function DireccionSelector({ onConfirm }) {
       lng: norm.lng || null,
       formatted_address: norm.formatted_address || "",
     }));
+    
+    setMapCenter({
+      lat: norm.lat,
+      lng: norm.lng,
+    });
 
     const payload = {
       id: d.id || null,
@@ -224,23 +244,40 @@ export default function DireccionSelector({ onConfirm }) {
     try {
       setValue(description, false);
       clearSuggestions();
+
       const results = await getGeocode({ address: description });
+
       if (!results || results.length === 0) return;
+
       const first = results[0];
+
       const parsed = parseFormattedAddress(first.formatted_address || description);
-      const { lat, lng } = await getLatLng(first);
-      setForm((p) => ({
-        ...p,
-        calle: parsed.street,
-        numero: parsed.number,
-        colonia: parsed.neighborhood,
-        ciudad: parsed.city,
-        estado: parsed.state,
-        cp: parsed.postal_code || "",
+
+      const { lat, lng } = getLatLng(first);
+
+      setForm((p) => {
+        const aux = {
+          ...p,
+          calle: parsed.street,
+          numero: parsed.number,
+          colonia: parsed.neighborhood,
+          ciudad: parsed.city,
+          estado: parsed.state,
+          cp: parsed.postal_code || "",
+          lat,
+          lng,
+          formatted_address: first.formatted_address || description,
+        };
+        console.log("Data form:", aux);
+        return aux
+      });
+
+      setMapCenter({
         lat,
         lng,
-        formatted_address: first.formatted_address || description,
-      }));
+      });
+
+      setModoDireccionManual(false);
     } catch (err) {
       console.error("handleSelectSuggestion:", err);
     }
@@ -336,6 +373,79 @@ export default function DireccionSelector({ onConfirm }) {
     };
 
     onConfirm && onConfirm(dirObj);
+  };
+
+  const obtenerUbicacionInicial = () => {
+    if (!navigator.geolocation) {
+      return;
+    }
+
+    setObteniendoUbicacion(true);
+
+    navigator.geolocation.getCurrentPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      setForm((prev) => ({
+        ...prev,
+        lat,
+        lng,
+      }));
+
+      setMapCenter({
+        lat,
+        lng,
+      });
+
+      setObteniendoUbicacion(false);
+    }, (error) => {
+      console.warn("No fue posible obtener ubicación:", error);
+      setObteniendoUbicacion(false);
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
+    });
+  };
+
+  const handleMarkerDragEnd = (event) => {
+    const lat =
+      event.latLng.lat();
+
+    const lng =
+      event.latLng.lng();
+
+    setForm((prev) => ({
+      ...prev,
+      lat,
+      lng,
+    }));
+
+    setMapCenter({
+      lat,
+      lng,
+    });
+  };
+
+  const activarModoManual = () => {
+    setModoDireccionManual(true);
+    clearSuggestions();
+    setValue("");
+
+    setForm({
+      calle: "",
+      numero: "",
+      colonia: "",
+      ciudad: "",
+      estado: "",
+      cp: "",
+      referencia: "",
+      lat: null,
+      lng: null,
+      formatted_address: "",
+    });
+
+    obtenerUbicacionInicial();
   };
 
   return (
@@ -451,8 +561,32 @@ export default function DireccionSelector({ onConfirm }) {
                   ))}
                 </Box>
               )}
+              <Box
+                sx={{
+                  mt: 2,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 2,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  ¿No puedes encontrar tu dirección?
+                </Typography>
 
-              <TextField label="Calle" value={form.calle} onChange={(e) => setForm((p) => ({ ...p, calle: e.target.value }))} required />
+                <Button
+                  variant="outlined"
+                  onClick={activarModoManual}
+                >
+                  Ingresar dirección manualmente
+                </Button>
+              </Box>
+
+              {/* <TextField label="Calle" value={form.calle} onChange={(e) => setForm((p) => ({ ...p, calle: e.target.value }))} required />
 
               <Grid container spacing={1}>
                 <Grid item xs={6}>
@@ -473,7 +607,177 @@ export default function DireccionSelector({ onConfirm }) {
               </Grid>
 
               <TextField label="Código Postal" value={form.cp} onChange={(e) => setForm((p) => ({ ...p, cp: e.target.value }))} />
-              <TextField label="Referencia / Observaciones" value={form.referencia} onChange={(e) => setForm((p) => ({ ...p, referencia: e.target.value }))} />
+              <TextField label="Referencia / Observaciones" value={form.referencia} onChange={(e) => setForm((p) => ({ ...p, referencia: e.target.value }))} /> */}
+              {modoDireccionManual && (
+                <Box
+                  sx={{
+                    mt: 2,
+                    p: 2,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 2 }} >
+                    Dirección manual
+                  </Typography>
+
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={8}>
+                      <TextField
+                        fullWidth
+                        label="Calle"
+                        value={form.calle}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            calle: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={4}>
+                      <TextField
+                        fullWidth
+                        label="Número"
+                        value={form.numero}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            numero: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Colonia"
+                        value={form.colonia}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            colonia: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Ciudad"
+                        value={form.ciudad}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            ciudad: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Estado"
+                        value={form.estado}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            estado: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Código postal"
+                        value={form.cp}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            cp: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Referencia"
+                        value={form.referencia}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            referencia: e.target.value,
+                          }))
+                        }
+                      />
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+              {isMapLoaded && Number.isFinite(Number(form.lat)) && Number.isFinite(Number(form.lng)) && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight={700}
+                    sx={{ mb: 1 }}
+                  >
+                    Ubicación de entrega
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    Arrastra el marcador si necesitas ajustar
+                    la ubicación exacta.
+                  </Typography>
+
+                  <GoogleMap
+                    mapContainerStyle={{
+                      width: "100%",
+                      height: "350px",
+                      borderRadius: 12,
+                    }}
+                    zoom={15}
+                    center={{
+                      lat: Number(form.lat),
+                      lng: Number(form.lng),
+                    }}
+                  >
+                    <Marker
+                      position={{
+                        lat: Number(form.lat),
+                        lng: Number(form.lng),
+                      }}
+                      draggable
+                      onDragEnd={handleMarkerDragEnd}
+                    />
+                  </GoogleMap>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{
+                      display: "block",
+                      mt: 1,
+                    }}
+                  >
+                    Coordenadas:{" "}
+                    {Number(form.lat).toFixed(6)},{" "}
+                    {Number(form.lng).toFixed(6)}
+                  </Typography>
+                </Box>
+              )}
 
               <FormControlLabel control={<Switch checked={predeterminada} onChange={(e) => setPredeterminada(e.target.checked)} />} label="Marcar como predeterminada" />
 

@@ -1,0 +1,73 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_deliveries",
+  "info": {
+    "singularName": "food-delivery",
+    "pluralName": "food-deliveries",
+    "displayName": "Food Delivery",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "food_order": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-order.food-order"
+    },
+    "restaurant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "provider": {
+      "type": "string",
+      "default": "uber_direct"
+    },
+    "quote_id": {
+      "type": "string",
+      "required": true
+    },
+    "uber_delivery_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "processing",
+        "pickup",
+        "in_transit",
+        "delivered",
+        "cancelled",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "fee": {
+      "type": "decimal"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "tracking_url": {
+      "type": "string"
+    },
+    "pickup": {
+      "type": "json"
+    },
+    "dropoff": {
+      "type": "json"
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

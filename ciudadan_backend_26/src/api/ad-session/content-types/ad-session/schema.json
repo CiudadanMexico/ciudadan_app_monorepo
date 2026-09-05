@@ -1,0 +1,61 @@
+{
+  "kind": "collectionType",
+  "collectionName": "ad_sessions",
+  "info": {
+    "singularName": "ad-session",
+    "pluralName": "ad-sessions",
+    "displayName": "Sesiones de Anuncios",
+    "description": "Sesión de reproducción de anuncios remunerados. El backend valida la visualización y emite recompensas."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "token": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": [
+        "activa",
+        "completada",
+        "expirada",
+        "abandonada"
+      ],
+      "default": "activa"
+    },
+    "inicio": {
+      "type": "datetime",
+      "required": true
+    },
+    "fin": {
+      "type": "datetime"
+    },
+    "indice_actual": {
+      "type": "integer",
+      "default": 0
+    },
+    "recompensa_total": {
+      "type": "decimal",
+      "default": 0
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::ad-session-item.ad-session-item",
+      "mappedBy": "sesion"
+    }
+  }
+}

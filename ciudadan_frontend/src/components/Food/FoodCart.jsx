@@ -24,7 +24,7 @@ const FoodCart = () => {
     subtotal,
     montoEnvio,
     montoTotal,
-    updateItemQuantity,
+    updateQuantity,
     removeItem,
     clearCart,
   } = useFoodCart();
@@ -108,13 +108,13 @@ const FoodCart = () => {
                         key={item.item_key}
                         item={item}
                         onIncrease={() =>
-                          updateItemQuantity(
+                          updateQuantity(
                             item.item_key,
                             item.cantidad + 1
                           )
                         }
                         onDecrease={() =>
-                          updateItemQuantity(
+                          updateQuantity(
                             item.item_key,
                             item.cantidad - 1
                           )
