@@ -147,14 +147,17 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     }
 
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
-    const userId = travel?.userEmail ?? travel?.id ?? null;
-    console.log('[TravelCard] driverId:', userId);
+    const driverEmail = travel?.driverEmail ?? travel?.driver?.email ?? null;
+    const userEmail = travel?.userData?.email ?? travel?.userEmail ?? travel?.email ?? null;
+    //console.log('[TravelCard] driverEmail:', driverEmail);
+    //console.log('[TravelCard] userEmail:', userEmail);
 
     const payload = {
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
       driver,
-      driverId: userId,
+      driverEmail,
+      userEmail,
       meta: {
         from: 'conductor',
         travelId: resolvedTravelId,

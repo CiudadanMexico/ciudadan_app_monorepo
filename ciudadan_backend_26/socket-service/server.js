@@ -102,6 +102,7 @@ io.on("connection", (socket) => {
 
   socket.on('register', (data) => {
     try {
+      console.log(data);
       const email = (data && data.email) ? String(data.email) : null;
       if (email) {
         socket.join(email);
@@ -127,20 +128,21 @@ io.on("connection", (socket) => {
         if (typeof ack === 'function') ack({ ok: false, error: 'payload inválido: coordinates lat/lng requeridos' });
         return;
       }
-      const userRating = payload.driverId ? await getUserRating(payload.driverId, true) : null;
-      console.log('userRating obtenido para driverId', payload.driverId, ':', userRating);
+      const userRating = payload.driverEmail ? await getUserRating(payload.driverEmail, true) : null;
+      console.log('userRating obtenido para driverEmail', payload.driverEmail, ':', userRating);
       const out = {
         fromSocketId: socket.id,
         coordinates: { lat: Number(coords.lat), lng: Number(coords.lng) },
         driver: payload.driver,
-        driverId: payload.driverId || null,
+        driverEmail: payload.driverEmail || null,
+        userEmail: payload.userEmail || null,
         travel: payload.rawTravel,
         price: payload.price,
         userRating,
         meta: payload.meta || null,
         timestamp: new Date().toISOString(),
       };
-      socket.broadcast.emit('ofertaviaje', out);
+      io.to(payload.userEmail).emit('ofertaviaje', out);
       if (typeof ack === 'function') ack({ ok: true });
     } catch (e) {
       console.error('Error manejando ofertaviaje:', e);
@@ -148,14 +150,38 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on('joinRoom', (payload) => {
+    try {
+      const room = payload.channel || payload.room || payload.email;
+      if (room && typeof room === 'string') {
+        socket.join(room);
+        console.debug(`Socket ${socket.id} se unió a room: ${room}`);
+      }
+    } catch (err) {
+      console.error('Error en joinRoom:', err);
+    }
+  });
+
+  socket.on('leaveRoom', (payload) => {
+    try {
+      const room = payload.channel || payload.room || payload.email;
+      if (room && typeof room === 'string') {
+        socket.leave(room);
+        console.debug(`Socket ${socket.id} dejó la room: ${room}`);
+      }
+    } catch (err) {
+      console.error('Error en leaveRoom:', err);
+    }
+  });
+
   socket.on('actualizandoUbicacion', (payload) => {
     try {
-      if (!payload || !payload.payload) {
+      if (!payload) {
         console.error('Error en actualizandoUbicacion: payload inválido');
         return;
       }
-      console.log(payload.payload);
-      io.emit('driver-location', payload.payload);
+      //console.log(payload.payload);
+      io.to(payload.travelId).emit('driver-location', payload);
     } catch (e) {
       console.error('Error en actualizandoUbicacion:', e);
     }
@@ -168,9 +194,35 @@ io.on("connection", (socket) => {
         return;
       }
       console.log('trip-update recibido:', JSON.stringify(payload, null, 2));
-      io.emit('trip-update', payload);
+      io.to(payload.travelId).emit('trip-update', payload);
     } catch (e) {
       console.error('Error en trip-update:', e);
+    }
+  });
+
+  socket.on('cancel-search', (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en cancel-search: payload inválido o falta travelId');
+        return;
+      }
+      console.log('cancel-search recibido:', JSON.stringify(payload, null, 2));
+      io.emit('cancel-search', payload);
+    } catch (e) {
+      console.error('Error en cancel-search:', e);
+    }
+  });
+
+  socket.on('offer-rejected', (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en offer-rejected: payload inválido o falta travelId');
+        return;
+      }
+      console.log('offer-rejected recibido:', JSON.stringify(payload, null, 2));
+      io.emit('offer-rejected', payload);
+    } catch (e) {
+      console.error('Error en offer-rejected:', e);
     }
   });
 

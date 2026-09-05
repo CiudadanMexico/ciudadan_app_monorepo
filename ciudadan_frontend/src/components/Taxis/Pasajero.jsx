@@ -482,6 +482,18 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     [mapRef],
   );
 
+  const removeAllOfferMarkers = useCallback(() => {
+    if (offersRef.current.length === 0) return;
+
+    offersRef.current.forEach((offer) => {
+      offer.marker.setMap(null);
+      offer.infoWindow.close();
+    });
+
+    offersRef.current = [];
+    setOffers([]);
+  }, []);
+
   // Procesar ofertas pendientes cuando el mapa esté listo
   useEffect(() => {
     if (!googleMapsLoaded) return;
@@ -507,6 +519,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           'url=',
           process.env.REACT_APP_SOCKET_URL,
         );
+        if (user?.email) {
+          socketRef.current.emit('register', { email: user.email });
+        }
       });
 
       socketRef.current.on('connect_error', (err) => {
@@ -569,10 +584,10 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       // NUEVO: escucha del evento de oferta de viaje
       socketRef.current.on('ofertaviaje', (payload) => {
         // payload esperado: { coordinates: { lat, lng }, price: 123, ... }
-        console.log(
+        /*console.log(
           '[Socket] ofertaviaje recibido:',
           safeStringify(payload, 2000),
-        );
+        );*/
         try {
           const coordinates =
             payload.coordinates || payload.coords || payload.location || null;
@@ -1059,7 +1074,42 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     }
   };
 
+  const rejectOffer = () => {
+    if (!selectedOffer) return;
+    console.log('[rejectOffer] rechazando oferta id=', selectedOffer);
+    try {
+      const idx = offersRef.current.findIndex((o) => o.id === selectedOffer?.id);
+      if (idx !== -1) {
+        const o = offersRef.current[idx];
+        if (o.infoWindow) o.infoWindow.close();
+        if (o.marker) o.marker.setMap(null);
+        offersRef.current.splice(idx, 1);
+        setOffers((prev) => prev.filter((p) => p.id !== selectedOffer.id));
+      }
+
+      if (socketRef.current) {
+        socketRef.current.emit('offer-rejected', {
+          user: user?.email,
+          driver: selectedOffer.driver?.email,
+          travelId: selectedOffer.id
+        });
+      }
+    } catch (e) {
+      console.error('[rejectOffer] error:', e);
+    } finally {
+      setSelectedOffer(null);
+      setIsModalOpen(false);
+    }
+  };
+
   const cancelarBusqueda = () => {
+    console.log('[Pasajero] cancelando búsqueda de taxistas');
+    if (socketRef.current) {
+      socketRef.current.emit('cancel-search',
+        user?.email
+      );
+    }
+    removeAllOfferMarkers();
     setLoadingSearch(false);
   };
 
@@ -1223,6 +1273,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           <AcceptTrip
             selectedOffer={selectedOffer}
             acceptOffer={acceptOffer}
+            rejectOffer={rejectOffer}
             closeModal={closeModal}
           />
         )}

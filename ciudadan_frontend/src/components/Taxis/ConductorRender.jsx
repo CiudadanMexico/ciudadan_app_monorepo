@@ -29,6 +29,7 @@ const ConductorRender = ({
   handleBackButtonClick,
   handleCloseButtonClick,
   handleAcceptTrip,
+  handleRejectTrip,
   handlePasajero,
   handleConductor,
   ElapsedTimer,
@@ -37,6 +38,7 @@ const ConductorRender = ({
   // props opcionales que si existen los actualizamos para mantener sync con padre
   setTravelData, // optional: función para actualizar travelData desde el padre
   setRejected, // optional: función para exponer lista de rechazados al padre
+  setIsWaiting
 }) => {
   // socket ref para emitir propuesta cuando corresponda
   const socketRef = useRef(null);
@@ -210,8 +212,8 @@ const ConductorRender = ({
     // Obtener emails únicos de conductores
     const uniqueEmails = new Set();
     travelData.forEach((travel) => {
-      if (travel?.userEmail) {
-        uniqueEmails.add(travel.userEmail);
+      if (travel?.driverEmail) {
+        uniqueEmails.add(travel.driverEmail);
       }
     });
 
@@ -232,7 +234,7 @@ const ConductorRender = ({
   // Verificar si el viaje es gratis
   useEffect(() => {
     travelData.forEach((t, idx) => {
-      const driverEmail = t?.userEmail;
+      const driverEmail = t?.driverEmail;
       const userEmail = t?.userData?.email;
       const userFreeTrip = t?.freeTrip;
       console.log(`[ConductorRender] free trip user ${userEmail}:`, userFreeTrip);
@@ -309,7 +311,7 @@ const ConductorRender = ({
           // nada que hacer
           return;
         }
-
+        handleRejectTrip(id); // delegar al padre si existe
         // marcar rechazado y persistir
         addRejectedId(id);
         console.log('[ConductorRender] viaje marcado como rechazado id=', id);
@@ -342,6 +344,9 @@ const ConductorRender = ({
 
       socketRef.current.on('connect', () => {
         console.log('[ConductorRender][socket] conectado id=', socketRef.current.id);
+        if (user?.email) {
+          socketRef.current.emit('register', { email: user.email });
+        }
       });
 
       socketRef.current.on('connect_error', (err) => {
@@ -364,6 +369,17 @@ const ConductorRender = ({
             console.warn('[ConductorRender] viajeAceptado sin travelId en payload:', payload);
             return;
           }
+
+          setTravelData((prev) => {
+            const next = prev.filter(
+              (travel) =>
+                String(travel.userEmail).toLowerCase() !==
+                String(payload.userEmail).toLowerCase()
+            );
+            console.log('[ConductorRender] viajes restantes tras viaje aceptado:', next.length);
+            setIsWaiting(next.length === 0);
+            return next;
+          });
 
           // Preparar variables para Strapi
           const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');

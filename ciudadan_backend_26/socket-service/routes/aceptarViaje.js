@@ -127,10 +127,12 @@ router.post('/aceptar-viaje', async (req, res) => {
     try {
       const io = req.app?.get?.('io');
       if (io && typeof io.emit === 'function') {
-        io.emit('viajeAceptado', {
+        io.to(driverEmail).emit('viajeAceptado', {
           travelId: travelIdFinal,
           strapiId: existing.id,
           status: 'iniciando',
+          userEmail,
+          driverEmail,
           timestamp: new Date().toISOString(),
         });
       }

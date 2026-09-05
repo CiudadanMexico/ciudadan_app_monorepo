@@ -50,7 +50,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   const isTripFree = viaje?.attributes?.isTripFree || false;
   //const routeInfo = viaje?.attributes?._routeInfo || null;
 
-  const cancelarViaje = async () => {
+  const interrumpirViaje = async () => {
     if (typeof onCancel === 'function') onCancel();
   };
 
@@ -155,31 +155,20 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   };*/
 
   useEffect(() => {
+      loadLabory();
+    }, [loadLabory]);
+
+  useEffect(() => {
     if (!socket || !viaje?.id) return;
-    const channel = `trip:${viaje.id}`;
+    const channel = viaje.id;
+    console.log('[ViajeUsuario] uniendo a canal:', channel);
 
-    loadLabory();
-
-    const onDriverLocation = (payload) => {
-      if (!payload?.coords) return;
-      const n = normalizeCoord(payload.coords);
-      if (n) setUserCoords(n);
-    };
-    const onTripUpdate = (p) => {
-      if (!p) return;
-      // podrías actualizar viaje local si hace falta
-    };
-
-    try { socket.emit('join', { channel, client: { type: 'passenger' } }); } catch (e) { }
-    socket.on('driver-location', onDriverLocation);
-    socket.on('trip-update', onTripUpdate);
+    try { socket.emit('joinRoom', { channel, client: { type: 'passenger' } }); } catch (e) { }
 
     return () => {
-      try { socket.emit('leave', { channel, client: { type: 'passenger' } }); } catch (e) { }
-      socket.off('driver-location', onDriverLocation);
-      socket.off('trip-update', onTripUpdate);
+      try { socket.emit('leaveRoom', { channel, client: { type: 'passenger' } }); } catch (e) { }
     };
-  }, [socket, viaje, setUserCoords, loadLabory]);
+  }, [socket, viaje, setUserCoords]);
 
   return (
     <div style={{
@@ -299,7 +288,6 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                         <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
                       </>
                     )}
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#151bc1', paddingTop: 12 }}>Confirma tu pago con el conductor</div>
                   </>
                   :
                   <div>
@@ -317,48 +305,62 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               </div>
             }
           </div>
-          
+
+          {(status === 'en_curso' || status === 'iniciando') && <button
+            onClick={() => {
+              const center = pickupNorm || taxiNorm;
+              if (mapRef?.current && center) {
+                mapRef.current.setCenter(center);
+                mapRef.current.setZoom(16);
+              }
+            }}
+            style={{ padding: 12, margin: 4, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}
+          >
+            Centrar en pickup / taxi
+          </button>}
+
           {(status === 'iniciando' && routeInfo < 0.15) &&
             <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
               El conductor ya está cerca de su parada. Espere un momento más.
             </h4>
           }
-          {(status === 'en_curso' && routeInfo < 0.15) &&
-            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
-              Ya casi llegas. Revisa todas tus pertenencias antes de bajar.
-            </h4>
-          }
-
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            {(status === 'en_curso' || status === 'iniciando') && <button
-              onClick={() => {
-                const center = pickupNorm || taxiNorm;
-                if (mapRef?.current && center) {
-                  mapRef.current.setCenter(center);
-                  mapRef.current.setZoom(16);
-                }
-              }}
-              style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}
-            >
-              Centrar en pickup / taxi
-            </button>}
-            {(status === 'en_curso' && routeInfo >= 0.15) &&
-              <button onClick={cancelarViaje} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>
-                Finalizar antes del destino
+          {status === 'en_curso' && (
+            routeInfo < 0.15 ? (
+              <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
+                Ya casi llegas. Revisa todas tus pertenencias antes de bajar.
+              </h4>
+            ) : (
+              <button
+                onClick={interrumpirViaje}
+                style={{
+                  padding: 8,
+                  borderRadius: 8,
+                  background: 'none',
+                  color: '#f80e0e',
+                  textAlign: 'center',
+                  textDecoration: 'underline',
+                  border: 'none',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Finalizar viaje antes del destino
               </button>
-            }
-          </div>
-          {status === 'fin_solicitado_pasajero' &&
-            <div>
-              <div style={{ color: '#333', textAlign: 'center', fontSize: 14, paddingBottom: 6, fontWeight: 600 }}>
-                Espere a que el conductor acepte su solicitud. Si no acepta, puede marcar a los siguientes contactos.
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
-                <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
-              </div>
+            )
+          )}
+          {status === 'finalizado' && (
+            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
+              Confirma tu pago con el conductor
+            </h4>
+          )}
+
+            <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
+              En caso de emergencia, puede marcar a los siguientes contactos.
             </div>
-          }
+            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+              <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
+              <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
+            </div>
 
           {/*paymentFlowState?.isPaymentFlowActive && (
             <div style={{ borderTop: '1px solid #eee', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>

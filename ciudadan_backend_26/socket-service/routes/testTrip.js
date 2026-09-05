@@ -252,7 +252,7 @@ router.post('/cancel-trip', async (req, res) => {
     if (payload.driverId && payload.notifyDriver) {
       try {
         // Convención de room: 'driver:<driverId>' (ajusta a tu implementación)
-        io.to(`driver:${payload.driverId}`).emit('trip-cancel', payload);
+        io.to(payload.driverId).emit('trip-cancel', payload);
         console.log(`[testTrip] emit to driver:${payload.driverId}`);
       } catch (e) {
         console.warn(`[testTrip] fallo al emitir a driver:${payload.driverId}`, e);
@@ -263,7 +263,7 @@ router.post('/cancel-trip', async (req, res) => {
     if (payload.userEmail && payload.notifyUser) {
       try {
         // Convención de room: 'user:<email>' (ajusta a tu implementación)
-        io.to(`user:${payload.userEmail}`).emit('trip-cancel', payload);
+        io.to(payload.userEmail).emit('trip-cancel', payload);
         console.log(`[testTrip] emit to user:${payload.userEmail}`);
       } catch (e) {
         console.warn(`[testTrip] fallo al emitir a user:${payload.userEmail}`, e);

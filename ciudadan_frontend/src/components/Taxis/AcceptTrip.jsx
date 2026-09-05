@@ -1,7 +1,7 @@
 // src/components/Taxis/AcceptTrip.jsx
 import React, { useState, useEffect } from "react";
 
-export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
+export default function AcceptTrip({ selectedOffer, acceptOffer, rejectOffer, closeModal }) {
   const [vehicleData, setVehicleData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -429,6 +429,21 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
             }}
           >
             Cerrar
+          </button>
+
+          <button
+            onClick={rejectOffer}
+            disabled={loading}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: "none",
+              background: loading ? "#ccc" : "#d63a3a",
+              color: "#fff",
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            Rechazar
           </button>
 
           <button

@@ -64,12 +64,9 @@ const ViajeConductor = ({
   const terminarViaje = async () => {
     setStatus('finalizado');
     if (typeof onStatusChange === 'function') onStatusChange('finalizado');
-    /*try {
-      socket?.emit('trip-action', { viajeId: viaje?.id, action: 'finish', ts: new Date().toISOString() });
-    } catch (e) { }*/
   };
 
-  const cancelarViaje = async () => {
+  const interrumpirViaje = async () => {
     if (typeof onCancel === 'function') onCancel();
   };
 
@@ -127,6 +124,18 @@ const ViajeConductor = ({
   useEffect(() => {
     loadLabory();
   }, [loadLabory]);
+
+  useEffect(() => {
+    if (!socket || !viaje?.id) return;
+    const channel = viaje.id;
+    console.log('[ViajeConductor] uniendo a canal de viaje:', channel);
+
+    try { socket.emit('joinRoom', { channel, client: { type: 'driver' } }); } catch (e) { }
+
+    return () => {
+      try { socket.emit('leaveRoom', { channel, client: { type: 'driver' } }); } catch (e) { }
+    };
+  }, [socket, viaje, setUserCoords]);
 
   const confirmPayment = async (amount) => {
     if (!strapiConfig?.baseUrl) return;
@@ -325,14 +334,7 @@ const ViajeConductor = ({
             */}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
-            {status === 'iniciando' &&
-              <button onClick={onVerifyPIN}
-                disabled={routeInfo >= 0.15}
-                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5 }}
-              >
-                Pasajero a bordo
-              </button>}
+          <div style={{ display: 'flex', gap: 8, padding: 8 }}>
             {(status === 'en_curso' || status === 'iniciando') && <button onClick={() => {
               if (mapRef?.current && userCoords) { mapRef.current.setCenter(userCoords); mapRef.current.setZoom(16); }
             }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>
@@ -345,11 +347,19 @@ const ViajeConductor = ({
                 {simulationEnabled ? 'Detener simulación' : 'Simular recorrido'}
               </button>
             )*/}
-            {status === 'en_curso' &&
+            {status === 'iniciando' &&
+              <button onClick={onVerifyPIN}
+                disabled={routeInfo >= 0.15}
+                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5 }}
+              >
+                Pasajero a bordo
+              </button>
+            }
+            {(status === 'en_curso' && routeInfo < 0.15) &&
               <button
-                onClick={routeInfo < 0.15 ? terminarViaje : cancelarViaje}
-                style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: routeInfo < 0.15 ? '#fb6216' : '#f80e0e', flex: 1, color: '#fff', cursor: 'pointer' }}>
-                {routeInfo < 0.15 ? 'Finalizar viaje' : 'Finalizar antes del destino'}
+                onClick={terminarViaje}
+                style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fb6216', flex: 1, color: '#fff', cursor: 'pointer' }}>
+                Finalizar viaje
               </button>
             }
             {/*(status === 'paid' || status === 'partial' || status === 'unpaid') && (
@@ -358,6 +368,25 @@ const ViajeConductor = ({
               </div>
             )*/}
           </div>
+          {(status === 'en_curso' && routeInfo >= 0.15) && (
+            <button
+              onClick={interrumpirViaje}
+              style={{
+                padding: 8,
+                borderRadius: 8,
+                background: 'none',
+                color: '#f80e0e',
+                textAlign: 'center',
+                textDecoration: 'underline',
+                border: 'none',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Finalizar viaje antes del destino
+            </button>
+          )}
+
           {status === 'finalizado' && (
             !isTripFree ?
               <>
@@ -382,17 +411,14 @@ const ViajeConductor = ({
                 Confirmar viaje gratis
               </button>
           )}
-          {status === 'fin_solicitado_conductor' &&
-            <div>
-              <div style={{ color: '#333', textAlign: 'center', fontSize: 14, paddingBottom: 6, fontWeight: 600 }}>
-                Espere a que el pasajero acepte su solicitud. Si no acepta, puede marcar a los siguientes contactos.
-              </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
-                <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
-              </div>
-            </div>
-          }
+
+          <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
+            En caso de emergencia, puede marcar a los siguientes contactos.
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
+            <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
+          </div>
         </div>
       )}
     </div>

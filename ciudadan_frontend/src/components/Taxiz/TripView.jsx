@@ -714,7 +714,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     if (!isDriver || simulationEnabled || typeof navigator === 'undefined' || !navigator.geolocation || !travelD) return;
 
     const driverId = user?.id || user?.sub || user?.email || 'driver-unknown';
-    const channel = `trip:${travelD}`;
 
     const handlePosition = (position) => {
       const nextCoords = {
@@ -746,16 +745,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
       try {
         console.log('[TripView] actualizando ubicación GPS');
         socket.emit('actualizandoUbicacion', {
-          channel,
-          payload: {
-            travelid: travelD,
-            driverId,
-            coords: nextCoords,
-            distanceKm: distance,
-            tripStatus,
-            newLocation: true,
-            ts: new Date().toISOString(),
-          },
+          travelId: travelD,
+          driverId,
+          coords: nextCoords,
+          distanceKm: distance,
+          tripStatus,
+          newLocation: true,
+          ts: new Date().toISOString(),
         });
       } catch (e) {
         console.warn('[TripView] error emitiendo ubicación GPS', e);
@@ -784,7 +780,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     const isDriver = !!user?.isDriver || user?.role === 'driver';
     //console.log('[TripView] isDriver:', isDriver, 'userRole:', user?.role);
     const driverId = user?.id || user?.sub || user?.email || 'driver-unknown';
-    const channel = `trip:${travelD}`;
+    const channel = travelD;
 
     const onDriverLocation = (payload) => {
       //console.log('[TripView] socket onDriverLocation', payload);
@@ -821,7 +817,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
       if (payload.status === 'cerrado' && !ratingSubmitted) setShowRatingModal(true);
     };
 
-    try { socket.emit('join', { channel, client: { id: driverId } }); } catch (e) { }
+    try { socket.emit('joinRoom', { channel, client: { id: driverId } }); } catch (e) { }
 
     socket.on('driver-location', onDriverLocation);
     socket.on('trip-update', onTripUpdate);
@@ -845,7 +841,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
         if (!currentCoords) return;
         const payload = {
-          travelid: travelD,
+          travelId: travelD,
           driverId,
           coords: currentCoords,
           distanceKm: distance,
@@ -854,7 +850,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         };
         //console.log('[TripView] emit actualizandoUbicacion', payload);
         try {
-          socket.emit('actualizandoUbicacion', { channel, payload });
+          socket.emit('actualizandoUbicacion', payload);
         } catch (e) { console.warn('emit actualizandoUbicacion error', e); }
       };
       emitLocation();
@@ -880,7 +876,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     }
 
     return () => {
-      try { socket.emit('leave', { channel, client: { id: driverId } }); } catch (e) { }
+      try { socket.emit('leaveRoom', { channel, client: { id: driverId } }); } catch (e) { }
       socket.off('driver-location', onDriverLocation);
       socket.off('trip-update', onTripUpdate);
       socket.off('trip-cancel', onCancelTrip);
@@ -929,7 +925,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         await fetch(`${STRAPI_BASE.replace(/\/$/, '')}/api/ofertas`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(STRAPI_TOKEN ? { Authorization: `Bearer ${STRAPI_TOKEN}` } : {}) },
-          body: JSON.stringify({ driverId, travelid: t.id || t.travelid }),
+          body: JSON.stringify({ driverId, travelId: t.id || t.travelid }),
         });
         setTravelData(prev => prev.map((item, i) => i === idx ? { ...item, accepted: true } : item));
       }
@@ -971,7 +967,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     if (socket) {
       try {
         socket.emit('trip-update', {
-          travelid: travelD,
+          travelId: travelD,
           status: nextStatus,
           channel: `trip:${travelD}`,
         });
