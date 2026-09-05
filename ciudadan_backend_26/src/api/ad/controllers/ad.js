@@ -12,6 +12,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
+const buscarUsuarioAnuncios = require('../../../utils/ad-usuario');
 
 module.exports = createCoreController('api::ad.ad', ({ strapi }) => ({
   /**
@@ -19,10 +20,12 @@ module.exports = createCoreController('api::ad.ad', ({ strapi }) => ({
    * Lista los anuncios publicitarios activos publicados (tipo video),
    * con su archivo multimedia + thumbnail poblados.
    * Query string opcional: ?limit=10 (default 20).
+   * MODO PRUEBAS SIN JWT: el usuario se resuelve directo de la BD (demo).
    */
   async findPublicitarios(ctx) {
-        const userId = ctx.state.strapiUser?.id;
-    if (!userId) return ctx.throw(401, 'Usuario no autenticado');
+    const usuario = await buscarUsuarioAnuncios(strapi);
+    const userId = usuario?.id;
+    if (!userId) return ctx.throw(401, 'Usuario demo no encontrado en la BD');
 
     const limit = parseInt(ctx.query.limit, 10) || 20;
 

@@ -9,15 +9,13 @@ const authHeaders = (token) =>
  * Si adIds está vacío el backend elige aleatorios (MVP).
  * Devuelve { data: { sesionId, token, items: [...] } }.
  */
-export const iniciarSesion = async (adIds = [], authToken = null) => {
-  if (!authToken) return Promise.reject(new Error('Falta el token de autenticación'));
+export const iniciarSesion = async (adIds = []) => {
   return fetchJson(
     `${STRAPI_URL}/api/ads/sesiones`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({ adIds }),
     },
@@ -30,7 +28,7 @@ export const iniciarSesion = async (adIds = [], authToken = null) => {
  * Body: { token, itemId, currentTime, playing, visible, focused }.
  * El backend marca cobertura + tiempo efectivo solo si playing/visible/focused.
  */
-export const heartbeat = async (sesionId, sessionToken, authToken, payload) => {
+export const heartbeat = async (sesionId, sessionToken, payload) => {
   if (!sesionId || !sessionToken) return Promise.resolve({ data: { ok: true } });
   return fetchJson(
     `${STRAPI_URL}/api/ads/sesiones/${sesionId}/heartbeat`,
@@ -38,7 +36,6 @@ export const heartbeat = async (sesionId, sessionToken, authToken, payload) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         'X-Ad-Token': sessionToken,
       },
       body: JSON.stringify({ token: sessionToken, ...payload }),
@@ -52,14 +49,13 @@ export const heartbeat = async (sesionId, sessionToken, authToken, payload) => {
  * POST /ads/sesiones/:id/anuncios/:itemId/estado
  * Máquina de estados del item (queued→playing→decision_window→committed|skipped, etc).
  */
-export const cambiarEstadoItem = async (sesionId, itemId, estado, sessionToken, authToken = null) => {
+export const cambiarEstadoItem = async (sesionId, itemId, estado, sessionToken) => {
   return fetchJson(
     `${STRAPI_URL}/api/ads/sesiones/${sesionId}/anuncios/${itemId}/estado`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         'X-Ad-Token': sessionToken,
       },
       body: JSON.stringify({ token: sessionToken, estado }),
@@ -73,14 +69,14 @@ export const cambiarEstadoItem = async (sesionId, itemId, estado, sessionToken, 
  * Único endpoint que valida cobertura/tiempo/tope-diario y emite la recompensa.
  * Devuelve { completed, valid, reward, recompensa }.
  */
-export const completarAnuncio = async (sesionId, itemId, sessionToken, authToken = null) => {
+export const completarAnuncio = async (sesionId, itemId, sessionToken) => {
+  alert('siii terminadoooo');
   return fetchJson(
     `${STRAPI_URL}/api/ads/sesiones/${sesionId}/anuncios/${itemId}/completar`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         'X-Ad-Token': sessionToken,
       },
       body: JSON.stringify({ token: sessionToken }),
@@ -93,14 +89,13 @@ export const completarAnuncio = async (sesionId, itemId, sessionToken, authToken
  * POST /ads/sesiones/:id/refill
  * Añade anuncios aleatorios adicionales al terminar la playlist.
  */
-export const refillSesion = async (sesionId, sessionToken, authToken = null) => {
+export const refillSesion = async (sesionId, sessionToken) => {
   return fetchJson(
     `${STRAPI_URL}/api/ads/sesiones/${sesionId}/refill`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         'X-Ad-Token': sessionToken,
       },
       body: JSON.stringify({ token: sessionToken }),

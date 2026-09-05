@@ -7,10 +7,9 @@ const authHeaders = (token) => (token ? { headers: { Authorization: `Bearer ${to
  * Lista los anuncios publicitarios activos (video) para el grid.
  * Devuelve { data: [...] } con populate de archivo (video) + thumbnail.
  */
-export const getAdsPublicitarios = (token = null) =>
+export const getAdsPublicitarios = () =>
   fetchJson(
     `${STRAPI_URL}/api/ads/publicitarios`,
-    authHeaders(token),
     'No se pudieron cargar los anuncios disponibles'
   );
 
@@ -19,14 +18,12 @@ export const getAdsPublicitarios = (token = null) =>
  * Estado completo de la sesión (items con anuncio + estado + cobertura).
  * El token de sesión se envía en header X-Ad-Token.
  */
-export const getSesion = (sesionId, sessionToken, authToken = null) => {
+export const getSesion = (sesionId, sessionToken) => {
   if (!sesionId || !sessionToken) return Promise.resolve({ data: null });
   return fetchJson(
     `${STRAPI_URL}/api/ads/sesiones/${sesionId}`,
     {
-      ...authHeaders(authToken),
       headers: {
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         'X-Ad-Token': sessionToken,
       },
     },

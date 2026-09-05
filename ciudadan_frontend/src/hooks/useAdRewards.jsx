@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
 import {
   getAdsPublicitarios,
   getSesion,
@@ -33,28 +32,12 @@ const resolveUrl = (url) => {
  * navegación entre items, completar anuncio, refill y reward screen.
  */
 export const useAdRewards = () => {
-  const { getAccessTokenSilently } = useAuth0();
-  const [authToken, setAuthToken] = useState(null);
-  const [authError, setAuthError] = useState(null);
+  // MODO PRUEBAS SIN TOKEN JWT: el backend resuelve el usuario demo y el
+  // flujo de ads corre sin Authorization.
+  const authToken = null;
+  const authError = null;
 
-  // Carga del token de Auth0 (audience api.ciudadan.org). Con catch: un fallo
-  // (p.ej. "Missing Refresh Token" por caché vieja) se reporta en authError
-  // en lugar de lanzar un unhandled rejection que crashea la app.
-  useEffect(() => {
-    let vivo = true;
-    (async () => {
-      try {
-        const tok = await getAccessTokenSilently({
-          authorizationParams: { audience: 'https://api.ciudadan.org' },
-        });
-        if (vivo) setAuthToken(tok);
-      } catch (e) {
-        console.error('[adRewards] no se pudo obtener token Auth0:', e.message);
-        if (vivo) setAuthError(e.message || 'No se pudo iniciar sesión con Auth0');
-      }
-    })();
-    return () => { vivo = false; };
-  }, [getAccessTokenSilently]);
+  // MODO PRUEBAS SIN TOKEN JWT: no se solicita token a Auth0.
 
   // -- Estado del grid / playlist --
   const [ads, setAds] = useState([]);
@@ -77,10 +60,9 @@ export const useAdRewards = () => {
   const heartbeatRef = useRef(null);
 
   const cargarAds = useCallback(async () => {
-    if (!authToken) return;
     setCargandoAds(true);
     try {
-      const res = await getAdsPublicitarios(authToken);
+      const res = await getAdsPublicitarios();
       setAds(res?.data || []);
       setErrorAds(null);
     } catch (err) {
@@ -89,7 +71,7 @@ export const useAdRewards = () => {
       setCargandoAds(false);
       setCargado(true);
     }
-  }, [authToken]);
+  }, []);
 
   // Carga inicial de anuncios.
   useEffect(() => {
@@ -111,14 +93,14 @@ export const useAdRewards = () => {
     setRecompensaTotal(0);
     setSesionFinalizada(false);
     setModoVision(true);
-  }, [playlist, authToken]);
+  }, [playlist]);
 
   const refreshSesion = useCallback(async () => {
     if (!sesion) return;
-    const res = await getSesion(sesion.sesionId, sesion.token, authToken);
+    const res = await getSesion(sesion.sesionId, sesion.token);
     // getSesion devuelve { id, ... } SIN token/sesionId: se preservan del estado previo.
     setSesion((prev) => (res?.data ? { ...res.data, sesionId: prev.sesionId, token: prev.token } : prev));
-  }, [sesion, authToken]);
+  }, [sesion]);
 
   const nextItem = useCallback(() => {
     if (!sesion?.items) return;
@@ -137,32 +119,32 @@ export const useAdRewards = () => {
       apiHeartbeat(
         sesion.sesionId,
         sesion.token,
-        authToken,
+        null,
         { itemId, currentTime, duration, playing, visible, focused }
       ).catch(() => {});
     },
-    [sesion, authToken]
+    [sesion]
   );
 
   const setEstadoItem = useCallback(
     (itemId, estado) => {
       if (!sesion) return Promise.resolve();
-      return apiCambiarEstado(sesion.sesionId, itemId, estado, sesion.token, authToken);
+      return apiCambiarEstado(sesion.sesionId, itemId, estado, sesion.token, null);
     },
-    [sesion, authToken]
+    [sesion]
   );
 
   const completarItemActual = useCallback(async () => {
     if (!sesion || !itemActual) return null;
-    const res = await apiCompletar(sesion.sesionId, itemActual.id, sesion.token, authToken);
+    const res = await apiCompletar(sesion.sesionId, itemActual.id, sesion.token, null);
     await refreshSesion();
     if (res?.data?.reward) setRecompensaTotal((prev) => prev + Number(res.data.recompensa || 0));
     return res?.data;
-  }, [sesion, itemActual, authToken]);
+  }, [sesion, itemActual]);
 
   const refill = useCallback(async () => {
     if (!sesion) return;
-    await apiRefill(sesion.sesionId, sesion.token, authToken);
+    await apiRefill(sesion.sesionId, sesion.token, null);
     await refreshSesion();
     setSesionFinalizada(false);
   }, [sesion, authToken]);

@@ -120,6 +120,7 @@ const AnunciosRemunerados = () => {
         ended: true,
       });
     } catch (e) { /* el heartbeat es best-effort */ }
+    alert('video acabó');
     try {
       const res = await completarItemActual();
       setSnack({

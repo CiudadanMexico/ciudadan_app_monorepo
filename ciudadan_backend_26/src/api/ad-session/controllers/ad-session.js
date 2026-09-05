@@ -14,6 +14,7 @@
 
 const { createCoreController } = require('@strapi/strapi').factories;
 const crypto = require('crypto');
+const buscarUsuarioAnuncios = require('../../../utils/ad-usuario');
 
 // --- Constantes / umbrales anti-fraude ---
 const SEGMENTO_MS = 250;              // un segmento lógico de cobertura =  ́250 ms
@@ -108,8 +109,10 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
    * Si la lista está vacía, elige anuncios aleatorios (MVP).
    */
   async iniciarSesion(ctx) {
-    const userId = ctx.state.strapiUser?.id;
-    if (!userId) return ctx.throw(401, 'Usuario no autenticado');
+    // MODO PRUEBAS SIN JWT: el usuario se resuelve directo de la BD (demo).
+    const usuario = await buscarUsuarioAnuncios(strapi);
+    const userId = usuario?.id;
+    if (!userId) return ctx.throw(401, 'Usuario demo no encontrado en la BD');
 
     const { adIds } = ctx.request.body || {};
     const ids = Array.isArray(adIds) ? adIds.map((i) => Number(i)).filter((i) => i > 0) : [];
@@ -359,20 +362,9 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       return ctx.throw(409, 'La recompensa de este anuncio ya fue emitida');
     }
 
-    // Anti-fraude: un anuncio solo se paga una vez por usuario por día. Si ya
-    // existe una vista de este anuncio HOY (otra sesión en paralelo), se rechaza.
-    // NOTA: se usa item.anuncio (anuncio aún no está declarado en este punto).
-    const inicioHoyDup = new Date(); inicioHoyDup.setHours(0, 0, 0, 0);
-    const vistaDuplicada = await strapi.db.query('api::ad-view.ad-view').findOne({
-      where: {
-        usuario: { id: sesion.usuario.id },
-        ad: { id: item.anuncio.id },
-        timestamp: { $gte: inicioHoyDup.toISOString() },
-      },
-    });
-    if (vistaDuplicada) {
-      return ctx.throw(409, 'Ya viste este anuncio hoy. No se emitirá otra recompensa.');
-    }
+    // MODO PRUEBAS SIN JWT: sin chequeo anti-fraude por token. La exclusión
+    // de anuncios ya vistos hoy se hace en findPublicitarios/crearSesion/
+    // refill consultando ad_views (que se registra en la transacción de abajo).
 
     const anuncio = item.anuncio;
     const duracion = Number(anuncio.duracion || 0);
@@ -431,14 +423,26 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
         where: { user_id: sesion.usuario.id },
       });
       if (!cartera) {
-        cartera = await strapi.db.query('api::cartera.cartera').create({
-          data: {
-            laborysGanados: 0,
-            laborysSaldo: 0,
-            ciudadanTokens: 0,
-            ciudadanRendimientos: 0,
-            user_id: sesion.usuario.id,
-          },
+        // La relación user_id vive en la tabla de enlaces carteras_user_id_links;
+        // db.query.create con user_id explota (Not null/FK), así que se crea con
+        // knex directo (mismo patrón del fallback en seed-ad-rewards.js).
+        const conn = strapi.db.connection;
+        const ahora = new Date().toISOString();
+        const nuevaId = await conn('carteras').insert({
+          laborys_ganados: 0,
+          laborys_saldo: 0,
+          ciudadan_tokens: 0,
+          ciudadan_rendimientos: 0,
+          created_at: ahora,
+          updated_at: ahora,
+          published_at: ahora,
+        });
+        await conn('carteras_user_id_links').insert({
+          cartera_id: nuevaId[0],
+          user_id: sesion.usuario.id,
+        });
+        cartera = await strapi.db.query('api::cartera.cartera').findOne({
+          where: { user_id: sesion.usuario.id },
         });
       }
       const saldo = Number(cartera.laborysSaldo || 0);
