@@ -2,8 +2,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import io from 'socket.io-client';
-import { Routes, Route, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useRoles } from '../Contexts/RolesContext';
+import { wikiService } from '../services/wikiService';
 
 import Probador from '../components/Testers/Probador.jsx';
 
@@ -192,7 +193,43 @@ const EliminarProductoWrapper = () => {
 };
 const WikiWrapper = () => {
   const { slug } = useParams();
-  return <WikiViewer slug={slug} />;
+  const navigate = useNavigate();
+  const [doc, setDoc] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!slug) { setDoc(null); return undefined; }
+
+    // El slug viene como simple nombre (ruta /wiki/:slug o páginas de ayuda).
+    // Buscamos el documento en las secciones conocidas de la wiki.
+    const sections = ['main', 'help', 'faq'];
+    const candidates = sections.map((s) => `wiki/${s}/${slug.replace(/\.md$/i, '')}.md`);
+
+    (async () => {
+      for (const candidate of candidates) {
+        try {
+          const found = await wikiService.getDocument(candidate);
+          if (found && !cancelled) { setDoc(found); return; }
+        } catch (e) {
+          /* intentar siguiente sección */
+        }
+      }
+      if (!cancelled) setDoc(null);
+    })();
+
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  // Navegar a otro documento desde un wikilink: resolvemos la ruta y actualizamos el slug
+  const handleNavigateDocument = (path) => {
+    const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
+    const parts = normalized.split('/').filter(Boolean);
+    // tomamos el nombre del archivo como slug
+    const last = parts.length ? parts[parts.length - 1] : normalized;
+    if (last) navigate(`/wiki/${last}`);
+  };
+
+  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
 };
 
 // Layout para Wiki

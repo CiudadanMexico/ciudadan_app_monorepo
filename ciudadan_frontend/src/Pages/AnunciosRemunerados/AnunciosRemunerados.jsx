@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Box, Typography, CircularProgress, Snackbar, Alert, Stack, Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Box, Button, Typography, CircularProgress, Snackbar, Alert, Stack, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import PurpleButton from '../../components/common/PurpleButton.jsx';
 import { useAdRewards } from '../../hooks/useAdRewards.jsx';
 import { AdGrid } from '../../components/AnunciosRemunerados/AdGrid.jsx';
 import { PlaylistBar } from '../../components/AnunciosRemunerados/PlaylistBar.jsx';
@@ -20,7 +21,7 @@ const AnunciosRemunerados = () => {
 
   const {
     ads, playlist, sesion, itemActual, indiceActual,
-    cargandoAds, errorAds, modoVision, recompensaTotal,
+    cargandoAds, errorAds, cargado, modoVision, recompensaTotal,
     sesionFinalizada, tieneToken, authToken, authError,
     togglePlaylist, iniciarVision, nextItem, prevItem,
     setEstadoItem, iniciarHeartbeat, completarItemActual,
@@ -45,10 +46,15 @@ const AnunciosRemunerados = () => {
     if (itemActual && sesion) setEstadoItem(itemActual.id, 'decision_window').catch(() => {});
   }, [itemActual, sesion, setEstadoItem]);
 
-  // Heartbeat: VideoPlayer emite { currentTime, playing, visible, focused } cada 1s.
+  // Heartbeat: VideoPlayer emite { currentTime, duration, playing, visible, focused } cada 1s.
+  // El backend exige itemId + currentTime: se agrega el id del item actual.
+  // Se guarda el último tick en un ref para el heartbeat final al terminar.
+  const ultimoTickRef = useRef(null);
   const handlePlaybackTick = useCallback((t) => {
-    iniciarHeartbeat(t);
-  }, [iniciarHeartbeat]);
+    ultimoTickRef.current = t;
+    if (!itemActual || !sesion) return;
+    iniciarHeartbeat({ ...t, itemId: itemActual.id });
+  }, [iniciarHeartbeat, itemActual, sesion]);
 
   // Saltar el anuncio actual: durante la ventana de decisión se sale sin
   // penalidad (skipped); comprometido → abandoned (pierde la recompensa).
@@ -71,9 +77,20 @@ const AnunciosRemunerados = () => {
 
   useEffect(() => {
     if (!modoVision || !itemActual) return undefined;
+    // Cooldown: una sola rueda del mouse dispara múltiples eventos wheel con
+    // deltaY > 40. Sin este refresco se saltaban varios videos por gesto.
+    let cooldown = false;
     const onWheel = (e) => {
-      if (e.deltaY > 40) intentarSiguiente();
-      else if (e.deltaY < -40) prevItem();
+      if (cooldown) return;
+      if (e.deltaY > 60) {
+        cooldown = true;
+        setTimeout(() => { cooldown = false; }, 900);
+        intentarSiguiente();
+      } else if (e.deltaY < -60) {
+        cooldown = true;
+        setTimeout(() => { cooldown = false; }, 900);
+        prevItem();
+      }
     };
     const onKey = (e) => {
       if (['ArrowDown', 'PageDown'].includes(e.key)) intentarSiguiente();
@@ -89,6 +106,21 @@ const AnunciosRemunerados = () => {
 
   const handleVideoEnded = async () => {
     if (!itemActual) return;
+    try {
+      // Heartbeat FINAL con ended=true + duración real: el servidor registra
+      // duracion_real ANTES de que completar valide cobertura (evita la carrera).
+      const t = ultimoTickRef.current || {};
+      await iniciarHeartbeat({
+        itemId: itemActual.id,
+        currentTime: Number(t.currentTime || 0),
+        duration: Number(t.duration || 0),
+        playing: false,
+        visible: true,
+        focused: true,
+        ended: true,
+      });
+    } catch (e) { /* el heartbeat es best-effort */ }
+    alert('video acabó');
     try {
       const res = await completarItemActual();
       setSnack({
@@ -126,8 +158,26 @@ const AnunciosRemunerados = () => {
           <>
             {cargandoAds && <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>}
             {errorAds && <Alert severity="error" sx={{ m: 2 }}>{errorAds}</Alert>}
-            {!cargandoAds && !errorAds && <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />}
-            <PlaylistBar ads={ads} playlist={playlist} iniciarVision={iniciarVision} recompensaTotal={recompensaTotal} />
+            {!errorAds && !cargandoAds && !cargado && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}><CircularProgress /></Box>
+            )}
+            {!errorAds && cargado && !cargandoAds && (
+              ads.length > 0 ? (
+                <>
+                  <AdGrid ads={ads} playlist={playlist} togglePlaylist={togglePlaylist} />
+                  <PlaylistBar ads={ads} playlist={playlist} iniciarVision={iniciarVision} recompensaTotal={recompensaTotal} />
+                </>
+              ) : (
+                <Box sx={{ p: 6, m: 2, textAlign: 'center' }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Ya viste todos los anuncios disponibles por hoy 👀
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Vuelve mañana: cada día se renuevan los anuncios y las recompensas.
+                  </Typography>
+                </Box>
+              )
+            )}
             <Snackbar open={snack.open} autoHideDuration={4000}
               onClose={() => setSnack({ open: false, msg: '', severity: 'info' })} message={snack.msg} />
           </>
@@ -146,13 +196,16 @@ const AnunciosRemunerados = () => {
             poster={itemActual.thumbnail || ''} autoPlay
             onTimeUpdate={handlePlaybackTick} onEnded={handleVideoEnded} />
           <DecisionWindow key={`d-${itemActual.id}`} decisionWindow={itemActual.decisionWindow}
+            recompensa={itemActual.recompensa || 0}
             onContinuar={() => { setComprometido(true); setEstadoItem(itemActual.id, 'committed').catch(() => {}); }}
             onNext={intentarSiguiente} />
-          <Box sx={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', color: 'warning.light' }}>
-            <Typography variant="body2">
-              {itemActual.estado === 'decision_window'
-                ? `Decisión: ${itemActual.decisionWindow}s restantes`
-                : 'Si sales ahora, no se contabilizará esta visualización'}
+          <Box sx={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: comprometido || itemActual.estado === 'committed' ? '#7CFC9B' : 'warning.light' }}>
+              {comprometido || itemActual.estado === 'committed'
+                ? `✔ Recompensa ganada: +${itemActual.recompensa || 0} laborys — termina el video para cobrarla`
+                : itemActual.estado === 'decision_window'
+                  ? `Decisión: ${itemActual.decisionWindow}s restantes · +${itemActual.recompensa || 0} laborys si la completas`
+                  : 'Si sales ahora, no se contabilizará esta visualización'}
             </Typography>
           </Box>
         </>
@@ -171,10 +224,10 @@ const AnunciosRemunerados = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={() => setAvisoSalir(false)}>Seguir viendo</Button>
-          <Button variant="outlined" color="error" onClick={() => { setAvisoSalir(false); saltarActual(); }}>
+          <PurpleButton onClick={() => setAvisoSalir(false)}>Seguir viendo</PurpleButton>
+          <PurpleButton outlined onClick={() => { setAvisoSalir(false); saltarActual(); }}>
             Pasar al siguiente
-          </Button>
+          </PurpleButton>
         </DialogActions>
       </Dialog>
 
@@ -194,3 +247,4 @@ const AnunciosRemunerados = () => {
 };
 
 export default AnunciosRemunerados;
+

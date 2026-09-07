@@ -92,7 +92,7 @@ export default function WikiApp() {
       {/* Panel Derecho: El Visor integrado */}
       <Box component="main" sx={{ flexGrow: 1, height: '100vh', overflowY: 'auto', backgroundColor: '#f9f9f9' }}>
         {currentDoc ? (
-          <WikiViewer document={currentDoc} />
+          <WikiViewer document={currentDoc} onNavigateDocument={handleDocumentSelect} />
         ) : (
           <Box sx={{ p: 8, textAlign: 'center', mt: 10 }}>
             <Typography variant="h5" color="textSecondary" gutterBottom sx={{ fontWeight: 600 }}>

@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
-  Button,
   Paper,
   Stack,
 } from '@mui/material';
+import PurpleButton from '../common/PurpleButton.jsx';
 
 /**
  * Overlay de ventana de decisión (0 a `decisionWindow` segundos).
@@ -17,14 +17,22 @@ import {
  */
 export const DecisionWindow = ({
   decisionWindow = 5,
+  recompensa = 0,
   onContinuar,
   onNext,
 }) => {
   const [restante, setRestante] = useState(decisionWindow);
+  // El popup se cierra al decidir (click en Continuar) o al agotarse el
+  // tiempo. Vuelve a abrirse automáticamente con el siguiente video porque
+  // el padre lo monta con key={item.id} (remount completo).
+  const [abierto, setAbierto] = useState(true);
 
   // Callbacks en ref: evitan que el countdown se reinicie en cada render del padre.
   const cbRef = useRef({ onContinuar, onNext });
   cbRef.current = { onContinuar, onNext };
+
+  // Evita doble commit: el timeout no debe dispararse si el usuario ya decidió.
+  const decididoRef = useRef(false);
 
   useEffect(() => {
     setRestante(decisionWindow);
@@ -32,7 +40,11 @@ export const DecisionWindow = ({
       setRestante((prev) => {
         if (prev <= 1) {
           clearInterval(t);
-          cbRef.current.onContinuar(); // timeout → se compromete el anuncio
+          if (!decididoRef.current) {
+            decididoRef.current = true;
+            setAbierto(false);          // cierra el popup
+            cbRef.current.onContinuar(); // timeout → se compromete el anuncio
+          }
           return 0;
         }
         return prev - 1;
@@ -41,6 +53,8 @@ export const DecisionWindow = ({
     return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decisionWindow]);
+
+  if (!abierto) return null;
 
   return (
     <Paper
@@ -70,18 +84,45 @@ export const DecisionWindow = ({
         <Typography variant="body1" color="inherit">
           Tienes <strong>{restante}s</strong> para decidir.
         </Typography>
+        {/* Recompensa que se gana al ver el anuncio completo */}
+        <Box
+          sx={{
+            mt: 1.5,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 1,
+            px: 2,
+            py: 0.75,
+            borderRadius: 999,
+            border: '1.5px solid rgba(255,224,102,.55)',
+            backgroundColor: 'rgba(255,224,102,.10)',
+            boxShadow: '0 0 14px rgba(255,224,102,.18)',
+          }}
+        >
+          <Typography component="span" sx={{ fontSize: '1.1rem' }}>🪙</Typography>
+          <Typography component="span" sx={{ fontWeight: 800, color: '#ffe066', letterSpacing: '.02em' }}>
+            +{recompensa} laborys al completarlo
+          </Typography>
+        </Box>
         <Typography variant="body2" color="inherit" sx={{ mt: 1, opacity: 0.85 }}>
           Si continúas hasta el final, ganas la recompensa.
         </Typography>
       </Box>
 
       <Stack direction="row" spacing={3} sx={{ gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Button variant="contained" color="success" size="large" onClick={onContinuar}>
+        <PurpleButton
+          size="large"
+          onClick={() => {
+            if (decididoRef.current) return;
+            decididoRef.current = true;
+            setAbierto(false); // cierra el popup inmediatamente
+            onContinuar();
+          }}
+        >
           Continuar
-        </Button>
-        <Button
-          variant="outlined"
-          color="inherit"
+        </PurpleButton>
+        <PurpleButton
+          outlined
           size="large"
           onClick={() => {
             // Saltar NO compromete el anuncio: el padre decide (skipped o aviso).
@@ -89,7 +130,7 @@ export const DecisionWindow = ({
           }}
         >
           Pasar al siguiente
-        </Button>
+        </PurpleButton>
       </Stack>
     </Paper>
   );

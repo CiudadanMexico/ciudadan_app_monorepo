@@ -14,6 +14,7 @@
 
 const { createCoreController } = require('@strapi/strapi').factories;
 const crypto = require('crypto');
+const buscarUsuarioAnuncios = require('../../../utils/ad-usuario');
 
 // --- Constantes / umbrales anti-fraude ---
 const SEGMENTO_MS = 250;              // un segmento lógico de cobertura =  ́250 ms
@@ -81,6 +82,60 @@ async function cargarSesionValida(ctx, sesionId, strapi) {
   return sesion;
 }
 
+/**
+ * Recarga los items de la sesión y actualiza su estado agregado:
+ *  — indice_actual: índice del primer item no terminal (para que el frontend
+ *    sepa por dónde reanudir). Si todos están terminales, apunta al último.
+ *  — estado: 'activa' mientras haya items pendientes; 'completada' cuando
+ *    todos los items son terminales (completed/skipped/abandoned/invalid).
+ *  — fin: timestamp cuando la sesión pasa a 'completada'.
+ * Esta lógica se separa del callback de strapi.db.transaction para poder
+ * usarse tanto en cambiarEstado (query directa) como fuera de transacciones.
+ */
+async function actualizarEstadoSesion(strapi, sesionId, sesion) {
+  const TERMINALES = ['completed', 'skipped', 'abandoned', 'invalid'];
+  const items = await strapi.db.query('api::ad-session-item.ad-session-item').findMany({
+    where: { sesion: { id: sesionId } },
+    orderBy: { orden: 'ASC' },
+    select: ['id', 'orden', 'estado'],
+  });
+
+  const todosTerminales = items.length > 0 && items.every((it) => TERMINALES.includes(it.estado));
+  const actualizacion = {
+    indice_actual: todosTerminales
+      ? Math.max(0, items.length - 1)
+      : (items.findIndex((it) => !TERMINALES.includes(it.estado)) || 0),
+  };
+  if (todosTerminales) {
+    actualizacion.estado = 'completada';
+    actualizacion.fin = new Date().toISOString();
+  }
+  await strapi.db.query('api::ad-session.ad-session').update({
+    where: { id: sesionId },
+    data: actualizacion,
+  });
+}
+
+/**
+ * IDs de anuncios que el usuario ya VIO hoy (vista válida = ad_view creado al
+ * completar). "Hoy" = medianoche del server (mismo patrón que TOPE_DIARIO_MIN).
+ * Se usa para excluirlos del grid / sesión / refill: un anuncio visto un día
+ * no vuelve a aparecer hasta el día siguiente.
+ */
+async function idsVistosHoy(strapi, userId) {
+  if (!userId) return [];
+  const inicioHoy = new Date(); inicioHoy.setHours(0, 0, 0, 0);
+  // ad es RELACIÓN con tabla de enlaces: no admite select directo, se popula.
+  const vistas = await strapi.db.query('api::ad-view.ad-view').findMany({
+    where: {
+      usuario: { id: userId },
+      timestamp: { $gte: inicioHoy.toISOString() },
+    },
+    populate: ['ad'],
+  });
+  return vistas.map((v) => Number(v.ad?.id ?? v.ad)).filter((n) => Number.isFinite(n) && n > 0);
+}
+
 module.exports = createCoreController('api::ad-session.ad-session', ({ strapi }) => ({
   /**
    * POST /ads/sesiones
@@ -88,24 +143,32 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
    * Si la lista está vacía, elige anuncios aleatorios (MVP).
    */
   async iniciarSesion(ctx) {
-    const userId = ctx.state.strapiUser?.id;
-    if (!userId) return ctx.throw(401, 'Usuario no autenticado');
+    // MODO PRUEBAS SIN JWT: el usuario se resuelve directo de la BD (demo).
+    const usuario = await buscarUsuarioAnuncios(strapi);
+    const userId = usuario?.id;
+    if (!userId) return ctx.throw(401, 'Usuario demo no encontrado en la BD');
 
     const { adIds } = ctx.request.body || {};
     const ids = Array.isArray(adIds) ? adIds.map((i) => Number(i)).filter((i) => i > 0) : [];
 
-    // Anuncios publicitarios activos publicados (video).
+    // Anuncios publicitarios activos publicados (video), excluyendo los que
+    // el usuario ya vio hoy (un anuncio visto no reaparece hasta el día siguiente).
+    const vistosHoy = await idsVistosHoy(strapi, userId);
     const disponibles = await strapi.db.query('api::ad.ad').findMany({
       where: {
         esPublicitario: true,
         activo: true,
         tipo: 'video',
         publishedAt: { $notNull: true },
+        ...(vistosHoy.length > 0 ? { id: { $notIn: vistosHoy } } : {}),
       },
       populate: ['archivo', 'thumbnail'],
     });
 
     if (disponibles.length === 0) {
+      if (vistosHoy.length > 0) {
+        return ctx.throw(404, 'Ya viste todos los anuncios disponibles por hoy. Vuelve mañana.');
+      }
       return ctx.throw(404, 'No hay anuncios publicitarios disponibles');
     }
 
@@ -227,6 +290,10 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       data,
     });
 
+    // Mantener el estado de la sesión: avanzar indice_actual al siguiente item
+    // y marcar la sesión como completada cuando todos los items son terminales.
+    await actualizarEstadoSesion(strapi, Number(id), sesion);
+
     ctx.body = { data: updated };
   },
   /**
@@ -264,14 +331,31 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
     const ahora = new Date();
     const updates = { ultimo_tick: ahora.toISOString() };
 
+    // Duración REAL del medio (reportada por el video element del cliente).
+    // Las duraciones declaradas en el seed/admin pueden no coincidir con el
+    // archivo real; completar usará esta para calcular cobertura y tiempo.
+    const duracionReportada = Number(body.duration || 0);
+    if (Number.isFinite(duracionReportada) && duracionReportada > 0) {
+      const dr = Math.max(Number(item.duracion_real || 0), duracionReportada);
+      updates.duracion_real = dr;
+    }
+
     if (playing && visible && focused && !['completed', 'skipped', 'abandoned', 'invalid'].includes(item.estado)) {
+      // El cliente NO puede retroceder el tiempo efectivo: si hace seek
+      // hacia atrás, se ignora el retroceso y no se acumula tiempo negativo.
       const avancePermitido = prevPos + MAX_AVANCE_POR_TICK_SEG;
       const posMarcada = Math.min(currentTime, avancePermitido, duracion);
       const inicioMarcado = Math.max(prevPos, 0);
 
       if (posMarcada > inicioMarcado) {
         const segMs = item.segmentos_totales || Math.max(1, Math.round((duracion * 1000) / SEGMENTO_MS));
-        const cobertura = Array.isArray(item.cobertura) ? [...item.cobertura] : Array(segMs).fill(0);
+        // Normalizar: el array de cobertura debe tener exactamente segMs elementos.
+        // Si cambió la duración declarada, el array persistido puede ser más
+        // corto/largo; redimensionamos para que el conteo de segmentos sea exacto.
+        const cobertura = Array.isArray(item.cobertura)
+          ? [...item.cobertura.slice(0, segMs)]
+          : Array(segMs).fill(0);
+        while (cobertura.length < segMs) cobertura.push(0);
         const duracionMs = duracion * 1000;
 
         for (let s = 0; s < segMs; s++) {
@@ -289,7 +373,7 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       updates.ultima_posicion_seg = Math.min(posMarcada, duracion);
     }
 
-        await strapi.db.query('api::ad-session-item.ad-session-item').update({
+    await strapi.db.query('api::ad-session-item.ad-session-item').update({
       where: { id: item.id },
       data: updates,
     });
@@ -306,11 +390,6 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
    */
   async completarAnuncio(ctx) {
     const { id, itemId } = ctx.params;
-    const itemDb = await strapi.db.query('api::ad-session-item.ad-session-item').findOne({
-      where: { id: Number(itemId) },
-      populate: { anuncio: true, sesion: true },
-    });
-    if (!itemDb) return ctx.throw(404, 'Item no encontrado');
 
     const sesion = await cargarSesionValida(ctx, id, strapi);
     if (!sesion) return ctx.throw(403, 'Sesión inválida o expirada');
@@ -324,17 +403,29 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       return ctx.throw(409, 'La recompensa de este anuncio ya fue emitida');
     }
 
+    // MODO PRUEBAS SIN JWT: sin chequeo anti-fraude por token. La exclusión
+    // de anuncios ya vistos hoy se hace en findPublicitarios/crearSesion/
+    // refill consultando ad_views (que se registra en la transacción de abajo).
+
     const anuncio = item.anuncio;
     const duracion = Number(anuncio.duracion || 0);
     if (duracion <= 0) return ctx.throw(400, 'Anuncio sin duración válida');
 
-    const segTotales = Number(item.segmentos_totales || Math.round((duracion * 1000) / SEGMENTO_MS));
+    // Usamos la recompensa que se validó al crear la sesión (item.recompensa),
+    // NO anuncio.recompensa — evita inconsistencias si el admin cambió el ad.
+    const recompensa = Number(item.recompensa || anuncio.recompensa || 0);
+
+    // Duración EFECTIVA: si el medio reportó una duración real menor a la
+    // declarada (el archivo acabó antes), la cobertura se mide contra la real.
+    const duracionReal = Number(item.duracion_real || 0);
+    const duracionEfectiva = duracionReal > 0 ? Math.min(duracion, duracionReal) : duracion;
+    const segEsperados = Math.max(1, Math.round((duracionEfectiva * 1000) / SEGMENTO_MS));
     const segVistos = Array.isArray(item.cobertura)
       ? item.cobertura.filter((s) => s === 1).length
       : 0;
-    const cobertura = segTotales > 0 ? segVistos / segTotales : 0;
-        const tiempoEfectivoMin = (Number(item.tiempo_efectivo_ms || 0) / 1000 / 60);
-    const tiempoRequeridoMin = duracion / 60 * MIN_TIEMPO_EFECTIVO;
+    const cobertura = segEsperados > 0 ? Math.min(1, segVistos / segEsperados) : 0;
+    const tiempoEfectivoMin = (Number(item.tiempo_efectivo_ms || 0) / 1000 / 60);
+    const tiempoRequeridoMin = duracionEfectiva / 60 * MIN_TIEMPO_EFECTIVO;
 
     if (cobertura < MIN_COBERTURA) {
       await strapi.db.query('api::ad-session-item.ad-session-item').update({
@@ -366,31 +457,43 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       return ctx.throw(403, 'Has alcanzado tu tope diario de visualización (60 min).');
     }
 
-    const recompensa = Number(anuncio.recompensa || 0);
-
-    // Transacción atómica al estilo calificar.js.
-    await strapi.db.transaction(async () => {
+    
+    // Transacción atómica al estilo calificar.js. Nota: el callback recibe `trx`
+    // para que las operaciones raw de Knex (creación de cartera fallback)
+    // participen del mismo rollback que las queries de strapi.db.query.
+    await strapi.db.transaction(async (trx) => {
       // 1) Cargar e incrementar la cartera del usuario. Si no existe se
       // auto-crea (mismo patrón que calificar.js y cartera.create).
       let cartera = await strapi.db.query('api::cartera.cartera').findOne({
         where: { user_id: sesion.usuario.id },
       });
       if (!cartera) {
-        cartera = await strapi.db.query('api::cartera.cartera').create({
-          data: {
-            laborysGanados: 0,
-            laborysSaldo: 0,
-            ciudadanTokens: 0,
-            ciudadanRendimientos: 0,
-            user_id: sesion.usuario.id,
-          },
+        // La relación user_id vive en la tabla de enlaces carteras_user_id_links;
+        // db.query.create con user_id explota (Not null/FK), así que se crea con
+        // knex directo PASANDO trx para mantener atomicidad.
+        const conn = trx || strapi.db.connection;
+        const ahora = new Date().toISOString();
+        const nuevaId = await conn('carteras').insert({
+          laborys_ganados: 0,
+          laborys_saldo: 0,
+          ciudadan_tokens: 0,
+          ciudadan_rendimientos: 0,
+          created_at: ahora,
+          updated_at: ahora,
+          published_at: ahora,
+        });
+        await conn('carteras_user_id_links').insert({
+          cartera_id: nuevaId[0],
+          user_id: sesion.usuario.id,
+        });
+        cartera = await strapi.db.query('api::cartera.cartera').findOne({
+          where: { user_id: sesion.usuario.id },
         });
       }
-      const saldo = Number(cartera.laborysSaldo || 0);
       await strapi.db.query('api::cartera.cartera').update({
         where: { id: cartera.id },
         data: {
-                    laborysSaldo: colSuma(strapi, cartera.laborysSaldo, recompensa),
+          laborysSaldo: colSuma(strapi, cartera.laborysSaldo, recompensa),
           laborysGanados: colSuma(strapi, cartera.laborysGanados, recompensa),
         },
       });
@@ -417,7 +520,7 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
         },
       });
 
-      // 3) Marcar el item como completed + recompensa emitida.
+    // 3) Marcar el item como completed + recompensa emitida.
       await strapi.db.query('api::ad-session-item.ad-session-item').update({
         where: { id: item.id },
         data: { estado: 'completed', recompensa, recompensa_emitida: true, fin: new Date().toISOString() },
@@ -427,12 +530,31 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       await strapi.db.query('api::ad-session.ad-session').update({
         where: { id: Number(id) },
         data: {
-                    recompensa_total: colSuma(strapi, sesion.recompensa_total, recompensa),
+          recompensa_total: colSuma(strapi, sesion.recompensa_total, recompensa),
+        },
+      });
+
+      // 5) Mantener el estado global de la sesión (indice_actual + estado/fin)
+      //    dentro de la misma transacción para consistencia.
+      await actualizarEstadoSesion(strapi, Number(id), sesion);
+
+      // 5) Registrar la VISTA en ad_views: un anuncio visto hoy no vuelve a
+      // aparecer para este usuario hasta el día siguiente (findPublicitarios,
+      // crearSesion y refill excluyen los ids presentes aquí). publishedAt
+      // obligatorio: el content-type tiene draftAndPublish y el historial
+      // consulta vía REST que solo devuelve publicados.
+      await strapi.entityService.create('api::ad-view.ad-view', {
+        data: {
+          ad: anuncio.id,
+          usuario: sesion.usuario.id,
+          tipo: anuncio.tipo || 'video',
+          timestamp: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
         },
       });
     });
 
-        ctx.body = { data: { completed: true, valid: true, reward: true, recompensa } };
+    ctx.body = { data: { completed: true, valid: true, reward: true, recompensa } };
   },
 
   /**
@@ -445,12 +567,14 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
     const sesion = await cargarSesionValida(ctx, id, strapi);
     if (!sesion) return ctx.throw(403, 'Sesión inválida o expirada');
 
+    const vistosHoy = await idsVistosHoy(strapi, sesion.usuario.id);
     const disponibles = await strapi.db.query('api::ad.ad').findMany({
       where: {
         esPublicitario: true,
         activo: true,
         tipo: 'video',
         publishedAt: { $notNull: true },
+        ...(vistosHoy.length > 0 ? { id: { $notIn: vistosHoy } } : {}),
       },
     });
     const nuevos = disponibles.sort(() => Math.random() - 0.5).slice(0, 3);

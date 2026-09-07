@@ -1,5 +1,5 @@
 // src/index.js
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Box } from "@mui/material";
 import PreLoader from './components/PreLoader.jsx';

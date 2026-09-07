@@ -1,8 +1,5 @@
 // src/components/common/PurpleButton.jsx
-// Botón morado reutilizable de marca (#8A5CF5 / #6A3FCB, doc/subpaleta.txt).
-// Contorno delgado + brillo neón sutil con CSS puro: el sheen del hover y el
-// pulso del glow animan solo opacity/transform (GPU), sin imágenes, sin JS por
-// frame y sin librerías extra — costo de carga prácticamente nulo.
+// Botón morado reutilizable de marca (#8A5CF5 / #6A3FCB).
 import React from "react";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
@@ -12,105 +9,42 @@ export const MORADO = "#8A5CF5";
 export const MORADO_OSCURO = "#6A3FCB";
 
 /**
- * PurpleButton — botón morado de marca con contorno delgado y brillo neón.
- *
- * Props: todas las de <Button> de MUI (onClick, startIcon, endIcon, size,
- * fullWidth, disabled, component, to, href, ...) + sx para overrides.
- *
- * Ejemplos:
- *   <PurpleButton onClick={...}>Texto</PurpleButton>
- *   <PurpleButton component={RouterLink} to="/gana">Ir a Gana</PurpleButton>
- *   <PurpleButton startIcon={<RocketIcon />} fullWidth size="large" />
+ * PurpleButton — botón morado de marca que NUNCA pierde contra MUI.
+ * Usa `&&&` (0,3,0 de especificidad) para vencer CUALQUIER selector interno
+ * de MUI sin importar orden de inyección ni tema default (primary azul).
  */
-const StyledButton = styled(Button, {
-  // Evita que props custom lleguen al DOM
-  shouldForwardProp: (prop) => prop !== "glowPulse",
-})(({ glowPulse = true }) => ({
-  position: "relative",
-  overflow: "hidden",
-  borderRadius: 999,
-  textTransform: "none",
-  fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
-  fontWeight: 700,
-  letterSpacing: "0.01em",
-  color: "#fff",
-  background: `linear-gradient(135deg, ${MORADO} 0%, ${MORADO_OSCURO} 100%)`,
-  // Contorno delgado (1px) translúcido + glow morado base
-  border: "1px solid rgba(255,255,255,0.35)",
-  boxShadow: `0 4px 18px rgba(138,92,245,0.4), inset 0 1px 0 rgba(255,255,255,0.22)`,
-  transition: "filter 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease",
-
-  // Capa del glow pulsante en reposo: solo anima opacity (barato en GPU)
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    inset: -1,
+const Styled = styled(Button)({
+  "&&&": {
     borderRadius: 999,
-    boxShadow: `0 0 22px rgba(138,92,245,0.55), 0 0 44px rgba(106,63,203,0.35)`,
-    opacity: glowPulse ? 0.55 : 0.55,
-    animation: glowPulse
-      ? "purpleGlowPulse 3.4s ease-in-out infinite alternate"
-      : "none",
-    pointerEvents: "none",
+    color: "#fff",
+    background: `linear-gradient(135deg, ${MORADO} 0%, ${MORADO_OSCURO} 100%)`,
+    textTransform: "none",
+    fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
+    fontWeight: 700,
+    letterSpacing: "0.01em",
+    boxShadow: "0 4px 14px rgba(138,92,245,0.35)",
+    transition: "filter 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease",
+    "&:hover": {
+      background: "linear-gradient(135deg, #9a6ffb 0%, #7a4ddb 100%)",
+      boxShadow: "0 6px 22px rgba(138,92,245,0.5)",
+      transform: "translateY(-1px)",
+    },
+    "&:active": { transform: "translateY(0)" },
+    "&.Mui-disabled": { color: "rgba(255,255,255,0.7)" },
   },
+});
 
-  // Destello diagonal (sheen) que cruza el botón al hover: solo transform
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    top: "-40%",
-    bottom: "-40%",
-    left: 0,
-    width: "55%",
-    background:
-      "linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.28) 45%, rgba(255,255,255,0.42) 50%, rgba(255,255,255,0.28) 55%, rgba(255,255,255,0) 100%)",
-    transform: "translateX(-160%) skewX(-12deg)",
-    transition: "transform 0.7s ease",
-    pointerEvents: "none",
-  },
-
-  "&:hover": {
-    background: `linear-gradient(135deg, #9a6ffb 0%, #7a4ddb 100%)`,
-    boxShadow: `0 6px 26px rgba(138,92,245,0.55), inset 0 1px 0 rgba(255,255,255,0.28)`,
-  },
-  "&:hover::after": {
-    transform: "translateX(320%) skewX(-12deg)",
-  },
-  "&:hover::before": {
-    opacity: 0.9,
-    animationPlayState: "paused",
-  },
-  "&:active": {
-    transform: "scale(0.97)",
-  },
-  "&:focus-visible": {
-    outline: "2px solid rgba(255,255,255,0.85)",
-    outlineOffset: 2,
-  },
-  "&.Mui-disabled": {
-    background: "rgba(138,92,245,0.35)",
-    color: "rgba(255,255,255,0.6)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    boxShadow: "none",
-  },
-
-  "@keyframes purpleGlowPulse": {
-    "0%": { opacity: 0.3 },
-    "100%": { opacity: 0.8 },
-  },
-
-  // Accesibilidad: sin animaciones si el usuario las reduce
-  "@media (prefers-reduced-motion: reduce)": {
-    "&::before": { animation: "none" },
-    "&::after": { transition: "none", transform: "translateX(-160%) skewX(-12deg)" },
-  },
-}));
-
-export default function PurpleButton({ glowPulse = true, sx, children, ...rest }) {
+export default function PurpleButton({ sx, children, ...rest }) {
+  const { variant: _v, color: _c, glowPulse: _g, ...cleanRest } = rest;
   return (
-    <StyledButton glowPulse={glowPulse} disableElevation sx={sx} {...rest}>
+    <Styled
+      disableElevation
+      disableRipple
+      sx={sx}
+      {...cleanRest}
+    >
       {children}
-    </StyledButton>
+    </Styled>
   );
 }
 

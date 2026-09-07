@@ -14,7 +14,9 @@ module.exports = {
       handler: 'ad.findPublicitarios',
       config: {
         auth: false,
-        policies: ['global::is-authenticated-auth0'],
+        // MODO PRUEBAS SIN JWT: sin política; el controller resuelve el
+        // usuario demo y filtra las vistas ya registradas en ad_views.
+        policies: [],
       },
     },
   ],

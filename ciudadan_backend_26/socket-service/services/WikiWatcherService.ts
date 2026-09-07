@@ -22,6 +22,10 @@ export class WikiWatcherService {
       fs.mkdirSync(this.pathToWatch, { recursive: true });
     }
 
+    // Indexación inicial: poblar la BD con todos los .md existentes para que el árbol
+    // no quede vacío aunque no ocurran cambios en tiempo real.
+    this.indexAll();
+
     console.log(`👁️ [WikiWatcherService] Monitoreando cambios, carpetas y subcarpetas`);
     fs.watch(this.pathToWatch, {recursive: true}, (eventType, triggerFilename) => {
       // Aseguramos que filename sea un string único
@@ -39,6 +43,38 @@ export class WikiWatcherService {
           await this.processFileChange(normalizedFilename);
       }, 1200);
     });
+  }
+
+  /**
+   * Recorre de forma recursiva la carpeta raíz de la wiki e indexa todos los .md
+   * que encuentre, para que el árbol quede poblado desde el arranque.
+  */
+  private indexAll(): void {
+    let count = 0;
+    const walk = (dir: string): void => {
+      let entries: fs.Dirent[] = [];
+      try {
+        entries = fs.readdirSync(dir, { withFileTypes: true });
+      } catch (e) {
+        return;
+      }
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+        } else if (entry.isFile() && entry.name.endsWith('.md')) {
+          const relative = path.relative(this.pathToWatch, full).replace(/\\/g, '/');
+          // Procesamos en segundo plano (idempotente)
+          this.processFileChange(relative).catch(() => {});
+          count++;
+        }
+      }
+    };
+
+    if (fs.existsSync(this.pathToWatch)) {
+      walk(this.pathToWatch);
+    }
+    console.log(`🗄️ [WikiWatcherService] Indexación inicial: ${count} archivos .md en ${this.pathToWatch}`);
   }
 
   private async processFileChange(normalizedFilename: string): Promise<void> {

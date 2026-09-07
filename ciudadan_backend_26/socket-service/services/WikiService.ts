@@ -154,7 +154,10 @@ export class WikiService {
             }
         }
 
-        const { html, wikiLinks } = MarkdownParser.parse(markdown, normalizedPath);
+        // Índice de todos los documentos para resolver [[wikilinks]] a su ruta canónica
+        const resolveTarget = await this.buildTargetResolver();
+
+        const { html, wikiLinks } = MarkdownParser.parse(markdown, normalizedPath, resolveTarget);
 
         return {
             documentId: doc.document_id,
@@ -165,6 +168,69 @@ export class WikiService {
             wikiLinks,
             createdAt: doc.created_at,
             updatedAt: doc.updated_at
+        };
+    }
+
+    /**
+     * Construye un resolver que, dado un wikilink (raw o normalizado), devuelve la ruta
+     * canónica (ej. 'wiki/main/mi-articulo.md') si existe un documento que coincida por:
+     *  - nombre de archivo sin extensión,
+     *  - título,
+     *  - nombre de archivo con espacios/guiones normalizado,
+     *  - path completo.
+    */
+    async buildTargetResolver(): Promise<(rawTarget: string, normalized: string) => string | null> {
+        const allDocs = await this.documentRepository.findAllForTree();
+
+        const byTitle = new Map<string, string>();
+        const byBasename = new Map<string, string>();
+        const byBasenameSlug = new Map<string, string>();
+        const byPathFull = new Map<string, string>();
+
+        const norm = (s: string) => s.toLowerCase().trim();
+
+        for (const d of allDocs) {
+            if (!d.path) continue;
+            const p = d.path.replace(/\\/g, '/').replace(/^\/+/, '');
+            const base = p.split('/').pop() || '';
+            const baseNoExt = base.replace(/\.md$/i, '');
+
+            if (d.title) {
+                const key = norm(d.title);
+                if (!byTitle.has(key)) byTitle.set(key, p);
+            }
+            if (baseNoExt) {
+                const b = norm(baseNoExt);
+                if (!byBasename.has(b)) byBasename.set(b, p);
+                const slug = b.replace(/[\s_-]+/g, '-');
+                if (!byBasenameSlug.has(slug)) byBasenameSlug.set(slug, p);
+            }
+            if (!byPathFull.has(p)) byPathFull.set(p, p);
+        }
+
+        return (rawTarget, normalized) => {
+            if (!rawTarget && !normalized) return null;
+
+            const raw = norm(rawTarget || '');
+            const normT = norm(normalized || '');
+            const rawSlug = raw.replace(/[\s_-]+/g, '-');
+
+            // Preferimos ruta exacta
+            if (raw && byPathFull.has(raw)) return byPathFull.get(raw)!;
+            if (normT && byPathFull.has(normT)) return byPathFull.get(normT)!;
+            // Por título
+            if (raw && byTitle.has(raw)) return byTitle.get(raw)!;
+            // Por nombre de archivo sin extensión
+            if (raw && byBasename.has(raw)) return byBasename.get(raw)!;
+            if (normT && byBasename.has(normT)) return byBasename.get(normT)!;
+            // Por slug (espacios/guiones)
+            if (rawSlug && byBasenameSlug.has(rawSlug)) return byBasenameSlug.get(rawSlug)!;
+
+            // Fallback: path tipo 'wiki/...'
+            const targetLikePath = raw.startsWith('wiki/') ? raw : `wiki/${raw}`;
+            if (byPathFull.has(targetLikePath)) return byPathFull.get(targetLikePath)!;
+
+            return null;
         };
     }
 

@@ -8,10 +8,11 @@ import {
   CardActions,
   Typography,
   Chip,
-  Button,
   useTheme,
 } from '@mui/material';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+// Botón morado de marca (unificado con el resto de la plataforma)
+import PurpleButton from '../common/PurpleButton.jsx';
 
 /**
  * Grid de anuncios publicitarios.
@@ -50,7 +51,7 @@ export const AdGrid = ({ ads, playlist, togglePlaylist }) => {
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                borderColor: selected ? 'primary.main' : 'divider',
+                borderColor: selected ? '#8A5CF5' : 'divider',
                 borderWidth: selected ? 2 : 1,
                 boxShadow: selected ? 3 : 1,
               }}
@@ -80,11 +81,11 @@ export const AdGrid = ({ ads, playlist, togglePlaylist }) => {
                   </Typography>
                   {selected && (
                     <Chip
-                      icon={<CheckCircleOutlineIcon fontSize="small" sx={{ color: 'primary.main !important' }} />}
+                      icon={<CheckCircleOutlineIcon fontSize="small" sx={{ color: '#fff !important' }} />}
                       label="Seleccionado"
-                      color="primary"
                       size="small"
-                      sx={{ mt: 0.5 }}
+                      // Morado de marca en vez del azul default (no hay ThemeProvider)
+                      sx={{ mt: 0.5, bgcolor: '#8A5CF5', color: '#fff' }}
                     />
                   )}
                 </Box>
@@ -116,14 +117,17 @@ export const AdGrid = ({ ads, playlist, togglePlaylist }) => {
               </CardContent>
 
               <CardActions>
-                <Button
-                  variant={selected ? 'outlined' : 'contained'}
+                <PurpleButton
                   size="small"
                   onClick={() => togglePlaylist(a.id)}
                   startIcon={selected ? null : <CheckCircleOutlineIcon />}
+                  // El estado seleccionado ("Quitar") apaga el glow y atenúa el
+                  // botón para conservar la distinción visual sin salir de marca.
+                  glowPulse={!selected}
+                  sx={selected ? { filter: 'brightness(0.8)', boxShadow: 'none' } : undefined}
                 >
                   {selected ? 'Quitar' : 'Agregar'}
-                </Button>
+                </PurpleButton>
               </CardActions>
             </Card>
           </Grid>

@@ -7,10 +7,12 @@ export interface TreeNodeDTO {
 
 export interface WikiLinkDTO {
   raw: string;
+  rawTarget?: string;
   targetPath: string;
   anchor?: string;
   alias?: string;
   displayText: string;
+  resolvedPath?: string;
 }
 
 export interface DocumentResponseDTO {
