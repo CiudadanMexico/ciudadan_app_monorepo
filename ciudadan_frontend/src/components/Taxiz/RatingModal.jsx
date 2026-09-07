@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Rating from '@mui/material/Rating';
 
 const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
   const [selectedRating, setSelectedRating] = useState(0);
@@ -37,11 +38,15 @@ const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
         padding: 20,
         boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
       }}>
-        <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>{title}</div>
-        <div style={{ color: '#666', fontSize: 14, marginBottom: 16 }}>{description}</div>
+        <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
+          {title}
+        </div>
+        <div style={{ color: '#666', fontSize: 14, marginBottom: 16, textAlign: 'center' }}>
+          {description}
+        </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 18 }}>
-          {[1, 2, 3, 4, 5].map((value) => (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 20 }}>
+          {/*[1, 2, 3, 4, 5].map((value) => (
             <button
               key={value}
               type="button"
@@ -58,7 +63,16 @@ const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
             >
               ★
             </button>
-          ))}
+          ))*/}
+          <Rating
+            name="simple-controlled"
+            value={selectedRating}
+            sx={{ fontSize: 40 }}
+            onChange={(e, newValue) => {
+              setSelectedRating(newValue);
+            }}
+            size="large"
+          />
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
@@ -89,6 +103,7 @@ const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
               background: '#2f6fed',
               color: '#fff',
               fontWeight: 700,
+              cursor: 'pointer',
             }}
           >
             {selectedRating ? 'Guardar calificación' : 'Guardar sin calificación'}

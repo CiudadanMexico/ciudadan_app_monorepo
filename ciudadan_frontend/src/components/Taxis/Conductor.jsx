@@ -897,6 +897,7 @@ const Conductor = ({
         userCoords={userCoords}
         setUserCoords={setUserCoords}
         travelData={travelData}
+        setTravelData={setTravelData}
         consultedTravel={consultedTravel}
         driver={driver}
         handleTravelCardClick={handleTravelCardClick}

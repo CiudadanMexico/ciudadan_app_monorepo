@@ -210,7 +210,7 @@ io.on("connection", (socket) => {
         console.error('Error en trip-update: payload inválido o falta travelId');
         return;
       }
-      console.log('trip-update recibido:', JSON.stringify(payload, null, 2));
+      //console.log('trip-update recibido:', JSON.stringify(payload, null, 2));
       io.to(payload.travelId).emit('trip-update', payload);
     } catch (e) {
       console.error('Error en trip-update:', e);
@@ -223,7 +223,6 @@ io.on("connection", (socket) => {
         console.error('Error en cancel-search: payload inválido o falta travelId');
         return;
       }
-      console.log('cancel-search recibido:', JSON.stringify(payload, null, 2));
       io.emit('cancel-search', payload);
     } catch (e) {
       console.error('Error en cancel-search:', e);
@@ -236,7 +235,6 @@ io.on("connection", (socket) => {
         console.error('Error en offer-rejected: payload inválido o falta travelId');
         return;
       }
-      console.log('offer-rejected recibido:', JSON.stringify(payload, null, 2));
       io.emit('offer-rejected', payload);
     } catch (e) {
       console.error('Error en offer-rejected:', e);

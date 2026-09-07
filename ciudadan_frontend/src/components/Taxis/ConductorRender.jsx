@@ -319,7 +319,7 @@ const ConductorRender = ({
         console.warn('[ConductorRender] error en handleReject:', e);
       }
     },
-    [addRejectedId, normalizeTravelId]
+    [addRejectedId, handleRejectTrip, normalizeTravelId]
   );
 
   useEffect(() => {
@@ -369,17 +369,6 @@ const ConductorRender = ({
             console.warn('[ConductorRender] viajeAceptado sin travelId en payload:', payload);
             return;
           }
-
-          setTravelData((prev) => {
-            const next = prev.filter(
-              (travel) =>
-                String(travel.userEmail).toLowerCase() !==
-                String(payload.userEmail).toLowerCase()
-            );
-            console.log('[ConductorRender] viajes restantes tras viaje aceptado:', next.length);
-            setIsWaiting(next.length === 0);
-            return next;
-          });
 
           // Preparar variables para Strapi
           const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');
@@ -497,6 +486,17 @@ const ConductorRender = ({
             // noop
           }
         }
+
+        setTravelData((prev) => {
+          const next = prev.filter(
+            (travel) =>
+              String(travel.userEmail).toLowerCase() !==
+              String(payload.userEmail).toLowerCase()
+          );
+          console.log('[ConductorRender] viajes restantes tras viaje aceptado:', next.length);
+          setIsWaiting(next.length === 0);
+          return next;
+        });
       });
     } catch (e) {
       console.warn('[ConductorRender] no se pudo inicializar socket:', e);

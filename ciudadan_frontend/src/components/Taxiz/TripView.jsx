@@ -108,6 +108,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [cashAmount, setCashAmount] = useState(0);
+  const [laboryAmount, setLaboryAmount] = useState(0);
   const [simulationEnabled, setSimulationEnabled] = useState(false);
   const tripStatus = String(viaje?.attributes?.status || 'pending').toLowerCase();
   const isDriver = !!user?.isDriver || user?.role === 'driver';
@@ -1083,6 +1084,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           paymentFlowState={paymentFlowState}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
           setCashAmount={setCashAmount}
+          setLaboryAmount={setLaboryAmount}
           simulationEnabled={simulationEnabled}
           onToggleSimulation={toggleTripSimulation}
         />
@@ -1140,6 +1142,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           onSubmit={handleTripStatusChange}
           tripData={viaje}
           cashAmount={cashAmount}
+          laboryAmount={laboryAmount}
           strapiConfig={{ baseUrl: (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE, token: (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN }}
         />
       )}

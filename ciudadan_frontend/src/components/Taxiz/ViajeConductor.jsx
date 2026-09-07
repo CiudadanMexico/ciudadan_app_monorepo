@@ -13,19 +13,13 @@ const ViajeConductor = ({
   userCoords,
   routeInfo,
   setUserCoords,
-  travelData,
-  consultedTravel,
-  handleTravelCardClick,
-  handleBackButtonClick,
-  handleCloseButtonClick,
-  handleAcceptTrip,
   mapRef,
   onStatusChange,
   onVerifyPIN,
   onCancel,
   paymentAmount,
   setCashAmount,
-  setDriverPaymentState,
+  setLaboryAmount,
   simulationEnabled,
   onToggleSimulation,
 }) => {
@@ -177,6 +171,7 @@ const ViajeConductor = ({
       const amountLabory = saldoLabory >= (paymentAmount * 0.1)
         ? paymentAmount * 0.1 : saldoLabory;
       setCashAmount(paymentAmount - amountLabory);
+      setLaboryAmount(amountLabory);
       await confirmPayment(amountLabory);
     } else {
       setCashAmount(paymentAmount);
@@ -352,7 +347,7 @@ const ViajeConductor = ({
             {status === 'iniciando' &&
               <button onClick={onVerifyPIN}
                 disabled={routeInfo >= 0.15}
-                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5 }}
+                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5, cursor: routeInfo > .15 ? 'not-allowed' : 'pointer' }}
               >
                 Pasajero a bordo
               </button>
@@ -418,8 +413,30 @@ const ViajeConductor = ({
             En caso de emergencia, puede marcar a los siguientes contactos.
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-            <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
-            <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
+            <button onClick={() => { }}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                background: '#2ba80f',
+                flex: 1,
+                color: '#fff',
+                cursor: 'pointer',
+              }}>
+              Contactar por WhatsApp
+            </button>
+            <button onClick={() => { }}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                background: '#f80e0e',
+                flex: 1,
+                color: '#fff',
+                cursor: 'pointer',
+              }}>
+              MARCAR AL 911
+            </button>
           </div>
         </div>
       )}

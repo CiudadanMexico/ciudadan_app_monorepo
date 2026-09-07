@@ -414,31 +414,18 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, rejectOffer, cl
           style={{
             display: "flex",
             gap: 8,
-            justifyContent: "flex-end",
-            marginTop: 12,
+            marginTop: 16
           }}
         >
-          <button
-            onClick={closeModal}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              border: "1px solid #ccc",
-              background: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Cerrar
-          </button>
-
           <button
             onClick={rejectOffer}
             disabled={loading}
             style={{
+              flex: 1,
               padding: "8px 12px",
               borderRadius: 8,
               border: "none",
-              background: loading ? "#ccc" : "#d63a3a",
+              background: loading ? "#ccc" : "#e31717",
               color: "#fff",
               cursor: loading ? "default" : "pointer",
             }}
@@ -450,10 +437,11 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, rejectOffer, cl
             onClick={acceptOffer}
             disabled={loading}
             style={{
+              flex: 1,
               padding: "8px 12px",
               borderRadius: 8,
               border: "none",
-              background: loading ? "#ccc" : "#00c853",
+              background: loading ? "#ccc" : "#12aa12",
               color: "#fff",
               cursor: loading ? "default" : "pointer",
             }}

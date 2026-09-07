@@ -157,8 +157,8 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   };*/
 
   useEffect(() => {
-      loadLabory();
-    }, [loadLabory]);
+    loadLabory();
+  }, [loadLabory]);
 
   useEffect(() => {
     if (!socket || !viaje?.id) return;
@@ -356,13 +356,35 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
             </h4>
           )}
 
-            <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
-              En caso de emergencia, puede marcar a los siguientes contactos.
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-              <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
-              <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
-            </div>
+          <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
+            En caso de emergencia, puede marcar a los siguientes contactos.
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <button onClick={() => { }}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                background: '#2ba80f',
+                flex: 1,
+                color: '#fff',
+                cursor: 'pointer'
+              }}>
+              Contactar por WhatsApp
+            </button>
+            <button onClick={() => { }}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                background: '#f80e0e',
+                flex: 1,
+                color: '#fff',
+                cursor: 'pointer'
+              }}>
+              MARCAR AL 911
+            </button>
+          </div>
 
           {/*paymentFlowState?.isPaymentFlowActive && (
             <div style={{ borderTop: '1px solid #eee', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
