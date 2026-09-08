@@ -39,6 +39,7 @@ import EditarCurso from '../Pages/Cursos/EditarCurso.jsx';
 import EliminarCurso from '../Pages/Cursos/EliminarCurso.jsx';
 //import Wiki from '../Pages/Wiki.jsx'; // si lo usas en algún lado
 import WikiViewer from '../components/Wiki/WikiViewer.jsx';
+import WikiApp from '../components/Wiki/WikiApp.tsx';
 import WikiHome from '../Pages/Wiki/WikiHome.jsx';
 
 // ---------- Componentes / Pages adicionales ----------
@@ -105,6 +106,7 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 
 // Anuncios / Comunidad
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
+import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
 
@@ -291,11 +293,17 @@ const Rutas = () => (
       element={<Notificacion />}
     />
 
-    {/* Gana / GanaRoute */}
+                {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
     />
+    <Route
+      path='/gana/ver-anuncios'
+      element={<AnunciosRemunerados />}
+    />
+    {/* Taxis */}
+    
 
     {/* Taxis */}
     <Route
@@ -582,7 +590,7 @@ const Rutas = () => (
     {/* Info / Wiki / Help */}
     <Route
       path='/wiki'
-      element={<WikiHome />}
+      element={<WikiApp />}
     />
     <Route
       path='/wiki/:slug'
@@ -783,3 +791,7 @@ const Rutas = () => (
 );
 
 export default Rutas;
+
+
+
+

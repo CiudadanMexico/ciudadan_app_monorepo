@@ -13,8 +13,10 @@ Documento generado a partir de los `schema.json` en `src/api/**/content-types/**
 - No incluye campos **`media`** ni tablas internas de uploads (`files`, enlaces polimórficos).
 - Tablas del plugin (`up_roles`, `up_permissions`) solo aparecen cuando son destino explícito (p. ej. desde `up_users.role`).
 
-## Índice de tablas (59 en `src/api` + `up_users` por extensión = 60)
+## Índice de tablas (61 en `src/api` + `up_users` por extensión = 62)
 
+- `ad_session_items`
+- `ad_sessions`
 - `ad_views`
 - `ads`
 - `agencias`
@@ -112,6 +114,24 @@ Documento generado a partir de los `schema.json` en `src/api/**/content-types/**
 
 ## Relaciones por tabla
 
+### `ad_session_items`
+
+> Anuncio individual dentro de una sesión de visualización remunerada. Guarda la cobertura por segmentos (json), el tiempo efectivo y el estado del flujo (`queued→playing→decision_window→committed→completed|skipped|abandoned|invalid`). Solo `completed` puede generar recompensa.
+
+| Campo | Tabla destino | Tipo |
+|-------|---------------|------|
+| `anuncio` | `ads` | manyToOne |
+| `sesion` | `ad_sessions` | manyToOne, `inversedBy:items` |
+
+### `ad_sessions`
+
+> Sesión de reproducción de anuncios remunerados (`/gana/ver-anuncios`). El backend valida heartbeats y emite la recompensa (pagos en `carteras` + auditoría en `laborys_payments`).
+
+| Campo | Tabla destino | Tipo |
+|-------|---------------|------|
+| `items` | `ad_session_items` | oneToMany, `mappedBy:sesion` |
+| `usuario` | `up_users` | manyToOne |
+
 ### `ad_views`
 
 | Campo | Tabla destino | Tipo |
@@ -122,8 +142,11 @@ Documento generado a partir de los `schema.json` en `src/api/**/content-types/**
 
 ### `ads`
 
+Campos de la subcolección de anuncios remunerados: `esPublicitario` (bool, default false — separa el anuncio publicitario del comunitario), `duracion` (segundos), `recompensa` (laborys por visualización completa), `decisionWindow` (segundos de ventana de decisión, default 5) y `thumbnail` (media imagen). El video vive en `archivo` o en `metadata.archivo_url`.
+
 | Campo | Tabla destino | Tipo |
 |-------|---------------|------|
+| `area` | `areas` | manyToOne, `inversedBy:ads` |
 | `usuario` | `up_users` | oneToOne |
 
 ### `agencias`

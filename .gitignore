@@ -1,3 +1,17 @@
 branch_structure.json
 temp_auto_push.bat
 temp_interactive_push.bat
+
+# Node.js / npm
+node_modules/
+package-lock.json
+
+# Strapi generated files
+.strapi-updater.json
+.strapi-cloud.json
+
+# SQLite WAL/SHM files
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal

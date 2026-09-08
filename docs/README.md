@@ -1,166 +1,111 @@
-# Ciudadan Backend 26
+# 📘 Documentación completa — Ciudadan App Monorepo
 
-## Visión general
+> Documentación auto-generada a partir de la revisión exhaustiva del repositorio
+> **`https://github.com/CiudadanMexico/ciudadan_app_monorepo`**
+> (revisada en la copia local `c:\yii\ciudadan_app_monorepo`, última revisión 2026-09).
 
-Este proyecto corresponde al backend principal de la plataforma Ciudadan. Está construido sobre Strapi 4 y sirve como punto central para gestionar contenido, usuarios, módulos de negocio, integraciones de pagos y servicios auxiliares para experiencias en tiempo real.
+Este documento es la **guía maestra** del monorepo Ciudadan. Reúne, en un solo lugar,
+toda la información técnica necesaria para entender, instalar y operar la plataforma:
+arquitectura, base de datos Strapi, frontend, servicios auxiliares, ramas, variables de
+entorno y despliegue.
 
-El repositorio combina:
-- un backend principal basado en Strapi,
-- un servicio de middleware para proxy de archivos y APIs,
-- un servicio de sockets para eventos y comunicación en tiempo real,
-- un subproyecto de comercio basado en Vendure.
+---
 
-## Stack principal
+## 📑 Índice de documentos
 
-- Node.js 18 LTS
-- Strapi 4.25
-- Express
-- Socket.IO
-- Stripe
-- Vendure
-- MySQL / PostgreSQL / SQLite
-- Docker
+| Documento | Contenido |
+|---|---|
+| **[`01-Arquitectura.md`](01-Arquitectura.md)** | Estructura del monorepo, componentes, puertos, flujo de datos y Arquitectura general |
+| **[`02-BaseDeDatos-Strapi.md`](02-BaseDeDatos-Strapi.md)** | **TODAS** las tablas/colecciones de Strapi (80 colecciones + 2 single types), campos, relaciones y componentes |
+| **[`03-Frontend.md`](03-Frontend.md)** | Todas las páginas, componentes, contexts, hooks, servicios, utils y rutas del frontend |
+| **[`04-Servicios-Auxiliares.md`](04-Servicios-Auxiliares.md)** | Socket Service, Market (Vendure), Middleware proxy, scripts, CI/CD, Docker/Fly |
+| **[`05-Instalacion-y-Ejecucion.md`](05-Instalacion-y-Ejecucion.md)** | **Paso a paso** para instalar y correr todos los servicios (backend, frontend, socket, market, middleware) |
+| **[`06-Ramas-y-Git.md`](06-Ramas-y-Git.md)** | Todas las ramas del repositorio, su propósito, commits recientes y flujo de trabajo |
+| **[`07-Variables-de-Entorno.md`](07-Variables-de-Entorno.md)** | Todas las variables de entorno por servicio (backend, frontend, socket) |
 
-## Herramientas y tecnologías utilizadas
+---
 
-Este proyecto usa una combinación de herramientas para cubrir backend, integraciones, archivos y servicios auxiliares:
+## 🧱 Resumen ejecutivo
 
-- Strapi: CMS y API headless para gestionar contenido y modelos de negocio.
-- Node.js y npm: entorno de ejecución y gestión de dependencias.
-- Express: servidor base para servicios auxiliares y proxy de peticiones.
-- Socket.IO: comunicación en tiempo real para eventos, notificaciones y flujos interactivos.
-- Stripe: procesamiento de pagos y suscripciones.
-- Vendure: motor de comercio para la parte de marketplace.
-- Docker: contenedorización para despliegue y ejecución del backend.
-- MySQL / PostgreSQL / SQLite: sistemas de base de datos soportados según el entorno.
-- GraphQL: integración disponible a través del plugin de Strapi.
+**Ciudadan** es una plataforma cívica/comunitaria en español (México) que combina:
 
-## Estructura del proyecto
+- **Red social y comunidad** (publicaciones, comentarios, clubs, bitácoras, plantas).
+- **Marketplace / e-commerce** (tiendas, productos, carrito, pagos Stripe, envíos).
+- **Food delivery** (restaurantes, productos de comida, ofertas, pedidos, Delivery Uber Direct).
+- **Taxi / movilidad** (conductores, viajes en tiempo real, cálculo de tarifas, PRD de conductores).
+- **CoWork / economía colaborativa** (tareas `todo`/`tarea`, áreas, habilidades, moneda interna **laborys**).
+- **Anuncios remunerados** ("Gana" — ver anuncios y ganar laborys).
+- **Membresías** de club de cannabis (Marihuanas Club) con OpenPay/Stripe.
+- **Wiki** interna con visor de archivos `.md` y chatbot de WhatsApp + IA.
+- **Carteras / wallets** (laborys, Ciudadan tokens, World Coin, billeteras con ethers.js).
 
-- [src/api](../src/api): módulos y recursos de negocio del backend. Aquí se encuentran entidades como publicaciones, viajes, pagos, productos, usuarios y otros flujos específicos de la plataforma.
-- [config](../config): configuración de Strapi, base de datos, middlewares y servidor.
-- [middleware/src](../middleware/src): servicio Express para proxy de uploads, media y rutas auxiliares.
-- [socket-service](../socket-service): servicio independiente para sockets, chatbot, rutas de viaje y lógica de integración.
-- [market](../market): proyecto de e-commerce basado en Vendure.
-- [seed](../seed): scripts de carga y actualización de datos.
-- [docs](./): documentación específica del proyecto.
+## 🧩 Stack tecnológico
 
-## Requisitos
+| Capa | Tecnología |
+|---|---|
+| **Backend API / CMS** | Strapi v4 (`@strapi/strapi` **4.25.9**), Node 18, REST + GraphQL |
+| **Base de datos** | SQLite (dev), MySQL, PostgreSQL (configurable vía `DATABASE_CLIENT`); el `.env` de dev usa SQLite en `.tmp/data.db` |
+| **Autenticación** | **Auth0** (identity provider principal). JWT nativo de Strapi queda en segundo plano. Roles en `up_users.roles.extra` (JSON array) |
+| **Frontend** | React 18 + CRA/CRACO + MUI v5/v6 + Emotion + Capacitor (Android/iOS) |
+| **Tiempo real** | Socket.IO (sockets-service separado) |
+| **Comercio headless** | Vendure v3 (`market/`) |
+| **Pagos** | Stripe + OpenPay |
+| **Mensajería** | WhatsApp Cloud API / @bot-whatsapp |
+| **Despliegue** | Docker / Docker Compose / Fly.io (fly.toml) / CI GitHub Actions (push a `main`) |
 
-Antes de iniciar el proyecto asegúrate de tener instalado:
+## 🗂 Estructura raíz
 
-- Node.js 18 o superior
-- npm 6 o superior
-- Una base de datos disponible (o usar SQLite para desarrollo rápido)
-
-## Inicio rápido
-
-1. Entrar al directorio del proyecto:
-
-```bash
-cd ciudadan_backend_26
+```
+ciudadan_app_monorepo/
+├── ciudadan_backend_26/      # Backend Strapi 4.25.9 + servicios auxiliares
+│   ├── src/                  # APIs Strapi (api/), extensions, middlewares, policies, utils
+│   ├── config/               # server, database, middlewares, plugins, admin, api
+│   ├── socket-service/       # Servidor Express + Socket.IO + chatbot + wiki (separado)
+│   ├── market/               # Subproyecto de comercio Vendure (headless)
+│   ├── middleware/           # Proxy de uploads/media + endpoints de conductores
+│   ├── seed/ y scripts/      # Scripts de seed y pruebas
+│   ├── .env                  # Variables de entorno del backend
+│   └── strapi-schema-export.md  # Dump de esquema (regenerable)
+├── ciudadan_frontend/        # React 18 + CRA/CRACO + Capacitor
+│   ├── src/                  # Pages, components, Contexts, hooks, services, utils, Routes
+│   ├── android/, ios/        # Proyectos nativos Capacitor
+│   ├── .env                  # Variables de entorno del frontend
+│   └── capacitor.config.ts
+├── docs/                     # Documentación general (documento de referencia)
+├── plan_nonorepo.md          # Plan del monorepo
+├── AGENTS.md                 # Convenciones para agentes de IA
+├── README.md
+└── package.json              # (tsx, utilidades raíz)
 ```
 
-2. Instalar dependencias:
+---
 
-```bash
-npm install
-```
+## ⚡ Puertos principales
 
-3. Crear un archivo de variables de entorno `.env` con los valores necesarios para tu entorno.
+| Servicio | Puerto | Archivo |
+|---|---|---|
+| Strapi backend (despliegue local `PORT`) | **33432** | `ciudadan_backend_26/.env` |
+| Strapi backend (default / Docker) | **1337** | `config/server.js`, `docker-compose.yml` |
+| Frontend (CRA/craco) | **3001** (`PORT` en .env) | `ciudadan_frontend/.env` (craco `start`) |
+| Socket service (sockets + http) | **33035** (`SOCKET_PORT`) | `socket-service/server.js` |
+| LLM (LM Studio) — IA | **1234** (origen) / `server-lmai.js` **5000** | `socket-service/lmai.js`, `server-lmai.js` |
+| Market Vendure API | **4000** (admin/shop API) | `market/src/vendure.config.ts` |
+| Market Vendure Admin UI | **5001** | `market/src/vendure.config.ts` |
+| Middleware proxy (uploads) | **33010** | `middleware/src/index.js` |
+| Postgres (en máquina local dev) | **5432 / 5433** | (instancia local) |
+| MongoDB (local dev) | **27017** | (instancia local) |
 
-4. Iniciar Strapi en modo desarrollo:
+---
 
-```bash
-npm run develop
-```
+## 🔍 Cómo leer este monorepo (convenciones clave)
 
-El backend quedará disponible normalmente en:
+- **`todo`** = tarea "maestro"/publicado (definición de trabajo). **`tarea`** = resolución/entrega de un usuario contra un `todo`. No confundirlas.
+- **`área`** = categoría superior. **5 raíces fijas**: Administrativo, Técnico, Comercial-difusión, Software, Creación multimedia.
+- **`laborys`** = moneda interna; se paga automáticamente al calificar una tarea (`carteras.laborysSaldo`).
+- **`membresiatipo: 'socio'`** (club cannabis) **≠** `roles.extra: 'socio'` (permiso). Conceptos distintos.
+- Los **endpoints custom** de Strapi usan archivos numerados (`01-`, `02-`…) en `routes/` con `auth: false` + policies globales.
+- `ctx.state.strapiUser` (puesto por las policies) ≠ `ctx.state.user` (puesto por middleware `auth0jwt`).
 
-```text
-http://localhost:1337
-```
+---
 
-## Variables de entorno
-
-El proyecto espera varias variables de entorno para funcionar correctamente. Algunas de las más importantes son:
-
-```env
-HOST=0.0.0.0
-PORT=1337
-APP_KEYS=key1,key2
-
-DATABASE_CLIENT=sqlite
-DATABASE_FILENAME=.tmp/data.db
-
-# Si usas MySQL/PostgreSQL, ajusta estas variables:
-# DATABASE_HOST=localhost
-# DATABASE_PORT=3306
-# DATABASE_NAME=ciudadan
-# DATABASE_USERNAME=usuario
-# DATABASE_PASSWORD=contraseña
-# DATABASE_URL=mysql://usuario:contraseña@localhost:3306/ciudadan
-
-STRAPI_URL=http://localhost:1337
-STRAPI_API_TOKEN=tu_token
-
-STRIPE_SECRET_KEY=tu_clave
-STRIPE_PRICE_ID=tu_precio
-STRIPE_SUCCESS_URL=http://localhost:3000/success
-STRIPE_CANCEL_URL=http://localhost:3000/cancel
-```
-
-> Si el proyecto se ejecuta con SQLite, no es necesario configurar la conexión MySQL/PostgreSQL.
-
-## Servicios complementarios
-
-### Middleware
-
-Este servicio actúa como capa intermedia para proxy de uploads y archivos.
-
-```bash
-cd middleware
-npm install
-node src/index.js
-```
-
-### Socket service
-
-Sirve para integraciones en tiempo real, notificaciones, chatbot y manejo de eventos de viaje.
-
-```bash
-cd socket-service
-npm install
-node server.js
-```
-
-### Market
-
-Subproyecto de comercio electrónico basado en Vendure.
-
-```bash
-cd market
-npm install
-npm run dev
-```
-
-## Despliegue
-
-También se incluye un Dockerfile para ejecutar el backend en contenedores.
-
-```bash
-docker build -t ciudadan-backend .
-docker run -p 1337:1337 ciudadan-backend
-```
-
-## Documentación relacionada
-
-- [AGENDA-VALIDATION-SYNC.md](AGENDA-VALIDATION-SYNC.md)
-- [DATABASE-SCHEMA.md](DATABASE-SCHEMA.md)
-- [TAREAS-CRUD-PERMISOS.md](TAREAS-CRUD-PERMISOS.md)
-
-## Notas importantes
-
-- Este backend no es un starter básico de Strapi; incluye lógica de negocio propia y módulos específicos de la plataforma.
-- La estructura modular en [src/api](../src/api) facilita extender funcionalidades sin modificar el núcleo de Strapi.
-- Para cambios de esquema o integraciones de terceros, conviene revisar la documentación de base de datos y los scripts de seed.
+*Documentación generada automáticamente.*

@@ -32,7 +32,7 @@ const Ganar = () => {
       imagen: publicidad,
       monedas: [mxn],
       claseimagen: 'opcion-imagen',
-      url: '/ver-anuncios'
+      url: '/gana/ver-anuncios'
     },
     { 
       titulo: '💰 RENTA UNIVERSAL', 
