@@ -60,6 +60,7 @@ export default function RegistroRestaurante() {
   const [modoDireccionManual, setModoDireccionManual] = useState(false);
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
   const [mapCenter, setMapCenter] = useState(null);
+  const [restaurantPhone, setRestaurantPhone] = useState("");
 
   const {
     createRestaurant,
@@ -113,10 +114,18 @@ export default function RegistroRestaurante() {
     setLoading(true);
     setError("");
     try {
+      if(!restaurantName.trim()){
+        setError("El nombre es requerido");
+        return
+      }
+      if(!restaurantPhone.trim()){
+        setError("Ingrese un número de teléfono");
+        return;
+      }
       const slug = slugify(restaurantName);
       const tiendas = await getRestaurantsBySlug(slug);
       if (tiendas.length) return setError("Ese nombre ya está registrado");
-      const nueva = await createRestaurant({ name: restaurantName, email: user.email, user_id: userData?.id });
+      const nueva = await createRestaurant({ name: restaurantName, email: user.email, user_id: userData?.id, telefono: restaurantPhone });
       setRestaurant(nueva.data);
       setActiveStep(1);
     } catch (err) {
@@ -512,6 +521,13 @@ export default function RegistroRestaurante() {
             fullWidth
             disabled={loading}
           />
+          <TextField
+            label="Teléfono de contacto"
+            value={restaurantPhone}
+            onChange={(e) => setRestaurantPhone(e.target.value)}
+            fullWidth
+            disabled={loading}
+          />
           {error && <Typography color="error">{error}</Typography>}
           <Button onClick={handleCheckAndCreate} disabled={!restaurantName || loading} variant="contained" sx={{ mt: 2 }}>
             {loading ? <CircularProgress size={24} /> : "Siguiente"}
@@ -734,7 +750,9 @@ export default function RegistroRestaurante() {
             </Button>
 
           </Box>
-        ))}
+        )
+        )}
+
 
       {activeStep === 3 && (
         <Box mt={2}>

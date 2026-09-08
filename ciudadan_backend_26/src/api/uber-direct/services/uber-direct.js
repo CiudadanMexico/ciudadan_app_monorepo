@@ -267,6 +267,7 @@ const createMockDeliveryQuote = ({ restaurantId, direccionDestinoId, direccionDe
     dropoff_deadline: new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
     created: now.toISOString(),
     expires: expires.toISOString(),
+    external_store_id: `restaurant-${restaurantId}`,
     /*
      * Información adicional que nos ayuda durante las pruebas.
      */
@@ -291,7 +292,7 @@ const createMockDelivery = ({
   const timestamp = Date.now();
 
   return {
-    uber_delivery_id: `mock_delivery_${foodOrder.id}_${timestamp}`,
+    id: `mock_delivery_${foodOrder.id}_${timestamp}`,
     status: 'pending',
     tracking_url: `https://mock.uber.local/delivery/${foodOrder.id}`,
     quote_id: quoteId,
@@ -374,6 +375,7 @@ const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccion
     return {
       quote: mockQuote,
       restaurantId,
+      direccionOrigenId: restaurantAddress.id,
       direccionDestinoId: direccionDestinoId || null,
       pickup: {
         lat: pickup.lat,
@@ -396,6 +398,7 @@ const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccion
   const payload = {
     pickup_address: typeof pickup.address === "string" ? pickup.address : JSON.stringify(pickup.address),
     dropoff_address: typeof dropoff.address === "string" ? dropoff.address : JSON.stringify(dropoff.address),
+    external_store_id: `restaurant-${restaurantId}`,
   };
 
   /*
@@ -440,14 +443,15 @@ const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccion
 
   const quote = {
     id: data?.id,
+    created: data?.created ?? null,
+    kind: data?.kind,
+    expires: data?.expires ?? null,
     fee: normalizeFee(data?.fee),
     currency: data?.currency ?? 'mxn',
+    dropoff_eta: data?.dropoff_eta ?? null,
     duration: data?.duration ?? null,
     pickup_duration: data?.pickup_duration ?? null,
-    dropoff_eta: data?.dropoff_eta ?? null,
     dropoff_deadline: data?.dropoff_deadline ?? null,
-    created: data?.created ?? null,
-    expires: data?.expires ?? null,
     mock: false,
   };
 
@@ -455,6 +459,7 @@ const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccion
     quote,
     restaurantId,
     direccionDestinoId,
+    direccionOrigenId: restaurantAddress.id,
     pickup: {
       lat: pickup.lat,
       lng: pickup.lng,

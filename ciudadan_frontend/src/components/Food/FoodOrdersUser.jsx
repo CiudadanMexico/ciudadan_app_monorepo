@@ -433,16 +433,11 @@ const OrderCard = ({ order, onViewDetail }) => {
         </Box>
 
         {/* Progress */}
-        {[
-          "pendiente_envio",
-          "enviado",
-          "en_camino",
-          "recibido"
-        ].includes(order?.status) && (
-            <Box sx={{ mt: 1 }}>
-              <OrderProgress status={order?.attributes?.status} />
-            </Box>
-          )}
+        {["pendiente_envio", "enviado", "en_camino", "recibido"].includes(order?.status) && (
+          <Box sx={{ mt: 1 }}>
+            <OrderProgress status={order?.attributes?.status} />
+          </Box>
+        )}
 
         {/* Footer */}
         <Stack
@@ -676,39 +671,19 @@ const FoodOrdersUser = ({
     >
       {/* Header */}
       <Stack
-        direction={{
-          xs: "column",
-          sm: "row"
-        }}
+        direction={{ xs: "column", sm: "row" }}
         justifyContent="space-between"
-        alignItems={{
-          xs: "stretch",
-          sm: "center"
-        }}
+        alignItems={{ xs: "stretch", sm: "center" }}
         spacing={2}
         sx={{ mb: 3 }}
       >
         <Box>
-          <Typography
-            variant="h4"
-            fontWeight={800}
-            sx={{
-              fontSize: {
-                xs: "1.7rem",
-                sm: "2rem"
-              }
-            }}
-          >
+          <Typography variant="h4" fontWeight={800} sx={{ fontSize: { xs: "1.7rem", sm: "2rem" } }} >
             Mis pedidos
           </Typography>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mt: 0.5 }}
-          >
-            Consulta el historial y estado de tus
-            pedidos de comida.
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }} >
+            Consulta el historial y estado de tus pedidos de comida.
           </Typography>
         </Box>
 
@@ -725,10 +700,7 @@ const FoodOrdersUser = ({
           }}
         >
           {STATUS_FILTERS.map(filter => (
-            <MenuItem
-              key={filter.value}
-              value={filter.value}
-            >
+            <MenuItem key={filter.value} value={filter.value} >
               {filter.label}
             </MenuItem>
           ))}
@@ -759,18 +731,11 @@ const FoodOrdersUser = ({
               }}
             />
 
-            <Typography
-              variant="h6"
-              fontWeight={700}
-            >
+            <Typography variant="h6" fontWeight={700} >
               No tienes pedidos
             </Typography>
 
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 0.5 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }} >
               {statusFilter === "todos"
                 ? "Aún no has realizado ningún pedido."
                 : "No tienes pedidos con este estado."}
@@ -780,15 +745,9 @@ const FoodOrdersUser = ({
       ) : (
         <>
           {/* Contador */}
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: 1.5 }}
-          >
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }} >
             {filteredOrders.length}{" "}
-            {filteredOrders.length === 1
-              ? "pedido"
-              : "pedidos"}
+            {filteredOrders.length === 1 ? "pedido" : "pedidos"}
           </Typography>
 
           {/* Orders */}

@@ -3313,6 +3313,12 @@ export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
       'api::food-restaurant.food-restaurant'
     >;
     fecha_verificado: Attribute.DateTime;
+    delivery_contact_name: Attribute.String & Attribute.Required;
+    delivery_contact_phone: Attribute.String & Attribute.Required;
+    delivery_notes: Attribute.Text;
+    pickup_contact_name: Attribute.String;
+    pickup_contact_phone: Attribute.String;
+    pickup_notes: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3474,6 +3480,7 @@ export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
     singularName: 'food-restaurant';
     pluralName: 'food-restaurants';
     displayName: 'Food Restaurants';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -3521,6 +3528,7 @@ export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
       'oneToMany',
       'api::food-offer.food-offer'
     >;
+    telefono: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

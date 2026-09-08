@@ -5,6 +5,7 @@ export interface OrdersProductsOrder extends Schema.Component {
   info: {
     displayName: 'products_order';
     icon: 'shoppingCart';
+    description: '';
   };
   attributes: {
     product: Attribute.Relation<
@@ -21,14 +22,19 @@ export interface OrdersProductsOrder extends Schema.Component {
     precio_unitario: Attribute.Decimal;
     cantidad: Attribute.Integer;
     subtotal: Attribute.Decimal;
-    envio: Attribute.Decimal;
-    subtotal_volumetrico: Attribute.Decimal;
     total: Attribute.Decimal;
-    comision_plataforma: Attribute.Decimal;
     calificado: Attribute.Boolean;
     calificacion: Attribute.Decimal;
     fecha_calificado: Attribute.DateTime;
     status: Attribute.String;
+    nombre_variante: Attribute.String;
+    metadata: Attribute.JSON;
+    variant: Attribute.Relation<
+      'orders.products-order',
+      'oneToOne',
+      'api::food-product-variant.food-product-variant'
+    >;
+    modifiers: Attribute.JSON;
   };
 }
 

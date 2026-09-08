@@ -217,7 +217,7 @@ const FoodProductConfigModal = ({
   return (
     <Dialog
       open={open}
-      onClose={()=>{}}
+      onClose={() => { }}
       fullWidth
       maxWidth="sm"
       scroll="paper"
@@ -365,7 +365,7 @@ const FoodProductConfigModal = ({
                   const seleccionado = estaSeleccionado(modificador);
                   const modificadorSeleccionado = modificadoresSeleccionados.find((item) => (item.id ?? item.documentId) === id);
                   const cantidadModificador = modificadorSeleccionado?.cantidad ?? 1;
-
+                  const imagenUrl = attrs?.imagen?.data?.attributes?.url ? `${STRAPI_URL}${attrs.imagen.data.attributes.url}` : '';
                   return (
                     <Box
                       key={id}
@@ -383,39 +383,77 @@ const FoodProductConfigModal = ({
                         justifyContent="space-between"
                         spacing={1}
                       >
+
                         {/* INFORMACIÓN DEL MODIFICADOR */}
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={seleccionado}
-                              onChange={() => toggleModificador(modificador)}
-                            />
-                          }
-                          label={
-                            <Box>
-                              <Typography variant="body2" fontWeight={600}>
-                                {nombre}
-                              </Typography>
-
-                              {descripcion && (
-                                <Typography variant="caption" color="text.secondary" display="block">
-                                  {descripcion}
-                                </Typography>
-                              )}
-
-                              {precio > 0 && (
-                                <Typography variant="caption" color="text.secondary">
-                                  + ${precio.toFixed(2)}
-                                </Typography>
-                              )}
-                            </Box>
-                          }
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          spacing={1}
                           sx={{
                             flex: 1,
-                            m: 0,
                             minWidth: 0,
                           }}
-                        />
+                        >
+                          <Checkbox
+                            checked={seleccionado}
+                            onChange={() => toggleModificador(modificador)}
+                          />
+
+                          {/* IMAGEN */}
+                          {imagenUrl && (
+                            <Box
+                              component="img"
+                              src={imagenUrl}
+                              alt={nombre}
+                              sx={{
+                                width: 38,
+                                height: 38,
+                                objectFit: 'cover',
+                                borderRadius: 1.5,
+                                flexShrink: 0,
+                              }}
+                            />
+                          )}
+
+                          {/* INFORMACIÓN */}
+                          <Box
+                            sx={{
+                              minWidth: 0,
+                              flex: 1,
+                            }}
+                          >
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {nombre}
+                            </Typography>
+
+                            {descripcion && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                display="block"
+                              >
+                                {descripcion}
+                              </Typography>
+                            )}
+
+                            {precio > 0 && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                + ${precio.toFixed(2)}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Stack>
 
                         {/* CANTIDAD DEL MODIFICADOR */}
                         {seleccionado && (
@@ -424,7 +462,10 @@ const FoodProductConfigModal = ({
                             size="small"
                             value={cantidadModificador}
                             onChange={(event) =>
-                              modificarCantidadModificador(modificador, event.target.value)
+                              modificarCantidadModificador(
+                                modificador,
+                                event.target.value
+                              )
                             }
                             inputProps={{
                               min: 1,

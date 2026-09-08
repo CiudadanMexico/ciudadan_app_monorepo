@@ -140,6 +140,7 @@ export const FoodCartProvider = ({ children }) => {
       precio: roundMoney(modifier.precio ?? modifier.price ?? 0),
       cantidad: Number(modifier?.cantidad ?? 1),
       subtotal: roundMoney((Number(modifier.precio ?? modifier.price ?? 0) * Number(modifier?.cantidad ?? 1))),
+      imagen: modifier?.imagen?.data?.attributes?.url ? `${STRAPI_URL}${modifier?.imagen?.data?.attributes?.url}` : null,
     })
     );
   }, [roundMoney]);
