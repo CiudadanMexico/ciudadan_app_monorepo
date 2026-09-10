@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import io from 'socket.io-client';
-import { Routes, Route, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
@@ -225,6 +225,30 @@ const WikiWrapper = () => {
     const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
     const parts = normalized.split('/').filter(Boolean);
     // tomamos el nombre del archivo como slug
+    const last = parts.length ? parts[parts.length - 1] : normalized;
+    if (last) navigate(`/wiki/${last}`);
+  };
+
+  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
+};
+
+// Guía de usuario (ruta /wiki/ayuda): carga help/guia-usuario.md
+const WikiAyudaRoute = () => {
+  const navigate = useNavigate();
+  const [doc, setDoc] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    wikiService
+      .getDocument('wiki/help/guia-usuario.md')
+      .then((found) => { if (!cancelled) setDoc(found); })
+      .catch(() => { if (!cancelled) setDoc(null); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleNavigateDocument = (path) => {
+    const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
+    const parts = normalized.split('/').filter(Boolean);
     const last = parts.length ? parts[parts.length - 1] : normalized;
     if (last) navigate(`/wiki/${last}`);
   };
@@ -625,25 +649,45 @@ const Rutas = () => (
     />
 
     {/* Info / Wiki / Help */}
+    {/* /wiki redirige a la wiki principal (main) */}
     <Route
       path='/wiki'
+      element={<Navigate to='/wiki/main' replace />}
+    />
+    {/* Guía de usuario del sitio en /wiki/ayuda */}
+    <Route
+      path='/wiki/ayuda'
+      element={<WikiAyudaRoute />}
+    />
+    {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
+    <Route
+      path='/wiki/main'
       element={<WikiApp />}
     />
+    <Route
+      path='/wiki/help'
+      element={<WikiApp />}
+    />
+    <Route
+      path='/wiki/faq'
+      element={<WikiApp />}
+    />
+    {/* Cualquier otro documento por slug */}
     <Route
       path='/wiki/:slug'
       element={<WikiWrapper />}
     />
     <Route
       path='/quienes-somos'
-      element={<WikiWrapper />}
+      element={<Navigate to='/wiki/ayuda' replace />}
     />
     <Route
       path='/ayuda'
-      element={<WikiWrapper />}
+      element={<Navigate to='/wiki/ayuda' replace />}
     />
     <Route
       path='/documentacion-transparencia'
-      element={<WikiWrapper />}
+      element={<Navigate to='/wiki/ayuda' replace />}
     />
     <Route
       path='/info/quienes'
@@ -656,10 +700,6 @@ const Rutas = () => (
     <Route
       path='/preguntas-frecuentes'
       element={<PreguntasFrecuentes />}
-    />
-    <Route
-      path='/ayuda'
-      element={<WikiWrapper />}
     />
 
     {/* Eventos */}

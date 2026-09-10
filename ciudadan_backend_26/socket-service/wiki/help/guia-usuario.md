@@ -1,69 +1,26 @@
 # Guía de Usuario de Ciudadan
 
-Bienvenido. Esta guía te explica cómo usar las funciones principales de la plataforma.
-Para el manual completo, consulta el documento **09-Guía-Usuario-Sitio**.
+Bienvenido a la **ayuda** de Ciudadan. Encuentra guías detalladas de **cada función**,
+organizadas por **temas** (con subtemas en cada página). Usa la **barra lateral** para
+moverte entre temas.
 
-## Tu cuenta
+## Temas
 
-- Entra con el botón **Login** (Auth0). Al primer ingreso se crea tu usuario con tu email.
-- En tu **Perfil** (`/perfil/:username`) editas tus datos y ves tu **QR** (`/miqr`).
-- Guiarda tus **favoritos** (productos, cursos, contenido, clubs) en `/favoritos` con el botón ❤.
-- **Referir** amigos: genera tu código en `/referir` y gana comisiones.
+1. [[Indice|Índice de la ayuda]] — punto de partida
+2. [[Cuenta|Cuenta y perfil]] — entrar, perfil, favoritos, referido
+3. [[Membresias|Membresías]] — planes, pagos, activación
+4. [[CoWork|CoWork: tareas y laborys]] — trabajar y ganar
+5. [[Marketplace|Marketplace: comprar y vender]] — tienda, productos, envíos
+6. [[Comida|Comida y restaurantes]] — pedir y vender comida
+7. [[Taxis|Taxis y movilidad]] — pasajero y conductor
+8. [[Gana|Gana: anuncios remunerados]] — ver anuncios por laborys
+9. [[Cartera|Cartera y wallets]] — saldos, tokens, billeteras
+10. [[EventosCursos|Eventos, cursos y contenidos]]
+11. [[Comunidad|Comunidad y clubs]]
 
-## CoWork: gana laborys haciendo tareas
+## Cómo usar esta wiki
 
-- Entra a `/coowork`. Hay tareas en **áreas** (5 fijas) y **skills**.
-- Abre una tarea y sube tu **resolución**. Al ser **calificada**, ganas **laborys** automáticamente.
-- Los **socios** pueden crear tareas (`/herramientas/agregar-tarea`), asignarlas
-  (`/herramientas/asignar-tarea`) y calificar (`/herramientas/calificar-tarea`).
-
-## Compra y venta (Marketplace)
-
-**Comprar:** `/market` → producto → agregas al **carrito** (`/carrito`) → pagas en
-`/carrito/finalizar` → sigues tu pedido en `/compras/*` y lo calificas al llegar.
-
-**Vender:** registra tu **tienda** en `/registro-vendedor`, sube **productos** en
-`/agregar-producto`, y gestiona pedidos/pagos en `/market/store/:slug`.
-
-## Comida
-
-**Pedir:** `/food` → restaurante → carrito de comida → checkout `/carrito/comida/checkout`.
-**Vender:** afíliate en `/comida/afiliar-restaurante`, sube tu menú y gestiona pedidos.
-
-## Taxis
-
-**Pasajero:** `/taxis` → pide un viaje, paga y califica.
-**Conductor:** pre-registro en `/taxis/conductor/preregistro` (documentos + vehículo), cita de
-verificación y operación en `/taxis/conductor/esperando`.
-
-## Gana viendo anuncios
-
-En `/gana` → `/gana/ver-anuncios`. Mira anuncios, valida la visualización y gana **laborys**.
-También puedes **promover** membresías o **generar contenido** para ganar.
-
-## Tu cartera
-
-- `/cartera` → saldo de **laborys** y tokens.
-- Crea tu **billetera** en `/cartera/crear`.
-- Compra tokens en `/comprar-tokens`.
-
-## Eventos, cursos y contenidos
-
-- **Eventos:** `/eventos`, detalle `/evento/:slug`, crear en `/eventos/crear-evento`.
-- **Cursos:** `/cursos/*`, detalle `/curso/:slug/*`.
-- **Contenidos:** `/contenidos/*`, detalle `/contenido/:slug`.
-
-## Comunidad y clubs
-
-- **Comunidad:** `/comunidad`, crear en `/crear-comunidad`.
-- **Anuncios de comunidad:** `/comunidad/nuevo-anuncio-programado` y `/comunidad/mis-anuncios`.
-- Los **clubs** agrupan socios (plantas, bitácoras, verificación legal COFEPRIS/amparos).
-
-## Más ayuda
-
-- Preguntas frecuentes: `/ayuda`, `/preguntas-frecuentes`.
-- Cómo usar los **wikilinks** de la wiki: [[Como Usar Wikilinks|leer guía]].
-- Conoce más sobre la plataforma: [[Como Funciona|qué es Ciudadan]].
-
----
-*Esta página forma parte de la ayuda del sitio.*
+- Cada tema tiene **subtemas** como encabezados; al inicio de cada página hay un índice de
+  subtemas con enlaces directos.
+- Navega con los **enlaces azules** (wikilinks) o con el **árbol lateral**.
+- ¿Cómo funcionan los enlaces? → [[Como Usar Wikilinks|leer guía de wikilinks]].

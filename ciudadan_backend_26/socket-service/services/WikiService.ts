@@ -60,29 +60,39 @@ export class WikiService {
     }
 
     /**
-     * Guarda o actualiza un documento en la base de datos controlando fechas
+     * Guarda o actualiza un documento en la base de datos controlando fechas.
+     *
+     * @param writeToDisk Si `true` (por defecto) además de la BD escribe el `.md` en disco
+     *                    (lo usa el guardado manual vía POST /wiki/save). Si `false` solo
+     *                    actualiza la BD (lo usa el watcher/indexación, que ya tiene el
+     *                    archivo en disco y NO debe reescribirlo para no provocar bucles).
     */
     async saveDocument(
         filePath: string,
         title: string,
-        content: string
+        content: string,
+        opts: { writeToDisk?: boolean } = {}
     ): Promise<DocumentEntity> {
+        const writeToDisk = opts.writeToDisk !== false;
+
         // Normalizar ruta para almacenamiento uniforme (formato UNIX posix)
         const normalizedFilePath = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
         const contentHash = crypto.createHash('sha256').update(content, 'utf-8').digest('hex');
         const now = new Date().toISOString();
 
-        // 1. Crear directorios físicos y escribir el archivo en disco (FS)
-        const fullDiskPath = path.resolve(process.cwd(), filePath);
-        const folderPath = path.dirname(fullDiskPath);
+        // 1. (Opcional) Crear directorios físicos y escribir el archivo en disco (FS)
+        if (writeToDisk) {
+            const fullDiskPath = path.resolve(process.cwd(), filePath);
+            const folderPath = path.dirname(fullDiskPath);
 
-        // Si la subcarpeta no existe en disco, se crea
-        if (!fs.existsSync(folderPath)) {
-            fs.mkdirSync(folderPath, { recursive: true });
+            // Si la subcarpeta no existe en disco, se crea
+            if (!fs.existsSync(folderPath)) {
+                fs.mkdirSync(folderPath, { recursive: true });
+            }
+
+            // Escribir el archivo físico .md con el contenido
+            fs.writeFileSync(fullDiskPath, content, 'utf-8');
         }
-
-        // Escribir el archivo físico .md con el contenido
-        fs.writeFileSync(fullDiskPath, content, 'utf-8');
 
         // Persistir metadatos en SQLite (ciudadan.db)
         const existingDoc = await this.documentRepository.findByPath(normalizedFilePath);
@@ -102,6 +112,31 @@ export class WikiService {
 
         await this.documentRepository.save(docEntity);
         return docEntity;
+    }
+
+    /**
+     * indexa un documento que ya existe en disco: solo actualiza la BD, y únicamente
+     * si el contenido (hash) cambió respecto al registrado. Es idempotente por lo que
+     * es seguro llamarlo desde el watcher o la indexación inicial sin causar bucles.
+    */
+    async updateIndex(filePath: string, content: string): Promise<boolean> {
+        const normalizedFilePath = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+        const contentHash = crypto.createHash('sha256').update(content, 'utf-8').digest('hex');
+
+        const existingDoc = await this.documentRepository.findByPath(normalizedFilePath);
+
+        // Si el contenido no cambió, no hacemos nada.
+        if (existingDoc && existingDoc.content_hash === contentHash) {
+            return false;
+        }
+
+        const title = (existingDoc && existingDoc.title)
+            ? existingDoc.title
+            : path.basename(normalizedFilePath, '.md').replace(/[-_]/g, ' ');
+
+        // Guarda SOLO en BD (writeToDisk = false), sin tocar el archivo físico.
+        await this.saveDocument(normalizedFilePath, title, content, { writeToDisk: false });
+        return true;
     }
 
     /**
