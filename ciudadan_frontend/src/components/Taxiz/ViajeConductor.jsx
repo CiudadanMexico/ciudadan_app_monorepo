@@ -17,6 +17,7 @@ const ViajeConductor = ({
   onStatusChange,
   onVerifyPIN,
   onCancel,
+  setStatusPayment,
   paymentAmount,
   setCashAmount,
   setLaboryAmount,
@@ -27,8 +28,7 @@ const ViajeConductor = ({
   const [status, setStatus] = useState(viaje?.attributes?.status || 'pending');
   const [hasLabory, setHasLabory] = useState(false);
   const [saldoLabory, setSaldoLabory] = useState(0);
-  //console.log('viaje', viaje);
-  //console.log('userData', userData);
+
   //const routeInfo = viaje?.attributes?.routeInfo || null;
   const { getAccessTokenSilently } = useAuth0();
 
@@ -164,8 +164,9 @@ const ViajeConductor = ({
   };
 
   const handlePaymentChoice = async (nextState) => {
-    setStatus(nextState);
-    if (typeof onStatusChange === 'function') onStatusChange(nextState);
+    setStatusPayment(nextState);
+    /*setStatus(nextState);
+    if (typeof onStatusChange === 'function') onStatusChange(nextState);*/
 
     if (hasLabory && saldoLabory > 0) {
       const amountLabory = saldoLabory >= (paymentAmount * 0.1)
@@ -244,10 +245,14 @@ const ViajeConductor = ({
       overflow: 'hidden',
       overflowY: 'auto',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }}
+        onClick={() => setExpanded(!expanded)}
+      >
         <div style={{ flex: 1 }}>
           <strong>Viaje #{viaje?.id || '—'}</strong>
-          <div style={{ fontSize: 14, color: '#666' }}>{status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}</div>
+          <div style={{ fontSize: 14, color: '#666' }}>
+            {status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}
+          </div>
         </div>
         <div style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms' }}>▼</div>
@@ -282,7 +287,7 @@ const ViajeConductor = ({
               </div>
             </div>
 
-            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado')) && (
+            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado') || status === 'cerrado') && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <div><strong>Origen (tu taxi)</strong></div>
@@ -310,7 +315,10 @@ const ViajeConductor = ({
                           Pago máximo con
                           <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
                         </div>
-                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
+                          Efectivo restante:
+                          <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong>
+                        </div>
                       </>
                     )}
                   </>
@@ -324,11 +332,6 @@ const ViajeConductor = ({
                 }
               </div>
             )}
-            {/*(status === 'partial' || status === 'unpaid') &&
-              <div style={{ flex: 1, display: 'flex', fontSize: 18, textAlign: 'center', fontWeight: 600, color: '#e02c2c', padding: 12 }}>
-                Al pasajero se le notificará que su pago no fue completado
-              </div>
-            */}
           </div>
 
           <div style={{ display: 'flex', gap: 8, padding: 8 }}>
@@ -347,7 +350,16 @@ const ViajeConductor = ({
             {status === 'iniciando' &&
               <button onClick={onVerifyPIN}
                 disabled={routeInfo >= 0.15}
-                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5, cursor: routeInfo > .15 ? 'not-allowed' : 'pointer' }}
+                style={{
+                  flex: 1,
+                  padding: 12,
+                  borderRadius: 8,
+                  background: '#fff200',
+                  border: 'none',
+                  fontWeight: '700',
+                  opacity: routeInfo > .15 && .5,
+                  cursor: routeInfo > .15 ? 'not-allowed' : 'pointer'
+                }}
               >
                 Pasajero a bordo
               </button>
@@ -355,15 +367,19 @@ const ViajeConductor = ({
             {(status === 'en_curso' && routeInfo < 0.15) &&
               <button
                 onClick={terminarViaje}
-                style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fb6216', flex: 1, color: '#fff', cursor: 'pointer' }}>
+                style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  border: '1px solid #ddd',
+                  background: '#fb6216',
+                  flex: 1,
+                  color: '#fff',
+                  cursor: 'pointer'
+                }}
+              >
                 Finalizar viaje
               </button>
             }
-            {/*(status === 'paid' || status === 'partial' || status === 'unpaid') && (
-              <div style={{ color: '#666', fontSize: 13 }}>
-                El pasajero verá el monto a pagar y podrá confirmar el estado del pago.
-              </div>
-            )*/}
           </div>
           {(status === 'en_curso' && routeInfo >= 0.15) && (
             <button

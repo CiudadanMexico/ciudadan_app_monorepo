@@ -38,6 +38,8 @@ const DEFAULT_PREFERENCES = {
   otro_genero: false,
 };
 
+const OFFERS_STORAGE_KEY = 'pasajero-offers-v1';
+
 const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
   const navigate = useNavigate();
@@ -86,9 +88,27 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const socketRef = useRef(null);
 
   // Offers state + refs to store marker/infoWindow objects without forcing re-render
-  const [offers, setOffers] = useState([]); // [{ id, coordinates, price, timestamp }]
+  const [offers, setOffers] = useState(() => {
+    try {
+      const raw = localStorage.getItem(OFFERS_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.warn('[Pasajero] error leyendo ofertas persistidas desde localStorage:', e);
+      return [];
+    }
+  }); // [{ id, coordinates, price, timestamp }]
   const offersRef = useRef([]); // same objects + { marker, infoWindow }
   const pendingOffersRef = useRef([]); // offers received before map is ready
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(OFFERS_STORAGE_KEY, JSON.stringify(offers));
+    } catch (e) {
+      console.warn('[Pasajero] error guardando ofertas persistidas en localStorage:', e);
+    }
+  }, [offers]);
 
   // Selected offer for modal
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -245,12 +265,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     fetchDebts();
   }, [user?.email]);
 
-  const handlePreferenceFieldChange = (field, value) => {
-    setPreferences((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handlePaymentLaboryChange = (field, value) => {
-    setPaymentLabory(value);
+  const handleOpenRecentTrips = () => {
+    navigate('/taxis/viajes/historial', { state: { role: 'pasajero' } });
   };
 
   const saveUserPreferences = async () => {
@@ -364,7 +380,29 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
   // Crear marker + infoWindow para una oferta
   const createMarkerForOffer = useCallback(
-    (offer) => {
+    (offer, skipStateUpdate = false) => {
+      const offerId =
+        offer?.id ??
+        offer?.travelId ??
+        offer?.travel?.travelId ??
+        offer?.travel?.id ??
+        null;
+
+      if (
+        offerId !== null &&
+        offersRef.current.some((existing) => {
+          const existingId =
+            existing?.id ??
+            existing?.travelId ??
+            existing?.travel?.travelId ??
+            existing?.travel?.id ??
+            null;
+          return existingId !== null && String(existingId) === String(offerId);
+        })
+      ) {
+        return;
+      }
+
       if (!mapRef || !mapRef.current || !window.google) {
         // guardar en pendientes si el mapa no está listo
         pendingOffersRef.current.push(offer);
@@ -470,11 +508,36 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           _listeners: { markerClickListener, domReadyListener },
         });
 
-        // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
-        setOffers((prev) => [
-          ...prev,
-          { id, coordinates, price, driver, travel, driverRating, timestamp: offer.timestamp },
-        ]);
+        if (!skipStateUpdate) {
+          // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
+          setOffers((prev) => {
+            const alreadyExists = prev.some((item) => {
+              const currentId =
+                item?.id ??
+                item?.travelId ??
+                item?.travel?.travelId ??
+                item?.travel?.id ??
+                null;
+              return currentId !== null && String(currentId) === String(offerId);
+            });
+
+            if (alreadyExists) return prev;
+
+            return [
+              ...prev,
+              {
+                id,
+                coordinates,
+                price,
+                driver,
+                travel,
+                driverRating,
+                timestamp: offer.timestamp,
+                raw: offer.raw ?? offer,
+              },
+            ];
+          });
+        }
       } catch (e) {
         console.warn('[Pasajero] error creando marker para oferta', e);
       }
@@ -501,6 +564,38 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     pendingOffersRef.current.forEach((of) => createMarkerForOffer(of));
     pendingOffersRef.current = [];
   }, [googleMapsLoaded, createMarkerForOffer]);
+
+  useEffect(() => {
+    if (!googleMapsLoaded || !mapRef || !mapRef.current || !window.google) return;
+
+    const existingIds = new Set(
+      offersRef.current
+        .map((offer) => {
+          const currentId =
+            offer?.id ??
+            offer?.travelId ??
+            offer?.travel?.travelId ??
+            offer?.travel?.id ??
+            null;
+          return currentId !== null ? String(currentId) : null;
+        })
+        .filter(Boolean),
+    );
+
+    offers.forEach((offer) => {
+      const offerId =
+        offer?.id ??
+        offer?.travelId ??
+        offer?.travel?.travelId ??
+        offer?.travel?.id ??
+        null;
+
+      if (offerId === null || existingIds.has(String(offerId))) return;
+
+      createMarkerForOffer(offer, true);
+      existingIds.add(String(offerId));
+    });
+  }, [googleMapsLoaded, offers, createMarkerForOffer, mapRef]);
 
   useEffect(() => {
     console.log(
@@ -947,6 +1042,13 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   // Aceptar oferta: ahora llama al backend /api/aceptar-viaje y navega a /taxis/viaje/:travelId
   const acceptOffer = async () => {
     console.log('aceptando oferta');
+
+    if (socketRef.current) {
+      socketRef.current.emit('offer-accepted',
+        user?.email
+      );
+    }
+
     // construir backend base igual que en buscarTaxistas
     const backendBase =
       process.env.REACT_APP_SOCKET_URL || 'http://localhost:3033';
@@ -1173,7 +1275,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             disabled={loadingSearch}
             className='buscar-taxistas formulario-pasajero pasajero-buscar'
             style={{
-              flex: 1,
+              flex: 2,
               padding: '12px 16px',
               backgroundColor: '#ff4081',
               color: 'white',
@@ -1182,21 +1284,24 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               cursor: loadingSearch ? 'default' : 'pointer',
             }}
           >
-            {loadingSearch ? 'Buscando taxistas...' : 'Buscar Conductores'}
+            {loadingSearch ? 'Buscando taxistas...' : 'Buscar conductores'}
           </button>
           {!loadingSearch && (
-            <Button
-              variant='outlined'
+            <button
               onClick={() => setPreferencesModalOpen(true)}
-              sx={{
-                minWidth: 140,
-                borderColor: '#1d3be2',
-                color: '#1d3be2',
-                ml: 1,
+              className='preferencias-button formulario-pasajero pasajero-buscar'
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                backgroundColor: '#38cb64',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
               }}
             >
-              Preferencias
-            </Button>
+              Preferencias de viaje
+            </button>
           )}
           {loadingSearch && (
             <button
@@ -1254,13 +1359,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         />
 
         <div
-          className='taxis-map formulario-pasajero'
-          style={{
-            width: '100%',
-            height: '60vh',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
+          className='taxis-map'
         >
           <div
             id='map'
@@ -1287,6 +1386,27 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       >
         {getSheetContent()}
       </BottomSheet>
+
+      <Button
+        variant='contained'
+        onClick={handleOpenRecentTrips}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 160,
+          zIndex: 2000,
+          borderRadius: '999px',
+          backgroundColor: '#fff200',
+          color: '#111',
+          boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+          textTransform: 'none',
+          fontWeight: 700,
+          px: 2,
+          py: 1,
+        }}
+      >
+        Mis viajes
+      </Button>
     </>
   );
 };

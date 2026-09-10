@@ -61,12 +61,12 @@ const testTrip = require('./routes/testTrip');
 const calculateFare = require('./routes/calculateFare');
 const aceptarViajeRoute = require('./routes/aceptarViaje');
 
-const { ConfigDatabase } = require('./dist/config/ConfigDatabase');
+/*const { ConfigDatabase } = require('./dist/config/ConfigDatabase');
 const { DocumentRepositoryImpl } = require('./dist/repository/impl/DocumentRepositoryImpl');
 const { WikiService } = require('./dist/services/WikiService');
 const { WikiWatcherService } = require('./dist/services/WikiWatcherService');
 
-const WikiRouter = require("./routes/WikiRouter");
+const WikiRouter = require("./routes/WikiRouter");*/
 const { getUserRating } = require('./lib/calcRating');
 
 let openpayRoute;
@@ -78,7 +78,7 @@ try {
 if (openpayRoute) app.use("/api", openpayRoute);
 
 // Inicializas las dependencias de la Wiki
-const db = ConfigDatabase.getConnection();
+/*const db = ConfigDatabase.getConnection();
 const documentRepository = new DocumentRepositoryImpl(db);
 const wikiService = new WikiService(documentRepository);
 
@@ -87,7 +87,7 @@ app.use("/wiki", WikiRouter);
 
 // Iniciar watcher de archivos .md
 const wikiWatcher = new WikiWatcherService(wikiService);
-wikiWatcher.start();
+wikiWatcher.start();*/
 
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);
@@ -191,16 +191,16 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on('actualizandoUbicacion', (payload) => {
+  socket.on('driver-location', async (payload) => {
     try {
       if (!payload) {
-        console.error('Error en actualizandoUbicacion: payload inválido');
+        console.error('Error en driver-location: payload inválido');
         return;
       }
-      //console.log(payload.payload);
+      //console.log('driver-location recibido:', JSON.stringify(payload, null, 2));
       io.to(payload.travelId).emit('driver-location', payload);
     } catch (e) {
-      console.error('Error en actualizandoUbicacion:', e);
+      console.error('Error en driver-location:', e);
     }
   });
 
@@ -214,6 +214,19 @@ io.on("connection", (socket) => {
       io.to(payload.travelId).emit('trip-update', payload);
     } catch (e) {
       console.error('Error en trip-update:', e);
+    }
+  });
+
+  socket.on('offer-accepted', (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en offer-accepted: payload inválido o falta travelId');
+        return;
+      }
+      console.log('offer-accepted:', payload);
+      io.emit('offer-accepted', payload);
+    } catch (e) {
+      console.error('Error en offer-accepted:', e);
     }
   });
 

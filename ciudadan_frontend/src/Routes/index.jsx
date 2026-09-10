@@ -94,9 +94,10 @@ import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 
 // Taxis (pasajero / conductor / trip)
-import Pasajero from '../components/Taxiz/Pasajero.jsx';
-import Conductor from '../components/Taxiz/ConductorDebug.jsx';
+import Pasajero from '../components/Taxis/Pasajero.jsx';
+import Conductor from '../components/Taxis/Conductor.jsx';
 import TripView from '../components/Taxiz/TripView.jsx';
+import HistorialViajes from '../components/Taxis/HistorialViajes.jsx';
 
 //import QrScanner from '../components/Agencias/QrScanner.jsx';
 
@@ -275,6 +276,17 @@ const TripViewRoute = () => {
 
     const client = io(socketUrl, {
       transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
+      timeout: 4000,
+    });
+
+    client.on('connect', () => {
+      if (user?.email) {
+        client.emit('register', { email: user.email });
+      }
     });
 
     setSocket(client);
@@ -354,7 +366,7 @@ const Rutas = () => (
       element={<Notificacion />}
     />
 
-                {/* Gana / GanaRoute */}
+    {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
@@ -364,7 +376,7 @@ const Rutas = () => (
       element={<AnunciosRemunerados />}
     />
     {/* Taxis */}
-    
+
 
     {/* Taxis */}
     <Route
@@ -394,6 +406,10 @@ const Rutas = () => (
     <Route
       path='/taxis/pasajero/viaje'
       element={<Pasajero />}
+    />
+    <Route
+      path='/taxis/viajes/historial'
+      element={<HistorialViajes />}
     />
     <Route
       path='/taxis/viaje/:travelId'
@@ -434,7 +450,7 @@ const Rutas = () => (
       path='/comida/comprar/:slug'
       element={<ComprarFoodProduct />}
     />
-    <Route 
+    <Route
       path='/comida/ofertas'
       element={<ComidaOfertas />}
     />

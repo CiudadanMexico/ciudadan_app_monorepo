@@ -89,6 +89,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const navigate = useNavigate();
   const [viaje, setViaje] = useState(null);
   const [loadingViaje, setLoadingViaje] = useState(false);
+  const [statusPayment, setStatusPayment] = useState(null);
   const [driverPaymentState, setDriverPaymentState] = useState(PAYMENT_STATES.pending);
   const [passengerPaymentState, setPassengerPaymentState] = useState(PAYMENT_STATES.pending);
 
@@ -745,7 +746,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
       try {
         console.log('[TripView] actualizando ubicación GPS');
-        socket.emit('actualizandoUbicacion', {
+        socket.emit('driver-location', {
           travelId: travelD,
           driverId,
           coords: nextCoords,
@@ -784,20 +785,16 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     const channel = travelD;
 
     const onDriverLocation = (payload) => {
-      //console.log('[TripView] socket onDriverLocation', payload);
       if (!payload) return;
       setUserCoords(payload.coords);
       if (payload.distanceKm) setRouteInfo(payload.distanceKm);
     };
 
     const onCancelTrip = (payload) => {
-      if (payload?.cancelledBy !== user?.role) {
-        setShowConfirmCancelModal(true);
-      }
+      setShowConfirmCancelModal(true);
     }
 
     const onTripUpdate = (payload) => {
-      //console.log('[TripView] socket onTripUpdate', payload);
       if (!payload) return;
       if (payload.pickup || payload.destination || payload.status) {
         setViaje((prev) => {
@@ -809,12 +806,9 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           return copy;
         });
       }
-      /*if (payload.status === 'partial' || payload.status === 'unpaid') {
-        setDriverPaymentState(payload.status);
-      }*/
-      if (payload.status === 'paid' || payload.status === 'partial' || payload.status === 'unpaid') {
+      /*if (payload.status === 'paid' || payload.status === 'partial' || payload.status === 'unpaid') {
         setShowAmountModal(true);
-      }
+      }*/
       if (payload.status === 'cerrado' && !ratingSubmitted) setShowRatingModal(true);
     };
 
@@ -849,10 +843,10 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           tripStatus,
           ts: new Date().toISOString(),
         };
-        //console.log('[TripView] emit actualizandoUbicacion', payload);
+        //console.log('[TripView] emit driver-location', payload);
         try {
-          socket.emit('actualizandoUbicacion', payload);
-        } catch (e) { console.warn('emit actualizandoUbicacion error', e); }
+          socket.emit('driver-location', payload);
+        } catch (e) { console.warn('emit driver-location error', e); }
       };
       emitLocation();
       locInterval = setInterval(emitLocation, 10 * 1000);
@@ -993,6 +987,12 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     }
   }, [paymentFlowState.shouldOpenRatingModal, ratingSubmitted]);
 
+  useEffect(() => {
+    if (statusPayment === 'paid' || statusPayment === 'partial' || statusPayment === 'unpaid') {
+      setShowAmountModal(true);
+    }
+  }, [statusPayment]);
+
   /*const handlePassengerPaymentChoice = (nextState) => {
     console.log('[TripView] handlePassengerPaymentChoice', nextState);
     setPassengerPaymentState(nextState);
@@ -1081,7 +1081,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           onStatusChange={handleTripStatusChange}
           onVerifyPIN={handleVerifyPIN}
           onCancel={handleCancelTrip}
-          paymentFlowState={paymentFlowState}
+          setStatusPayment={setStatusPayment}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
           setCashAmount={setCashAmount}
           setLaboryAmount={setLaboryAmount}
@@ -1098,7 +1098,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           setUserCoords={setUserCoords}
           mapRef={mapRef}
           setConsultedTravel={setConsultedTravel}
-          paymentFlowState={paymentFlowState}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
           passengerPaymentState={passengerPaymentState}
           onCancel={handleCancelTrip}
@@ -1118,7 +1117,8 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         onClose={closeRatingFlow}
       />
       <SolicitudCancelar
-        viajeId={viaje?.id}
+        trip={viaje}
+        userCoords={userCoords}
         open={showCancelModal}
         setOpen={setShowCancelModal}
         isDriver={isDriver}
@@ -1126,14 +1126,11 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         onClose={() => setShowCancelModal(false)}
       />
       <ConfirmarCancelar
-        viajeId={viaje?.id}
         status={viaje?.attributes?.status}
         open={showConfirmCancelModal}
         setOpen={setShowConfirmCancelModal}
         isDriver={isDriver}
         onSubmit={handleTripStatusChange}
-        onClose={() => setShowConfirmCancelModal(false)}
-        strapiConfig={{ baseUrl: (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE, token: (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN }}
       />
       {isDriver && (
         <ConfirmPayment
@@ -1141,6 +1138,8 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           onClose={() => setShowAmountModal(false)}
           onSubmit={handleTripStatusChange}
           tripData={viaje}
+          statusPayment={statusPayment}
+          setStatusPayment={setStatusPayment}
           cashAmount={cashAmount}
           laboryAmount={laboryAmount}
           strapiConfig={{ baseUrl: (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE, token: (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN }}

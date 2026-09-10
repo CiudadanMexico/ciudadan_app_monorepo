@@ -18,7 +18,18 @@ const normalizeCoord = (c) => {
   }
 };
 
-const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUserCoords, mapRef, setConsultedTravel, paymentAmount, onCancel }) => {
+const ViajeUsuario = ({
+  viaje,
+  driverData,
+  socket,
+  userCoords,
+  routeInfo,
+  setUserCoords,
+  mapRef,
+  setConsultedTravel,
+  paymentAmount,
+  onCancel
+}) => {
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
   const { getAccessTokenSilently } = useAuth0();
@@ -188,10 +199,14 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       overflow: 'hidden',
       overflowY: 'auto',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }}
+        onClick={() => setExpanded(!expanded)}
+      >
         <div style={{ flex: 1 }}>
           <strong>Tu viaje</strong>
-          <div style={{ fontSize: 14, color: '#666' }}>{status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}</div>
+          <div style={{ fontSize: 14, color: '#666' }}>
+            {status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}
+          </div>
         </div>
         <div style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 200ms' }}>▼</div>
@@ -236,7 +251,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
               </div>
             </div>
 
-            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado')) && (
+            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado') || status === 'cerrado') && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <strong>Pickup</strong>
@@ -287,7 +302,11 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
                           Pago máximo con
                           <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
                         </div>
-                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
+                          Efectivo restante: <strong style={{ color: '#12aa12' }}>
+                            ${Number(paymentAmount * 0.9).toFixed(2)} MXN
+                          </strong>
+                        </div>
                       </>
                     )}
                   </>

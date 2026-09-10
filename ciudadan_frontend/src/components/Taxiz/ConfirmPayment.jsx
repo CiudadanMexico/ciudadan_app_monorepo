@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 
-const ConfirmPayment = ({ tripData, cashAmount, laboryAmount, open, onClose, onSubmit, strapiConfig }) => {
+const ConfirmPayment = ({
+    tripData,
+    statusPayment,
+    setStatusPayment,
+    cashAmount,
+    laboryAmount,
+    open,
+    onClose,
+    onSubmit,
+    strapiConfig
+}) => {
     const [monto, setMonto] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     if (!open) return null;
 
-    if (!tripData) return;
-
-    const status = tripData.attributes.status || 'esperando';
-    console.log('ConfirmPayment status', status, 'tripData', tripData);
-
     let contenido = '';
-    switch (status) {
+    switch (statusPayment) {
         case 'paid':
             contenido = '¿Está seguro de confirmar el pago como completado?';
             break;
@@ -59,7 +64,7 @@ const ConfirmPayment = ({ tripData, cashAmount, laboryAmount, open, onClose, onS
 
         if (!strapiConfig?.baseUrl || !tripData) return;
 
-        if (status === 'paid') {
+        if (statusPayment === 'paid') {
             await confirmPayment();
             onSubmit('cerrado');
             onClose();
@@ -130,7 +135,7 @@ const ConfirmPayment = ({ tripData, cashAmount, laboryAmount, open, onClose, onS
                 <h4 style={{ color: '#333', textAlign: 'center' }}>
                     {contenido}
                 </h4>
-                {status === 'partial' &&
+                {statusPayment === 'partial' &&
                     <div style={{ marginBottom: 16 }}>
                         <label style={{ display: 'block', marginBottom: 8 }}>Monto:</label>
                         <input
@@ -161,7 +166,7 @@ const ConfirmPayment = ({ tripData, cashAmount, laboryAmount, open, onClose, onS
                         <button
                             type="button"
                             onClick={() => {
-                                if (typeof onSubmit === 'function') onSubmit('finalizado');
+                                setStatusPayment(null);
                                 if (typeof onClose === 'function') onClose();
                             }}
                             style={{

@@ -5348,6 +5348,63 @@ export interface ApiTaxiDebtTaxiDebt extends Schema.CollectionType {
   };
 }
 
+export interface ApiTaxiReportTaxiReport extends Schema.CollectionType {
+  collectionName: 'taxi_reports';
+  info: {
+    singularName: 'taxi-report';
+    pluralName: 'taxi-reports';
+    displayName: 'taxi-report';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    description: Attribute.Text;
+    date_report: Attribute.DateTime;
+    confirmed_by: Attribute.Enumeration<['user', 'driver']>;
+    coordinates: Attribute.JSON;
+    completed_trip: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+          max: 100;
+        },
+        number
+      >;
+    travel: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'api::viaje.viaje'
+    >;
+    passenger: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    driver: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiTodoTodo extends Schema.CollectionType {
   collectionName: 'todos';
   info: {
@@ -5786,6 +5843,7 @@ declare module '@strapi/types' {
       'api::store-categorie.store-categorie': ApiStoreCategorieStoreCategorie;
       'api::tarea.tarea': ApiTareaTarea;
       'api::taxi-debt.taxi-debt': ApiTaxiDebtTaxiDebt;
+      'api::taxi-report.taxi-report': ApiTaxiReportTaxiReport;
       'api::todo.todo': ApiTodoTodo;
       'api::transaccion.transaccion': ApiTransaccionTransaccion;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;

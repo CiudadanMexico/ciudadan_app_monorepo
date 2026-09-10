@@ -487,7 +487,7 @@ const ConductorRender = ({
           }
         }
 
-        setTravelData((prev) => {
+        /*setTravelData((prev) => {
           const next = prev.filter(
             (travel) =>
               String(travel.userEmail).toLowerCase() !==
@@ -496,7 +496,7 @@ const ConductorRender = ({
           console.log('[ConductorRender] viajes restantes tras viaje aceptado:', next.length);
           setIsWaiting(next.length === 0);
           return next;
-        });
+        });*/
       });
     } catch (e) {
       console.warn('[ConductorRender] no se pudo inicializar socket:', e);
@@ -674,7 +674,6 @@ const ConductorRender = ({
       )}
 
       {isWaiting ? (
-        <div>
           <EsperandoViaje
             handlePasajero={() => {
               console.log('taxi debug: EsperandoViaje -> handlePasajero invoked');
@@ -687,7 +686,6 @@ const ConductorRender = ({
             rol="conductor"
             newTravel={Array.isArray(travelData) && travelData.length > 0 ? travelData[0] : null}
           />
-        </div>
       ) : (
         <div className="travel-list">
           {consultedTravel === null ? (
@@ -738,27 +736,9 @@ const ConductorRender = ({
           Te quedan {driver?.free_trips} viajes gratis por realizar
         </h3>
       )}
-      {/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
-      <div
-        className="taxis-map"
-        style={{
-          width: '100%',
-          height: '60vh',    // ajusta a 50vh / 70vh o a '450px' según prefieras
-          minHeight: 320,    // evita ser demasiado pequeño
-          maxHeight: '95vh',
-          boxSizing: 'border-box',
-          position: 'relative',
-          overflow: 'visible'
-        }}
-      >
-        <div
-          id="map"
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'block'
-          }}
-        />
+      {/* MAPA DEL CONDUCTOR: ocupa toda la vista y deja el resto de elementos encima */}
+      <div className="taxis-map">
+        <div id="map" style={{ width: '100%', height: '100%' }} />
       </div>
 
 
@@ -775,17 +755,19 @@ const ConductorRender = ({
           rol="pasajero"
         />
       ) : (
-        <RolConductor
-          handlePasajero={() => {
-            console.log('taxi debug: RolConductor -> handlePasajero');
-            if (typeof handlePasajero === 'function') handlePasajero();
-          }}
-          handleConductor={() => {
-            console.log('taxi debug: RolConductor -> handleConductor');
-            if (typeof handleConductor === 'function') handleConductor();
-          }}
-          rol="conductor"
-        />
+        <div className='ocultar-module' style={{ display: 'flex', justifyContent: 'flex-end', marginRight: 60 }}>
+          <RolConductor
+            handlePasajero={() => {
+              console.log('taxi debug: RolConductor -> handlePasajero');
+              if (typeof handlePasajero === 'function') handlePasajero();
+            }}
+            handleConductor={() => {
+              console.log('taxi debug: RolConductor -> handleConductor');
+              if (typeof handleConductor === 'function') handleConductor();
+            }}
+            rol="conductor"
+          />
+        </div>
       )}
     </ConductorContainer>
   );

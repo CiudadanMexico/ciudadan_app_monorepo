@@ -22,7 +22,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   const [elapsedSeconds, setElapsedSeconds] = useState(null);
   const [finalPrice, setFinalPrice] = useState('');
   const [sending, setSending] = useState(false);
-  const [isSent, setIsSent] = useState(false);
+  const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
 
   // Obtener timestamp start (buscamos varias propiedades posibles)
@@ -42,6 +42,27 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     }
     return null;
   }, [travel]);
+
+  const base = process.env.REACT_APP_STRAPI_URL;
+  const token = process.env.REACT_APP_STRAPI_TOKEN;
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+
+  const getTravelData = useCallback(async () => {
+    const res = await fetch(
+      `${base}/api/viajes?filters[travelid][$eq]=${encodeURIComponent(travel.id)}`,
+      { headers }
+    );
+    const existing = await res.json();
+    const statusTravel = existing?.data[0]?.attributes?.status;
+    setStatus(statusTravel);
+  }, [travel.id]);
+
+  useEffect(() => {
+    getTravelData();
+  }, [getTravelData]);
 
   useEffect(() => {
     if (!startTs) {
@@ -138,7 +159,6 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
       setError('Por favor ingrese un precio final válido antes de enviar la propuesta.');
       return;
     }
-
     setSending(true);
 
     let driverCoords = null;
@@ -152,8 +172,6 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
     const driverEmail = travel?.driverEmail ?? travel?.driver?.email ?? null;
     const userEmail = travel?.userData?.email ?? travel?.userEmail ?? travel?.email ?? null;
-    //console.log('[TravelCard] driverEmail:', driverEmail);
-    //console.log('[TravelCard] userEmail:', userEmail);
 
     const payload = {
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
@@ -169,6 +187,16 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
       rawTravel: travel ?? null,
       timestamp: new Date().toISOString(),
     };
+
+    try {
+      if (base) {
+        await fetch(`${base.replace(/\/$/, '')}/api/viajes/${travel?.strapiTripId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ data: { status: 'enviado' } }),
+        });
+      }
+    } catch (e) { console.warn('no pudo actualizar viaje', e); }
 
     try {
       // emitEvent viene de lib/socketClient.jsx
@@ -188,7 +216,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
       console.warn('[TravelCard] onAccept lanzó error:', e);
     } finally {
       setSending(false);
-      setIsSent(true);
+      setStatus('enviado');
     }
   };
 
@@ -237,11 +265,16 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   // small accessibility: disable send if ya enviando
   const canSend = !sending && (finalPrice !== '' || (suggestedPrice !== null && !isNaN(Number(suggestedPrice))));
 
-  if (isSent) {
+  if (status === 'enviado') {
     return (
       <div
         role="article"
         aria-label={`TravelCard ${travel?.travelId ?? travel?.id ?? index}`}
+        style={{
+          border: '1px solid #e6e6e6',
+          margin: 8,
+          boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
+        }}
       >
         <Alert severity="success" variant="filled">
           Propuesta enviada a {passengerName} por {currencyFmt(finalPrice !== '' ? Number(finalPrice) : suggestedPrice)}
@@ -258,7 +291,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
         border: '1px solid #e6e6e6',
         borderRadius: 12,
         padding: 14,
-        marginBottom: 12,
+        margin: 8,
         boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
         background: '#fff',
         maxHeight: 320,

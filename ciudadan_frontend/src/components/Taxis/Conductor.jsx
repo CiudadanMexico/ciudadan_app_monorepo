@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button, Typography, Box } from '@mui/material';
 import io from 'socket.io-client';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BottomSheet from '../BottomSheet.jsx';
 import ConductorRender from './ConductorRender.jsx'; // tu render (el UI que pegaste)
@@ -24,9 +25,18 @@ const Conductor = ({
   setShiftToPasajero,
 }) => {
   const { user, isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
   const [driver, setDriver] = useState(null);
   const [isWaiting, setIsWaiting] = useState(true);
-  const [travelData, setTravelData] = useState([]);
+  const [travelData, setTravelData] = useState(() => {
+    try {
+      const storedTravels = localStorage.getItem('travel-data');
+      return storedTravels ? JSON.parse(storedTravels) : [];
+    } catch (error) {
+      console.warn('[Conductor] no se pudieron leer las TravelCards guardadas:', error);
+      return [];
+    }
+  });
   const [driverEmail, setDriverEmail] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [consultedTravel, setConsultedTravel] = useState(null);
@@ -136,7 +146,7 @@ const Conductor = ({
     } else {
       return (
         <>
-          <Typography variant='h6'>Esperando solicitudes</Typography>
+          <Typography variant='h6'>Esperando solicitudes...</Typography>
           <Typography>
             Estás en línea. Aparecerán aquí los viajes cercanos.
           </Typography>
@@ -180,6 +190,18 @@ const Conductor = ({
     getDriverData();
     if (driver?.free_trips > 0) setFreeTripModalOpen(true);
   }, [getDriverData, driver?.free_trips]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('travel-data', JSON.stringify(travelData));
+    } catch (error) {
+      console.warn('[Conductor] no se pudieron guardar las TravelCards:', error);
+    }
+  }, [travelData]);
+
+  useEffect(() => {
+    setIsWaiting(Array.isArray(travelData) ? travelData.length === 0 : true);
+  }, [travelData]);
 
   /* --------------------------
      Inicializa mapa (no bloquear UI)
@@ -357,13 +379,21 @@ const Conductor = ({
           const shouldShowRequest = (addressed || broadcast || included) && withinDistance;
 
           if (shouldShowRequest) {
+            const travels = localStorage.getItem('travel-data');
+            let travelsArray = [];
+            if (travels) {
+              travelsArray = JSON.parse(travels);
+            }
+            travelsArray.push({ ...data, driverEmail });
+            console.log('travels array:', travelsArray);
+            localStorage.setItem('travel-data', JSON.stringify(travelsArray));
+
             // añadir al arreglo de viajes
-            console.log('[Conductor] trip-request agregado a travelData, total:', travelData.length);
-            console.log('[Conductor] conductores:', travelData);
-            setTravelData((prev) => {
+            setTravelData(travelsArray);
+            /*setTravelData((prev) => {
               const next = [...prev, driverEmail ? { ...data, driverEmail } : data];
               return next;
-            });
+            });*/
             setIsWaiting(false);
 
             // Añadir marcador del origen al mapa (si vienen coords)
@@ -399,6 +429,32 @@ const Conductor = ({
         } catch (e) {
           console.error('Error manejando trip-request', e);
         }
+      });
+
+      socket.on('offer-accepted', (payload) => {
+        console.log('offer-accepted recibido (conductor):', payload);
+
+        setTravelData((prev) => {
+          const next = prev.filter(
+            (travel) =>
+              String(travel.userEmail).toLowerCase() !==
+              String(payload).toLowerCase(),
+          );
+          console.log('[Conductor] viajes restantes tras offer-accepted:', next.length);
+          setIsWaiting(next.length === 0);
+          return next;
+        });
+        setConsultedTravel(null);
+
+        // Los marcadores de origen no están asociados a una tarjeta individual.
+        markersRef.current.forEach((marker) => {
+          try {
+            marker.setMap(null);
+          } catch (e) {
+            // noop
+          }
+        });
+        markersRef.current = [];
       });
 
       socket.on('cancel-search', (payload) => {
@@ -866,6 +922,10 @@ const Conductor = ({
     setShiftToPasajero(true);
   };
 
+  const handleOpenRecentTrips = () => {
+    navigate('/taxis/viajes/historial', { state: { role: 'conductor' } });
+  };
+
   const ElapsedTimer = ({ startTime }) => {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
     useEffect(() => {
@@ -926,6 +986,27 @@ const Conductor = ({
         setOpen={setFreeTripModalOpen}
         freeTrips={driver?.free_trips}
       />
+
+      <Button
+        variant='contained'
+        onClick={handleOpenRecentTrips}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 160,
+          zIndex: 2000,
+          borderRadius: '999px',
+          backgroundColor: '#fff200',
+          color: '#111',
+          boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+          textTransform: 'none',
+          fontWeight: 700,
+          px: 2,
+          py: 1,
+        }}
+      >
+        Mis viajes (conductor)
+      </Button>
     </>
   );
 };
