@@ -22,7 +22,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   const [elapsedSeconds, setElapsedSeconds] = useState(null);
   const [finalPrice, setFinalPrice] = useState('');
   const [sending, setSending] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState(null);
 
   // Obtener timestamp start (buscamos varias propiedades posibles)
@@ -42,27 +42,6 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     }
     return null;
   }, [travel]);
-
-  const base = process.env.REACT_APP_STRAPI_URL;
-  const token = process.env.REACT_APP_STRAPI_TOKEN;
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  }
-
-  const getTravelData = useCallback(async () => {
-    const res = await fetch(
-      `${base}/api/viajes?filters[travelid][$eq]=${encodeURIComponent(travel.id)}`,
-      { headers }
-    );
-    const existing = await res.json();
-    const statusTravel = existing?.data[0]?.attributes?.status;
-    setStatus(statusTravel);
-  }, [travel.id]);
-
-  useEffect(() => {
-    getTravelData();
-  }, [getTravelData]);
 
   useEffect(() => {
     if (!startTs) {
@@ -189,16 +168,6 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     };
 
     try {
-      if (base) {
-        await fetch(`${base.replace(/\/$/, '')}/api/viajes/${travel?.strapiTripId}`, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({ data: { status: 'enviado' } }),
-        });
-      }
-    } catch (e) { console.warn('no pudo actualizar viaje', e); }
-
-    try {
       // emitEvent viene de lib/socketClient.jsx
       emitEvent('ofertaviaje', payload, (ack) => {
         console.log('[TravelCard] ack ofertaviaje:', ack);
@@ -216,7 +185,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
       console.warn('[TravelCard] onAccept lanzó error:', e);
     } finally {
       setSending(false);
-      setStatus('enviado');
+      setIsSent(true);
     }
   };
 
@@ -265,7 +234,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   // small accessibility: disable send if ya enviando
   const canSend = !sending && (finalPrice !== '' || (suggestedPrice !== null && !isNaN(Number(suggestedPrice))));
 
-  if (status === 'enviado') {
+  if (isSent) {
     return (
       <div
         role="article"

@@ -233,16 +233,17 @@ const ConductorRender = ({
 
   // Verificar si el viaje es gratis
   useEffect(() => {
-    travelData.forEach((t, idx) => {
+    travelData.forEach((t) => {
       const driverEmail = t?.driverEmail;
       const userEmail = t?.userData?.email;
-      const userFreeTrip = t?.freeTrip;
-      console.log(`[ConductorRender] free trip user ${userEmail}:`, userFreeTrip);
 
-      const driverFreeTrip = driver?.free_trips > 0;
-      console.log(`[ConductorRender] free trip driver ${driverEmail}:`, driverFreeTrip)
+      const userHasFreeTrip = t?.freeTrip;
+      console.log(`[ConductorRender] free trip user ${userEmail}:`, userHasFreeTrip);
 
-      if ((userFreeTrip || !driverFreeTrip) && (!userFreeTrip || driverFreeTrip)) setFreeTrip(true);
+      const driverHasFreeTrip = driver?.free_trips > 0;
+      console.log(`[ConductorRender] free trip driver ${driverEmail}:`, driverHasFreeTrip)
+
+      if ((userHasFreeTrip || !driverHasFreeTrip) && (!userHasFreeTrip || driverHasFreeTrip)) setFreeTrip(true);
     });
   }, [travelData, driver?.free_trips])
 
@@ -486,17 +487,6 @@ const ConductorRender = ({
             // noop
           }
         }
-
-        /*setTravelData((prev) => {
-          const next = prev.filter(
-            (travel) =>
-              String(travel.userEmail).toLowerCase() !==
-              String(payload.userEmail).toLowerCase()
-          );
-          console.log('[ConductorRender] viajes restantes tras viaje aceptado:', next.length);
-          setIsWaiting(next.length === 0);
-          return next;
-        });*/
       });
     } catch (e) {
       console.warn('[ConductorRender] no se pudo inicializar socket:', e);

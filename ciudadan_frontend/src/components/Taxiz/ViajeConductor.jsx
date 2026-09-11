@@ -180,7 +180,7 @@ const ViajeConductor = ({
   };
 
   const confirmFreeTrip = async () => {
-    if (!userEmail || !strapiConfig?.baseUrl) return;
+    if (!strapiConfig?.baseUrl) return;
     setStatus('cerrado');
     if (typeof onStatusChange === 'function') onStatusChange('cerrado');
 
@@ -201,13 +201,23 @@ const ViajeConductor = ({
         }),
       });
 
-      await fetch(`${strapiConfig.baseUrl}/api/users/${userId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          data: { free_trip: false }
-        }),
-      });
+      const response = await fetch(
+        `${strapiConfig.baseUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(userEmail)}`,
+        { headers }
+      );
+      const findData = await response.json();
+      const existing = findData?.data?.[0];
+
+      await fetch(
+        `${strapiConfig.baseUrl}/api/configuraciones-usuarios/${existing.id}`,
+        {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            data: { free_trip: 'utilizado' }
+          }),
+        }
+      );
 
       await fetch(`${strapiConfig.baseUrl}/api/drivers/${driverId}`, {
         method: 'PUT',

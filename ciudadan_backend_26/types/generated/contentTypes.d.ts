@@ -832,7 +832,6 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'manyToOne',
       'api::agencia.agencia'
     >;
-    free_trip: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -2479,6 +2478,9 @@ export interface ApiConfiguracionUsuarioConfiguracionUsuario
     email: Attribute.Email;
     configuraciones: Attribute.JSON;
     pago_labory: Attribute.Boolean;
+    free_trip: Attribute.Enumeration<['pendiente', 'disponible', 'utilizado']> &
+      Attribute.DefaultTo<'pendiente'>;
+    en_viaje: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

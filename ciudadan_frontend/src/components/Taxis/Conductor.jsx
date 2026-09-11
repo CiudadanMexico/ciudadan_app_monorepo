@@ -28,7 +28,8 @@ const Conductor = ({
   const navigate = useNavigate();
   const [driver, setDriver] = useState(null);
   const [isWaiting, setIsWaiting] = useState(true);
-  const [travelData, setTravelData] = useState(() => {
+  const [travelData, setTravelData] = useState([]);
+  /*const [travelData, setTravelData] = useState(() => {
     try {
       const storedTravels = localStorage.getItem('travel-data');
       return storedTravels ? JSON.parse(storedTravels) : [];
@@ -36,7 +37,7 @@ const Conductor = ({
       console.warn('[Conductor] no se pudieron leer las TravelCards guardadas:', error);
       return [];
     }
-  });
+  });*/
   const [driverEmail, setDriverEmail] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [consultedTravel, setConsultedTravel] = useState(null);
@@ -191,7 +192,7 @@ const Conductor = ({
     if (driver?.free_trips > 0) setFreeTripModalOpen(true);
   }, [getDriverData, driver?.free_trips]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     try {
       localStorage.setItem('travel-data', JSON.stringify(travelData));
     } catch (error) {
@@ -201,7 +202,7 @@ const Conductor = ({
 
   useEffect(() => {
     setIsWaiting(Array.isArray(travelData) ? travelData.length === 0 : true);
-  }, [travelData]);
+  }, [travelData]);*/
 
   /* --------------------------
      Inicializa mapa (no bloquear UI)
@@ -379,21 +380,11 @@ const Conductor = ({
           const shouldShowRequest = (addressed || broadcast || included) && withinDistance;
 
           if (shouldShowRequest) {
-            const travels = localStorage.getItem('travel-data');
-            let travelsArray = [];
-            if (travels) {
-              travelsArray = JSON.parse(travels);
-            }
-            travelsArray.push({ ...data, driverEmail });
-            console.log('travels array:', travelsArray);
-            localStorage.setItem('travel-data', JSON.stringify(travelsArray));
-
             // añadir al arreglo de viajes
-            setTravelData(travelsArray);
-            /*setTravelData((prev) => {
+            setTravelData((prev) => {
               const next = [...prev, driverEmail ? { ...data, driverEmail } : data];
               return next;
-            });*/
+            });
             setIsWaiting(false);
 
             // Añadir marcador del origen al mapa (si vienen coords)
@@ -438,7 +429,7 @@ const Conductor = ({
           const next = prev.filter(
             (travel) =>
               String(travel.userEmail).toLowerCase() !==
-              String(payload).toLowerCase(),
+              String(payload.user).toLowerCase(),
           );
           console.log('[Conductor] viajes restantes tras offer-accepted:', next.length);
           setIsWaiting(next.length === 0);

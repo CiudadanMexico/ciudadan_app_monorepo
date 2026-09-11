@@ -347,9 +347,6 @@
       "relation": "manyToOne",
       "target": "api::agencia.agencia",
       "inversedBy": "socios"
-    },
-    "free_trip": {
-      "type": "boolean"
     }
   }
 }

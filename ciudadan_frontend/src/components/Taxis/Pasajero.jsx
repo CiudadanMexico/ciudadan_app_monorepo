@@ -38,7 +38,7 @@ const DEFAULT_PREFERENCES = {
   otro_genero: false,
 };
 
-const OFFERS_STORAGE_KEY = 'pasajero-offers-v1';
+//const OFFERS_STORAGE_KEY = 'pasajero-offers-v1';
 
 const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
@@ -64,6 +64,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [passenger, setPassenger] = useState(null);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [paymentLabory, setPaymentLabory] = useState(false);
+  const [freeTrip, setFreeTrip] = useState(null);
   const [debtsLoading, setDebtsLoading] = useState(false);
   const [debtsError, setDebtsError] = useState(null);
   const [debts, setDebts] = useState([]);
@@ -88,7 +89,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const socketRef = useRef(null);
 
   // Offers state + refs to store marker/infoWindow objects without forcing re-render
-  const [offers, setOffers] = useState(() => {
+  /*const [offers, setOffers] = useState(() => {
     try {
       const raw = localStorage.getItem(OFFERS_STORAGE_KEY);
       if (!raw) return [];
@@ -98,17 +99,18 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       console.warn('[Pasajero] error leyendo ofertas persistidas desde localStorage:', e);
       return [];
     }
-  }); // [{ id, coordinates, price, timestamp }]
+  });*/
+  const [offers, setOffers] = useState([]); // [{ id, coordinates, price, timestamp }]
   const offersRef = useRef([]); // same objects + { marker, infoWindow }
   const pendingOffersRef = useRef([]); // offers received before map is ready
 
-  useEffect(() => {
+  /*useEffect(() => {
     try {
       localStorage.setItem(OFFERS_STORAGE_KEY, JSON.stringify(offers));
     } catch (e) {
       console.warn('[Pasajero] error guardando ofertas persistidas en localStorage:', e);
     }
-  }, [offers]);
+  }, [offers]);*/
 
   // Selected offer for modal
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -181,7 +183,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const response = await fetch(url, { headers });
       if (!response.ok) {
-        throw new Error('No se pudieron cargar las preferencias');
+        throw new Error('No se pudo cargar el usuario');
       }
       const data = await response.json();
 
@@ -192,7 +194,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       console.log('[Pasajero] datos del usuario cargados:', userData);
       setPassenger(userData);
     } catch (err) {
-      console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
+      console.warn('[Pasajero] no se pudo cargar el usuario:', err);
     }
   }, [strapiToken, strapiUrl, user?.email]);
 
@@ -213,9 +215,12 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const userData = await response.json();
       const savedSettings = userData?.data?.[0]?.attributes?.configuraciones || {};
-      const paymentLabory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      const payLabory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      const freeTripStatus = userData?.data?.[0]?.attributes?.free_trip || false;
+
       setPreferences(normalizePreferences(savedSettings));
-      setPaymentLabory(paymentLabory);
+      setPaymentLabory(payLabory);
+      setFreeTrip(freeTripStatus);
     } catch (err) {
       console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
       setPreferences(DEFAULT_PREFERENCES);
@@ -228,8 +233,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   }, [getUserData, loadUserPreferences]);
 
   useEffect(() => {
-    if (passenger?.free_trip) setFreeTripModalOpen(true);
-  }, [passenger?.free_trip]);
+    if (freeTrip === 'disponible') setFreeTripModalOpen(true);
+  }, [freeTrip]);
 
   // Cargar adeudos del pasajero
   useEffect(() => {
@@ -380,8 +385,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
   // Crear marker + infoWindow para una oferta
   const createMarkerForOffer = useCallback(
-    (offer, skipStateUpdate = false) => {
-      const offerId =
+    (offer) => {
+      /*const offerId =
         offer?.id ??
         offer?.travelId ??
         offer?.travel?.travelId ??
@@ -401,7 +406,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         })
       ) {
         return;
-      }
+      }*/
 
       if (!mapRef || !mapRef.current || !window.google) {
         // guardar en pendientes si el mapa no está listo
@@ -508,7 +513,13 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           _listeners: { markerClickListener, domReadyListener },
         });
 
-        if (!skipStateUpdate) {
+        // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
+        setOffers((prev) => [
+          ...prev,
+          { id, coordinates, price, driver, travel, driverRating, timestamp: offer.timestamp },
+        ]);
+
+        /*if (!skipStateUpdate) {
           // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
           setOffers((prev) => {
             const alreadyExists = prev.some((item) => {
@@ -537,7 +548,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               },
             ];
           });
-        }
+        }*/
       } catch (e) {
         console.warn('[Pasajero] error creando marker para oferta', e);
       }
@@ -565,7 +576,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     pendingOffersRef.current = [];
   }, [googleMapsLoaded, createMarkerForOffer]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (!googleMapsLoaded || !mapRef || !mapRef.current || !window.google) return;
 
     const existingIds = new Set(
@@ -595,7 +606,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       createMarkerForOffer(offer, true);
       existingIds.add(String(offerId));
     });
-  }, [googleMapsLoaded, offers, createMarkerForOffer, mapRef]);
+  }, [googleMapsLoaded, offers, createMarkerForOffer, mapRef]);*/
 
   useEffect(() => {
     console.log(
@@ -675,6 +686,18 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       socketRef.current.on('trip-ack', (ack) => {
         console.log('[Socket] trip-ack recibido:', ack);
       });
+
+      socketRef.current.on('offer-accepted', (payload) => {
+        console.log('[Pasajero] offersRef:', offersRef.current, payload);
+        const idx = offersRef.current.findIndex((o) => o.driver?.email === payload?.driver);
+        if (idx !== -1) {
+          const o = offersRef.current[idx];
+          if (o.infoWindow) o.infoWindow.close();
+          if (o.marker) o.marker.setMap(null);
+          offersRef.current.splice(idx, 1);
+          setOffers((prev) => prev.filter((p) => p.driver?.email !== payload?.driver));
+        }
+      })
 
       // NUEVO: escucha del evento de oferta de viaje
       socketRef.current.on('ofertaviaje', (payload) => {
@@ -1001,6 +1024,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               userId,
               userData: passenger || null,
               settings,
+              freeTrip: freeTrip === 'disponible',
               originCoordinates: payload.originCoordinates,
               destinationCoordinates: payload.destinationCoordinates,
               originAdress: payload.originAddress,
@@ -1045,7 +1069,10 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
     if (socketRef.current) {
       socketRef.current.emit('offer-accepted',
-        user?.email
+        {
+          user: user?.email,
+          driver: selectedOffer.driver?.email,
+        }
       );
     }
 
@@ -1077,6 +1104,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             offersRef.current.splice(idx, 1);
             setOffers((prev) => prev.filter((p) => p.id !== selectedOffer.id));
           }
+          console.log('[Pasajero] removiendo marcadores');
+          removeAllOfferMarkers();
         } catch (e) {
           console.warn('[acceptOffer] error removiendo marcador', e);
         } finally {
@@ -1144,7 +1173,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             : null;
 
       // comportamiento antiguo: remover marcador y cerrar modal
-      try {
+      /*try {
         const idx = offersRef.current.findIndex(
           (o) => o.id === selectedOffer?.id,
         );
@@ -1160,7 +1189,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       } finally {
         setSelectedOffer(null);
         setIsModalOpen(false);
-      }
+      }*/
 
       // navegar a la ruta del viaje usando travelId retornado por tu endpoint
       if (travelIdReturned) {
@@ -1330,7 +1359,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           </button>
         </div>
 
-        {passenger?.free_trip && (
+        {freeTrip === 'disponible' && (
           <h3 style={{ textAlign: 'center', color: '#16b32b', paddingBottom: 6 }}>
             ¡Tienes un viaje gratis disponible! ¡Pide uno ahora!
           </h3>

@@ -125,6 +125,7 @@ router.post('/send-trip', async (req, res) => {
       userId: body.userId || null,
       userData: body.userData || null,
       settings: body.settings || {},
+      freeTrip: body.freeTrip || null,
       meta: body.meta || {}
     };
     //console.log('[testTrip] send-trip payload:', payload);
@@ -197,7 +198,6 @@ router.post('/send-trip', async (req, res) => {
     payload.durationSeconds = suggested ? suggested.durationSeconds : null;
     payload.roundedDistanceMeters = roundedDistanceMeters;
     payload.userRating = userRating;
-    payload.freeTrip = payload.userData.free_trip;
     payload.meta.suggested = {
       price: payload.suggestedPrice,
       priceFormatted: payload.suggestedPriceFormatted,
@@ -215,7 +215,7 @@ router.post('/send-trip', async (req, res) => {
       pasajero: payload.userId || null,
       solicitado: payload.createdAt,
       status: 'solicitado',
-      isTripFree: payload.userData.free_trip,
+      isTripFree: payload.freeTrip,
       travelid: payload.id, // útil para correlación futura
     };
 
