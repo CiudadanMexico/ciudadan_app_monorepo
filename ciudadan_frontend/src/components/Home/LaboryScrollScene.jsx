@@ -2,12 +2,14 @@
 // Escena guiada por scroll (scroll trigger): un monigote geométrico cae por un
 // plano cartesiano en 3D mientras el gran título cambia de perspectiva:
 // "Labory — dinero que sirve y no al revés".
-// La sección mide ~360vh y el contenido queda sticky a 100svh; el avance del
-// scroll (useScroll) mueve la perspectiva del plano, la caída de la figura y
-// las fases del título (useTransform).
+// La sección mide ~360vh en móvil y ~280vh en desktop (responsive), y el
+// contenido queda sticky a 100svh; el componente se REMONTA al cambiar de
+// breakpoint (key) para que los rangos de useTransform sean siempre correctos.
+// El avance del scroll (useScroll) mueve la perspectiva del plano, la caída de
+// la figura y las fases del título (useTransform).
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { keyframes } from "@mui/system";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 import laborySvg from "../../assets/labory.svg";
@@ -23,6 +25,19 @@ const limbSwing = keyframes`
 `;
 
 export default function LaboryScrollScene() {
+  const theme = useTheme();
+  // Desktop (≥md): ajusta los rangos de la escena para pantallas anchas/cortas,
+  // eliminando huecos vacíos y manteniendo figura y títulos sincronizados.
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+
+  // IMPORTANTE: remontar el árbol interno al cambiar de breakpoint. Los hooks
+  // de framer-motion (useTransform → useCombineMotionValues) capturan el
+  // transformer en el primer render; sin el remount, el flip de useMediaQuery
+  // dejaría rangos obsoletos (los de móvil) congelados en desktop.
+  return <LaboryScrollSceneInner key={isDesktop ? "md" : "xs"} isDesktop={isDesktop} />;
+}
+
+function LaboryScrollSceneInner({ isDesktop }) {
   const targetRef = useRef(null);
 
   // Progreso 0→1 mientras la sección recorre el viewport (contenido sticky)
@@ -32,34 +47,34 @@ export default function LaboryScrollScene() {
   });
 
   // ---- Plano cartesiano: baja inclinado y se va enderezando ----
-  const planeRotateX = useTransform(scrollYProgress, [0, 0.5, 1], [60, 34, 14]);
+  const planeRotateX = useTransform(scrollYProgress, [0, 0.5, 1], isDesktop ? [52, 32, 12] : [60, 34, 14]);
   const planeRotateZ = useTransform(scrollYProgress, [0, 1], [-9, 5]);
-  const planeScale = useTransform(scrollYProgress, [0, 1], [0.8, 1.28]);
+  const planeScale = useTransform(scrollYProgress, [0, 1], isDesktop ? [0.9, 1.22] : [0.8, 1.28]);
   const planeY = useTransform(scrollYProgress, [0, 1], ["-5%", "5%"]);
 
   // ---- Figura: se dibuja con el scroll y cae girando en 3D ----
   const figureDraw = useTransform(scrollYProgress, [0.02, 0.3], [0, 1]);
-  const figureY = useTransform(scrollYProgress, [0, 1], ["-42vh", "48vh"]);
-  const figureX = useTransform(scrollYProgress, [0, 0.5, 1], ["-12vw", "0vw", "10vw"]);
+  const figureY = useTransform(scrollYProgress, [0, 1], isDesktop ? ["-38vh", "44vh"] : ["-42vh", "48vh"]);
+  const figureX = useTransform(scrollYProgress, [0, 0.5, 1], isDesktop ? ["-6vw", "0vw", "5vw"] : ["-12vw", "0vw", "10vw"]);
   const figureRotate = useTransform(scrollYProgress, [0, 0.5, 1], [-22, 9, -12]);
-  const figureScale = useTransform(scrollYProgress, [0, 1], [0.72, 1.18]);
+  const figureScale = useTransform(scrollYProgress, [0, 1], isDesktop ? [0.85, 1.15] : [0.72, 1.18]);
   const figureOpacity = useTransform(scrollYProgress, [0, 0.05, 0.95, 1], [0, 1, 1, 0.85]);
 
   // ---- Títulos por fases, con cambio de perspectiva 3D ----
-  const t1Opacity = useTransform(scrollYProgress, [0.04, 0.12, 0.26, 0.34], [0, 1, 1, 0]);
-  const t1RotateX = useTransform(scrollYProgress, [0.04, 0.34], [26, -32]);
-  const t1Y = useTransform(scrollYProgress, [0.04, 0.34], [34, -70]);
+  const t1Opacity = useTransform(scrollYProgress, [0.03, 0.1, 0.3, 0.36], [0, 1, 1, 0]);
+  const t1RotateX = useTransform(scrollYProgress, [0.03, 0.36], [26, -32]);
+  const t1Y = useTransform(scrollYProgress, [0.03, 0.36], [34, -70]);
 
-  const t2Opacity = useTransform(scrollYProgress, [0.36, 0.44, 0.58, 0.66], [0, 1, 1, 0]);
-  const t2RotateY = useTransform(scrollYProgress, [0.36, 0.66], [-42, 42]);
-  const t2Y = useTransform(scrollYProgress, [0.36, 0.66], [44, -60]);
+  const t2Opacity = useTransform(scrollYProgress, [0.36, 0.44, 0.62, 0.68], [0, 1, 1, 0]);
+  const t2RotateY = useTransform(scrollYProgress, [0.36, 0.68], [-42, 42]);
+  const t2Y = useTransform(scrollYProgress, [0.36, 0.68], [44, -60]);
 
-  const t3Opacity = useTransform(scrollYProgress, [0.68, 0.78, 1], [0, 1, 1]);
+  const t3Opacity = useTransform(scrollYProgress, [0.68, 0.76, 1], [0, 1, 1]);
   const t3RotateX = useTransform(scrollYProgress, [0.68, 1], [-38, 0]);
   const t3Scale = useTransform(scrollYProgress, [0.68, 1], [0.82, 1.06]);
 
   const hintOpacity = useTransform(scrollYProgress, [0, 0.07], [1, 0]);
-  const exitFadeOpacity = useTransform(scrollYProgress, [0.86, 0.98], [0, 1]);
+  const exitFadeOpacity = useTransform(scrollYProgress, [0.9, 0.99], [0, 1]);
 
   // ---- Escenografía integrada (efectos del papel, esferas y la red) ----
   const decorOpacity = useTransform(scrollYProgress, [0.02, 0.12, 0.8, 0.9], [0, 1, 1, 0]);
@@ -87,7 +102,9 @@ export default function LaboryScrollScene() {
       ref={targetRef}
       sx={{
         position: "relative",
-        height: "360vh",
+        // Responsive: en móvil conserva el recorrido largo (~360vh); en desktop
+        // se compacta (~280vh) para eliminar el tramo oscuro sin acción.
+        height: { xs: "360vh", md: "280vh" },
         bgcolor: "#050b09",
         // NOTA: sin overflow hidden — rompería el position:sticky del hijo.
         // El recorte visual del plano gigante lo hace el Box sticky interior.
@@ -122,7 +139,9 @@ export default function LaboryScrollScene() {
               y: planeY,
               transformStyle: "preserve-3d",
               width: "150vmax",
-              height: "110vmax",
+              // Altura mayor: con rotateX inicial fuerte el plano proyecta menos
+              // alto (cos θ) y cubría insuficientemente el viewport al empezar.
+              height: "128vmax",
               display: "grid",
               placeItems: "center",
             }}
@@ -349,7 +368,7 @@ export default function LaboryScrollScene() {
           }}
         >
           <motion.div
-            style={{ opacity: t1Opacity, rotateX: t1RotateX, y: t1Y, transformStyle: "preserve-3d" }}
+            style={{ gridArea: "1 / 1", opacity: t1Opacity, rotateX: t1RotateX, y: t1Y, transformStyle: "preserve-3d" }}
           >
             <Typography
               sx={{
@@ -368,7 +387,7 @@ export default function LaboryScrollScene() {
           </motion.div>
 
           <motion.div
-            style={{ opacity: t2Opacity, rotateY: t2RotateY, y: t2Y, transformStyle: "preserve-3d" }}
+            style={{ gridArea: "1 / 1", opacity: t2Opacity, rotateY: t2RotateY, y: t2Y, transformStyle: "preserve-3d" }}
           >
             <Typography
               sx={{
@@ -387,7 +406,7 @@ export default function LaboryScrollScene() {
           </motion.div>
 
           <motion.div
-            style={{ opacity: t3Opacity, rotateX: t3RotateX, scale: t3Scale, transformStyle: "preserve-3d" }}
+            style={{ gridArea: "1 / 1", opacity: t3Opacity, rotateX: t3RotateX, scale: t3Scale, transformStyle: "preserve-3d" }}
           >
             <Typography
               sx={{
@@ -838,6 +857,9 @@ function LaboryCoin({ width = 90, height = 84 }) {
       style={{
         width,
         height,
+        // Anula `.home img { margin-top: -11% }` (index.css): desalineaba las
+        // monedas respecto a su wrapper absoluto.
+        marginTop: 0,
         objectFit: "contain",
         display: "block",
         filter:
