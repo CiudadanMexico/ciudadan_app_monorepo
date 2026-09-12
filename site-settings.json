@@ -1,0 +1,12 @@
+{
+  "site": {
+    "name": "Ciudadan",
+    "baseUrl": "https://ciudadan.org"
+  },
+  "social": {
+    "youtube": {
+      "handle": "@ciudadanmx",
+      "url": "https://www.youtube.com/@ciudadanmx"
+    }
+  }
+}

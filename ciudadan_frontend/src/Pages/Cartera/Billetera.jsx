@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Box, CircularProgress, Stack, Typography, IconButton, Fade, Paper } from '@mui/material';
+import React, { useRef, useState, useEffect } from 'react';
+import { Box, Stack, Typography, IconButton, Fade, Paper, Button, Chip } from '@mui/material';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useNavigate } from 'react-router-dom';
+import { STRAPI_URL } from '../../utils/request.utils';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import HomeIcon from '@mui/icons-material/Home';
@@ -24,8 +24,38 @@ import SocialImg from '../../assets/monedas/social.png';
 import IngresosInfo from './../../components/Cartera/IngresosInfo.jsx';
 
 const Billetera = () => {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const [cartera, setCartera] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  const [historial, setHistorial] = useState([]);
+  const [cargandoHist, setCargandoHist] = useState(false);
+
+  const cargarCarteraYHistorial = async () => {
+    if (!isAuthenticated) { setCartera(null); setHistorial([]); return; }
+    setCargando(true);
+    try {
+      const token = await getAccessTokenSilently({ authorizationParams: { audience: 'https://api.ciudadan.org' } });
+      const r = await fetch(`${STRAPI_URL}/api/cartera`, { headers: { Authorization: `Bearer ${token}` } });
+      const d = await r.json();
+      setCartera(d?.data || d);
+      // historial paginado (últimas 10 tx donde participa la wallet)
+      if (d?.wallet_address || d?.data?.wallet_address) {
+        const wallet = d.wallet_address || d.data.wallet_address;
+        setCargandoHist(true);
+        const rh = await fetch(`${STRAPI_URL}/api/transaccion?filters[$or][0][direccion_origen][$eq]=${wallet}&filters[$or][1][direccion_destino][$eq]=${wallet}&sort=createdAt:desc&pagination[limit]=10`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const hd = await rh.json();
+        setHistorial(hd.data || []);
+        setCargandoHist(false);
+      }
+    } catch { setCartera(null); } finally { setCargando(false); }
+  };
+
+  useEffect(() => { cargarCarteraYHistorial(); }, [isAuthenticated, getAccessTokenSilently]);
+
   const monedas = [
-    { nombre: 'Resumen', icon: <HomeIcon sx={{ color: '#2ee6c8' }} /> },
+    { nombre: 'Resumen', icon: <HomeIcon sx={{ color: '#f0c040' }} /> },
     { nombre: 'Pesos MXN', img: PesosImg, componente: <IngresosInfo /> },
     { nombre: 'Labory', img: LaboryImg },
     { nombre: 'Ciudadan I-Token', img: CiudadanImg },
@@ -42,69 +72,6 @@ const Billetera = () => {
 
   const scrollRef = useRef(null);
   const [selected, setSelected] = useState(monedas[0].nombre);
-  const navigate = useNavigate();
-
-  // 💰 Saldo real en Laborys: GET /api/cartera (mismo endpoint que usan Taxiz y Coowork).
-  // Los pesos se muestran como conversión con la tasa del ecosistema: 1 Labory = $80 MXN.
-  const strapiUrl = process.env.REACT_APP_STRAPI_URL || '';
-  const { getAccessTokenSilently } = useAuth0();
-  const [saldoLaborys, setSaldoLaborys] = useState(null);
-  const [cargandoSaldo, setCargandoSaldo] = useState(true);
-  const [sinWallet, setSinWallet] = useState(false);
-
-  const getToken = useCallback(async () => {
-    try {
-      return await getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.ciudadan.org' },
-      });
-    } catch (e) {
-      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
-      return null;
-    }
-  }, [getAccessTokenSilently]);
-
-  useEffect(() => {
-    let activo = true;
-    const cargarSaldo = async () => {
-      if (!strapiUrl) {
-        if (activo) {
-          setSinWallet(true);
-          setCargandoSaldo(false);
-        }
-        return;
-      }
-      try {
-        const headers = { 'Content-Type': 'application/json' };
-        const token = await getToken();
-        if (token) headers.Authorization = `Bearer ${token}`;
-        const response = await fetch(`${strapiUrl}/api/cartera`, { headers });
-        if (!response.ok) throw new Error('No se pudo consultar la cartera del usuario');
-        const data = await response.json();
-        if (activo) {
-          setSaldoLaborys(data?.laborysSaldo ?? 0);
-          setSinWallet(false);
-          setCargandoSaldo(false);
-        }
-      } catch (err) {
-        console.warn('[Cartera] no se pudo consultar el saldo:', err);
-        // Sin wallet (o sin sesión): se ofrece crear la cartera.
-        if (activo) {
-          setSinWallet(true);
-          setCargandoSaldo(false);
-        }
-      }
-    };
-    cargarSaldo();
-    return () => {
-      activo = false;
-    };
-  }, [getToken, strapiUrl]);
-
-  const TASA_PESOS = 80;
-  const saldoNum = saldoLaborys == null ? null : Number(saldoLaborys) || 0;
-  const saldoPesos = saldoNum == null ? null : saldoNum * TASA_PESOS;
-  const formatoPesos = (v) =>
-    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v);
 
   const scroll = (dir) => {
     if (!scrollRef.current) return;
@@ -121,10 +88,7 @@ const Billetera = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        // 🌌 Fondo oscurón de marca: violeta profundo con nebulosas moradas
-        // (#8A5CF5 / #6A3FCB) y acento turquesa sutil, coherente con el hero.
-        background:
-          'radial-gradient(1100px 520px at 12% -8%, rgba(138,92,245,0.22) 0%, rgba(0,0,0,0) 60%), radial-gradient(900px 480px at 108% 18%, rgba(106,63,203,0.18) 0%, rgba(0,0,0,0) 55%), radial-gradient(760px 420px at 50% 112%, rgba(46,230,200,0.09) 0%, rgba(0,0,0,0) 58%), linear-gradient(180deg, #0b0716 0%, #0e0a1c 45%, #080512 100%)',
+        bgcolor: '#001a00', // 🌿 Verde oscuro más profundo
         color: 'white',
       }}
     >
@@ -132,22 +96,18 @@ const Billetera = () => {
       <Box
         sx={{
           width: '100%',
-          bgcolor: 'rgba(15, 9, 26, 0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          bgcolor: 'black',
           display: 'flex',
           alignItems: 'center',
           
-          position: 'sticky',
           top: 64,
           zIndex: 1000,
-          borderBottom: '1px solid rgba(138, 92, 245, 0.28)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
+          borderBottom: '2px solid #222',
           px: 1,
         }}
       >
         {/* Flecha izquierda */}
-        <IconButton onClick={() => scroll('left')} sx={{ color: '#a78bfa', '&:hover': { color: '#c9b4ff' } }}>
+        <IconButton onClick={() => scroll('left')} sx={{ color: '#f0c040' }}>
           <ChevronLeftIcon />
         </IconButton>
 
@@ -163,7 +123,7 @@ const Billetera = () => {
             '&::-webkit-scrollbar': { display: 'none' },
           }}
         >
-          <Stack direction="row" spacing={{ xs: 4, md: 6 }} sx={{ mx: 2 }}>
+          <Stack direction="row" spacing={4} sx={{ mx: 2 }}>
             {monedas.map((moneda) => {
               const isActive = moneda.nombre === selected;
               return (
@@ -176,18 +136,14 @@ const Billetera = () => {
                   sx={{
                     cursor: 'pointer',
                     pb: 0.3,
-                    px: 1.2,
-                    borderRadius: 1.5,
                     borderBottom: isActive
-                      ? '2px solid #8A5CF5'
+                      ? '2px solid #f0c040'
                       : '2px solid transparent',
-                    color: isActive ? '#c9b4ff' : 'rgba(255,255,255,0.78)',
-                    textShadow: isActive ? '0 0 14px rgba(138,92,245,0.55)' : 'none',
-                    bgcolor: isActive ? 'rgba(138,92,245,0.12)' : 'transparent',
+                    color: isActive ? '#f0c040' : 'white',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      color: '#c9b4ff',
-                      borderBottom: '2px solid rgba(138,92,245,0.6)',
+                      color: '#f0c040',
+                      borderBottom: '2px solid #f0c040',
                     },
                   }}
                 >
@@ -199,14 +155,14 @@ const Billetera = () => {
                       src={moneda.img}
                       alt={moneda.nombre}
                       sx={{
-                        width: { xs: 22, md: 30 },
-                        height: { xs: 22, md: 30 },
+                        width: 22,
+                        height: 22,
                         borderRadius: '50%',
                         objectFit: 'cover',
                       }}
                     />
                   )}
-                  <Typography sx={{ whiteSpace: 'nowrap', fontWeight: 600, fontSize: { xs: '0.85rem', md: '1rem' } }}>
+                  <Typography sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>
                     {moneda.nombre}
                   </Typography>
                 </Stack>
@@ -216,7 +172,7 @@ const Billetera = () => {
         </Box>
 
         {/* Flecha derecha */}
-        <IconButton onClick={() => scroll('right')} sx={{ color: '#a78bfa', '&:hover': { color: '#c9b4ff' } }}>
+        <IconButton onClick={() => scroll('right')} sx={{ color: '#f0c040' }}>
           <ChevronRightIcon />
         </IconButton>
       </Box>
@@ -225,7 +181,7 @@ const Billetera = () => {
       <Fade in={!!selected} timeout={400}>
         <Box
           sx={{
-            p: { xs: 3, md: 7 },
+            p: 5,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -235,17 +191,10 @@ const Billetera = () => {
           <Paper
             elevation={10}
             sx={{
-              // 💳 Tarjeta glass morada
-              background:
-                'linear-gradient(160deg, rgba(138,92,245,0.16) 0%, rgba(20,12,36,0.94) 45%, rgba(106,63,203,0.18) 100%)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(138,92,245,0.32)',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
-              p: { xs: 3, md: 6 },
-              borderRadius: { xs: 4, md: 6 },
-              maxWidth: { xs: 620, md: 980 },
-              width: '100%',
+              bgcolor: '#002200',
+              p: 4,
+              borderRadius: 3,
+              maxWidth: 600,
               textAlign: 'center',
               color: 'white',
             }}
@@ -259,122 +208,119 @@ const Billetera = () => {
                 src={monedaSeleccionada?.img}
                 alt={selected}
                 sx={{
-                  width: { xs: 76, md: 112 },
-                  height: { xs: 76, md: 112 },
-                  mb: { xs: 2, md: 3 },
+                  width: 50,
+                  height: 50,
+                  mb: 2,
                   borderRadius: '50%',
-                  // ✨ Aura neón alrededor de la moneda
-                  boxShadow: {
-                    xs: '0 0 0 4px rgba(138,92,245,0.16), 0 0 26px rgba(138,92,245,0.4)',
-                    md: '0 0 0 6px rgba(138,92,245,0.18), 0 0 40px rgba(138,92,245,0.5)',
-                  },
                 }}
               />
             )}
 
+            {/* Wallet vinculada - solo real con Auth */}
+            <Box sx={{ mb: 2 }}>
+              {cargando ? <Typography sx={{ fontSize: 12 }}>Cargando cartera...</Typography> :
+                cartera?.wallet_address ? (
+                  <Chip label={`Wallet: ${cartera.wallet_address.slice(0,6)}...${cartera.wallet_address.slice(-4)}`} sx={{ bgcolor: '#8A5CF5', color: 'white', fontFamily: 'monospace' }} />
+                ) : isAuthenticated ? (
+                  <Button href="/cartera/crear" size="small" sx={{ bgcolor: '#ffe066', color: 'black', fontWeight: 700 }}>Crear y vincular wallet</Button>
+                ) : null}
+              {cartera && <Typography sx={{ fontSize: 11, mt: 1 }}>Saldo Laborys: {cartera.laborysSaldo} | Ganados: {cartera.laborysGanados}</Typography>}
+            </Box>
+
             {/* Título */}
             <Typography
               variant="h5"
-              sx={{
-                mb: 2,
-                fontSize: { xs: '1.55rem', md: '2.3rem' },
-                color: '#c9b4ff',
-                fontWeight: 700,
-                fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
-                letterSpacing: '-0.01em',
-              }}
+              sx={{ mb: 2, color: '#f0c040', fontWeight: 'bold' }}
             >
               {selected}
             </Typography>
 
-            {/* 💰 Saldo real: Laborys desde /api/cartera y pesos como conversión (1 Labory = $80 MXN) */}
-            {(selected === 'Labory' || selected === 'Pesos MXN') && (
-              <Stack spacing={1} alignItems="center" sx={{ mb: { xs: 2.5, md: 3.5 } }}>
-                <Typography
-                  sx={{
-                    fontSize: { xs: '2.7rem', md: '4.4rem' },
-                    fontWeight: 700,
-                    fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
-                    lineHeight: 1.05,
-                    color: '#fff',
-                    textShadow: '0 0 26px rgba(138,92,245,0.5)',
-                  }}
-                >
-                  {cargandoSaldo ? (
-                    '—'
-                  ) : saldoNum != null ? (
-                    selected === 'Labory' ? (
-                      <>
-                        {saldoNum.toLocaleString('es-MX')}{' '}
-                        <Box component="span" sx={{ fontSize: { xs: '1.05rem', md: '1.5rem' }, color: '#c9b4ff' }}>
-                          Laborys
-                        </Box>
-                      </>
-                    ) : (
-                      formatoPesos(saldoPesos)
-                    )
-                  ) : (
-                    '—'
-                  )}
-                </Typography>
-                <Typography sx={{ opacity: 0.85, fontSize: { xs: '0.9rem', md: '1.05rem' } }}>
-                  {cargandoSaldo
-                    ? 'Cargando saldo…'
-                    : sinWallet
-                    ? 'Tu cartera aún no está activa.'
-                    : selected === 'Labory'
-                    ? `≈ ${formatoPesos(saldoPesos)} MXN`
-                    : 'Convertido de tus Laborys'}{' '}
-                  {!sinWallet && '· 1 Labory = $80 MXN'}
-                </Typography>
-              </Stack>
-            )}
-
-            {/* 💛 Si no tiene wallet: enlace amarillo para crear la cartera (/cartera/crear) */}
-            {sinWallet && !cargandoSaldo && (
-              <Stack alignItems="center" spacing={0.5} sx={{ mb: 3 }}>
-                <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
-                  Aún no tienes cartera activa.
-                </Typography>
-                <Box
-                  component="button"
-                  onClick={() => navigate('/cartera/crear')}
-                  sx={{
-                    cursor: 'pointer',
-                    background: 'none',
-                    border: 'none',
-                    p: 0,
-                    m: 0,
-                    color: '#ffe066',
-                    fontWeight: 700,
-                    fontSize: { xs: '1.05rem', md: '1.25rem' },
-                    textDecoration: 'underline',
-                    textUnderlineOffset: 3,
-                    fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
-                    '&:hover': { color: '#fff3b8' },
-                  }}
-                >
-                  Crear cartera →
-                </Box>
-              </Stack>
-            )}
-
-            {/* Contenido dinámico: componente o placeholders */}
+            {/* Contenido dinámico - modo real: requiere login */}
             {monedaSeleccionada?.componente ? (
               monedaSeleccionada.componente
-            ) : (
+            ) : !isAuthenticated ? (
+              <Box>
+                <Typography sx={{ opacity: 0.9 }}>🔒 Inicia sesión para ver tu saldo real</Typography>
+                <Button href="/cartera/crear" sx={{ mt: 2, bgcolor: '#ffe066', color: 'black' }}>Ir a crear cartera</Button>
+              </Box>
+            ) : cargando ? (
+              <Typography>Cargando saldo...</Typography>
+            ) : !cartera ? (
+              <Box><Typography>Creando cartera...</Typography></Box>
+            ) : selected === 'Resumen' ? (
               <>
-                {selected !== 'Labory' && (
-                  <Typography sx={{ opacity: 0.9 }}>
-                    🔒 <strong>Saldo actual:</strong> [placeholder balance]
-                  </Typography>
-                )}
-                <Typography sx={{ mt: selected !== 'Labory' ? 1 : 0, opacity: 0.9 }}>
-                  📊 <strong>Historial de transacciones:</strong> [placeholder movimientos]
+                <Typography sx={{ opacity: 0.9, fontSize: '1.1rem' }}>
+                  🔒 <strong>Laborys saldo:</strong> {Number(cartera?.laborysSaldo || 0).toFixed(2)} LBY
+                </Typography>
+                <Typography sx={{ opacity: 0.9 }}>
+                  💰 <strong>Peso MXN (1 LBY = 80 MXN):</strong> ${(Number(cartera?.laborysSaldo || 0) * 80).toFixed(2)} MXN
                 </Typography>
                 <Typography sx={{ mt: 1, opacity: 0.9 }}>
-                  💡 <strong>Información adicional:</strong> [placeholder descripción del token]
+                  📈 <strong>Laborys ganados:</strong> {Number(cartera?.laborysGanados || 0).toFixed(2)}
                 </Typography>
+                <Typography sx={{ mt: 1, opacity: 0.9 }}>
+                  🔗 <strong>Wallet:</strong> {cartera?.wallet_address || 'sin vincular'}
+                </Typography>
+                <Typography sx={{ mt: 1, opacity: 0.7, fontSize: 12 }}>
+                  💡 Resumen provisional - ledger: {cartera?.wallet_address ? 'conectado a blockchain' : 'vincula tu wallet para operar'}
+                </Typography>
+              </>
+            ) : selected === 'Labory' ? (
+              <>
+                <Typography sx={{ opacity: 0.9, fontSize: '1.4rem', fontWeight: 700 }}>
+                  {Number(cartera?.laborysSaldo || 0).toFixed(2)} LBY
+                </Typography>
+                <Typography sx={{ opacity: 0.9 }}>≈ ${(Number(cartera?.laborysSaldo || 0) * 80).toFixed(2)} MXN</Typography>
+                <Typography sx={{ mt: 1, opacity: 0.9 }}>📊 Ganados totales: {Number(cartera?.laborysGanados || 0).toFixed(2)} LBY</Typography>
+                <Typography sx={{ mt: 1, opacity: 0.6, fontSize: 12, fontStyle: 'italic' }}>💡 ¿Qué es Labory? Cómo se gana — Texto pendiente (reemplazar con el que te pase tu superior)</Typography>
+                <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Button href="/market" size="small" sx={{ bgcolor: '#f0c040', color: 'black', fontWeight: 700 }}>Comprar Labory</Button>
+                  <Button disabled size="small" sx={{ border: '1px solid #666', color: '#666' }}>Vender Labory (próximamente - lógica semanal pendiente)</Button>
+                </Box>
+                <Box sx={{ mt: 2, width: '100%', textAlign: 'left', bgcolor: 'rgba(255,255,255,0.06)', p: 2, borderRadius: 2, maxHeight: 220, overflowY: 'auto' }}>
+                  <Typography sx={{ fontWeight: 700, mb: 1, fontSize: 13 }}>📜 Historial — últimas 3 + Ver más</Typography>
+                  {cargandoHist ? <Typography sx={{ fontSize: 12 }}>Cargando...</Typography> : historial.length === 0 ? <Typography sx={{ fontSize: 12, opacity: 0.7 }}>Sin movimientos aún. Haz un earn o pago.</Typography> : historial.slice(0,3).map(tx => (
+                    <Box key={tx.id} sx={{ fontSize: 11, py: 0.5, borderBottom: '1px solid rgba(255,255,255,0.08)', fontFamily: 'monospace' }}>
+                      <div>#{tx.id} nonce:{tx.attributes.nonce} {tx.attributes.tipo} {Number(tx.attributes.monto_laborys)} LBY → {tx.attributes.hash_transaccion?.slice(0,12)}...</div>
+                    </Box>
+                  ))}
+                  {historial.length > 3 && <Button size="small" sx={{ mt: 1, fontSize: 11, color: '#f0c040' }} onClick={() => alert(JSON.stringify(historial.slice(3,10), null, 2))}>Ver más ({historial.length - 3} restantes)</Button>}
+                </Box>
+                <Button onClick={cargarCarteraYHistorial} size="small" sx={{ mt: 1, border: '1px solid #f0c040', color: '#f0c040' }}>Refrescar</Button>
+              </>
+            ) : selected === 'Pesos MXN' ? (
+              <>
+                <Typography sx={{ opacity: 0.9, fontSize: '1.3rem' }}>
+                  ${(Number(cartera?.laborysSaldo || 0) * 80).toFixed(2)} MXN
+                </Typography>
+                <Typography sx={{ opacity: 0.7, fontSize: 12 }}>Conversión Labory → MXN (1 LBY = 80 MXN, saldo {Number(cartera?.laborysSaldo || 0).toFixed(2)} LBY)</Typography>
+              </>
+            ) : selected === 'Ciudadan I-Token' ? (
+              <>
+                <Typography sx={{ opacity: 0.9 }}>🪙 <strong>Ciudadan I-Token:</strong> {Number(cartera?.ciudadanTokens || 0).toFixed(2)}</Typography>
+                <Typography sx={{ opacity: 0.9 }}>📈 Rendimientos: {Number(cartera?.ciudadanRendimientos || 0).toFixed(2)}</Typography>
+                <Typography sx={{ mt: 1, opacity: 0.5, fontSize: 11, fontStyle: 'italic' }}>Placeholder — pendiente nombre de colección/campos reales que te pase tu superior</Typography>
+                <Box sx={{ mt: 1, textAlign: 'left', bgcolor: 'rgba(255,255,255,0.06)', p: 1.5, borderRadius: 2, maxHeight: 160, overflowY: 'auto' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700 }}>📜 Historial Investment (mock 3)</Typography>
+                  {historial.filter(tx => tx.attributes.tipo === 'tarea').slice(0,3).map(tx => (
+                    <Box key={tx.id} sx={{ fontSize: 11, py: 0.5, fontFamily: 'monospace' }}>{tx.attributes.tipo} {Number(tx.attributes.monto_laborys)} I-Token → {tx.attributes.hash_transaccion?.slice(0,10)}...</Box>
+                  ))}
+                  {historial.length===0 && <Typography sx={{ fontSize: 11, opacity: 0.7 }}>Sin movimientos I-Token aún</Typography>}
+                </Box>
+              </>
+            ) : selected === 'Publia' || selected === 'Object-Token' ? (
+              <>
+                <Typography sx={{ opacity: 0.7, fontSize: 13, fontStyle: 'italic', mb: 2 }}>Texto pendiente — aquí irá el texto que te pase tu superior sobre {selected}. Por ahora lorem: {selected} es un token informativo sin saldo en ledger.</Typography>
+                <Button href="/market" variant="contained" sx={{ bgcolor: '#f0c040', color: 'black', fontWeight: 700 }}>Comprar Laborys</Button>
+                <Typography sx={{ mt: 1, fontSize: 11, opacity: 0.6 }}>Link a /market o /cartera/crear</Typography>
+              </>
+            ) : (
+              <>
+                <Typography sx={{ opacity: 0.9 }}>
+                  🔗 <strong>{selected}:</strong> Llamada a la acción
+                </Typography>
+                <Button href="/coowork" size="small" sx={{ mt: 1, border: '1px solid #f0c040', color: '#f0c040' }}>Ir a {selected.includes('Task') || selected.includes('Todo') ? 'Cowork - Tareas' : selected.includes('Skill') ? 'Cowork - Skills' : selected.includes('ID') ? 'Perfil' : 'Comunidad'}</Button>
+                <Typography sx={{ mt: 1, fontSize: 11, opacity: 0.6 }}>Placeholder — próximamente</Typography>
               </>
             )}
           </Paper>

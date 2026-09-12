@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 337 268" width="337" height="268">
+  <g fill="none" stroke="#62F827" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Círculo exterior -->
+    <circle cx="163" cy="132" r="105"/>
+
+    <!-- Cabeza central -->
+    <circle cx="163" cy="108" r="20.5"/>
+
+    <!-- Cabezas laterales -->
+    <circle cx="117" cy="134" r="13.5"/>
+    <circle cx="210" cy="134" r="13.5"/>
+
+    <!-- Cabezas pequeñas -->
+    <circle cx="84" cy="151" r="7.5"/>
+    <circle cx="243" cy="151" r="7.5"/>
+
+    <!-- Persona central -->
+    <path d="M122 218
+             L122 160
+             C122 146 131 138 144 137
+             C150 136 157 136 163 136
+             C169 136 176 136 182 137
+             C195 138 204 146 204 160
+             L204 218"/>
+
+    <!-- Persona izquierda -->
+    <path d="M88 190
+             L88 169
+             C88 158 96 151 107 150
+             C113 150 119 152 123 156"/>
+
+    <!-- Persona derecha -->
+    <path d="M238 190
+             L238 169
+             C238 158 230 151 219 150
+             C213 150 207 152 203 156"/>
+
+    <!-- Líneas inferiores laterales -->
+    <path d="M88 190 L88 181"/>
+    <path d="M238 190 L238 181"/>
+
+  </g>
+</svg>

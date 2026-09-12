@@ -96,13 +96,47 @@ module.exports = createCoreController('api::cartera.cartera', ({ strapi }) => ({
         return ctx.unauthorized('Usuario no autenticado');
       }
 
-      // Verificar si ya existe
+      // Verificar si ya existe por user_id
       const existing = await strapi.db.query('api::cartera.cartera').findOne({
         where: { user_id: userId },
       });
 
       if (existing) {
+        // Si ya existe pero mandan wallet_address, vincular/actualizar
+        const { wallet_address, walletAddress } = ctx.request.body || {};
+        const addr = wallet_address || walletAddress;
+        if (addr && !existing.wallet_address) {
+          // validar formato 0x...
+          if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+            return ctx.badRequest('wallet_address inválida');
+          }
+          // verificar no esté ya usada por otro usuario
+          const dup = await strapi.db.query('api::cartera.cartera').findOne({
+            where: { wallet_address: addr },
+          });
+          if (dup && dup.id !== existing.id) {
+            return ctx.badRequest('wallet_address ya vinculada a otro usuario');
+          }
+          const updated = await strapi.db.query('api::cartera.cartera').update({
+            where: { id: existing.id },
+            data: { wallet_address: addr },
+          });
+          return ctx.send(updated);
+        }
         return ctx.send(existing);
+      }
+
+      const { wallet_address, walletAddress, address } = ctx.request.body || {};
+      const addr = wallet_address || walletAddress || address;
+
+      if (addr && !/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+        return ctx.badRequest('wallet_address inválida, debe ser 0x + 40 hex');
+      }
+      if (addr) {
+        const dup = await strapi.db.query('api::cartera.cartera').findOne({
+          where: { wallet_address: addr },
+        });
+        if (dup) return ctx.badRequest('wallet_address ya existe');
       }
 
       const cartera = await strapi.db.query('api::cartera.cartera').create({
@@ -111,6 +145,7 @@ module.exports = createCoreController('api::cartera.cartera', ({ strapi }) => ({
           laborysSaldo: 0,
           ciudadanTokens: 0,
           ciudadanRendimientos: 0,
+          wallet_address: addr || null,
           user_id: userId,
         },
       });
@@ -119,6 +154,81 @@ module.exports = createCoreController('api::cartera.cartera', ({ strapi }) => ({
     } catch (error) {
       strapi.log.error('cartera.create: error', error);
       return ctx.internalServerError('Error al crear cartera');
+    }
+  },
+
+  /**
+   * POST /cartera/vincular-wallet
+   * Vincula wallet_address a la cartera del usuario autenticado
+   */
+  async vincularWallet(ctx) {
+    try {
+      const userId = ctx.state.strapiUser?.id;
+      if (!userId) return ctx.unauthorized('Usuario no autenticado');
+      const { wallet_address, walletAddress, address } = ctx.request.body || {};
+      const addr = wallet_address || walletAddress || address;
+      if (!addr) return ctx.badRequest('Falta wallet_address');
+      if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) return ctx.badRequest('wallet_address inválida');
+
+      const dup = await strapi.db.query('api::cartera.cartera').findOne({
+        where: { wallet_address: addr },
+      });
+      if (dup && dup.user_id !== userId) {
+        return ctx.badRequest('wallet ya vinculada a otro usuario');
+      }
+
+      let cartera = await strapi.db.query('api::cartera.cartera').findOne({
+        where: { user_id: userId },
+      });
+      if (!cartera) {
+        cartera = await strapi.db.query('api::cartera.cartera').create({
+          data: {
+            wallet_address: addr,
+            laborysGanados: 0,
+            laborysSaldo: 0,
+            ciudadanTokens: 0,
+            ciudadanRendimientos: 0,
+            user_id: userId,
+          },
+        });
+      } else {
+        cartera = await strapi.db.query('api::cartera.cartera').update({
+          where: { id: cartera.id },
+          data: { wallet_address: addr },
+        });
+      }
+      return ctx.send({ message: 'Wallet vinculada', cartera });
+    } catch (err) {
+      strapi.log.error('vincularWallet error', err);
+      return ctx.internalServerError('Error vinculando wallet');
+    }
+  },
+
+  async pruebaAuto(ctx) {
+    try {
+      const { wallet_address, email } = ctx.request.body || {};
+      const addr = wallet_address || `0x${Math.random().toString(16).slice(2, 10)}${Date.now().toString(16).padStart(32, '0').slice(0, 32)}`.slice(0, 42);
+      // buscar o crear usuario prueba
+      let user = null;
+      const testEmail = email || 'prueba.tour@ciudadan.org';
+      user = await strapi.db.query('plugin::users-permissions.user').findOne({ where: { email: testEmail } });
+      if (!user) {
+        user = await strapi.db.query('plugin::users-permissions.user').create({
+          data: { username: testEmail, email: testEmail, confirmed: true, blocked: false, provider: 'local', password: '$2a$10$dummyhashdummyhashdummyhashdummyha', role: 1 },
+        });
+      }
+      let cartera = await strapi.db.query('api::cartera.cartera').findOne({ where: { user_id: user.id } });
+      if (!cartera) {
+        cartera = await strapi.db.query('api::cartera.cartera').create({
+          data: { wallet_address: addr, laborysSaldo: 100, laborysGanados: 100, ciudadanTokens: 10, ciudadanRendimientos: 1, user_id: user.id },
+        });
+      } else if (!cartera.wallet_address) {
+        cartera = await strapi.db.query('api::cartera.cartera').update({ where: { id: cartera.id }, data: { wallet_address: addr, laborysSaldo: 100 } });
+      }
+      return ctx.send({ message: 'Cartera prueba auto-creada', cartera, wallet_address: cartera.wallet_address, user: { id: user.id, email: user.email } });
+    } catch (err) {
+      strapi.log.error('pruebaAuto error', err);
+      return ctx.internalServerError('Error prueba auto');
     }
   },
 

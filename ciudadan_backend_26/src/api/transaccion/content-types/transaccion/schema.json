@@ -1,0 +1,75 @@
+{
+  "kind": "collectionType",
+  "collectionName": "transaccions",
+  "info": {
+    "singularName": "transaccion",
+    "pluralName": "transaccions",
+    "displayName": "Transaccion (Ledger Provisional)",
+    "description": "Ledger temporal para pagos con subsidio y earn_laborys - puente blockchain"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tipo": {
+      "type": "enumeration",
+      "enum": ["taxi", "marketplace", "tarea", "anuncio"],
+      "required": true
+    },
+    "porcentaje_labory": {
+      "type": "decimal"
+    },
+    "direccion_origen": {
+      "type": "string",
+      "required": true
+    },
+    "direccion_destino": {
+      "type": "string",
+      "required": true
+    },
+    "direccion_agencia": {
+      "type": "string"
+    },
+    "monto_laborys": {
+      "type": "decimal",
+      "required": true
+    },
+    "subsidio": {
+      "type": "decimal",
+      "default": 0
+    },
+    "monto_total": {
+      "type": "decimal"
+    },
+    "origin_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "datetime",
+      "required": true
+    },
+    "digital_signature": {
+      "type": "text",
+      "required": true
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": ["pendiente", "validado", "ejecutado", "rechazado"],
+      "default": "pendiente"
+    },
+    "hash_transaccion": {
+      "type": "string"
+    },
+    "prev_hash": {
+      "type": "string"
+    },
+    "nonce": {
+      "type": "integer"
+    },
+    "fee": {
+      "type": "decimal",
+      "default": 0
+    }
+  }
+}

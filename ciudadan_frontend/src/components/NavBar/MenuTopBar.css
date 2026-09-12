@@ -14,7 +14,12 @@
 
 .menu-topbar.open {
     opacity: 1;
-    max-height: 600px;
+    /* Suficientemente alto para animar, con scroll interno como seguridad
+       para que ningún icono quede oculto en pantallas pequeñas */
+    max-height: 1200px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .menu-topbar-desktop {
@@ -24,42 +29,35 @@
     display: none;
 }
 
-@media (min-width: 1001px) {
-    .menu-topbar-desktop {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 24px;
-    padding: 14px 20px;
-    }
-}
-
-@media (max-width: 1000px) {
-    .menu-topbar-mobile {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    padding: 20px;
-    text-align: center;
-    }
-
-    .menu-topbar-grid-inner {
+/* Estilos base del grid mobile (aplicables en todos los tamaños móviles) */
+.menu-topbar-grid-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    }
+}
 
-    .menu-topbar-grid-label {
+.menu-topbar-grid-label {
     margin-top: 6px;
-    font-size: 0.85rem;
     color: #00ff88;
     font-family: 'Share Tech Mono', monospace;
     text-shadow: 0 0 6px #00ff88;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 0.85rem;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    max-width: 100%;
+}
+
+/* Cuando el menú topbar está abierto en móvil, escondemos el logo de la navbar */
+@media (max-width: 1023px) {
+    body.menu-topbar-open #ciudadan-logo {
+        visibility: hidden !important;
+        pointer-events: none;
     }
 }
 
@@ -70,6 +68,7 @@
     text-decoration: none;
     text-shadow: 0 0 8px #00ff88;
     transition: all 0.2s ease-in-out;
+    min-width: 0; /* permite que el grid se encoja sin desbordar */
 }
 
 .menu-topbar-item-content {
@@ -89,6 +88,8 @@
 .menu-topbar-grid-svg {
     width: 60px;
     height: 60px;
+    object-fit: contain;
+    object-position: center;
     filter: drop-shadow(0 0 4px #00ff88);
 }
 
@@ -121,12 +122,132 @@
 
 
 /* Ajusta el breakpoint a tu preferencia (aquí 1000px como en tu código) */
-@media (max-width: 1000px) {
-  /* cuando body tiene esta clase, escondemos el logo */
-  body.menu-topbar-open #ciudadan-logo {
-    visibility: hidden !important;
-    pointer-events: none;
-    /* opcional: evitar que el layout cambie si usas visibility,
-       si quieres que ocupe 0 espacio usa display:none en su lugar */
-  }
+/* ===== Desktop (>= 1024px): flexbox horizontal — todos los ítems visibles ===== */
+@media (min-width: 1024px) {
+    .menu-topbar-desktop {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 20px;
+    }
+}
+
+/* ===== Tablet (768px - 1023px): grid de 4 columnas, iconos 50px ===== */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .menu-topbar-mobile {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 18px;
+        padding-bottom: 22px;
+        text-align: center;
+        /* La X ocupa su propia fila al final, centrada */
+        grid-auto-flow: row;
+    }
+
+    .menu-topbar-close-mobile {
+        grid-column: 1 / -1;
+        justify-self: center;
+        margin: 6px auto 0;
+    }
+
+    .menu-topbar-svg,
+    .menu-topbar-grid-svg {
+        width: 50px;
+        height: 50px;
+    }
+
+    .menu-topbar-grid-label {
+        font-size: 0.8rem;
+        margin-top: 5px;
+    }
+}
+
+/* ===== Mobile pequeño (480px - 767px): grid de 3 columnas, iconos 45px ===== */
+@media (min-width: 480px) and (max-width: 767px) {
+    .menu-topbar-mobile {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        padding: 16px;
+        padding-bottom: 20px;
+        text-align: center;
+    }
+
+    .menu-topbar-close-mobile {
+        grid-column: 1 / -1;
+        justify-self: center;
+        margin: 6px auto 0;
+    }
+
+    .menu-topbar-svg,
+    .menu-topbar-grid-svg {
+        width: 45px;
+        height: 45px;
+    }
+
+    .menu-topbar-grid-label {
+        font-size: 0.75rem;
+        margin-top: 4px;
+    }
+}
+
+/* ===== Muy pequeño (360px - 479px): grid 3 columnas compacto, iconos 40px ===== */
+@media (min-width: 360px) and (max-width: 479px) {
+    .menu-topbar-mobile {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 12px;
+        padding-bottom: 18px;
+        text-align: center;
+    }
+
+    .menu-topbar-close-mobile {
+        grid-column: 1 / -1;
+        justify-self: center;
+        margin: 6px auto 0;
+    }
+
+    .menu-topbar-svg,
+    .menu-topbar-grid-svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .menu-topbar-grid-label {
+        font-size: 0.7rem;
+        margin-top: 3px;
+    }
+}
+
+/* ===== Ultra pequeño (< 360px): grid de 2 columnas, iconos 40px ===== */
+@media (max-width: 359px) {
+    .menu-topbar-mobile {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 10px;
+        padding-bottom: 16px;
+        text-align: center;
+    }
+
+    .menu-topbar-close-mobile {
+        grid-column: 1 / -1;
+        justify-self: center;
+        margin: 6px auto 0;
+    }
+
+    .menu-topbar-svg,
+    .menu-topbar-grid-svg {
+        width: 40px;
+        height: 40px;
+    }
+
+    .menu-topbar-grid-label {
+        font-size: 0.7rem;
+        margin-top: 3px;
+    }
 }

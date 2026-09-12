@@ -1133,6 +1133,8 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
     >;
     walll: Attribute.String;
     wallet_address: Attribute.String;
+    nivel_subsidio: Attribute.Decimal & Attribute.DefaultTo<0>;
+    propiedad: Attribute.String;
     tipo: Attribute.Enumeration<['local', 'federal']> &
       Attribute.DefaultTo<'local'>;
     socios: Attribute.Relation<
@@ -1748,6 +1750,7 @@ export interface ApiCarteraCartera extends Schema.CollectionType {
     laborysSaldo: Attribute.Decimal;
     ciudadanTokens: Attribute.Decimal;
     ciudadanRendimientos: Attribute.Decimal;
+    wallet_address: Attribute.String & Attribute.Unique;
     user_id: Attribute.Relation<
       'api::cartera.cartera',
       'oneToOne',
@@ -5450,6 +5453,55 @@ export interface ApiTodoTodo extends Schema.CollectionType {
   };
 }
 
+export interface ApiTransaccionTransaccion extends Schema.CollectionType {
+  collectionName: 'transaccions';
+  info: {
+    singularName: 'transaccion';
+    pluralName: 'transaccions';
+    displayName: 'Transaccion (Ledger Provisional)';
+    description: 'Ledger temporal para pagos con subsidio y earn_laborys - puente blockchain';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    tipo: Attribute.Enumeration<['taxi', 'marketplace', 'tarea', 'anuncio']> &
+      Attribute.Required;
+    porcentaje_labory: Attribute.Decimal;
+    direccion_origen: Attribute.String & Attribute.Required;
+    direccion_destino: Attribute.String & Attribute.Required;
+    direccion_agencia: Attribute.String;
+    monto_laborys: Attribute.Decimal & Attribute.Required;
+    subsidio: Attribute.Decimal & Attribute.DefaultTo<0>;
+    monto_total: Attribute.Decimal;
+    origin_id: Attribute.String;
+    timestamp: Attribute.DateTime & Attribute.Required;
+    digital_signature: Attribute.Text & Attribute.Required;
+    estado: Attribute.Enumeration<
+      ['pendiente', 'validado', 'ejecutado', 'rechazado']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    hash_transaccion: Attribute.String;
+    prev_hash: Attribute.String;
+    nonce: Attribute.Integer;
+    fee: Attribute.Decimal & Attribute.DefaultTo<0>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::transaccion.transaccion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::transaccion.transaccion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiTriprequestTriprequest extends Schema.CollectionType {
   collectionName: 'triprequests';
   info: {
@@ -5735,6 +5787,7 @@ declare module '@strapi/types' {
       'api::tarea.tarea': ApiTareaTarea;
       'api::taxi-debt.taxi-debt': ApiTaxiDebtTaxiDebt;
       'api::todo.todo': ApiTodoTodo;
+      'api::transaccion.transaccion': ApiTransaccionTransaccion;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
       'api::viaje.viaje': ApiViajeViaje;
       'api::wallet.wallet': ApiWalletWallet;

@@ -8,6 +8,27 @@
     font-size: 36px; /* Ajusta el tamaño del ícono según tus necesidades */
     color: #000; /* Color del ícono */
     z-index: 999999 !important;
+    /* Animación vistosa del triángulo: gira al abrir/cerrar */
+    display: inline-block;
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease, filter 0.3s ease;
+    transform: rotate(0deg);
+    transform-origin: center;
+  }
+
+  .message-icon.open {
+    /* Apunta hacia abajo cuando el menú está abierto */
+    transform: rotate(180deg);
+    color: #00c853;
+    filter: drop-shadow(0 0 6px #00ff88);
+  }
+
+  /* Rebote juguetón al pulsar */
+  .message-icon-container:active .message-icon {
+    transform: scale(0.82) rotate(var(--tri-rotate, 0deg));
+  }
+
+  .message-icon-container .message-icon.open {
+    --tri-rotate: 180deg;
   }
   
   .message-icon-small {

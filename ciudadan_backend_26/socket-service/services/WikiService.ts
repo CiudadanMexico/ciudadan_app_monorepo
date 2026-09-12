@@ -60,29 +60,39 @@ export class WikiService {
     }
 
     /**
-     * Guarda o actualiza un documento en la base de datos controlando fechas
+     * Guarda o actualiza un documento en la base de datos controlando fechas.
+     *
+     * @param writeToDisk Si `true` (por defecto) además de la BD escribe el `.md` en disco
+     *                    (lo usa el guardado manual vía POST /wiki/save). Si `false` solo
+     *                    actualiza la BD (lo usa el watcher/indexación, que ya tiene el
+     *                    archivo en disco y NO debe reescribirlo para no provocar bucles).
     */
     async saveDocument(
         filePath: string,
         title: string,
-        content: string
+        content: string,
+        opts: { writeToDisk?: boolean } = {}
     ): Promise<DocumentEntity> {
+        const writeToDisk = opts.writeToDisk !== false;
+
         // Normalizar ruta para almacenamiento uniforme (formato UNIX posix)
         const normalizedFilePath = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
         const contentHash = crypto.createHash('sha256').update(content, 'utf-8').digest('hex');
         const now = new Date().toISOString();
 
-        // 1. Crear directorios físicos y escribir el archivo en disco (FS)
-        const fullDiskPath = path.resolve(process.cwd(), filePath);
-        const folderPath = path.dirname(fullDiskPath);
+        // 1. (Opcional) Crear directorios físicos y escribir el archivo en disco (FS)
+        if (writeToDisk) {
+            const fullDiskPath = path.resolve(process.cwd(), filePath);
+            const folderPath = path.dirname(fullDiskPath);
 
-        // Si la subcarpeta no existe en disco, se crea
-        if (!fs.existsSync(folderPath)) {
-            fs.mkdirSync(folderPath, { recursive: true });
+            // Si la subcarpeta no existe en disco, se crea
+            if (!fs.existsSync(folderPath)) {
+                fs.mkdirSync(folderPath, { recursive: true });
+            }
+
+            // Escribir el archivo físico .md con el contenido
+            fs.writeFileSync(fullDiskPath, content, 'utf-8');
         }
-
-        // Escribir el archivo físico .md con el contenido
-        fs.writeFileSync(fullDiskPath, content, 'utf-8');
 
         // Persistir metadatos en SQLite (ciudadan.db)
         const existingDoc = await this.documentRepository.findByPath(normalizedFilePath);
@@ -102,6 +112,31 @@ export class WikiService {
 
         await this.documentRepository.save(docEntity);
         return docEntity;
+    }
+
+    /**
+     * indexa un documento que ya existe en disco: solo actualiza la BD, y únicamente
+     * si el contenido (hash) cambió respecto al registrado. Es idempotente por lo que
+     * es seguro llamarlo desde el watcher o la indexación inicial sin causar bucles.
+    */
+    async updateIndex(filePath: string, content: string): Promise<boolean> {
+        const normalizedFilePath = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+        const contentHash = crypto.createHash('sha256').update(content, 'utf-8').digest('hex');
+
+        const existingDoc = await this.documentRepository.findByPath(normalizedFilePath);
+
+        // Si el contenido no cambió, no hacemos nada.
+        if (existingDoc && existingDoc.content_hash === contentHash) {
+            return false;
+        }
+
+        const title = (existingDoc && existingDoc.title)
+            ? existingDoc.title
+            : path.basename(normalizedFilePath, '.md').replace(/[-_]/g, ' ');
+
+        // Guarda SOLO en BD (writeToDisk = false), sin tocar el archivo físico.
+        await this.saveDocument(normalizedFilePath, title, content, { writeToDisk: false });
+        return true;
     }
 
     /**
@@ -154,7 +189,10 @@ export class WikiService {
             }
         }
 
-        const { html, wikiLinks } = MarkdownParser.parse(markdown, normalizedPath);
+        // Índice de todos los documentos para resolver [[wikilinks]] a su ruta canónica
+        const resolveTarget = await this.buildTargetResolver();
+
+        const { html, wikiLinks } = MarkdownParser.parse(markdown, normalizedPath, resolveTarget);
 
         return {
             documentId: doc.document_id,
@@ -165,6 +203,69 @@ export class WikiService {
             wikiLinks,
             createdAt: doc.created_at,
             updatedAt: doc.updated_at
+        };
+    }
+
+    /**
+     * Construye un resolver que, dado un wikilink (raw o normalizado), devuelve la ruta
+     * canónica (ej. 'wiki/main/mi-articulo.md') si existe un documento que coincida por:
+     *  - nombre de archivo sin extensión,
+     *  - título,
+     *  - nombre de archivo con espacios/guiones normalizado,
+     *  - path completo.
+    */
+    async buildTargetResolver(): Promise<(rawTarget: string, normalized: string) => string | null> {
+        const allDocs = await this.documentRepository.findAllForTree();
+
+        const byTitle = new Map<string, string>();
+        const byBasename = new Map<string, string>();
+        const byBasenameSlug = new Map<string, string>();
+        const byPathFull = new Map<string, string>();
+
+        const norm = (s: string) => s.toLowerCase().trim();
+
+        for (const d of allDocs) {
+            if (!d.path) continue;
+            const p = d.path.replace(/\\/g, '/').replace(/^\/+/, '');
+            const base = p.split('/').pop() || '';
+            const baseNoExt = base.replace(/\.md$/i, '');
+
+            if (d.title) {
+                const key = norm(d.title);
+                if (!byTitle.has(key)) byTitle.set(key, p);
+            }
+            if (baseNoExt) {
+                const b = norm(baseNoExt);
+                if (!byBasename.has(b)) byBasename.set(b, p);
+                const slug = b.replace(/[\s_-]+/g, '-');
+                if (!byBasenameSlug.has(slug)) byBasenameSlug.set(slug, p);
+            }
+            if (!byPathFull.has(p)) byPathFull.set(p, p);
+        }
+
+        return (rawTarget, normalized) => {
+            if (!rawTarget && !normalized) return null;
+
+            const raw = norm(rawTarget || '');
+            const normT = norm(normalized || '');
+            const rawSlug = raw.replace(/[\s_-]+/g, '-');
+
+            // Preferimos ruta exacta
+            if (raw && byPathFull.has(raw)) return byPathFull.get(raw)!;
+            if (normT && byPathFull.has(normT)) return byPathFull.get(normT)!;
+            // Por título
+            if (raw && byTitle.has(raw)) return byTitle.get(raw)!;
+            // Por nombre de archivo sin extensión
+            if (raw && byBasename.has(raw)) return byBasename.get(raw)!;
+            if (normT && byBasename.has(normT)) return byBasename.get(normT)!;
+            // Por slug (espacios/guiones)
+            if (rawSlug && byBasenameSlug.has(rawSlug)) return byBasenameSlug.get(rawSlug)!;
+
+            // Fallback: path tipo 'wiki/...'
+            const targetLikePath = raw.startsWith('wiki/') ? raw : `wiki/${raw}`;
+            if (byPathFull.has(targetLikePath)) return byPathFull.get(targetLikePath)!;
+
+            return null;
         };
     }
 

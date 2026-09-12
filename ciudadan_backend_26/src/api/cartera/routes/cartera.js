@@ -33,6 +33,28 @@ module.exports = {
       },
     },
     {
+      method: 'POST',
+      path: '/cartera/vincular-wallet',
+      handler: 'cartera.vincularWallet',
+      config: {
+        auth: false,
+        policies: ['global::is-authenticated-auth0'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/cartera/prueba-auto',
+      handler: 'cartera.pruebaAuto',
+      config: { auth: false },
+    },
+    {
+      method: 'GET',
+      path: '/cartera/prueba-auto',
+      handler: 'cartera.pruebaAuto',
+      config: { auth: false },
+    },
+    {
       method: 'PUT',
       path: '/cartera/:id',
       handler: 'cartera.update',
