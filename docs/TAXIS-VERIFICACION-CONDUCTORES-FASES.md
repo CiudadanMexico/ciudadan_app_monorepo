@@ -401,3 +401,361 @@ que el protocolo no se pueda saltar antes de salir a producción.
 | Campos de reputación en `agencia` | ✅ Ya existen, solo lectura desde fuera |
 | Contrato de escritura de `agencia.trust_score` | ❌ Pendiente de acordar entre ambos equipos |
 | Endpoint de Taxis con "casos pendientes de auditar" | ❌ No existe todavía — bloquea la Fase 2 de CoWork (contenido real del tab "Auditorías") |
+
+---
+
+## Anexo — Tablas de referencia exactas del documento fuente
+
+Reproducción literal de las tablas del documento (no resúmenes), organizadas
+por la fase donde aplican, para que la implementación no dependa de volver a
+abrir el `.docx`.
+
+### Fase 0 — Diferencia entre capas (sección 4)
+
+| Capa | Qué contiene | Propósito |
+|---|---|---|
+| `driver` | Datos personales, documentos declarados y datos del conductor | Alta/pre-registro |
+| `carro`/vehículo | Datos declarados y preferencias del vehículo | Información del vehículo |
+| `agenda` | Cita/agencia/fecha | Programación |
+| `cars-validation` | Expediente de la verificación presencial | Control del proceso |
+| `cars-evidence` | Fotos/videos/evidencias de la verificación | Prueba de lo capturado |
+| `cars-validation-event` | Bitácora de acciones | Trazabilidad |
+| `external-verifications` | Consultas a fuentes oficiales | Contraste externo |
+| audit records | Auditorías independientes | Verificación de la verificación |
+
+### Fase 0 — Campos de `cars-validation` (sección 5)
+
+| Campo | Acción | Tipo/forma | Regla |
+|---|---|---|---|
+| driver | CONSERVAR | relation | Obligatorio |
+| agency | CONSERVAR | relation | Obligatorio |
+| agenda | CONSERVAR | relation | Obligatorio |
+| reviewer/verifier | CONSERVAR/renombrar semánticamente | relation | Actor que ejecuta |
+| nonce | CORREGIR | string seguro | Temporal, aleatorio, no reutilizable |
+| session_token | CONSERVAR | string seguro | Sesión temporal; no reemplaza autorización |
+| opened_at | CONSERVAR | datetime | Servidor |
+| validation_started_at | CONSERVAR | datetime | Servidor |
+| validation_finished_at | CONSERVAR | datetime | Servidor |
+| closed_at | CONSERVAR | datetime | Servidor |
+| status | CORREGIR/CONTROLAR | enum | Solo transiciones permitidas |
+| result | CONSERVAR | enum | Resultado primario separado de auditoría |
+| risk_score | CONSERVAR | number | Derivado, versionado |
+| gps_lat/gps_lng/gps_accuracy | CONSERVAR | decimal | Registrar señales de ubicación |
+| device_id | CONSERVAR/semántica | string | Señal, no identidad absoluta |
+| app_version | CONSERVAR | string | Versión cliente |
+| checklist | CONSERVAR/estructurar | JSON | Items versionados |
+| observations | CONSERVAR | text | Notas controladas |
+| metadata | CONSERVAR | JSON | Solo metadata no normalizada |
+| evidences | CONSERVAR | relation | Relación con `cars-evidence` |
+| events | CONSERVAR | relation | Relación con `cars-validation-event` |
+| protocol_version | AGREGAR | string | Versión del protocolo |
+
+### Fase 0/1 — Campos de `cars-evidence` (sección 6)
+
+| Campo | Acción | Regla de implementación |
+|---|---|---|
+| validation | CONSERVAR | Siempre vinculado a un `cars-validation` |
+| type | CONSERVAR/ENUMERAR | No permitir valores libres para pasos protocolarios |
+| file | CONSERVAR | Storage seguro, no base64 en DB |
+| review_status | CONSERVAR | Separar validación automática de auditoría humana |
+| reviewer_note | CONSERVAR | No sustituye auditoría formal |
+| reviewed_at | CONSERVAR | Timestamp servidor |
+| reviewer | CONSERVAR | Actor que revisó esta evidencia |
+| source_driver_field | CONSERVAR | Origen del archivo si proviene de preregistro |
+| source_file_id | CONSERVAR | Referencia original |
+| version | CONSERVAR | Incremental por reenvío |
+| is_current | CONSERVAR | Solo una versión actual por cadena |
+| supersedes | CONSERVAR | No borrar versión anterior |
+| origin | CORREGIR/ESTANDARIZAR | `preregister`, `live_capture`, `reupload` |
+| sha256 | CONSERVAR/CANONIZAR | Backend calcula hash definitivo |
+| perceptual_hash | CONSERVAR | Detección de reuso visual |
+| nonce | CONSERVAR | Debe ligar evidencia al challenge |
+| timestamp_client | CONSERVAR | Señal del cliente |
+| timestamp_server | CONSERVAR | Timestamp confiable |
+| gps_lat/gps_lng/gps_accuracy | CONSERVAR | Por captura |
+| device_id | CONSERVAR | Señal de dispositivo |
+| app_version | CONSERVAR | Versión |
+| uploaded_from_gallery | CORREGIR | No debe ser la única defensa |
+| is_valid | CONSERVAR | Resultado técnico |
+| validation_flags | CONSERVAR/AMPLIAR | Lista estructurada de señales |
+
+### Fase 0 — Eventos de `cars-validation-event` (sección 8)
+
+| Evento | Cuándo |
+|---|---|
+| validation_created | Al crear expediente |
+| validation_started | Inicio presencial |
+| challenge_issued | Emisión de nonce/challenge |
+| evidence_capture_started | Inicio de captura |
+| evidence_uploaded | Recepción |
+| evidence_validated | Validación automática |
+| evidence_rejected | Fallo técnico |
+| official_check_started | Inicio consulta oficial |
+| official_check_completed | Consulta terminada |
+| official_check_failed | Consulta no pudo completarse |
+| checklist_updated | Cambio de checklist |
+| risk_calculated | Cálculo de riesgo |
+| validation_completed | Fin protocolo |
+| validation_status_changed | Cambio de estado |
+| audit_assigned | Asignación a auditor |
+| audit_completed | Auditoría terminada |
+| reverification_requested | Se requiere re-verificación |
+| resubmission_requested | Se solicita nueva evidencia |
+| evidence_superseded | Nueva versión de evidencia |
+| driver_status_synced | Sincronización de estado |
+
+### Fase 1 — Nonce/challenge (sección 17)
+
+| Dato | Tipo | Regla |
+|---|---|---|
+| nonce_id | UUID | Challenge |
+| session_id | UUID | Sesión |
+| step/evidence_type | enum | Paso autorizado |
+| issued_at | datetime | Servidor |
+| expires_at | datetime | Servidor |
+| used_at | datetime | Servidor |
+| status | enum | issued/used/expired/revoked |
+
+### Fase 2 — Cámara Web + Capacitor (sección 13)
+
+| Entorno | Mecanismo |
+|---|---|
+| Web | `navigator.mediaDevices.getUserMedia()` |
+| APK Capacitor | WebView + permisos nativos/capa compatible de cámara |
+| Foto | video stream → canvas/Blob |
+| Video | `MediaRecorder` cuando esté soportado |
+| GPS | `navigator.geolocation` o puente nativo cuando sea necesario |
+
+### Fase 2 — GPS por evidencia (sección 15)
+
+| Campo | Tipo | Regla |
+|---|---|---|
+| latitude | number | Enviar por captura |
+| longitude | number | Enviar por captura |
+| accuracy_m | number | Enviar por captura |
+| client_timestamp | datetime | Señal del cliente |
+| location_source | enum | browser_geolocation / native_bridge |
+
+### Fase 2 — Cambios de frontend sobre el flujo actual (sección 34)
+
+| Componente/área | Acción |
+|---|---|
+| Step de datos personales | CONSERVAR |
+| Step de documentos | CONSERVAR |
+| Step de fotos preliminares vehículo | CONSERVAR como preregistro/`origin=preregister` |
+| Step licencia | CONSERVAR |
+| Step cita presencial | CONSERVAR |
+| `DriverVerificationPage` | REFACTORIZAR para protocolo secuencial |
+| `driver-verification` components | INTEGRAR cámara/GPS/evidencia/challenge |
+| Servicios de validación | CENTRALIZAR llamadas API y errores |
+| UI reviewer | SEPARAR verificador de auditor |
+| Estado final | LEER del backend, no decidir solo frontend |
+
+### Fase 3 — Nuevos valores de `cars-evidence.type` (sección 7)
+
+| Tipo | Formato | Uso |
+|---|---|---|
+| driver_selfie_live | image | Selfie en vivo |
+| identity_document_front | image | Documento |
+| identity_document_back | image | Documento |
+| license_front | image | Licencia |
+| license_back | image | Licencia |
+| vehicle_front | image | Frontal |
+| vehicle_rear | image | Trasera |
+| vehicle_left | image | Lateral izquierdo |
+| vehicle_right | image | Lateral derecho |
+| vehicle_plates | image | Placas |
+| vehicle_vin | image | VIN/NIV |
+| vehicle_interior | image | Interior |
+| vehicle_video | video | Recorrido guiado |
+| official_query_capture | image/pdf | Constancia visual de consulta oficial |
+| incident | image/video | Incidencia |
+
+### Fase 3 — Checklist físico mínimo (sección 20)
+
+| Campo | Tipo |
+|---|---|
+| driver_present | boolean |
+| identity_document_present | boolean |
+| identity_consistent | boolean |
+| license_present | boolean |
+| license_consistent | boolean |
+| vehicle_present | boolean |
+| plates_consistent | boolean |
+| vin_consistent | boolean |
+| brand_consistent | boolean |
+| model_consistent | boolean |
+| year_consistent | boolean |
+| color_consistent | boolean |
+| lights_ok | boolean |
+| tires_ok | boolean |
+| belts_ok | boolean |
+| insurance_document_present | boolean |
+| registration_present | boolean |
+| video_complete | boolean |
+| incidents | JSON array |
+
+### Fase 4 — Campos de `external-verification` (sección 9)
+
+| Campo | Tipo | Req. | Descripción |
+|---|---|---|---|
+| id | UUID | Sí | Identificador |
+| validation | relation | Sí | `cars-validation` |
+| entity_type | enum | Sí | driver / vehicle / license |
+| entity_id | UUID | Sí | Entidad contrastada |
+| source_name | string/enum | Sí | INE / REPUVE / proveedor estatal |
+| source_type | enum | Sí | official_api / official_app / official_web |
+| verification_method | enum | Sí | api / app / web |
+| check_type | string/enum | Sí | credential / vehicle_theft / license |
+| query_reference_hash | string | No | Hash del dato consultado |
+| query_reference_masked | string | No | Referencia no sensible/mínima |
+| requested_at | datetime | Sí | Inicio servidor |
+| completed_at | datetime | Sí | Fin servidor |
+| result | enum | Sí | verified / not_found / reported / mismatch / unavailable / error |
+| result_data | JSON | No | Respuesta estructurada mínima |
+| result_hash | char(64) | No | Hash de respuesta serializada |
+| evidence | relation | No | Captura/PDF u otra constancia |
+| performed_by | relation | Sí | Verificador |
+| status | enum | Sí | valid / suspicious / failed |
+| created_at | datetime | Sí | Auditoría |
+
+### Fase 4 — Catálogo de licencias por entidad (sección 12)
+
+| Entidad | Campo/configuración |
+|---|---|
+| license_provider | Proveedor oficial |
+| official_url | Portal oficial |
+| method | official_api / official_web / official_app |
+| required_fields | Campos exigidos |
+| verification_enabled | boolean |
+| reference_type | folio/number/etc. |
+| evidence_required | boolean |
+| notes | Particularidades |
+
+### Fase 4 — Fuentes externas consideradas (sección 41)
+
+| Fuente | Uso | Mecanismo para diseño |
+|---|---|---|
+| INE — Servicio de Verificación de Datos de la Credencial para Votar (SVCV) | Identidad | Servicio institucional; requiere autorización/convenio |
+| INE — Valida INE-QR | Comprobación de QR de credencial | Herramienta oficial |
+| REPUVE — Consulta Ciudadana | Situación legal/reporte de robo | Portal oficial; API pública no asumida |
+| Portales oficiales estatales de licencias | Vigencia/validez de licencia | Catálogo por entidad; API o web según disponibilidad |
+
+### Fase 5 — Comparación de fuentes oficiales (sección 21)
+
+| Comparación | Resultado |
+|---|---|
+| VIN | match / mismatch / unavailable |
+| Placas | match / mismatch / unavailable |
+| Marca | match / mismatch |
+| Modelo | match / mismatch |
+| Año | match / mismatch |
+| Color | match / mismatch |
+| Situación legal | clear / reported / recovered / unknown |
+| Identidad | verified / mismatch / unavailable |
+| Licencia | valid / expired / mismatch / unavailable |
+
+### Fase 5 — Resultado y riesgo (sección 22, pesos ilustrativos)
+
+| Señal | Peso inicial ilustrativo | Acción |
+|---|---|---|
+| nonce inválido | +50 | bloquear operación |
+| hash inconsistente | +40 | sospechosa |
+| evidencia duplicada | +40 | revisión |
+| REPUVE con reporte | +60 | rechazo/revisión crítica |
+| VIN mismatch | +50 | revisión crítica |
+| GPS muy distante | +20 | revisión |
+| checklist incompleto | +15 | no cerrar aprobado |
+| fuente oficial no disponible | +5 | no equivale a fraude; bajar fuerza de verificación |
+| secuencia anómala | +10 | revisión |
+
+> Los pesos son parámetros iniciales de diseño — deben calibrarse con datos
+> reales y versionarse (no son valores definitivos).
+
+### Fase 5 — Estados de `cars-validation` (sección 23)
+
+```
+created → active → completed → automatic_review → approved / rejected / manual_review → confirmed / reverification_required
+```
+
+### Fase 6 — Campos de `verification-audits` (sección 24)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| id | UUID | Identificador |
+| validation | relation | Expediente auditado |
+| auditor | relation | Auditor independiente |
+| auditor_agency | relation | Agencia/nodo |
+| audit_type | enum | sample/deep/reverification_trigger |
+| selection_reason | enum | random/risk/complaint/new_verifier/etc. |
+| status | enum | pending/in_progress/completed/escalated |
+| result | enum | conformity/inconsistency/insufficient/evidence_fraud |
+| score | number | Resultado |
+| notes | text | Justificación |
+| started_at | datetime | Inicio |
+| completed_at | datetime | Fin |
+| protocol_version | string | Versión |
+| created_at | datetime | Creación |
+
+### Fase 6 — Items de auditoría (sección 25)
+
+| Campo | Tipo | Uso |
+|---|---|---|
+| audit_id | UUID | Auditoría |
+| check_key | string | Punto |
+| result | enum | pass/fail/uncertain/not_applicable |
+| evidence_ids | array UUID | Evidencia revisada |
+| external_verification_ids | array UUID | Consultas oficiales revisadas |
+| note | text | Justificación |
+| created_at | datetime | Registro |
+
+### Fase 6 — Muestreo de auditoría (sección 27)
+
+| Perfil | Muestra inicial |
+|---|---|
+| Verificador nuevo | 20% |
+| Verificador estable | 5% |
+| Anomalías | 30%+ |
+| Investigación | hasta 100% |
+| Caso crítico | 100% o doble auditoría |
+
+> Los porcentajes deben ser configuración, no código fijo (sección 27).
+
+### Fase 6 — Doble auditoría (sección 28)
+
+```
+Caso normal:    VALIDACIÓN → AUDITOR A
+Caso alto riesgo: VALIDACIÓN → AUDITOR A + AUDITOR B
+Si A ≠ B:       ESCALAMIENTO → AUDITOR C
+```
+
+### Fase 7 — Reputación del verificador y agencia (sección 30)
+
+| Métrica | Descripción |
+|---|---|
+| total_verifications | Total ejecutadas |
+| total_audited | Auditadas |
+| conforming | Conformes |
+| inconsistencies | Inconsistencias |
+| critical_findings | Hallazgos críticos |
+| reverifications | Re-verificaciones |
+| trust_score | Score derivado |
+| algorithm_version | Versión de cálculo |
+
+> Ya implementado del lado de CoWork como campos de `agencia` (ver
+> `docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md`, Fase 3), con el nombre
+> `trust_algorithm_version`. Taxis debe escribir estos valores, no
+> recrearlos en una tabla propia.
+
+### Fase 8 — API mínima esperada (sección 32)
+
+| Método | Endpoint | Función |
+|---|---|---|
+| POST | `/cars-validations` | Crear expediente |
+| POST | `/cars-validations/:id/challenges` | Emitir challenge |
+| POST | `/cars-validations/:id/evidences` | Subir evidencia |
+| POST | `/cars-validations/:id/checklist` | Guardar checklist |
+| POST | `/cars-validations/:id/external-verifications` | Registrar consulta oficial |
+| POST | `/cars-validations/:id/complete` | Cerrar protocolo |
+| POST | `/verification-audits/:id/result` | Resultado auditoría |
+| POST | `/cars-validations/:id/reverification` | Crear re-verificación |
