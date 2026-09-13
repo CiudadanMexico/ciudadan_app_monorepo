@@ -249,6 +249,13 @@ ssh -L 3002:localhost:3002 -L 33432:localhost:33432 -L 33035:localhost:33035 opc
 ```
 Luego abrir `http://localhost:3002` en el navegador.
 
+> ⚠️ **Puertos del túnel = puertos reales.** El formato es `-L <local>:localhost:<remoto>`;
+> ambos deben ser `33432` (Strapi). Si el túnel local queda en otro puerto (ej. el viejo
+> `33433`, o `-L 33433:localhost:33432`), el navegador no puede alcanzar la API y toda
+> petición falla con **"Failed to fetch"** (el fetch del frontend va fijo a
+> `http://localhost:33432`, ver `REACT_APP_STRAPI_URL`). Verificar en el cliente:
+> `netstat -an | findstr 33432` (Windows) debe mostrar LISTENING.
+
 ## 11. Auth0 (tenant `ciudadan.us.auth0.com`)
 
 1. App SPA `za265MeRdxMKuPqzdPSTL7lHL0yyg5bd` ("Ciudadan"):
