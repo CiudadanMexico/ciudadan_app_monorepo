@@ -37,12 +37,12 @@ const Ganar = () => {
     { 
       titulo: '💰 RENTA UNIVERSAL', 
       boton: '💰 Afiliarme a Renta Universal... ',
-      descripcion: 'Dedica <b> 1 hora diaria </b> a ver anuncios y responder encuestas para ganar Laborys.',
-      descripcionCompleta: 'Tu participación apoya la generación de riqueza económica y la mejora de la comunidad. <br /> <br /> Gozamos de múltiples fuentes y modelos de financiamiento, sin embargo uno de nuestros pilares es la publicidad no invasiva, vista a demanda y remunerada, desplazando el total de los Laborys a los usuarios. Contamos con nuestra propia visión y versión de una renta crypto universal, la nuestra es a cambio de ver anuncios e interactuar con ellos. <br /> <br /> Aprovecha solo por lanzamiento: Recibe una renta mensual de 6,000 Laborys. ', 
+      descripcion: 'Completa <b>1 hora diaria</b> de anuncios al menos 6 días por semana y recibe <b>31 Laborys EXTRA</b> al corte mensual, además de lo que ya ganas viendo publicidad.',
+      descripcionCompleta: 'Además de las ganancias que recibes normalmente por ver publicidad, premiamos tu constancia. <br /> <br /> Completa tu hora de anuncios al menos 6 días de cada semana durante todo el mes y recibe <b>31 Laborys EXTRA</b> al corte mensual. <br /> <br /> Lo que ganas diariamente viendo anuncios es tuyo. Los 31 Laborys de Renta Universal son adicionales y NO sustituyen tus ganancias normales por publicidad. ', 
       imagen: renta,
       monedas: [labory],
       claseimagen: 'opcion-imagen-ensanchada',
-      url: '/renta-universal'
+      url: '/gana/renta-universal'
     },
     { 
       titulo: '▶ Tareas Académicas:', 
