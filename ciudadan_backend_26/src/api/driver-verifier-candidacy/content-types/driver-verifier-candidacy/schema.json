@@ -1,0 +1,47 @@
+{
+  "kind": "collectionType",
+  "collectionName": "driver_verifier_candidacies",
+  "info": {
+    "singularName": "driver-verifier-candidacy",
+    "pluralName": "driver-verifier-candidacies",
+    "displayName": "Driver Verifier Candidacy",
+    "description": "Candidatura de Líder Verificador de Conductores"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "private": true,
+      "comment": "Única relación requerida: el usuario cuya candidatura seguimos"
+    },
+    "referred_drivers": {
+      "type": "integer",
+      "default": 0,
+      "min": 0,
+      "comment": "Conductores contabilizados para cumplir el reto. No usar 'refereds'."
+    },
+    "registered_since": {
+      "type": "datetime",
+      "comment": "Momento en que inicia formalmente el periodo de prueba (al CONCLUIR el registro, no al hacer clic)"
+    },
+    "closes_at": {
+      "type": "datetime",
+      "comment": "Deadline de la candidatura = registered_since + driver_verifier_testing_days. No usar closed_at."
+    },
+    "activated": {
+      "type": "boolean",
+      "default": false,
+      "comment": "true cuando el candidato alcanza los requisitos y es activado como Líder/Verificador"
+    },
+    "closed": {
+      "type": "boolean",
+      "default": false,
+      "comment": "true cuando el proceso de candidatura terminó (con éxito o no)"
+    }
+  }
+}
