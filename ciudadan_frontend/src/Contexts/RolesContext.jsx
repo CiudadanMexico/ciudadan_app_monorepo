@@ -8,7 +8,11 @@ export const useRoles = () => useContext(RolesContext);
 
 /**
  * Optimizations summary:
- * - In-memory + sessionStorage cache keyed by user email with TTL to avoid redundant network calls.
+ * - In-memory cache keyed by user email with TTL to avoid redundant network calls
+ *   mientras la página está abierta.
+ * - OPCIÓN A: en cada carga de página se hace SIEMPRE un fetch fresco a la API, de
+ *   modo que los cambios de roles hechos en el admin de Strapi se reflejan al
+ *   instante. sessionStorage solo se usa como FALLBACK OFFLINE si la red falla.
  * - Promise coalescing for concurrent fetches (reuses an existing request when available).
  * - Minimal re-fetching: only when auth email changes or when forced.
  * - Optimistic updates for updateExtraRole and local cache synchronization.
@@ -112,22 +116,15 @@ export const RolesProvider = ({ children }) => {
         return;
       }
 
-      // Revisa caché in-memory primero
+      // Revisa caché in-memory primero (solo sobrevive dentro de la misma vista de
+      // página; se resetea en cada reload). sessionStorage ya NO se usa como fuente
+      // primaria: en cada carga se hace fetch fresco a la API para reflejar al
+      // instante cambios hechos en el admin de Strapi. sessionStorage solo actúa
+      // como FALLBACK OFFLINE en el catch (ver abajo).
       const memCache = cacheRef.current.get(email);
       if (!force && memCache && isCacheFresh(memCache.fetchedAt)) {
         applyCacheToState(memCache.data);
         return memCache.data;
-      }
-
-      // Luego revisa sessionStorage si memCache no existe o está vieja
-      if (!force && (!memCache || !isCacheFresh(memCache.fetchedAt))) {
-        const sess = readSessionCache(email);
-        if (sess && isCacheFresh(sess.fetchedAt)) {
-          // Bulk load from session cache
-          cacheRef.current.set(email, sess);
-          applyCacheToState(sess.data);
-          return sess.data;
-        }
       }
 
       // Si ya hay una promesa en curso para este email, devuelve la misma (coalescing)
@@ -232,7 +229,16 @@ export const RolesProvider = ({ children }) => {
 
           return result;
         } catch (err) {
-          // En caso de error crítico, restauramos un estado razonable y lanzamos
+          // OPCIÓN A: si la red/API falla, sessionStorage sirve SOLO como fallback
+          // offline (datos posiblemente viejos, pero mejores que nada).
+          const sess = readSessionCache(email);
+          if (sess) {
+            cacheRef.current.set(email, sess);
+            applyCacheToState(sess.data);
+            console.warn('⚠️ Usando caché local de roles (fallback offline):', err.message);
+            return sess.data;
+          }
+          // Sin caché disponible: estado por defecto y propagamos
           if (mountedRef.current) {
             setRoles(['usuario']);
             setMembresia(null);
