@@ -64,7 +64,7 @@ const CrearBilleteraCentralWld = () => {
           <p>
             <strong>Clave Privada:</strong>{' '}
             {mostrarPrivada ? (
-              <span style={{ wordBreak: 'break-all', filter: confirmado ? 'none' : 'blur(6px)' }}>{walletInfo.privateKey}</span>
+              <span style={{ wordBreak: 'break-all' }}>{walletInfo.privateKey}</span>
             ) : (
               <span style={{ filter: 'blur(8px)', userSelect: 'none' }}>••••••••••••••••••••••••••••••••</span>
             )}{' '}
@@ -75,7 +75,7 @@ const CrearBilleteraCentralWld = () => {
             <input type="checkbox" checked={confirmado} onChange={e => setConfirmado(e.target.checked)} /> He guardado mi clave en lugar seguro
           </label>
           <p style={{ color: confirmado ? 'green' : 'red', fontSize: 12, marginTop: 8 }}>
-            {confirmado ? '✅ No se guarda en servidor, solo en tu navegador. Ya puedes usar tu wallet.' : '⚠️ Solo se muestra una vez. Activa el check tras guardarla para desbloquear el blur.'}
+            {confirmado ? '✅ No se guarda en servidor, solo en tu navegador. Ya puedes usar tu wallet.' : '⚠️ Solo se muestra una vez. Guárdala en un lugar seguro antes de continuar.'}
           </p>
           {confirmado && <Button onClick={() => setWalletInfo(null)} size="small" sx={{ mt: 1, bgcolor: '#333', color: 'white' }}>Borrar de pantalla</Button>}
         </div>
