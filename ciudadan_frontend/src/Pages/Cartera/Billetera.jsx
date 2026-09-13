@@ -22,6 +22,7 @@ import SocialImg from '../../assets/monedas/social.png';
 
 // 💡 Importa componentes asociados
 import IngresosInfo from './../../components/Cartera/IngresosInfo.jsx';
+import PurpleButton from './../../components/common/PurpleButton.jsx';
 
 const Billetera = () => {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -241,7 +242,7 @@ const Billetera = () => {
                 cartera?.wallet_address ? (
                   <Chip label={`Wallet: ${cartera.wallet_address.slice(0,6)}...${cartera.wallet_address.slice(-4)}`} sx={{ bgcolor: '#8A5CF5', color: 'white', fontFamily: 'monospace' }} />
                 ) : isAuthenticated ? (
-                  <Button href="/cartera/crear" size="small" sx={{ bgcolor: '#ffe066', color: 'black', fontWeight: 700 }}>Crear y vincular wallet</Button>
+                  <PurpleButton href="/cartera/crear" size="small">Crear y vincular wallet</PurpleButton>
                 ) : null}
               {cartera && <Typography sx={{ fontSize: 11, mt: 1 }}>Saldo Laborys: {cartera.laborysSaldo} | Ganados: {cartera.laborysGanados}</Typography>}
             </Box>
@@ -266,7 +267,7 @@ const Billetera = () => {
             ) : !isAuthenticated ? (
               <Box>
                 <Typography sx={{ opacity: 0.9 }}>🔒 Inicia sesión para ver tu saldo real</Typography>
-                <Button href="/cartera/crear" sx={{ mt: 2, bgcolor: '#ffe066', color: 'black' }}>Ir a crear cartera</Button>
+                <PurpleButton href="/cartera/crear" sx={{ mt: 2 }}>Ir a crear cartera</PurpleButton>
               </Box>
             ) : cargando ? (
               <Typography>Cargando saldo...</Typography>
