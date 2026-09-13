@@ -11,6 +11,7 @@ import Probador from '../components/Testers/Probador.jsx';
 // ---------- Páginas principales ----------
 import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
+import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
@@ -362,6 +363,10 @@ const Rutas = () => (
     <Route
       path='/gana/ver-anuncios'
       element={<AnunciosRemunerados />}
+    />
+    <Route
+      path='/gana/renta-universal'
+      element={<RentaUniversalPage />}
     />
     {/* Taxis */}
     
