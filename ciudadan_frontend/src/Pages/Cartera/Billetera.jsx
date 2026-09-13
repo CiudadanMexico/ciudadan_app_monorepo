@@ -272,7 +272,12 @@ const Billetera = () => {
             ) : cargando ? (
               <Typography>Cargando saldo...</Typography>
             ) : !cartera ? (
-              <Box><Typography>Creando cartera...</Typography></Box>
+              <Box>
+                <Typography sx={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Aún no tienes cartera activa.
+                </Typography>
+                <PurpleButton href="/cartera/crear" sx={{ mt: 2 }}>Crear cartera →</PurpleButton>
+              </Box>
             ) : selected === 'Resumen' ? (
               <>
                 <Typography sx={{ opacity: 0.9, fontSize: '1.1rem' }}>
