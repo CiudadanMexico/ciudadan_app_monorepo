@@ -86,7 +86,7 @@ async function skydropxRequest(endpoint, options = {}) {
   if (!response.ok) {
     strapi.log.error(`Skydropx API ${response.status}:`, data);
 
-    const error = new Error(data?.error_description ?? data?.message ?? "Error en API Skydropx");
+    const error = new Error(data?.message ?? data?.error_description ?? "Error en API Skydropx");
     // @ts-ignore
     error.status = response.status;
     // @ts-ignore
@@ -103,11 +103,6 @@ async function skydropxRequest(endpoint, options = {}) {
 function normalizeAddress(direccionData) {
   if (!direccionData)
     throw new Error("La dirección es requerida");
-
-  strapi.log.info("Dirección:");
-  strapi.log.debug(JSON.stringify({
-    direccionData
-  }, null, 2));
 
   const direccionJson = direccionData?.direccion ?? {};
   const postalCode = direccionJson?.postal_code ?? direccionData?.cp ?? "";
@@ -177,6 +172,7 @@ function buildParcelsFromItems(items = []) {
       width: Math.ceil(width),
       height: Math.ceil(height),
       weight: weight * cantidad,
+      declared_value: Math.ceil(producto?.precio)
     };
   });
 }
@@ -192,7 +188,7 @@ async function createQuotation(quotation) {
   return skydropxRequest("/api/v1/quotations",
     {
       method: "POST",
-      body: JSON.stringify({ body }),
+      body: JSON.stringify(body),
     }
   );
 }

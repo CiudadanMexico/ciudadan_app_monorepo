@@ -54,7 +54,7 @@ module.exports = {
       if (!body)
         return ctx.badRequest("El cuerpo de la solicitud es requerido");
 
-      const { store_id, direccion_destino_id, items, requested_carriers } = body;
+      const { store_id, direccion_destino_id, items } = body;
 
       // Validaciones básicas
       if (!store_id)
@@ -111,7 +111,7 @@ module.exports = {
 
       const usuarioEmail = ctx.state.user?.email;
       strapi.log.info(`User request email: ${usuarioEmail}`);
-      
+
       // Verificar que la dirección pertenezca al usuario del request
       // if(usuarioEmail && direccionDestino.usuario_email !== usuarioEmail)
       //   return ctx.forbidden("No tienes permiso para utilizar esta dirección");
@@ -230,7 +230,7 @@ module.exports = {
           is_completed: quotation?.is_completed ?? false,
           rates: quotation?.rates ?? [],
           quotation_scope: quotation?.quotation_scope ?? null,
-          raw: quotation,
+          // raw: quotation,
         },
         context: {
           store_id: Number(store_id),
