@@ -1,253 +1,86 @@
-// src/components/Cartera/CrearBilleteraCentralWld.jsx
-// Generador de cartera ethers.js restilizado con el tema de la sección Cartera.
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
+import { Button } from '@mui/material';
 import { ethers } from 'ethers';
-import {
-  Box, Button, Chip, CircularProgress, Paper, Stack, Typography,
-} from '@mui/material';
-import AccountBalanceWalletRoundedIcon from '@mui/icons-material/AccountBalanceWalletRounded';
-import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
-import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { useAuth0 } from '@auth0/auth0-react';
-import { useNavigate } from 'react-router-dom';
-
-const MORADO = '#8A5CF5';
-const AMARILLO = '#ffe066';
+import { STRAPI_URL } from '../../utils/request.utils';
 
 const CrearBilleteraCentralWld = () => {
-  const navigate = useNavigate();
-  const { getAccessTokenSilently } = useAuth0();
   const [walletInfo, setWalletInfo] = useState(null);
-  const [creando, setCreando] = useState(false);
-  const [activado, setActivado] = useState(false);
-  const [copiado, setCopiado] = useState(false);
-
-  const strapiUrl = process.env.REACT_APP_STRAPI_URL || '';
-
-  const activarCartera = useCallback(async () => {
-    if (!strapiUrl) return;
-    try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.ciudadan.org' },
-      });
-      await fetch(`${strapiUrl}/api/cartera`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    } catch (e) {
-      console.warn('[CrearBilletera] no se pudo activar la cartera:', e.message);
-    }
-  }, [getAccessTokenSilently, strapiUrl]);
+  const [status, setStatus] = useState('');
+  const [mostrarPrivada, setMostrarPrivada] = useState(false);
+  const [confirmado, setConfirmado] = useState(false);
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
 
   const generarCartera = async () => {
-    setCreando(true);
-    const wallet = ethers.Wallet.createRandom();
-    setWalletInfo({ address: wallet.address, privateKey: wallet.privateKey });
-    await activarCartera();
-    setActivado(true);
-    setCreando(false);
+    try {
+      setStatus('Generando wallet...');
+      const wallet = ethers.Wallet.createRandom();
+      setWalletInfo({
+        address: wallet.address,
+        privateKey: wallet.privateKey,
+      });
+      // No loguear privada en prod, solo debug
+      console.log('Dirección:', wallet.address);
+      // privateKey solo visible bajo demanda, no en log persistente
+
+      if (isAuthenticated) {
+        setStatus('Vinculando wallet a tu usuario...');
+        const token = await getAccessTokenSilently({
+          authorizationParams: { audience: 'https://api.ciudadan.org' },
+        });
+        const res = await fetch(`${STRAPI_URL}/api/cartera/vincular-wallet`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ wallet_address: wallet.address }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error?.message || data?.message || 'Error vinculando');
+        setStatus(`✅ Wallet vinculada a tu usuario (cartera id ${data.cartera?.id})`);
+      } else {
+        setStatus('⚠️ Wallet generada local (inicia sesión para vincularla a tu usuario)');
+      }
+    } catch (e) {
+      setStatus(`❌ Error: ${e.message}`);
+      console.error(e);
+    }
   };
 
-  const copiar = (texto) => {
-    if (!navigator.clipboard) return;
-    navigator.clipboard
-      .writeText(texto)
-      .then(() => {
-        setCopiado(true);
-        setTimeout(() => setCopiado(false), 1600);
-      })
-      .catch(() => {});
-  };
+  const copiar = (txt) => navigator.clipboard?.writeText(txt);
 
   return (
-    <Paper
-      elevation={10}
-      sx={{
-        // 💳 Misma tarjeta glass morada que la billetera
-        background:
-          'linear-gradient(160deg, rgba(138,92,245,0.16) 0%, rgba(20,12,36,0.94) 45%, rgba(106,63,203,0.18) 100%)',
-        border: '1px solid rgba(138,92,245,0.32)',
-        boxShadow: '0 24px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
-        p: { xs: 3, md: 6 },
-        borderRadius: { xs: 4, md: 6 },
-        maxWidth: 720,
-        width: '100%',
-        textAlign: 'center',
-        color: 'white',
-      }}
-    >
-      <Stack spacing={2.5} alignItems="center">
-        <Box
-          sx={{
-            width: 72,
-            height: 72,
-            borderRadius: '50%',
-            display: 'grid',
-            placeItems: 'center',
-            color: MORADO,
-            bgcolor: 'rgba(138,92,245,0.14)',
-            boxShadow: '0 0 26px rgba(138,92,245,0.4)',
-          }}
-        >
-          <AccountBalanceWalletRoundedIcon sx={{ fontSize: 40 }} />
-        </Box>
-
-        <Box>
-          <Typography
-            variant="h4"
-            sx={{
-              fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
-              fontWeight: 700,
-              color: '#c9b4ff',
-              fontSize: { xs: '1.6rem', md: '2.2rem' },
-            }}
-          >
-            Crea tu cartera
-          </Typography>
-          <Typography sx={{ mt: 0.6, color: 'rgba(255,255,255,0.8)', maxWidth: 460, mx: 'auto', lineHeight: 1.6 }}>
-            Genera la clave criptográfica de tu wallet con <strong>ethers.js</strong>. Al crearla
-            activas tu cartera Ciudadan y empiezas a acumular Laborys.
-          </Typography>
-        </Box>
-
-        {!walletInfo ? (
-          <Button
-            variant="contained"
-            size="large"
-            onClick={generarCartera}
-            disabled={creando}
-            startIcon={creando ? <CircularProgress size={18} color="inherit" /> : <AccountBalanceWalletRoundedIcon />}
-            sx={{
-              px: 3.5,
-              py: 1.4,
-              borderRadius: 999,
-              fontWeight: 700,
-              fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
-              bgcolor: AMARILLO,
-              color: '#3a2c00',
-              boxShadow: '0 12px 30px rgba(255,224,102,0.28)',
-              '&:hover': { bgcolor: '#ffd94d' },
-            }}
-          >
-            {creando ? 'Generando…' : 'Generar cartera'}
-          </Button>
-        ) : (
-          <>
-            <Stack spacing={1.5} sx={{ width: '100%', textAlign: 'left' }}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ color: 'rgba(255,255,255,0.66)', mb: 0.4 }}>
-                  Dirección de tu wallet
-                </Typography>
-                <Box
-                  onClick={() => copiar(walletInfo.address)}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 1,
-                    bgcolor: 'rgba(0,0,0,0.35)',
-                    border: '1px solid rgba(138,92,245,0.3)',
-                    borderRadius: 2,
-                    px: 1.5,
-                    py: 1,
-                    cursor: 'pointer',
-                    '&:hover': { borderColor: MORADO },
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'monospace', fontSize: '0.82rem', wordBreak: 'break-all', color: '#e8e0ff' }}>
-                    {walletInfo.address}
-                  </Typography>
-                  <ContentCopyRoundedIcon sx={{ fontSize: 18, color: '#a78bfa' }} />
-                </Box>
-              </Box>
-<Box>
-                <Typography variant="subtitle2" sx={{ color: 'rgba(255,255,255,0.66)', mb: 0.4 }}>
-                  Clave privada
-                </Typography>
-                <Box
-                  onClick={() => copiar(walletInfo.privateKey)}
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 1,
-                    bgcolor: 'rgba(0,0,0,0.35)',
-                    border: '1px solid rgba(255,120,120,0.35)',
-                    borderRadius: 2,
-                    px: 1.5,
-                    py: 1,
-                    cursor: 'pointer',
-                    '&:hover': { borderColor: '#ff7878' },
-                  }}
-                >
-                  <Typography sx={{ fontFamily: 'monospace', fontSize: '0.72rem', wordBreak: 'break-all', color: '#ffd2d2' }}>
-                    {walletInfo.privateKey}
-                  </Typography>
-                  <ContentCopyRoundedIcon sx={{ fontSize: 18, color: '#ff9d9d' }} />
-                </Box>
-              </Box>
-
-              {copiado && (
-                <Typography sx={{ color: '#2ee6c8', fontSize: '0.85rem' }}>✓ Copiado al portapapeles</Typography>
-              )}
-
-              <Typography sx={{ fontSize: '0.85rem', color: '#ffb3b3', lineHeight: 1.5 }}>
-                ⚠️ Guarda esta clave privada en un lugar seguro. Quien la tenga controla tu wallet.
-              </Typography>
-            </Stack>
-
-            {activado && (
-              <Chip
-                label="✓ Cartera activada — listo para ganar Laborys"
-                sx={{
-                  bgcolor: 'rgba(46,230,200,0.12)',
-                  color: '#2ee6c8',
-                  fontWeight: 700,
-                  border: '1px solid rgba(46,230,200,0.35)',
-                }}
-              />
-            )}
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBackRoundedIcon />}
-                onClick={() => navigate('/cartera')}
-                sx={{
-                  px: 2.6,
-                  py: 1.2,
-                  borderRadius: 999,
-                  fontWeight: 700,
-                  color: '#c9b4ff',
-                  borderColor: 'rgba(138,92,245,0.5)',
-                  '&:hover': { borderColor: MORADO, bgcolor: 'rgba(138,92,245,0.1)' },
-                }}
-              >
-                Volver a mi cartera
-              </Button>
-              <Button
-                variant="contained"
-                onClick={generarCartera}
-                sx={{
-                  px: 2.6,
-                  py: 1.2,
-                  borderRadius: 999,
-                  fontWeight: 700,
-                  bgcolor: '#2ee6c8',
-                  color: '#002018',
-                  '&:hover': { bgcolor: '#1fd4b7' },
-                }}
-              >
-                Generar otra
-              </Button>
-            </Stack>
-          </>
-        )}
-      </Stack>
-    </Paper>
+    <div style={{ padding: '20px', textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
+      <h2>Crear Cartera Central — Bankchain Provisional</h2>
+      <p style={{ color: '#666' }}>Genera tu wallet con ethers.js y la vinculamos a tu usuario (cartera.wallet_address ↔ user_id)</p>
+      <button onClick={generarCartera} style={{ padding: '12px 24px', borderRadius: 999, background: '#8A5CF5', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
+        Generar y Vincular Cartera
+      </button>
+      {status && <p style={{ marginTop: 12, fontWeight: 600 }}>{status}</p>}
+      {walletInfo && (
+        <div style={{ marginTop: '20px', textAlign: 'left', background: 'rgba(138,92,245,0.08)', padding: 16, borderRadius: 12 }}>
+          <p><strong>Dirección:</strong> {walletInfo.address} <button onClick={() => copiar(walletInfo.address)}>Copiar</button></p>
+          <p>
+            <strong>Clave Privada:</strong>{' '}
+            {mostrarPrivada ? (
+              <span style={{ wordBreak: 'break-all', filter: confirmado ? 'none' : 'blur(6px)' }}>{walletInfo.privateKey}</span>
+            ) : (
+              <span style={{ filter: 'blur(8px)', userSelect: 'none' }}>••••••••••••••••••••••••••••••••</span>
+            )}{' '}
+            <button onClick={() => setMostrarPrivada(!mostrarPrivada)}>{mostrarPrivada ? 'Ocultar' : 'Mostrar'}</button>
+            {mostrarPrivada && <button onClick={() => copiar(walletInfo.privateKey)} style={{ marginLeft: 8 }}>Copiar</button>}
+          </p>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <input type="checkbox" checked={confirmado} onChange={e => setConfirmado(e.target.checked)} /> He guardado mi clave en lugar seguro
+          </label>
+          <p style={{ color: confirmado ? 'green' : 'red', fontSize: 12, marginTop: 8 }}>
+            {confirmado ? '✅ No se guarda en servidor, solo en tu navegador. Ya puedes usar tu wallet.' : '⚠️ Solo se muestra una vez. Activa el check tras guardarla para desbloquear el blur.'}
+          </p>
+          {confirmado && <Button onClick={() => setWalletInfo(null)} size="small" sx={{ mt: 1, bgcolor: '#333', color: 'white' }}>Borrar de pantalla</Button>}
+        </div>
+      )}
+    </div>
   );
 };
 

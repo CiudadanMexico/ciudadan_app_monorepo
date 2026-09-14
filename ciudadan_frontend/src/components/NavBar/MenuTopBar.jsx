@@ -1,25 +1,30 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import './MenuTopBar.css';
 
-import wikiImage from '../../assets/wikiciudadan.png';
-import quienesImage from '../../assets/quienes.png';
-import logoImage from '../../assets/logo_cuadro.png';
-import helpImage from '../../assets/help.png';
-import contactImage from '../../assets/faq.png';
-import VideosImage from '../../assets/videos.png';
+import wikiImage from '../../assets/topbarmenu/wiki.svg';
+import quienesImage from '../../assets/topbarmenu/quienes.svg';
+import ciudadanRosaImage from '../../assets/topbarmenu/ciudadan_rosa.svg';
+import ayudaImage from '../../assets/topbarmenu/ayuda.svg';
+import faqImage from '../../assets/topbarmenu/faq.svg';
+import contactoImage from '../../assets/topbarmenu/contacto.svg';
+import youtubeImage from '../../assets/topbarmenu/youtube.svg';
+
+// Canal de YouTube por defecto (fuente de verdad: /site-settings.json)
+const DEFAULT_YOUTUBE_URL = 'https://www.youtube.com/@ciudadanmx';
 
 /**
  * Nuevo mapa de items (tal como lo pediste)
  */
 const DEFAULT_ITEMS = [
-  { href: "/", img: logoImage, alt: "Presentación", label: "Presentación" },
+  { href: "/", img: ciudadanRosaImage, alt: "Presentación", label: "Presentación" },
   { href: "/info/quienes", img: quienesImage, alt: "¿Quiénes Somos?", label: "¿Quiénes Somos?" },
   { href: "/wiki", img: wikiImage, alt: "Wiki Ciudadan.org", label: "Wiki", target: "_blank" },
-  { href: "/wiki/faq", img: contactImage, alt: "Preguntas Frecuentes", label: "Preguntas Frecuentes" },
-  { href: "/wiki/ayuda", img: helpImage, alt: "Ayuda", label: "Ayuda" },
-  { href: "https://www.youtube.com/@ciudadanmex", img: VideosImage, alt: "Canal YT", label: "Canal YT", target: "_blank" },
+  { href: "/wiki/faq", img: faqImage, alt: "Preguntas Frecuentes", label: "Preguntas Frecuentes" },
+  { href: "/wiki/ayuda", img: ayudaImage, alt: "Ayuda", label: "Ayuda" },
+  { href: "/contacto", img: contactoImage, alt: "Contacto", label: "Contacto" },
+  { href: DEFAULT_YOUTUBE_URL, img: youtubeImage, alt: "Canal YT", label: "Canal YT", target: "_blank", siteKey: "social.youtube.url" },
 ];
 
 const MOBILE_MAX = 1000;
@@ -43,8 +48,30 @@ const MenuTopBar = ({
   topBarRef = null,
 }) => {
   const navigate = useNavigate();
+  const [youtubeUrl, setYoutubeUrl] = useState(DEFAULT_YOUTUBE_URL);
 
-  const keysToShow = items.filter((it) => shouldShow(it, visibleKeys));
+  // Lee el canal de YouTube desde /site-settings.json (fuente de verdad).
+  // El JSON vive en public/ y hay copia espejo en la raíz del monorepo.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${process.env.PUBLIC_URL || ''}/site-settings.json`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((settings) => {
+        const url = settings?.social?.youtube?.url;
+        if (!cancelled && typeof url === 'string' && url.length > 0) {
+          setYoutubeUrl(url);
+        }
+      })
+      .catch(() => { /* conserva el valor por defecto */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Aplica la URL de site-settings al item de YouTube (estático o por prop)
+  const resolvedItems = items.map((it) =>
+    it.siteKey === 'social.youtube.url' ? { ...it, href: youtubeUrl } : it
+  );
+
+  const keysToShow = resolvedItems.filter((it) => shouldShow(it, visibleKeys));
 
   // Añadir/quitar clase al body para esconder logo solo en móviles
   useEffect(() => {

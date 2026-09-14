@@ -6,7 +6,11 @@ export class MarkdownParser {
      * Procesa el contenido Markdown, extrae los WikiLinks ([[Enlace]]) 
      * y genera el HTML final con los enlaces convertidos.
      */
-    public static parse(markdownContent: string, filePath?: string): ParsedMarkdownResponseDTO {
+    public static parse(
+        markdownContent: string,
+        filePath?: string,
+        resolveTarget?: (rawTarget: string, normalized: string) => string | null
+    ): ParsedMarkdownResponseDTO {
         const wikiLinks: ParsedWikiLink[] = [];
 
         // RegEx para capturar [[WikiLink]] o [[WikiLink|Alias]]
@@ -18,22 +22,48 @@ export class MarkdownParser {
             const rawContent = match[1].trim();
             const parsedLink = this.parseSingleWikiLink(rawContent);
 
+            // Intentar resolver a su ruta canónica si hay resolver disponible
+            const known = resolveTarget
+                ? resolveTarget(parsedLink.rawTarget, parsedLink.targetPath)
+                : null;
+            if (known) parsedLink.resolvedPath = known;
+
             if (!wikiLinks.some(l => l.raw === parsedLink.raw)) {
                 wikiLinks.push(parsedLink);
             }
         }
 
+        // Encontrar la sección actual (wiki/<seccion>/...) para relativizar hrefs
+        const currentSection = this.detectSection(filePath || '');
+        const wikiBase = currentSection ? `/wiki/${currentSection}/` : '/wiki/';
+
         // Reemplazar los corchetes [[Target|Alias]] por enlaces HTML <a>
         const processedMarkdown = markdownContent.replace(wikiRegex, (_, rawContent) => {
             const link = this.parseSingleWikiLink(rawContent.trim());
             
-            const href = link.anchor 
-                ? `/wiki/doc/${link.targetPath}#${link.anchor}` 
-                : `/wiki/doc/${link.targetPath}`;
-            
-            const anchorAttr = link.anchor ? ` data-anchor="${link.anchor}"` : '';
+            // Resolver a la ruta canónica (o usar el nombre del target como última opción)
+            const known = resolveTarget
+                ? resolveTarget(link.rawTarget, link.targetPath)
+                : null;
+            if (known) link.resolvedPath = known;
 
-            return `<a class="wiki-link" href="${href}" data-target="${link.targetPath}"${anchorAttr}>${link.displayText}</a>`;
+            // href resoluble: primero el path canónico devuelto por el backend, si no,
+            // relativizamos el nombre del target contra la sección actual.
+            const hrefPath = link.resolvedPath
+                ? link.resolvedPath
+                : link.targetPath
+                    ? `${wikiBase}${link.targetPath.replace(/^\/+/, '')}`
+                    : link.displayText;
+
+            const href = link.anchor
+                ? `/${hrefPath.replace(/^\/+/, '')}#${link.anchor}`
+                : `/${hrefPath.replace(/^\/+/, '')}`;
+
+            const anchorAttr = link.anchor ? ` data-anchor="${link.anchor}"` : '';
+            const targetAttr = link.rawTarget ? ` data-target="${escapeAttr(link.rawTarget)}"` : '';
+            const pathAttr = link.resolvedPath ? ` data-path="${escapeAttr(link.resolvedPath)}"` : '';
+
+            return `<a class="wiki-link" href="${href}"${targetAttr}${pathAttr}${anchorAttr}>${link.displayText}</a>`;
         });
 
         // 3. Extraer el título usando la estrategia de prioridades
@@ -125,10 +155,34 @@ export class MarkdownParser {
 
         return {
             raw: `[[${raw}]]`,
+            rawTarget: targetPath,
             targetPath: cleanTargetPath,
             anchor,
             alias,
             displayText
         }
     }
+
+    /**
+     * Detecta la sección actual a partir de la ruta (wiki/<seccion>/...).
+     * Devuelve la sección si es válida (main/help/faq) o 'main' por defecto.
+    */
+    private static detectSection(filePath: string): string {
+        const normalized = filePath.replace(/\\/g, '/').replace(/^\/+/, '');
+        const segments = normalized.split('/').filter(Boolean);
+        if (segments[0]?.toLowerCase() === 'wiki' && segments[1]) {
+            const section = segments[1].toLowerCase();
+            if (['main', 'help', 'faq'].includes(section)) return section;
+        }
+        return 'main';
+    }
+}
+
+/** Escapa un valor para ser usado como atributo HTML (evita inyección). */
+function escapeAttr(value: string): string {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
 }

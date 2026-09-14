@@ -38,6 +38,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
   const pickupNorm = viaje?.attributes?.origendireccion?.label;
   const destNorm = viaje?.attributes?.destinodireccion?.label;
   const price = viaje?.attributes?.costo || null;
+  // eslint-disable-next-line no-unused-vars
   const destiNorm = normalizeCoord(viaje?.attributes?.destination);
   const taxiNorm = normalizeCoord(userCoords);
   const userEmail = viaje?.attributes?.pasajeromail;
@@ -71,6 +72,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
       .filter(Boolean)
       .join(" ") || "Vehículo no disponible";
 
+  // eslint-disable-next-line no-unused-vars
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
 
@@ -123,7 +125,7 @@ const ViajeUsuario = ({ viaje, driverData, socket, userCoords, routeInfo, setUse
     } catch (err) {
       console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
     }
-  }, [strapiToken, strapiUrl, userEmail]);
+  }, [strapiToken, strapiUrl, userEmail, consultarSaldo]);
 
   /*const confirmPayment = async (amount) => {
     if (!strapiUrl) return;

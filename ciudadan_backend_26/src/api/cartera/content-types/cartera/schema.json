@@ -24,6 +24,10 @@
     "ciudadanRendimientos": {
       "type": "decimal"
     },
+    "wallet_address": {
+      "type": "string",
+      "unique": true
+    },
     "user_id": {
       "type": "relation",
       "relation": "oneToOne",

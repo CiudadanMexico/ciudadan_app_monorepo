@@ -53,9 +53,11 @@ const ViajeConductor = ({
     setStatus(viaje?.attributes?.status || 'pending');
   }, [viaje?.attributes?.status]);
 
+  // eslint-disable-next-line no-unused-vars
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
   const userEmail = viaje?.attributes?.pasajeromail;
+  // eslint-disable-next-line no-unused-vars
   const driverEmail = viaje?.attributes?.conductormail;
   const userId = viaje?.attributes?.pasajero?.data?.id;
   const driverId = viaje?.attributes?.conductor?.data?.id;
@@ -122,7 +124,7 @@ const ViajeConductor = ({
     } catch (err) {
       console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
     }
-  }, [strapiConfig?.token, strapiConfig?.baseUrl, userEmail]);
+  }, [strapiConfig?.token, strapiConfig?.baseUrl, userEmail, consultarSaldo]);
 
   useEffect(() => {
     loadLabory();

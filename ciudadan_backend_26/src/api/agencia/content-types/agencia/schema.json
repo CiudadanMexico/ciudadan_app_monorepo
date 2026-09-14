@@ -38,6 +38,13 @@
     "wallet_address": {
       "type": "string"
     },
+    "nivel_subsidio": {
+      "type": "decimal",
+      "default": 0
+    },
+    "propiedad": {
+      "type": "string"
+    },
     "tipo": {
       "type": "enumeration",
       "enum": [
