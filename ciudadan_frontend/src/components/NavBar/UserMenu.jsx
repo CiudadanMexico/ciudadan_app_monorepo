@@ -202,7 +202,7 @@ const UserMenu = ({
         <MenuItem
           label="Salir"
           onClick={() =>
-            logout({ returnTo: window.location.origin })
+            logout({ logoutParams: { returnTo: window.location.origin } })
           }
         />
       ) : (

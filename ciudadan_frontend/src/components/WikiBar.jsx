@@ -102,7 +102,7 @@ const WikiBar = ({ SetIsMenuOpen }) => {
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     //console.log("Cookie de returnTo eliminada antes de logout");
     // Redirige a la página principal después del logout
-    logout({ returnTo: window.location.origin });
+    logout({ logoutParams: { returnTo: window.location.origin } });
     setIsMenuOpen(false);
   };
 
