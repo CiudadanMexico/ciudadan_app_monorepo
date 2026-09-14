@@ -15,3 +15,8 @@ package-lock.json
 *.db-wal
 *.sqlite-shm
 *.sqlite-wal
+
+# Certs locales de dev (no commitear)
+ciudadan_frontend/ssl/
+ciudadan_frontend/.env
+ciudadan_backend_26/.env

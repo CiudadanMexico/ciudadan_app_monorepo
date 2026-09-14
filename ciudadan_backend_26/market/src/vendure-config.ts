@@ -9,7 +9,7 @@ import { stripePaymentMethodHandler } from '../plugins/stripe/stripe.handler.ts'
 
 export const config: VendureConfig = {
   apiOptions: {
-    port: 4000,
+    port: 4010,
     adminApiPath: 'admin-api',
     shopApiPath: 'shop-api',
   },
@@ -34,7 +34,7 @@ export const config: VendureConfig = {
     }),
     AdminUiPlugin.init({
       route: 'admin',
-      port: 5001,
+      port: 5010,
     }),
     StripePlugin,
   ],

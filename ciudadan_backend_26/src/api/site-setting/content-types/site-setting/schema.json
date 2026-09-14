@@ -13,6 +13,20 @@
   "attributes": {
     "labory_to_pesos_exchange_rate": {
       "type": "decimal"
+    },
+    "driver_verifier_testing_days": {
+      "type": "integer",
+      "default": 15,
+      "comment": "Días disponibles para completar el reto de Líder Verificador de Conductores"
+    },
+    "driver_verifier_required_referrals": {
+      "type": "integer",
+      "default": 10,
+      "comment": "Conductores que el candidato debe incorporar durante su periodo de prueba"
+    },
+    "verifier_candidates_whatsapp_group_url": {
+      "type": "string",
+      "comment": "URL del grupo de WhatsApp de candidatos a Líder Verificador (la usa la landing)"
     }
   }
 }
