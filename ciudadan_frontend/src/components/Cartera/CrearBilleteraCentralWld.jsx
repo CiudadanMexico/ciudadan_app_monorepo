@@ -29,9 +29,19 @@ const CrearBilleteraCentralWld = () => {
 
       if (isAuthenticated) {
         setStatus('Vinculando wallet a tu usuario...');
-        const token = await getAccessTokenSilently({
-          authorizationParams: { audience: 'https://api.ciudadan.org' },
-        });
+        let token;
+        try {
+          token = await getAccessTokenSilently({
+            authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
+          });
+        } catch (e) {
+          if (e.error === 'missing_refresh_token' || e.message?.includes('Missing Refresh Token')) {
+            setStatus('⚠️ Sesión sin refresh token, redirigiendo a login...');
+            // fuerza login para obtener refresh token
+            throw new Error('Missing Refresh Token: cierra sesión y vuelve a iniciar sesión con Auth0 (offline_access)');
+          }
+          throw e;
+        }
         const res = await fetch(`${STRAPI_URL}/api/cartera/vincular-wallet`, {
           method: 'POST',
           headers: {
