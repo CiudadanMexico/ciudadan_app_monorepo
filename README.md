@@ -15,7 +15,7 @@ entorno y despliegue.
 
 | Documento | Contenido |
 |---|---|
-| **[`01-Arquitectura.md`](01-Arquitectura.md)** | Estructura del monorepo, componentes, puertos, flujo de datos y Arquitectura general |
+| **[`01-Arquitectura.md`](/docs/01-Arquitectura.md)** | Estructura del monorepo, componentes, puertos, flujo de datos y Arquitectura general |
 | **[`02-BaseDeDatos-Strapi.md`](02-BaseDeDatos-Strapi.md)** | **TODAS** las tablas/colecciones de Strapi (80 colecciones + 2 single types), campos, relaciones y componentes |
 | **[`03-Frontend.md`](03-Frontend.md)** | Todas las páginas, componentes, contexts, hooks, servicios, utils y rutas del frontend |
 | **[`04-Servicios-Auxiliares.md`](04-Servicios-Auxiliares.md)** | Socket Service, Market (Vendure), Middleware proxy, scripts, CI/CD, Docker/Fly |
