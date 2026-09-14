@@ -107,7 +107,8 @@ export const RolesProvider = ({ children }) => {
   const fetchRolesYMembresia = useCallback(
     async (force = false) => {
       // Si no estamos autenticados o no hay user, limpiamos y salimos.
-      const email = auth0User?.email;
+      // Minúsculas: el backend normaliza el email así al crear/consultar.
+      const email = String(auth0User?.email || '').toLowerCase();
       if (!isAuthenticated || !email) {
         // Si no autenticado, dejar valores por defecto
         setRoles(['invitado']);
@@ -152,16 +153,17 @@ export const RolesProvider = ({ children }) => {
           const users = Array.isArray(json) ? json : json.data || [];
 
           if (!users.length) {
-            // Usuario no existe en Strapi: crear uno nuevo (no forzar re-fetch automático para evitar loops)
+            // Usuario no existe en Strapi (todavía): asegurar su creación a través
+            // del endpoint idempotente del backend (auth0-login) y releerlo. NUNCA
+            // hacer POST directo a /api/users: esa segunda vía de creación competía
+            // con auth0-login y producía usuarios duplicados.
             try {
-              await createStrapiUser(); // createStrapiUser maneja errores internamente (lanza si falla)
-              // Tras crear, no hacemos refetch forzado automáticamente; dejamos roles default.
-              const defaultData = { roles: ['usuario'], userData: null, membresia: null };
-              const cachedObj = { data: defaultData, fetchedAt: Date.now() };
+              const createdData = await createStrapiUser();
+              const cachedObj = { data: createdData, fetchedAt: Date.now() };
               cacheRef.current.set(email, cachedObj);
               writeSessionCache(email, cachedObj);
-              if (mountedRef.current) applyCacheToState(defaultData);
-              return defaultData;
+              if (mountedRef.current) applyCacheToState(createdData);
+              return createdData;
             } catch (err) {
               // Propagar error
               throw err;
@@ -262,50 +264,72 @@ export const RolesProvider = ({ children }) => {
 
   /**
    * createStrapiUser
-   * - Misma funcionalidad que antes pero sin mutar logs.
-   * - Intencionalmente simple: crea usuario en Strapi con los datos de Auth0.
-   * - Nota: no hace re-fetch forzado para no crear loops; la llamada superior decide qué hacer.
+   * - Asegura que el usuario exista en Strapi usando SOLO el endpoint idempotente
+   *   del backend (/api/auth/auth0-login). Ya NO hace POST directo a /api/users:
+   *   esa segunda vía competía con auth0-login y podía crear usuarios duplicados.
+   * - Tras asegurar la creación, relee el usuario (con backoff corto) y devuelve
+   *   { roles, userData, membresia } ya normalizados.
    */
   const createStrapiUser = useCallback(async () => {
-    const email = auth0User?.email;
+    const email = String(auth0User?.email || '').toLowerCase();
     if (!email) {
       throw new Error('No auth0 user available to create Strapi user');
     }
-    const password = Math.random().toString(36).slice(-10);
-    const roleId = 1;
-    const payload = {
-      username: auth0User.nickname || auth0User.name || email.split('@')[0],
-      email,
-      password,
-      role: roleId,
-      provider: 'auth0',
-      confirmed: true,
-      blocked: false
-    };
-
     const token = await getToken();
-    const createHeaders = { 'Content-Type': 'application/json' };
-    if (token) createHeaders.Authorization = `Bearer ${token}`;
-    const createRes = await fetch(`${STRAPI_URL}/api/users`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: createHeaders,
-      body: JSON.stringify(payload)
-    });
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
 
-    if (!createRes.ok) {
-      const errText = await createRes.text();
-      console.error('❌ Crear usuario falló:', errText);
-      throw new Error('Failed to create Strapi user');
+    // 1) Punto ÚNICO de creación: el backend auth0-login (idempotente)
+    try {
+      await fetch(`${STRAPI_URL}/api/auth/auth0-login`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({ access_token: token, email }),
+      });
+    } catch (e) {
+      console.warn('⚠️ auth0-login (asegurar usuario) falló:', e.message);
     }
 
-    // Tras creación, dejamos rol por defecto y estado limpio.
+    // 2) Releer con backoff corto: el backend pudo crear el usuario hace milisegundos
+    let found = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const res = await fetch(
+        `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(email)}`,
+        { credentials: 'include', headers }
+      );
+      const json = await res.json();
+      const arr = Array.isArray(json) ? json : json.data || [];
+      if (arr.length) {
+        found = arr[0];
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+
+    if (!found) {
+      throw new Error('Strapi user no disponible tras auth0-login');
+    }
+
+    // 3) Normalizar igual que el fetch principal
+    const raw = found;
+    const attrs = raw.attributes || raw;
+    const usrId = raw.id || raw._id;
+    const primary = attrs.role?.data?.attributes?.name;
+    const extraArr = Array.isArray(attrs.roles?.extra) ? attrs.roles.extra : [];
+    const combined = primary
+      ? [primary, ...extraArr]
+      : extraArr.length
+      ? extraArr
+      : ['usuario'];
+    const normalizedUserData = { id: usrId, ...attrs };
+
     if (mountedRef.current) {
-      setRoles(['usuario']);
+      setRoles(combined);
+      setUserData(normalizedUserData);
       setMembresia(null);
-      setUserData(null);
     }
-    return true;
+    return { roles: combined, userData: normalizedUserData, membresia: null };
   }, [auth0User?.email, getToken]);
 
   /**
@@ -360,7 +384,7 @@ export const RolesProvider = ({ children }) => {
         return;
       }
 
-      const email = auth0User?.email;
+      const email = String(auth0User?.email || '').toLowerCase();
       const prevUserData = userData;
       const existing = Array.isArray(userData.roles?.extra) ? [...userData.roles.extra] : [];
       const idx = existing.indexOf(roleName);
