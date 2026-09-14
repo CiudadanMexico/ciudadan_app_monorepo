@@ -5,6 +5,22 @@ navegable), las **guías de cada módulo** y las **preguntas frecuentes**.
 
 ## Contenido
 - [`Cartera`](/ciudadan_backend_26/socket-service/wiki/help/cartera.md)
+- [`Comida`](/ciudadan_backend_26/socket-service/wiki/help/comida.md)
+- [`Cómo Funciona`](/ciudadan_backend_26/socket-service/wiki/help/como-funciona.md)
+- [`Cómo usar Wikilinks`](/ciudadan_backend_26/socket-service/wiki/help/como-usar-wikilinks.md)
+- [`Comunidad`](/ciudadan_backend_26/socket-service/wiki/help/comunidad.md)
+- [`Eventos Cursos`](/ciudadan_backend_26/socket-service/wiki/help/eventos-cursos.md)
+- [`Favoritos`](/ciudadan_backend_26/socket-service/wiki/help/favoritos.md)
+- [`Gana`](/ciudadan_backend_26/socket-service/wiki/help/gana.md)
+- [`Guía Usuario`](/ciudadan_backend_26/socket-service/wiki/help/guia-usuario.md)
+- [`Índice`](/ciudadan_backend_26/socket-service/wiki/help/indice.md)
+- [`Marketplace`](/ciudadan_backend_26/socket-service/wiki/help/marketplace.md)
+- [`Membresías`](/ciudadan_backend_26/socket-service/wiki/help/membresias.md)
+- [`Publicaciones`](/ciudadan_backend_26/socket-service/wiki/help/publicaciones.md)
+- [`Referidos`](/ciudadan_backend_26/socket-service/wiki/help/referidos.md)
+- [`Taxis`](/ciudadan_backend_26/socket-service/wiki/help/taxis.md)
+
+  
 - [[Ayuda#La wiki|La wiki]]
 - [[Ayuda#Guías de usuario por módulo|Guías de usuario por módulo]]
 - [[Ayuda#Preguntas frecuentes|Preguntas frecuentes]]
