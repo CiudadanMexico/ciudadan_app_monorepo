@@ -111,10 +111,12 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const [cashAmount, setCashAmount] = useState(0);
   const [laboryAmount, setLaboryAmount] = useState(0);
   const [simulationEnabled, setSimulationEnabled] = useState(false);
+  const [isCancelled, setIsCancelled] = useState(false);
+
   const tripStatus = String(viaje?.attributes?.status || 'pending').toLowerCase();
   const isDriver = !!user?.isDriver || user?.role === 'driver';
-  const isTripFinished = ['finalizado', 'paid', 'partial', 'unpaid', 'cerrado'].includes(tripStatus);
-  const isTripInProgress = tripStatus === 'en_curso' || tripStatus?.includes('fin_solicitado');
+  const isTripFinished = ['finalizado', 'cerrado'].includes(tripStatus);
+  const isTripInProgress = tripStatus === 'en_curso';
 
   const paymentFlowState = getTripPaymentFlowState({
     tripStatus,
@@ -791,6 +793,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     };
 
     const onCancelTrip = (payload) => {
+      setIsCancelled(true);
       setShowConfirmCancelModal(true);
     }
 
@@ -806,9 +809,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           return copy;
         });
       }
-      /*if (payload.status === 'paid' || payload.status === 'partial' || payload.status === 'unpaid') {
-        setShowAmountModal(true);
-      }*/
       if (payload.status === 'cerrado' && !ratingSubmitted) setShowRatingModal(true);
     };
 
@@ -1099,7 +1099,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           mapRef={mapRef}
           setConsultedTravel={setConsultedTravel}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
-          passengerPaymentState={passengerPaymentState}
           onCancel={handleCancelTrip}
         />
       )}
@@ -1123,14 +1122,12 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         setOpen={setShowCancelModal}
         isDriver={isDriver}
         onStatusChange={handleTripStatusChange}
-        onClose={() => setShowCancelModal(false)}
       />
       <ConfirmarCancelar
-        status={viaje?.attributes?.status}
         open={showConfirmCancelModal}
         setOpen={setShowConfirmCancelModal}
         isDriver={isDriver}
-        onSubmit={handleTripStatusChange}
+        isCancelled={isCancelled}
       />
       {isDriver && (
         <ConfirmPayment

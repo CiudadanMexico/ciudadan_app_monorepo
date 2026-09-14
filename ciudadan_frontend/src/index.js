@@ -21,10 +21,22 @@ import './styles/index.css';
 import AuthGate from './components/AuthGate.jsx';
 import { Capacitor } from '@capacitor/core';
 import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
+//import { getSocket } from './lib/socketClient.jsx';
 
 const domain    = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId  = process.env.REACT_APP_AUTH0_CLIENT_ID;
 const audience  = process.env.REACT_APP_AUTH0_AUDIENCE;
+
+// ==============================
+// SOCKET BOOTSTRAP
+// ==============================
+/*const SocketBootstrap = () => {
+  React.useEffect(() => {
+    getSocket();
+  }, []);
+
+  return null;
+};*/
 
 // ==============================
 // APP WRAPPER
@@ -134,6 +146,7 @@ root.render(
   <React.StrictMode>
     <Router>
       <Auth0ProviderWithNavigate>
+        {/*<SocketBootstrap />*/}
         <AuthProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
             <RolesProvider>

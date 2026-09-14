@@ -125,7 +125,7 @@ router.post('/send-trip', async (req, res) => {
       userId: body.userId || null,
       userData: body.userData || null,
       settings: body.settings || {},
-      freeTrip: body.freeTrip || null,
+      freeTrip: body.freeTrip || false,
       meta: body.meta || {}
     };
     //console.log('[testTrip] send-trip payload:', payload);

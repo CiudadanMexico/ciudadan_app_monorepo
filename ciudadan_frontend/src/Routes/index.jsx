@@ -1,8 +1,8 @@
 // src/routes/Rutas.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import io from 'socket.io-client';
 import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { getSocket } from '../lib/socketClient.jsx';
 import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
@@ -272,31 +272,30 @@ const TripViewRoute = () => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const socketUrl = process.env.REACT_APP_SOCKET_URL;
-    if (!socketUrl) return undefined;
-
-    const client = io(socketUrl, {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 3,
-      reconnectionDelay: 2000,
-      reconnectionDelayMax: 5000,
-      timeout: 4000,
-    });
-
-    client.on('connect', () => {
-      if (user?.email) {
-        client.emit('register', { email: user.email });
-      }
-    });
+    const client = getSocket();
+    if (!client) return;
 
     setSocket(client);
+  }, []);
+
+  useEffect(() => {
+    if (!socket || !user?.email) return;
+
+    const register = () => {
+      socket.emit('register', { email: user.email });
+    };
+
+    if (socket.connected) {
+      register();
+      return undefined;
+    }
+
+    socket.on('connect', register);
 
     return () => {
-      client.disconnect();
-      setSocket(null);
+      socket.off('connect', register);
     };
-  }, []);
+  }, [socket, user?.email]);
 
   const strapiConfig = useMemo(() => ({
     baseUrl: process.env.REACT_APP_STRAPI_URL || '',

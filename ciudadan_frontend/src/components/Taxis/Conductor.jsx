@@ -29,15 +29,6 @@ const Conductor = ({
   const [driver, setDriver] = useState(null);
   const [isWaiting, setIsWaiting] = useState(true);
   const [travelData, setTravelData] = useState([]);
-  /*const [travelData, setTravelData] = useState(() => {
-    try {
-      const storedTravels = localStorage.getItem('travel-data');
-      return storedTravels ? JSON.parse(storedTravels) : [];
-    } catch (error) {
-      console.warn('[Conductor] no se pudieron leer las TravelCards guardadas:', error);
-      return [];
-    }
-  });*/
   const [driverEmail, setDriverEmail] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [consultedTravel, setConsultedTravel] = useState(null);
@@ -95,7 +86,6 @@ const Conductor = ({
   };
 
   const getSheetContent = () => {
-    console.log('getSheetContent: consultedTravel', consultedTravel, 'travelData', travelData);
     if (consultedTravel !== null && travelData[consultedTravel]) {
       const travel = travelData[consultedTravel];
       return (
@@ -175,13 +165,11 @@ const Conductor = ({
       }
       const data = await response.json();
       const drivers = data?.data || data || [];
-      const driver = Array.isArray(drivers) ? drivers[0] : drivers;
+      const driverData = Array.isArray(drivers) ? drivers[0] : drivers;
 
-      if (!driver) return null;
-
-      const driverAttributes = driver?.attributes || driver;
-      console.log('[Conductor] datos del conductor cargados:', driverAttributes);
-      setDriver(driverAttributes);
+      if (!driverData) return null;
+      //console.log('[Conductor] datos del conductor cargados:', driverData);
+      setDriver(driverData);
     } catch (err) {
       console.warn('[Conductor] no se pudieron cargar los datos del conductor:', err);
     }
@@ -191,18 +179,6 @@ const Conductor = ({
     getDriverData();
     if (driver?.free_trips > 0) setFreeTripModalOpen(true);
   }, [getDriverData, driver?.free_trips]);
-
-  /*useEffect(() => {
-    try {
-      localStorage.setItem('travel-data', JSON.stringify(travelData));
-    } catch (error) {
-      console.warn('[Conductor] no se pudieron guardar las TravelCards:', error);
-    }
-  }, [travelData]);
-
-  useEffect(() => {
-    setIsWaiting(Array.isArray(travelData) ? travelData.length === 0 : true);
-  }, [travelData]);*/
 
   /* --------------------------
      Inicializa mapa (no bloquear UI)
@@ -349,6 +325,11 @@ const Conductor = ({
         try {
           console.log('trip-request recibido:', data);
           if (!data) return;
+
+          if (driver?.en_viaje) {
+            console.log('trip-request el conductor está ocupado en un viaje');            
+            return;
+          }
           // criterio: si viene driverId y coincide, o viene broadcast/nearby o candidateDrivers incluye driverEmail
           const addressed =
             data.driverId ||

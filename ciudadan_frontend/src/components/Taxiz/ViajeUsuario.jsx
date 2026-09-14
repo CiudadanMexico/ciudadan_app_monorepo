@@ -205,7 +205,9 @@ const ViajeUsuario = ({
         <div style={{ flex: 1 }}>
           <strong>Tu viaje</strong>
           <div style={{ fontSize: 14, color: '#666' }}>
-            {status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}
+            <strong style={{ color: '#151bc1' }}>{status} </strong>
+            • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km ` : '- '}
+            • ETA: {formatDuration(routeInfo?.duration_s)}
           </div>
         </div>
         <div style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -251,7 +253,7 @@ const ViajeUsuario = ({
               </div>
             </div>
 
-            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado') || status === 'cerrado') && (
+            {(status === 'en_curso' || status === 'iniciando' || status === 'cerrado') && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <strong>Pickup</strong>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const SolicitudCancelar = ({ trip, userCoords, open, setOpen, isDriver, onStatusChange, onClose }) => {
+const SolicitudCancelar = ({ trip, userCoords, open, setOpen, isDriver, onStatusChange }) => {
     const [selectedReason, setSelectedReason] = useState(null);
 
     useEffect(() => {
@@ -14,7 +14,7 @@ const SolicitudCancelar = ({ trip, userCoords, open, setOpen, isDriver, onStatus
         : ['Emergencia', 'Deseo bajar antes', 'Cambio de planes', 'Problema con el conductor', 'Incomodidad', 'Por seguridad', 'Otro'];
 
     const handleSubmit = async () => {
-        if (typeof onStatusChange === 'function') onStatusChange(isDriver ? 'fin_solicitado_conductor' : 'fin_solicitado_pasajero');
+        if (typeof onStatusChange === 'function') onStatusChange('finalizado');
 
         const base = process.env.REACT_APP_SOCKET_URL || '';
         try {
@@ -90,9 +90,7 @@ const SolicitudCancelar = ({ trip, userCoords, open, setOpen, isDriver, onStatus
                 <div style={{ display: 'flex', gap: 10 }}>
                     <button
                         type="button"
-                        onClick={() => {
-                            if (typeof onClose === 'function') onClose();
-                        }}
+                        onClick={() => { setOpen(false) }}
                         style={{
                             flex: 1,
                             padding: '12px 14px',

@@ -17,6 +17,14 @@ const ConfirmPayment = ({
 
     if (!open) return null;
 
+    const userEmail = tripData?.attributes?.pasajeromail;
+    const driverId = tripData?.attributes?.conductor?.data?.id;
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (strapiConfig.token) {
+        headers.Authorization = `Bearer ${strapiConfig.token}`;
+    }
+
     let contenido = '';
     switch (statusPayment) {
         case 'paid':
@@ -49,6 +57,32 @@ const ConfirmPayment = ({
                         pagadolabory: Number(laboryAmount),
                         concluido: new Date().toISOString()
                     }
+                }),
+            });
+
+            const response = await fetch(
+                `${strapiConfig.baseUrl}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}`,
+                { headers }
+            );
+            const findData = await response.json();
+            const existing = findData?.data?.[0];
+
+            await fetch(
+                `${strapiConfig.baseUrl}/api/configuraciones-usuarios/${existing.id}`,
+                {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({
+                        data: { en_viaje: false }
+                    }),
+                }
+            );
+
+            await fetch(`${strapiConfig.baseUrl}/api/drivers/${driverId}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify({
+                    data: { en_viaje: false }
                 }),
             });
         } catch (error) {

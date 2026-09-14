@@ -2860,6 +2860,7 @@ export interface ApiDriverDriver extends Schema.CollectionType {
       ]
     >;
     free_trips: Attribute.Integer & Attribute.DefaultTo<5>;
+    en_viaje: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5667,6 +5668,63 @@ export interface ApiViajeViaje extends Schema.CollectionType {
   };
 }
 
+export interface ApiViajeOfertaViajeOferta extends Schema.CollectionType {
+  collectionName: 'viaje_ofertas';
+  info: {
+    singularName: 'viaje-oferta';
+    pluralName: 'viaje-ofertas';
+    displayName: 'viaje_oferta';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    pasajero: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    conductor: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'api::driver.driver'
+    >;
+    driver_email: Attribute.Email;
+    user_email: Attribute.Email;
+    precio_sugerido: Attribute.Decimal;
+    coordenadas: Attribute.JSON;
+    viaje: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'api::viaje.viaje'
+    >;
+    calif_conductor: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+          max: 5;
+        },
+        number
+      >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiWalletWallet extends Schema.CollectionType {
   collectionName: 'wallets';
   info: {
@@ -5850,6 +5908,7 @@ declare module '@strapi/types' {
       'api::transaccion.transaccion': ApiTransaccionTransaccion;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
       'api::viaje.viaje': ApiViajeViaje;
+      'api::viaje-oferta.viaje-oferta': ApiViajeOfertaViajeOferta;
       'api::wallet.wallet': ApiWalletWallet;
       'api::world-coin-wallet.world-coin-wallet': ApiWorldCoinWalletWorldCoinWallet;
     }

@@ -1,5 +1,5 @@
 // src/components/Taxis/TravelCard.jsx
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { emitEvent } from '../../lib/socketClient.jsx';
 import Alert from '@mui/material/Alert';
 
@@ -24,6 +24,10 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   const [sending, setSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState(null);
+
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
+
+  //console.log('[TravelCard] driver:', driver);
 
   // Obtener timestamp start (buscamos varias propiedades posibles)
   const startTs = useMemo(() => {
@@ -98,7 +102,6 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     (suggestedPrice ? currencyFmt(suggestedPrice) : null);
 
   const passengerName = travel?.userData?.nombre_completo || travel?.username || 'Pasajero desconocido';
-  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
 
   let userPhoto = null;
   const profilePicUrl = travel?.userData?.profilepic?.url;
@@ -149,14 +152,20 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     }
 
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
+    const travelId = travel?.strapiTripId ?? null;
+    const driverId = driver?.id ?? null;
     const driverEmail = travel?.driverEmail ?? travel?.driver?.email ?? null;
+    const userId = travel?.userId ?? travel?.userid ?? null;
     const userEmail = travel?.userData?.email ?? travel?.userEmail ?? travel?.email ?? null;
 
     const payload = {
+      travelId,
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
       driver,
+      driverId,
       driverEmail,
+      userId,
       userEmail,
       meta: {
         from: 'conductor',

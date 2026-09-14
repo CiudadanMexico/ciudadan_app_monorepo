@@ -206,7 +206,7 @@ const HistorialViajes = () => {
                 ) : trips.length === 0 ? (
                     <Paper sx={{ p: 3, borderRadius: 3 }}>
                         <Typography>
-                            No hay viajes en los estados de {role === 'conductor' ? 'realizados' : 'pedidos'} durante la última semana.
+                            No hay viajes {role === 'conductor' ? 'realizados' : 'pedidos'} durante la última semana.
                         </Typography>
                     </Paper>
                 ) : (
@@ -230,7 +230,7 @@ const HistorialViajes = () => {
                                     <Box sx={{ width: '100%' }}>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 1 }}>
                                             <Typography variant='subtitle1' sx={{ fontWeight: 700 }}>
-                                                Viaje #{trip.travelId}
+                                                Viaje #{trip.id}
                                             </Typography>
                                             <Box
                                                 sx={{

@@ -45,6 +45,8 @@ const ConductorRender = ({
   const { user } = useAuth0();
   const navigate = useNavigate();
 
+  //console.log('[ConductorRender] driver:', driver);
+
   // Estado local para rechazados (array de ids normalizados como string)
   const [rejectedIds, setRejectedIds] = useState(() => {
     try {
@@ -450,6 +452,14 @@ const ConductorRender = ({
                 body.data.conductor = strapiUserId;
               }
 
+              await fetch(`${STRAPI_URL}/api/drivers/${strapiUserId}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify({
+                  data: { en_viaje: true }
+                }),
+              });
+
               console.log('[ConductorRender] PATCH viaje Strapi ->', patchUrl, body);
               const respPatch = await fetch(patchUrl, {
                 method: 'PUT',
@@ -664,18 +674,18 @@ const ConductorRender = ({
       )}
 
       {isWaiting ? (
-          <EsperandoViaje
-            handlePasajero={() => {
-              console.log('taxi debug: EsperandoViaje -> handlePasajero invoked');
-              if (typeof handlePasajero === 'function') handlePasajero();
-            }}
-            handleConductor={() => {
-              console.log('taxi debug: EsperandoViaje -> handleConductor invoked');
-              if (typeof handleConductor === 'function') handleConductor();
-            }}
-            rol="conductor"
-            newTravel={Array.isArray(travelData) && travelData.length > 0 ? travelData[0] : null}
-          />
+        <EsperandoViaje
+          handlePasajero={() => {
+            console.log('taxi debug: EsperandoViaje -> handlePasajero invoked');
+            if (typeof handlePasajero === 'function') handlePasajero();
+          }}
+          handleConductor={() => {
+            console.log('taxi debug: EsperandoViaje -> handleConductor invoked');
+            if (typeof handleConductor === 'function') handleConductor();
+          }}
+          rol="conductor"
+          newTravel={Array.isArray(travelData) && travelData.length > 0 ? travelData[0] : null}
+        />
       ) : (
         <div className="travel-list">
           {consultedTravel === null ? (

@@ -94,7 +94,7 @@ const ViajeConductor = ({
     if (!userEmail || !strapiConfig?.baseUrl) return;
 
     try {
-      const url = `${strapiConfig.baseUrl.replace(/\/$/, '')}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`;
+      const url = `${strapiConfig.baseUrl.replace(/\/$/, '')}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}&populate=*`;
       const headers = { 'Content-Type': 'application/json' };
       if (strapiConfig.token) {
         headers.Authorization = `Bearer ${strapiConfig.token}`;
@@ -202,7 +202,7 @@ const ViajeConductor = ({
       });
 
       const response = await fetch(
-        `${strapiConfig.baseUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(userEmail)}`,
+        `${strapiConfig.baseUrl}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}`,
         { headers }
       );
       const findData = await response.json();
@@ -214,7 +214,10 @@ const ViajeConductor = ({
           method: 'PUT',
           headers,
           body: JSON.stringify({
-            data: { free_trip: 'utilizado' }
+            data: {
+              free_trip: 'utilizado',
+              en_viaje: false
+            }
           }),
         }
       );
@@ -223,7 +226,10 @@ const ViajeConductor = ({
         method: 'PUT',
         headers,
         body: JSON.stringify({
-          data: { free_trips: driverData?.free_trips - 1 }
+          data: {
+            free_trips: driverData?.free_trips - 1,
+            en_viaje: false
+          }
         }),
       });
     } catch (e) { console.warn('no pudo actualizar viaje', e); }
@@ -261,7 +267,9 @@ const ViajeConductor = ({
         <div style={{ flex: 1 }}>
           <strong>Viaje #{viaje?.id || '—'}</strong>
           <div style={{ fontSize: 14, color: '#666' }}>
-            {status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}
+            <strong style={{ color: '#151bc1' }}>{status} </strong>
+            • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km ` : '- '}
+            • ETA: {formatDuration(routeInfo?.duration_s)}
           </div>
         </div>
         <div style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -297,7 +305,7 @@ const ViajeConductor = ({
               </div>
             </div>
 
-            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado') || status === 'cerrado') && (
+            {(status === 'en_curso' || status === 'iniciando' || status === 'cerrado') && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <div><strong>Origen (tu taxi)</strong></div>
