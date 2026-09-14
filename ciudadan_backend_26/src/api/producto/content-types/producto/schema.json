@@ -135,6 +135,10 @@
       "relation": "oneToMany",
       "target": "api::favorito.favorito",
       "mappedBy": "producto"
+    },
+    "usa_stock": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

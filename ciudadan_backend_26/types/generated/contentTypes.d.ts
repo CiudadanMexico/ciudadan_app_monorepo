@@ -2726,6 +2726,13 @@ export interface ApiDireccionDireccion extends Schema.CollectionType {
       'oneToOne',
       'api::food-restaurant.food-restaurant'
     >;
+    pais: Attribute.String;
+    pais_codigo: Attribute.String;
+    estado_codigo: Attribute.String;
+    colonia: Attribute.String;
+    route: Attribute.String;
+    numero: Attribute.String;
+    place_id: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -4217,6 +4224,13 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
       'api::store.store'
     >;
     store_email: Attribute.String;
+    skydropx_quotation_id: Attribute.String;
+    skydropx_rate_id: Attribute.String;
+    skydropx_shipment_id: Attribute.String;
+    skydropx_tracking_number: Attribute.String;
+    skydropx_label_url: Attribute.String;
+    skydropx_status: Attribute.String;
+    skydropx_rate: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4492,6 +4506,7 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'oneToMany',
       'api::favorito.favorito'
     >;
+    usa_stock: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
