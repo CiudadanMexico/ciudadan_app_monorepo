@@ -16,18 +16,18 @@ entorno y despliegue.
 | Documento | Contenido |
 |---|---|
 | **[`01-Arquitectura.md`](/docs/01-Arquitectura.md)** | Estructura del monorepo, componentes, puertos, flujo de datos y Arquitectura general |
-| **[`02-BaseDeDatos-Strapi.md`](02-BaseDeDatos-Strapi.md)** | **TODAS** las tablas/colecciones de Strapi (80 colecciones + 2 single types), campos, relaciones y componentes |
-| **[`03-Frontend.md`](03-Frontend.md)** | Todas las páginas, componentes, contexts, hooks, servicios, utils y rutas del frontend |
-| **[`04-Servicios-Auxiliares.md`](04-Servicios-Auxiliares.md)** | Socket Service, Market (Vendure), Middleware proxy, scripts, CI/CD, Docker/Fly |
-| **[`05-Instalacion-y-Ejecucion.md`](05-Instalacion-y-Ejecucion.md)** | **Paso a paso** para instalar y correr todos los servicios (backend, frontend, socket, market, middleware) |
-| **[`06-Ramas-y-Git.md`](06-Ramas-y-Git.md)** | Todas las ramas del repositorio, su propósito, commits recientes y flujo de trabajo |
-| **[`07-Variables-de-Entorno.md`](07-Variables-de-Entorno.md)** | Todas las variables de entorno por servicio (backend, frontend, socket) |
-| **[`08-Guia-Usuario-Wiki.md`](08-Guia-Usuario-Wiki.md)** | Guía de usuario del visor de Wiki y los wikilinks (enlaces entre documentos estilo Obsidian) |
-| **[`09-Guia-Usuario-Sitio.md`](09-Guia-Usuario-Sitio.md)** | **Guía maestra de usuario del sitio**: cuenta, perfil, favoritos, referidos, membresías, CoWork/laborys, marketplace, comida, taxis, anuncios, cartera, eventos, cursos, comunidad y wiki |
-| **[`10-Guia-Usuario-Favoritos.md`](10-Guia-Usuario-Favoritos.md)** | Guía de usuario: guardar y gestionar **favoritos** (productos, cursos, contenidos, clubs) |
-| **[`11-Guia-Usuario-Referidos.md`](11-Guia-Usuario-Referidos.md)** | Guía de usuario: **referidos e invitaciones** (enlace personal, comisiones, clubs) |
-| **[`12-Guia-Usuario-Publicaciones.md`](12-Guia-Usuario-Publicaciones.md)** | Guía de usuario: **publicaciones, comentarios y reacciones** (red social) |
-| **[`13-Guia-Usuario-Wiki-Ayuda.md`](13-Guia-Usuario-Wiki-Ayuda.md)** | Guía de usuario: **wiki y ayuda** (visor, guías por módulo, preguntas frecuentes) |
+| **[`02-BaseDeDatos-Strapi.md`](/docs/02-BaseDeDatos-Strapi.md)** | **TODAS** las tablas/colecciones de Strapi (80 colecciones + 2 single types), campos, relaciones y componentes |
+| **[`03-Frontend.md`](/docs/03-Frontend.md)** | Todas las páginas, componentes, contexts, hooks, servicios, utils y rutas del frontend |
+| **[`04-Servicios-Auxiliares.md`](/docs/04-Servicios-Auxiliares.md)** | Socket Service, Market (Vendure), Middleware proxy, scripts, CI/CD, Docker/Fly |
+| **[`05-Instalacion-y-Ejecucion.md`](/docs/05-Instalacion-y-Ejecucion.md)** | **Paso a paso** para instalar y correr todos los servicios (backend, frontend, socket, market, middleware) |
+| **[`06-Ramas-y-Git.md`](/docs/06-Ramas-y-Git.md)** | Todas las ramas del repositorio, su propósito, commits recientes y flujo de trabajo |
+| **[`07-Variables-de-Entorno.md`](/docs/07-Variables-de-Entorno.md)** | Todas las variables de entorno por servicio (backend, frontend, socket) |
+| **[`08-Guia-Usuario-Wiki.md`](/docs/08-Guia-Usuario-Wiki.md)** | Guía de usuario del visor de Wiki y los wikilinks (enlaces entre documentos estilo Obsidian) |
+| **[`09-Guia-Usuario-Sitio.md`](/docs/09-Guia-Usuario-Sitio.md)** | **Guía maestra de usuario del sitio**: cuenta, perfil, favoritos, referidos, membresías, CoWork/laborys, marketplace, comida, taxis, anuncios, cartera, eventos, cursos, comunidad y wiki |
+| **[`10-Guia-Usuario-Favoritos.md`](/docs/10-Guia-Usuario-Favoritos.md)** | Guía de usuario: guardar y gestionar **favoritos** (productos, cursos, contenidos, clubs) |
+| **[`11-Guia-Usuario-Referidos.md`](/docs/11-Guia-Usuario-Referidos.md)** | Guía de usuario: **referidos e invitaciones** (enlace personal, comisiones, clubs) |
+| **[`12-Guia-Usuario-Publicaciones.md`](/docs/12-Guia-Usuario-Publicaciones.md)** | Guía de usuario: **publicaciones, comentarios y reacciones** (red social) |
+| **[`13-Guia-Usuario-Wiki-Ayuda.md`](/docs/13-Guia-Usuario-Wiki-Ayuda.md)** | Guía de usuario: **wiki y ayuda** (visor, guías por módulo, preguntas frecuentes) |
 
 ---
 
