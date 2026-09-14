@@ -53,7 +53,11 @@ module.exports = {
       const auth0Id = payload.sub;
       // El access_token de API no incluye email; usar el email del body o
       // los claims de Auth0 (namespace claim configurado en Auth0).
-      const email = bodyEmail || payload.email || payload['https://ciudadan.org/email'];
+      // Normalizamos a minúsculas para evitar duplicados por casing (SQLite es
+      // case-sensitive en la columna email).
+      const email = String(
+        bodyEmail || payload.email || payload['https://ciudadan.org/email'] || ''
+      ).toLowerCase();
 
       if (!email) {
         return ctx.badRequest('No email provided');
@@ -77,15 +81,29 @@ module.exports = {
           throw new Error('No default authenticated role found');
         }
 
-        user = await strapi.entityService.create('plugin::users-permissions.user', {
-          data: {
-            email,
-            username: email,
-            provider: 'auth0',
-            confirmed: true,
-            role: defaultRole.id,
-          },
-        });
+        try {
+          user = await strapi.entityService.create('plugin::users-permissions.user', {
+            data: {
+              email,
+              username: email,
+              provider: 'auth0',
+              confirmed: true,
+              role: defaultRole.id,
+            },
+          });
+        } catch (createErr) {
+          // Concurrencia (varias pestañas / logins simultáneos): si el unique de
+          // email rechazó el insert, re-buscar y usar el usuario existente en vez
+          // de devolver un error (idempotente).
+          const again = await strapi.entityService.findMany('plugin::users-permissions.user', {
+            filters: { email },
+          });
+          if (again && again[0]) {
+            user = again[0];
+          } else {
+            throw createErr;
+          }
+        }
       }
 
       // Generar token JWT de Strapi
@@ -93,19 +111,25 @@ module.exports = {
         id: user.id,
       });
 
-      // Sesión por cookie: `secure` según entorno. En prod (HTTPS) la cookie
-      // va solo sobre conexiones cifradas; en dev (HTTP local) puede ser false
-      // para que el navegador la acepte. Se controla con NODE_ENV o un flag
-      // explícito. Por defecto se asume producción (más seguro).
-      const isProd = process.env.NODE_ENV === 'production' && process.env.COOKIE_SECURE !== 'false';
-
-      ctx.cookies.set('token', token, {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'none' : 'lax',
-        path: '/',
-        maxAge: 1000 * 60 * 60 * 24, // 1 día
-      });
+      // Cookie httpOnly. `secure` SOLO cuando la conexión es HTTPS (o si se fuerza
+      // explícitamente con COOKIE_SECURE=true). En dev sobre http NO se marca como
+      // secure — antes con NODE_ENV=production lanzaba "Cannot send secure cookie
+      // over unencrypted connection" y tumbaba toda la respuesta con 401.
+      const isSecure = process.env.COOKIE_SECURE !== undefined
+        ? process.env.COOKIE_SECURE === 'true'
+        : ctx.request.protocol === 'https';
+      try {
+        ctx.cookies.set('token', token, {
+          httpOnly: true,
+          secure: isSecure,
+          sameSite: isSecure ? 'none' : 'lax',
+          path: '/',
+          maxAge: 1000 * 60 * 60 * 24, // 1 día
+        });
+      } catch (cookieErr) {
+        // La cookie es un extra; si falla, no debe tumbar el auth0-login.
+        strapi.log.warn('auth0Login: no se pudo setear la cookie (continuando):', cookieErr.message);
+      }
 
       ctx.send({
         jwt: token,
