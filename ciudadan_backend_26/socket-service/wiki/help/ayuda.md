@@ -9,7 +9,7 @@ navegable), las **guías de cada módulo** y las **preguntas frecuentes**.
 - [`Cómo Funciona`](/ciudadan_backend_26/socket-service/wiki/help/como-funciona.md)
 - [`Cómo usar Wikilinks`](/ciudadan_backend_26/socket-service/wiki/help/como-usar-wikilinks.md)
 - [`Comunidad`](/ciudadan_backend_26/socket-service/wiki/help/comunidad.md)
-- [`Eventos Cursos`](/ciudadan_backend_26/socket-service/wiki/help/eventos-cursos.md)
+- [`Eventos Cursos`](/ciudadan_backend_26/socket-service/wiki/help/eventoscursos.md)
 - [`Favoritos`](/ciudadan_backend_26/socket-service/wiki/help/favoritos.md)
 - [`Gana`](/ciudadan_backend_26/socket-service/wiki/help/gana.md)
 - [`Guía Usuario`](/ciudadan_backend_26/socket-service/wiki/help/guia-usuario.md)
