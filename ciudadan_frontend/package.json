@@ -73,7 +73,9 @@
     "build": "craco build",
     "test": "craco test",
     "eject": "craco eject",
-    "dev": "craco dev"
+    "dev": "craco dev",
+    "images:avif": "node tools/convert-media-to-avif.js",
+    "images:avif:dialog": "node tools/convert-images-interactive.js"
   },
   "eslintConfig": {
     "extends": [
@@ -98,6 +100,7 @@
     "@typescript-eslint/parser": "^5.62.0",
     "ajv": "^7.2.4",
     "ajv-keywords": "^5.1.0",
+    "sharp": "^0.35.4",
     "typescript": "^4.9.5"
   }
 }
