@@ -14,6 +14,7 @@ import Paso1 from '../../components/MarketPlace/AgregarProducto/Paso1'
 import Paso2 from '../../components/MarketPlace/AgregarProducto/Paso2'
 import Paso3 from '../../components/MarketPlace/AgregarProducto/Paso3'
 import Paso4 from '../../components/MarketPlace/AgregarProducto/Paso4'
+import { useRoles } from '../../Contexts/RolesContext';
 
 //función para crear el slug
 /* const slugify = (str) =>
@@ -23,6 +24,7 @@ import Paso4 from '../../components/MarketPlace/AgregarProducto/Paso4'
 const AgregarProducto = () => {
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
   const { user, isAuthenticated } = useAuth0();
+  const { userData } = useRoles();
   const [categorias, setCategorias] = useState([]);
   const [storeId, setStoreId] = useState(null);
   const [storeCP, setStoreCP] = useState(null);

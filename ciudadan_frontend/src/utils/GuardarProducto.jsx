@@ -3,7 +3,15 @@ import axios from 'axios';
 
 export const GuardarProducto = async (params) => {
   const {
-    formData, imagenPredeterminada, imagenes, STRAPI_URL, storeId, userEmail, volumetrico, pesoCobrado, cp
+    formData,
+    imagenPredeterminada,
+    imagenes,
+    STRAPI_URL,
+    storeId,
+    userEmail,
+    volumetrico,
+    pesoCobrado,
+    cp,
   } = params;
 
   const data = new FormData();
@@ -13,7 +21,8 @@ export const GuardarProducto = async (params) => {
     descripcion: formData.descripcion,
     precio: formData.precio,
     marca: formData.marca,
-    stock: formData.stockEnabled ? parseFloat(formData.stock) : -1,
+    usa_stock: formData?.stockEnabled ?? false,
+    stock: (formData?.stockEnabled ?? false) ? parseFloat(formData.stock) : -1,
     store_email: userEmail,
     store_id: String(storeId),
     store: storeId,
@@ -26,7 +35,8 @@ export const GuardarProducto = async (params) => {
     peso_cobrado: pesoCobrado,
     cp: cp,
     fecha_creacion: new Date().toISOString(),
-    slug: formData.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")
+    slug: formData.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""),
+    activo: true,
   };
 
   data.append('data', JSON.stringify(payload));
