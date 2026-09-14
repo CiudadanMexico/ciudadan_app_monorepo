@@ -67,7 +67,7 @@ const { DocumentRepositoryImpl } = require('./dist/repository/impl/DocumentRepos
 const { WikiService } = require('./dist/services/WikiService');
 const { WikiWatcherService } = require('./dist/services/WikiWatcherService');
 
-const WikiRouter = require("./routes/WikiRouter");
+const WikiRouter = require("./dist/routes/WikiRouter");
 const { getUserRating } = require('./lib/calcRating');
 
 const strapiUrl = process.env.STRAPI_URL || "";
