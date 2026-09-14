@@ -4,7 +4,7 @@ Bienvenido al **centro de ayuda** de Ciudadan. Aquí encuentras la **wiki** (doc
 navegable), las **guías de cada módulo** y las **preguntas frecuentes**.
 
 ## Contenido
-- [`Cartera`](/cartera.md)
+- [`Cartera`](/docs/cartera.md)
 - [[Ayuda#La wiki|La wiki]]
 - [[Ayuda#Guías de usuario por módulo|Guías de usuario por módulo]]
 - [[Ayuda#Preguntas frecuentes|Preguntas frecuentes]]
