@@ -66,6 +66,7 @@ async function attachChatbot(app, opts = {}) {
     '/webhook';
 
   const APP_PORT = Number(
+  const CHATBOT_WEBHOOK_PORT = Number(process.env.CHATBOT_WEBHOOK_PORT || 33334);
     opts.appPort ||
     process.env.PORT ||
     33032
@@ -349,6 +350,7 @@ async function attachChatbot(app, opts = {}) {
           verifyToken:
             META_VERIFY_TOKEN,
           version: 'v22.0',
+          port: CHATBOT_WEBHOOK_PORT,
           webhook:
             providerWebhook
         }

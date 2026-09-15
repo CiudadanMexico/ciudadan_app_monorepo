@@ -22,6 +22,7 @@ import SocialImg from '../../assets/monedas/social.png';
 
 // 💡 Importa componentes asociados
 import IngresosInfo from './../../components/Cartera/IngresosInfo.jsx';
+import PurpleButton from './../../components/common/PurpleButton.jsx';
 
 const Billetera = () => {
   const { isAuthenticated, getAccessTokenSilently } = useAuth0();
@@ -55,7 +56,7 @@ const Billetera = () => {
   useEffect(() => { cargarCarteraYHistorial(); }, [isAuthenticated, getAccessTokenSilently]);
 
   const monedas = [
-    { nombre: 'Resumen', icon: <HomeIcon sx={{ color: '#f0c040' }} /> },
+    { nombre: 'Resumen', icon: <HomeIcon sx={{ color: '#2ee6c8' }} /> },
     { nombre: 'Pesos MXN', img: PesosImg, componente: <IngresosInfo /> },
     { nombre: 'Labory', img: LaboryImg },
     { nombre: 'Ciudadan I-Token', img: CiudadanImg },
@@ -88,7 +89,10 @@ const Billetera = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: '#001a00', // 🌿 Verde oscuro más profundo
+        // 🌌 Fondo oscurón de marca: violeta profundo con nebulosas moradas
+        // (#8A5CF5 / #6A3FCB) y acento turquesa sutil, coherente con el hero.
+        background:
+          'radial-gradient(1100px 520px at 12% -8%, rgba(138,92,245,0.22) 0%, rgba(0,0,0,0) 60%), radial-gradient(900px 480px at 108% 18%, rgba(106,63,203,0.18) 0%, rgba(0,0,0,0) 55%), radial-gradient(760px 420px at 50% 112%, rgba(46,230,200,0.09) 0%, rgba(0,0,0,0) 58%), linear-gradient(180deg, #0b0716 0%, #0e0a1c 45%, #080512 100%)',
         color: 'white',
       }}
     >
@@ -96,18 +100,21 @@ const Billetera = () => {
       <Box
         sx={{
           width: '100%',
-          bgcolor: 'black',
+          bgcolor: 'rgba(15, 9, 26, 0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
           display: 'flex',
           alignItems: 'center',
           
           top: 64,
           zIndex: 1000,
-          borderBottom: '2px solid #222',
+          borderBottom: '1px solid rgba(138, 92, 245, 0.28)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
           px: 1,
         }}
       >
         {/* Flecha izquierda */}
-        <IconButton onClick={() => scroll('left')} sx={{ color: '#f0c040' }}>
+        <IconButton onClick={() => scroll('left')} sx={{ color: '#a78bfa', '&:hover': { color: '#c9b4ff' } }}>
           <ChevronLeftIcon />
         </IconButton>
 
@@ -136,14 +143,18 @@ const Billetera = () => {
                   sx={{
                     cursor: 'pointer',
                     pb: 0.3,
+                    px: 1.2,
+                    borderRadius: 1.5,
                     borderBottom: isActive
-                      ? '2px solid #f0c040'
+                      ? '2px solid #8A5CF5'
                       : '2px solid transparent',
-                    color: isActive ? '#f0c040' : 'white',
+                    color: isActive ? '#c9b4ff' : 'rgba(255,255,255,0.78)',
+                    textShadow: isActive ? '0 0 14px rgba(138,92,245,0.55)' : 'none',
+                    bgcolor: isActive ? 'rgba(138,92,245,0.12)' : 'transparent',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      color: '#f0c040',
-                      borderBottom: '2px solid #f0c040',
+                      color: '#c9b4ff',
+                      borderBottom: '2px solid rgba(138,92,245,0.6)',
                     },
                   }}
                 >
@@ -172,7 +183,7 @@ const Billetera = () => {
         </Box>
 
         {/* Flecha derecha */}
-        <IconButton onClick={() => scroll('right')} sx={{ color: '#f0c040' }}>
+        <IconButton onClick={() => scroll('right')} sx={{ color: '#a78bfa', '&:hover': { color: '#c9b4ff' } }}>
           <ChevronRightIcon />
         </IconButton>
       </Box>
@@ -191,9 +202,15 @@ const Billetera = () => {
           <Paper
             elevation={10}
             sx={{
-              bgcolor: '#002200',
+              // 💳 Tarjeta glass morada
+              background:
+                'linear-gradient(160deg, rgba(138,92,245,0.16) 0%, rgba(20,12,36,0.94) 45%, rgba(106,63,203,0.18) 100%)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(138,92,245,0.32)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)',
               p: 4,
-              borderRadius: 3,
+              borderRadius: 4,
               maxWidth: 600,
               textAlign: 'center',
               color: 'white',
@@ -212,6 +229,9 @@ const Billetera = () => {
                   height: 50,
                   mb: 2,
                   borderRadius: '50%',
+                  // ✨ Aura neón alrededor de la moneda
+                  boxShadow:
+                    '0 0 0 4px rgba(138,92,245,0.16), 0 0 26px rgba(138,92,245,0.4)',
                 }}
               />
             )}
@@ -222,7 +242,7 @@ const Billetera = () => {
                 cartera?.wallet_address ? (
                   <Chip label={`Wallet: ${cartera.wallet_address.slice(0,6)}...${cartera.wallet_address.slice(-4)}`} sx={{ bgcolor: '#8A5CF5', color: 'white', fontFamily: 'monospace' }} />
                 ) : isAuthenticated ? (
-                  <Button href="/cartera/crear" size="small" sx={{ bgcolor: '#ffe066', color: 'black', fontWeight: 700 }}>Crear y vincular wallet</Button>
+                  <PurpleButton href="/cartera/crear" size="small">Crear y vincular wallet</PurpleButton>
                 ) : null}
               {cartera && <Typography sx={{ fontSize: 11, mt: 1 }}>Saldo Laborys: {cartera.laborysSaldo} | Ganados: {cartera.laborysGanados}</Typography>}
             </Box>
@@ -230,7 +250,13 @@ const Billetera = () => {
             {/* Título */}
             <Typography
               variant="h5"
-              sx={{ mb: 2, color: '#f0c040', fontWeight: 'bold' }}
+              sx={{
+                mb: 2,
+                color: '#c9b4ff',
+                fontWeight: 700,
+                fontFamily: '"Space Grotesk", "Poppins", system-ui, sans-serif',
+                letterSpacing: '-0.01em',
+              }}
             >
               {selected}
             </Typography>
@@ -241,12 +267,17 @@ const Billetera = () => {
             ) : !isAuthenticated ? (
               <Box>
                 <Typography sx={{ opacity: 0.9 }}>🔒 Inicia sesión para ver tu saldo real</Typography>
-                <Button href="/cartera/crear" sx={{ mt: 2, bgcolor: '#ffe066', color: 'black' }}>Ir a crear cartera</Button>
+                <PurpleButton href="/cartera/crear" sx={{ mt: 2 }}>Ir a crear cartera</PurpleButton>
               </Box>
             ) : cargando ? (
               <Typography>Cargando saldo...</Typography>
             ) : !cartera ? (
-              <Box><Typography>Creando cartera...</Typography></Box>
+              <Box>
+                <Typography sx={{ color: 'rgba(255,255,255,0.85)' }}>
+                  Aún no tienes cartera activa.
+                </Typography>
+                <PurpleButton href="/cartera/crear" sx={{ mt: 2 }}>Crear cartera →</PurpleButton>
+              </Box>
             ) : selected === 'Resumen' ? (
               <>
                 <Typography sx={{ opacity: 0.9, fontSize: '1.1rem' }}>

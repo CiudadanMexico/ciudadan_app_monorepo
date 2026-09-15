@@ -11,6 +11,9 @@ import Probador from '../components/Testers/Probador.jsx';
 // ---------- Páginas principales ----------
 import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
+import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
+import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
+import LiderVerificadorRegistroPage from '../Pages/Gana/LiderVerificadorRegistroPage.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
@@ -363,6 +366,18 @@ const Rutas = () => (
       path='/gana/ver-anuncios'
       element={<AnunciosRemunerados />}
     />
+    <Route
+      path='/gana/renta-universal'
+      element={<RentaUniversalPage />}
+    />
+    <Route
+      path='/gana/lideresverificadores'
+      element={<LideresVerificadoresPage />}
+    />
+    <Route
+      path='/gana/lideresverificadores/registro'
+      element={<LiderVerificadorRegistroPage />}
+    />
     {/* Taxis */}
     
 
@@ -576,6 +591,11 @@ const Rutas = () => (
     />
     <Route
       path='/coowork'
+      element={<Coowork />}
+    />
+    {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
+    <Route
+      path='/coowork/socio'
       element={<Coowork />}
     />
     <Route
