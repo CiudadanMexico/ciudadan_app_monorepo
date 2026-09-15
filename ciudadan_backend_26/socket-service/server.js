@@ -77,6 +77,14 @@ try {
 }
 if (openpayRoute) app.use("/api", openpayRoute);
 
+let mercadopagoRoute;
+try {
+  mercadopagoRoute = require("./routes/mercadopago");
+} catch (err) {
+  console.error("❌ Error cargando ./routes/mercadopago:", err);
+}
+if (mercadopagoRoute) app.use("/api", mercadopagoRoute);
+
 // Inicializas las dependencias de la Wiki
 const db = ConfigDatabase.getConnection();
 const documentRepository = new DocumentRepositoryImpl(db);
