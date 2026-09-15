@@ -370,6 +370,14 @@ export const RolesProvider = ({ children }) => {
     return hasExtra('verificador');
   }, [isAuthenticated, userData, hasExtra]);
 
+  // docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md: rol independiente del
+  // verificador, para auditar su trabajo. No implica ningún permiso extra
+  // sobre tareas/agencia — solo controla acceso a la vista de auditorías.
+  const isAuditor = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('auditor');
+  }, [isAuthenticated, userData, hasExtra]);
+
   const isActivaMembresia = useCallback(() => Boolean(membresia), [membresia]);
 
   /**
@@ -522,6 +530,7 @@ export const RolesProvider = ({ children }) => {
         isRoot,
         isSocio,
         isVerificador,
+        isAuditor,
         isJardinero,
         isClub,
         haveClub,
