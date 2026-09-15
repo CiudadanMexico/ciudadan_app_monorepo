@@ -4,34 +4,30 @@
     font-weight: 900;
     fill: rgb(122, 39, 111);
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: 1.5px;
     z-index: 9999;
     
     transform-origin: center center; /* Ajuste del punto de giro */
     overflow: visible; /* Evita recortes */
 }
 
-/* Ajuste del contenedor del texto */
+.ciudadan-container {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+}
+
 .ciudadan-svg {
     position: absolute;
-    top: 8vw;
-    left: 6.5vw;
-    width: 18vw;
-    height: 17vw;
+    top: 50%;
+    left: 50%;
+    width: 125%;
+    height: 125%;
     transform: translate(-50%, -50%);
     z-index: 10;
     pointer-events: none;
     overflow: visible; /* Evita recortes */
-}
-
-/* Ajuste del logo */
-.ciudadan-container {
-    position: absolute;
-    display: inline-block;
-    width: 60px;
-    height: 60px;
-    left: 1vw;
-    top: -9px;
 }
 
 
