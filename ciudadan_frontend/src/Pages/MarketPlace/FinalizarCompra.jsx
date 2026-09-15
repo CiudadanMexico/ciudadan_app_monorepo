@@ -16,9 +16,23 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
+import { crearCotizacionEnvio, esperarCotizacionCompleta } from "../../services/skydropxService";
+import { useRoles } from "../../Contexts/RolesContext";
+import EnvioPorTienda from "../../components/MarketPlace/EnvioPorTienda";
+import { Stack } from "@mui/system";
+import { CheckCircleRounded, LocalShippingRounded, UploadFileRounded, VerifiedRounded } from "@mui/icons-material";
+import { useSnackbar } from "notistack";
+import FormDatosEntrega from "../../components/MarketPlace/Checkout/FormDatosEntrega";
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL;
-const steps = ["Dirección", "Pagos", "Confirmación"];
+
+const steps = [
+  "Datos de entrega",
+  "Dirección",
+  "Envío",
+  "Pagos",
+  "Confirmación"
+];
 
 /**
  * Extrae y normaliza un objeto 'store' que puede venir:
@@ -47,36 +61,41 @@ const extractStore = (rawStore) => {
     rawStore?.attributes?.name ||
     "Tienda sin nombre";
 
-  return { id: id || null, name };
+  const banco = maybeData?.attributes?.banco ?? rawStore?.banco ?? rawStore?.attributes?.banco ?? "";
+  const clabe_bancaria = maybeData?.attributes?.clabe_bancaria ?? rawStore?.clabe_bancaria ?? rawStore?.attributes?.clabe_bancaria ?? "";
+  const nombre_bancario = maybeData?.attributes?.nombre_bancario ?? rawStore?.nombre_bancario ?? rawStore?.attributes?.nombre_bancario ?? "";
+
+  return { id: id || null, name, banco, clabe_bancaria, nombre_bancario };
 };
 
 /**
  * Agrupa items por tienda. Normaliza store UNA VEZ aquí.
  */
-const groupByStore = (items) =>
-  items.reduce((acc, item) => {
-    const rawStore = item.store;
-    const store = extractStore(rawStore);
+const groupByStore = (items) => items.reduce((acc, item) => {
+  const rawStore = item.store;
+  const store = extractStore(rawStore);
 
-    const storeKey = store.id || "sin_tienda";
+  const storeKey = store.id || "sin_tienda";
 
-    if (!acc[storeKey]) {
-      acc[storeKey] = {
-        store, // { id, name }
-        items: [],
-      };
-    }
+  if (!acc[storeKey]) {
+    acc[storeKey] = {
+      store,
+      items: [],
+    };
+  }
 
-    acc[storeKey].items.push(item);
+  acc[storeKey].items.push(item);
 
-    return acc;
-  }, {});
+  return acc;
+}, {});
 
 export default function FinalizarCompra() {
   // Contexto carrito y auth
   const { total, updateQuantity, clearCart, items: itemsContext } = useCart();
   const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { userData } = useRoles();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   // Estado local
   const [items, setItems] = useState([]);
@@ -90,29 +109,34 @@ export default function FinalizarCompra() {
   const [creatingPedidos, setCreatingPedidos] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
 
+  // Para implementación de envíos
+  const [datosEntrega, setDatosEntrega] = useState({ nombre: '', telefono: '', notas: '' });
+  const [cotizacionesEnvio, setCotizacionesEnvio] = useState({});
+  const [tarifasSeleccionadas, setTarifasSeleccionadas] = useState({});
+  const [cargandoCotizaciones, setCargandoCotizaciones] = useState(false);
+  const [errorCotizacion, setErrorCotizacion] = useState(null);
+
   useEffect(() => {
-    console.log(`<${'-'.repeat(20)}>`);
-    console.log("cart y emojis - useEffect itemsContext changed:", itemsContext);
-    console.log(`<${'-'.repeat(20)}>`);
     if (Array.isArray(itemsContext) && itemsContext.length > 0) {
       setItems(itemsContext);
       const grouped = groupByStore(itemsContext);
       setPorTienda(grouped);
-      console.log("cart y emojis - agrupado por tienda (normalizado):", grouped);
+      console.log("UseEffect itemsContext > agrupado por tienda (normalizado):", grouped);
     } else {
       setItems([]);
       setPorTienda({});
-      console.log("cart y emojis - carrito vacío o inválido");
+      console.log("UseEffect itemsContext > carrito vacío o inválido");
     }
   }, [itemsContext]);
 
   // ------------------ handlePagoSubido (callback para hijos y listener global) ------------------
   // Actualiza pedidosCreados cuando un PagoPorTienda informa que subió comprobante/pago.
   const handlePagoSubido = useCallback((pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl = null) => {
-    console.log("cart y emojis - handlePagoSubido llamado:", { pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl });
+    console.log("-".repeat(20));
+    console.log("handlePagoSubido > ", { pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl });
 
     if (!pedidoId) {
-      console.warn("cart y emojis - handlePagoSubido: pedidoId inválido, abortando");
+      console.warn("handlePagoSubido > pedidoId inválido, abortando");
       return;
     }
 
@@ -140,7 +164,7 @@ export default function FinalizarCompra() {
         }
 
         // Opcional: ajustar status si no estaba ya (marca como 'enviar' o 'pago_en_revision')
-        attributes.status = attributes.status || "enviar";
+        attributes.status = attributes.status || "pendiente_verificacion";
 
         const updated = {
           ...p,
@@ -148,11 +172,6 @@ export default function FinalizarCompra() {
           // también pondremos campo raíz para que comprobaciones rápidas funcionen
           pago: pagoId || p.pago || attributes.pago,
         };
-
-        console.log("cart y emojis - handlePagoSubido actualizando pedido local:", {
-          pedidoId: p.id,
-          updatedAttributes: attributes,
-        });
 
         return updated;
       });
@@ -167,11 +186,11 @@ export default function FinalizarCompra() {
       try {
         const detail = e?.detail;
         if (!detail) return;
-        console.log("cart y emojis - FinalizarCompra evento cart:paymentUploaded recibido:", detail);
+        console.log("evento cart:paymentUploaded recibido:", detail);
         const { pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl } = detail;
         handlePagoSubido(pedidoId, pagoId, fileId, pagoUpdateSuccess, fileUrl);
       } catch (err) {
-        console.warn("cart y emojis - FinalizarCompra handler error:", err);
+        console.warn("evento cart:paymentUploaded error:", err);
       }
     };
 
@@ -179,56 +198,36 @@ export default function FinalizarCompra() {
     return () => window.removeEventListener("cart:paymentUploaded", handler);
   }, [handlePagoSubido]);
 
-  const handleConfirmAddress = useCallback((dir) => {
-    console.log("cart y emojis - dirección seleccionada:", dir);
-    setSelectedAddress(dir);
-  }, []);
-
-  // 🔥 MAPEO CORRECTO DEL COMPONENTE
+  // Mapeo de items para carrito y para pedido
   const mapItemToComponent = (it) => {
-    const storeId =
-      it?.store?.id ||
-      it?.store?.data?.id ||
-      (typeof it?.store === "number" ? it.store : null) ||
-      null;
+    const storeId = it?.store?.id || it?.store?.data?.id || (typeof it?.store === "number" ? it.store : null) || null;
 
     const mapped = {
-      producto: it.producto?.id || it.producto || null,
-      nombre:
-        it.producto?.nombre ||
-        it.producto?.attributes?.nombre ||
-        it.nombre ||
-        "Sin nombre",
-      precio_unitario: it.precio_unitario || 0,
-      cantidad: it.cantidad || 1,
-      subtotal:
-        typeof it.subtotal === "number"
-          ? it.subtotal
-          : (it.precio_unitario || 0) * (it.cantidad || 1),
-      envio: it.envio || 0,
-      subtotal_volumetrico: it.subtotal_volumetrico || 0,
-      esquema_impuestos: it.esquema_impuestos || "sin_iva",
-      cp: it.cp || null,
-      total:
-        typeof it.total === "number"
-          ? it.total
-          : (typeof it.subtotal === "number" ? it.subtotal : 0) + (it.envio || 0),
-      comisionStripe: it.comisionStripe || 0,
-      comisionPlataforma: it.comisionPlataforma || 0,
+      producto: it.producto?.id ?? it.producto ?? null,
+      nombre: it?.producto?.nombre ?? it?.producto?.attributes?.nombre ?? it?.nombre ?? "Sin nombre",
+      precio_unitario: it?.precio_unitario ?? it?.precio ?? 0,
+      cantidad: it?.cantidad ?? 1,
+      subtotal: typeof it?.subtotal === "number" ? it?.subtotal : (it?.precio_unitario ?? 0) * (it?.cantidad ?? 1),
+      envio: it?.envio ?? 0,
+      subtotal_volumetrico: it?.subtotal_volumetrico ?? 0,
+      esquema_impuestos: it?.esquema_impuestos ?? "sin_iva",
+      cp: it?.cp ?? null,
+      total: typeof it.total === "number" ? it.total : (typeof it.subtotal === "number" ? it.subtotal : 0) + (it.envio || 0),
       store: storeId,
       calificado: false,
       status: "pendiente",
     };
-    console.log("cart y emojis - mapItemToComponent ->", mapped);
+    console.log("mapItemToComponent ->", mapped);
     return mapped;
   };
 
+  // Normalización de atributos incluyendo store con valor preventivo
   const normalizeAttributesStore = (attributes, fallbackStore) => {
     if (!attributes || typeof attributes !== "object") {
       return { ...attributes, store: fallbackStore || { id: null, name: "Tienda sin nombre" } };
     }
 
-    const rawStore = attributes.store || null;
+    const rawStore = attributes?.store ?? null;
     if (rawStore) {
       const flat = extractStore(rawStore);
       return { ...attributes, store: flat };
@@ -237,209 +236,185 @@ export default function FinalizarCompra() {
     return { ...attributes, store: fallbackStore || { id: null, name: "Tienda sin nombre" } };
   };
 
-  /**
-   * Función principal para crear pedidos agrupados por tienda.
-   */
-  const handleCrearPedidos = async () => {
-    console.log("cart y emojis - handleCrearPedidos iniciado");
-    if (!isAuthenticated) {
-      console.log("cart y emojis - usuario NO autenticado, redirigiendo a login");
-      await loginWithRedirect({ appState: { returnTo: "/carrito/finalizar" } });
-      return;
+  // función para cambiar datos de entrega
+  const handleChangeDatosEntrega = (campo, valor) => {
+    setDatosEntrega((prev) => ({
+      ...prev,
+      [campo]: valor ?? ''
+    }));
+  }
+
+  // función para validar datos de entrega
+  const validarDatosEntrega = () => {
+    const nombre = datosEntrega.nombre.trim();
+    const telefono = datosEntrega.telefono.trim();
+    const notas = datosEntrega.notas;
+
+    if (!nombre) {
+      enqueueSnackbar('Ingresa el nombre de quien recibirá el pedido.', { variant: 'warning' });
+      return false;
     }
 
+    if (!telefono) {
+      enqueueSnackbar('Ingresa un número de teléfono para la entrega.', { variant: 'warning', });
+      return false;
+    }
+
+    if (notas && notas.length > 70){
+      enqueueSnackbar('La información adicional no debe superar los 70 caracteres', { variant: 'warning' });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleContinuarDatosEntrega = () => {
+    if (validarDatosEntrega())
+      setActiveStep(1);
+  };
+
+  // función para seleccionar una dirección
+  const handleConfirmAddress = useCallback((dir) => {
+    console.log("handleConfirmAddress > dirección seleccionada:", dir);
+    setSelectedAddress(dir);
+  }, []);
+
+  // función para crear cotizaciones de envíos con dirección seleccionada
+  const cotizarEnvios = async () => {
     if (!selectedAddress) {
-      alert("Selecciona una dirección primero.");
       return;
     }
 
-    const tiendaEntries = Object.entries(porTienda);
-    if (tiendaEntries.length === 0) {
-      alert("No hay productos.");
-      return;
-    }
+    setCargandoCotizaciones(true);
+    setErrorCotizacion(null);
 
-    setCreatingPedidos(true);
 
     try {
-      // ----------------------------
-      // CREAR / ACTUALIZAR CARRITO
-      // ----------------------------
-      const carritoPayload = {
-        data: {
-          productos: items.map(mapItemToComponent),
-          total: items.reduce((acc, i) => acc + (i.subtotal || 0), 0),
-          total_envios: items.reduce((acc, i) => acc + (i.envio || 0), 0),
-          estado: "activo",
-          ultima_actualizacion: new Date().toISOString(),
-          usuario_email: user?.email || "unknown",
-        },
-      };
-      console.log("-".repeat(10));
-      console.log("cart y emojis - payload carrito:", carritoPayload);
-      console.log("-".repeat(10));
+      const entries = Object.entries(porTienda);
 
-      // Buscar carrito activo del usuario
-      const carritoRes = await fetch(
-        `${STRAPI}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(
-          user?.email || ""
-        )}&filters[estado][$eq]=activo`
+      const resultados = await Promise.all(
+        entries.map(async ([storeId, storeData]) => {
+          const response = await crearCotizacionEnvio({
+            storeId: Number(storeId),
+            direccionDestinoId: selectedAddress?.id,
+            items: storeData.items,
+          });
+
+          const quotationId = response?.quotation?.id;
+
+          if (!quotationId)
+            throw new Error(`No se recibió el ID de la cotización para la tienda: ${storeId}`);
+
+          let quotation = response?.quotation;
+
+          if (!quotation?.is_completed) {
+            quotation = await esperarCotizacionCompleta(quotationId);
+          }
+
+          return [
+            storeId,
+            {
+              quotationId: quotationId ?? null,
+              isCompleted: quotation?.is_completed ?? false,
+              rates: quotation?.rates ?? [],
+              raw: quotation?.raw ?? quotation ?? {},
+            },
+          ];
+        })
       );
+
+      setCotizacionesEnvio(Object.fromEntries(resultados));
+      setActiveStep(2);
+    } catch (error) {
+      console.error("Error cotizando envíos:", error);
+      setErrorCotizacion(error?.response?.data?.message || error?.message || "No fue posible obtener las tarifas de envío.");
+    } finally {
+      setCargandoCotizaciones(false);
+    }
+  };
+
+  // Función para seleccionar tarifa de alguna de las opciones de paquetería
+  const handleSeleccionarTarifa = (storeId, rate) => {
+    setTarifasSeleccionadas((prev) => ({
+      ...prev,
+      [storeId]: {
+        rateId: rate?.id || rate?.rate_id,
+        carrier: rate?.provider_name || rate?.carrier || null,
+        service: rate?.provider_service_code || rate?.service || null,
+        amount: Number(rate?.total || rate?.amount || rate?.price || 0),
+        rate,
+      },
+    }));
+  };
+
+  const obtenerEnvioTienda = (storeId) => Number(tarifasSeleccionadas[storeId]?.amount ?? 0);
+
+  const handleUpdateCreateCart = async (payload) => {
+    try {
+      // Buscar carrito activo del usuario
+      const carritoRes = await fetch(`${STRAPI}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(user?.email || "")}&filters[estado][$eq]=activo`);
 
       if (!carritoRes.ok) {
         const t = await carritoRes.text();
-        console.error("cart y emojis - error buscando carrito:", t);
+        console.error("handleUpdateCreateCart - error buscando carrito:", t);
         throw new Error("Error buscando carrito");
       }
 
       const carritoJson = await carritoRes.json();
-      console.log("cart y emojis - carrito encontrado (raw):", carritoJson);
+      console.log("handleUpdateCreateCart - carrito encontrado (raw):", carritoJson);
 
       let carritoCreatedId = null;
 
       if (carritoJson?.data?.length > 0) {
         carritoCreatedId = carritoJson.data[0].id;
-        console.log("cart y emojis - actualizando carrito id:", carritoCreatedId);
+        console.log("handleUpdateCreateCart - actualizando carrito id:", carritoCreatedId);
 
         const upd = await fetch(`${STRAPI}/api/carritos/${carritoCreatedId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(carritoPayload),
+          body: JSON.stringify(payload),
         });
 
         if (!upd.ok) {
-          console.error("cart y emojis - error actualizando carrito:", await upd.text());
+          console.error("handleUpdateCreateCart - error actualizando carrito:", await upd.text());
           throw new Error("Error actualizando carrito");
         }
       } else {
-        console.log("cart y emojis - creando nuevo carrito");
+        console.log("handleUpdateCreateCart - creando nuevo carrito");
         const newCarrito = await fetch(`${STRAPI}/api/carritos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(carritoPayload),
+          body: JSON.stringify(payload),
         });
 
         if (!newCarrito.ok) {
-          console.error("cart y emojis - error creando carrito:", await newCarrito.text());
+          console.error("handleUpdateCreateCart - error creando carrito:", await newCarrito.text());
           throw new Error("Error creando carrito");
         }
 
         const newJson = await newCarrito.json();
         carritoCreatedId = newJson?.data?.id;
-        console.log("cart y emojis - carrito creado id:", carritoCreatedId, newJson);
+        console.log("handleUpdateCreateCart- carrito creado id:", carritoCreatedId, newJson);
       }
-
-      setCarritoId(carritoCreatedId);
-
-      // ----------------------------
-      // CREAR PEDIDOS POR TIENDA
-      // ----------------------------
-      const pedidos = [];
-
-      for (const [storeKey, storeGroup] of tiendaEntries) {
-        try {
-          const subtotal = storeGroup.items.reduce(
-            (acc, i) => acc + (i.subtotal || 0),
-            0
-          );
-          const envio = storeGroup.items.reduce((acc, i) => acc + (i.envio || 0), 0);
-
-          const storeName = storeGroup.store?.name || storeKey;
-
-          console.log(
-            "cart y emojis - creando pedido para tienda:",
-            storeName,
-            { subtotal, envio, cantidadItems: storeGroup.items.length, storeGroupStore: storeGroup.store }
-          );
-
-          const payloadPedido = {
-            data: {
-              item: storeGroup.items.map(mapItemToComponent),
-              tipo: "tienda",
-              timestamp_creacion: new Date().toISOString(),
-              monto_envio: envio,
-              monto_total: subtotal + envio,
-              status: "enviar",
-              carrito_id: carritoCreatedId,
-              direccion_destino: selectedAddress.id,
-              metadata: { usuario_email: user?.email || "unknown" },
-            },
-          };
-
-          console.log("cart y emojis - payloadPedido:", payloadPedido);
-          
-          // Request para registro de pedidos
-          const res = await fetch(`${STRAPI}/api/pedidos`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payloadPedido),
-          });
-
-          if (!res.ok) {
-            const text = await res.text();
-            console.error("cart y emojis - error creando pedido (strapi):", text);
-            continue;
-          }
-
-          const created = await res.json();
-          console.log("cart y emojis - respuesta pedido creado (raw):", created);
-
-          const createdData = created?.data || null;
-          let attributes = createdData?.attributes || {};
-          attributes = normalizeAttributesStore(attributes, storeGroup.store);
-
-          const normalized = {
-            id: createdData?.id || null,
-            attributes,
-            pago:
-              attributes?.pago ||
-              attributes?.pago_id ||
-              createdData?.pago ||
-              null,
-            _raw: created,
-          };
-
-          console.log("cart y emojis - pedido normalizado:", normalized);
-          pedidos.push(normalized);
-        } catch (innerErr) {
-          console.error("cart y emojis - error creando pedido para una tienda:", innerErr);
-        }
-      }
-
-      setPedidosCreados(pedidos);
-
-      
-    if (!isAuthenticated) {
-      localStorage.removeItem("carrito");
-      setLocalItems([]);
-      setLocalTotal(0);
-      localStorage.setItem("itemCount", "0");
-      console.log("🧹 handleVaciarCarrito - carrito y itemCount eliminados");
-      window.dispatchEvent(new CustomEvent("carritoLocalActualizado", { detail: { itemCount: 0 } }));
-      return;
+      return carritoCreatedId;
+    } catch (error) {
+      throw error;
     }
+  };
 
-    if (!user?.email) {
-      console.warn("No hay email de usuario. No puedo vaciar.");
-      return;
-    }
-
+  const handleClearCart = async () => {
     try {
-      const resFetch = await fetch(
-        `${process.env.REACT_APP_STRAPI_URL}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(
-          user.email
-        )}&filters[estado][$eq]=activo`,
-        {
-          credentials: "include",
-        }
-      );
+      const resFetch = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(user.email)}&filters[estado][$eq]=activo`, { credentials: "include", });
       const json = await resFetch.json();
       const carritoEntry = json?.data?.[0];
+
       if (!carritoEntry) {
         clearCart();
         return;
       }
+
       const carritoIdStrapi = carritoEntry.id;
+
       const payload = {
         data: {
           productos: [],
@@ -449,70 +424,218 @@ export default function FinalizarCompra() {
           ultima_actualizacion: new Date().toISOString(),
         },
       };
-      const resPut = await fetch(
-        `${process.env.REACT_APP_STRAPI_URL}/api/carritos/${carritoIdStrapi}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
+
+      const resPut = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/carritos/${carritoIdStrapi}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
       if (!resPut.ok) {
         const errText = await resPut.text();
-        console.error("Error de Strapi:", errText);
+        console.error("handleClearCart - Error de Strapi:", errText);
         return;
       }
+
       clearCart();
     } catch (err) {
-      console.error("Error en handleVaciarCarrito:", err);
-    }
-
-
-      console.log("-".repeat(15))
-      console.log("cart y emojis - pedidos creados y normalizados:", pedidos);
-      console.log("-".repeat(15))
-
-      // Avanzar al paso de pagos si hay al menos 1 pedido creado
-      if (pedidos.length > 0) {
-        setActiveStep(1);
-      } else {
-        alert("No se pudieron crear pedidos. Revisa la consola para más detalles.");
-      }
-    } catch (err) {
-      console.error("cart y emojis - Error general en handleCrearPedidos:", err);
-      alert("Error creando pedidos. Revisa la consola.");
-    } finally {
-      setCreatingPedidos(false);
+      console.error("handleClearCart - Error en handleVaciarCarrito:", err);
     }
   };
 
-  /**
-   * Comprueba si todos los pedidos ya tienen pago registrado.
-   * Se soportan múltiples formas: pedido.pago, pedido.attributes.pago_id, etc.
-   */
-  const allPedidosPagados =
-    pedidosCreados.length > 0 &&
-    pedidosCreados.every((p) => {
-      const hasRootPago = Boolean(p?.pago);
-      const hasAttributesPago =
-        Boolean(p?.attributes?.pago) ||
-        Boolean(p?.attributes?.pago_id) ||
-        Boolean(p?.attributes?.pagoId);
-      return hasRootPago || hasAttributesPago;
-    });
+  //  Función principal para crear pedidos agrupados por tienda.
+  const handleCrearPedidos = async () => {
+    console.log("-".repeat(20));
+    console.log("handleCrearPedidos iniciado");
+    if (!isAuthenticated) {
+      console.log("usuario NO autenticado, redirigiendo a login");
+      enqueueSnackbar({
+        message: 'Inicie sesión para continuar con el proceso.',
+        variant: 'error',
+        onClose: async () => {
+          await loginWithRedirect({ appState: { returnTo: "/carrito/finalizar" } });
+        }
+      });
+      return;
+    }
 
-  console.log("cart y emojis - allPedidosPagados:", allPedidosPagados, "pedidosCreados:", pedidosCreados);
+    if (!selectedAddress) {
+      enqueueSnackbar({
+        message: "Selecciona una dirección válida.",
+        variant: 'error'
+      })
+      return;
+    }
 
-  /**
-   * Finaliza pedidos: marca pagado en Strapi y cambia estado del carrito si aplica.
-   */
+    if (!todasLasTiendasTienenEnvio) {
+      enqueueSnackbar({
+        message: "Selecciona una opción de envío para cada tienda.",
+        variant: 'warning'
+      })
+      return;
+    }
+
+    const tiendaEntries = Object.entries(porTienda);
+
+    if (tiendaEntries.length === 0) {
+      enqueueSnackbar({
+        message: "No hay productos disponibles en el carrito.",
+        variant: "warning"
+      })
+      return;
+    }
+
+    setCreatingPedidos(true);
+
+    // CREAR / ACTUALIZAR CARRITO
+    const carritoPayload = {
+      data: {
+        productos: items.map(mapItemToComponent),
+        total: items.reduce((acc, i) => acc + (i.subtotal || 0), 0),
+        total_envios: items.reduce((acc, i) => acc + (i.envio || 0), 0),
+        estado: "activo",
+        ultima_actualizacion: new Date().toISOString(),
+        usuario_email: user?.email || "unknown",
+      },
+    };
+
+    console.log("-".repeat(10));
+    console.log("handleCrearPedidos - payload carrito:", carritoPayload);
+    console.log("-".repeat(10));
+
+    // Buscar carrito activo del usuario y actualizar o crear de ser necesario
+    const carritoCreatedId = await handleUpdateCreateCart(carritoPayload);
+
+    setCarritoId(carritoCreatedId);
+
+    try {
+      // CREAR PEDIDOS POR TIENDA
+      const pedidos = [];
+
+      for (const [storeKey, storeGroup] of tiendaEntries) {
+        try {
+          const storeItems = storeGroup?.items ?? [];
+          const subtotal = storeItems.reduce((acc, i) => acc + (i.subtotal || 0), 0);
+          const envio = obtenerEnvioTienda(storeKey);
+          const storeName = storeGroup.store?.name ?? storeKey;
+
+          console.log("handleCrearPedidos - creando pedido para tienda:", storeName, { subtotal, envio, cantidadItems: storeGroup.items.length, storeGroupStore: storeGroup.store });
+
+          const payloadPedido = {
+            data: {
+              item: storeGroup.items.map(mapItemToComponent),
+              tipo: "tienda",
+              timestamp_creacion: new Date().toISOString(),
+              monto_envio: envio,
+              monto_total: subtotal + envio,
+              status: "pendiente_pago",
+              carrito_id: carritoCreatedId,
+              direccion_destino: selectedAddress.id,
+              store: Number(storeKey),
+              skydropx_quotation_id: cotizacionesEnvio[storeKey].quotationId,
+              skydropx_rate_id: tarifasSeleccionadas[storeKey].rateId,
+              skydropx_rate: tarifasSeleccionadas[storeKey].rate,
+              usuario: userData?.id,
+              metadata: {
+                usuario_email: user?.email ?? "unknown"
+              },
+              delivery_contact_information: {
+                name: datosEntrega.nombre.trim(),
+                phone: datosEntrega.telefono.trim(),
+                further_information: datosEntrega.notas,
+              }
+            },
+          };
+
+          console.log("handleCrearPedidos - payloadPedido:", payloadPedido);
+
+          // Request para registro de pedidos
+          const res = await fetch(`${STRAPI}/api/pedidos`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payloadPedido),
+          });
+
+          if (!res.ok) {
+            const text = await res.text();
+            console.error("handleCrearPedidos - error creando pedido (strapi):", text);
+            continue;
+          }
+
+          const created = await res.json();
+          console.log("handleCrearPedidos- respuesta pedido creado (raw):", created);
+
+          const createdData = created?.data ?? null;
+          let attributes = createdData?.attributes ?? {};
+          attributes = normalizeAttributesStore(attributes, storeGroup.store);
+
+          const normalized = {
+            id: createdData?.id ?? null,
+            attributes,
+            pago: attributes?.pago ?? attributes?.pago_id ?? createdData?.pago ?? null,
+            _raw: created,
+          };
+
+          console.log("handleCrearPedidos - pedido normalizado:", normalized);
+          pedidos.push(normalized);
+        } catch (innerErr) {
+          console.error("handleCrearPedidos - error creando pedido para una tienda:", innerErr);
+        }
+      }
+
+      setPedidosCreados(pedidos);
+
+      if (!isAuthenticated) {
+        localStorage.removeItem("carrito");
+        setLocalItems([]);
+        setLocalTotal(0);
+        localStorage.setItem("itemCount", "0");
+        console.log("🧹 handleVaciarCarrito - carrito y itemCount eliminados");
+        window.dispatchEvent(new CustomEvent("carritoLocalActualizado", { detail: { itemCount: 0 } }));
+        return;
+      }
+
+      if (!user?.email) {
+        console.warn("No hay email de usuario. No puedo vaciar.");
+        return;
+      }
+
+      console.log("-".repeat(15))
+      console.log("handleCrearPedidos- pedidos creados y normalizados:", pedidos);
+      console.log("-".repeat(15))
+
+      setErrorCotizacion(null);
+      // Avanzar al paso de pagos si hay al menos 1 pedido creado
+      if (pedidos.length > 0) {
+        setActiveStep(3);
+      } else {
+        enqueueSnackbar({
+          message: "No se pudieron crear pedidos.",
+          variant: "error"
+        })
+      }
+    } catch (err) {
+      console.error("handleCrearPedidos- Error general:", err);
+    } finally {
+      console.log("-".repeat(20));
+      setCreatingPedidos(false);
+      handleClearCart();
+    }
+  };
+
+  // Finaliza pedidos: marca pagado en Strapi y cambia estado del carrito si aplica.
   const handleFinalizar = async () => {
-    console.log("cart y emojis - handleFinalizar iniciado");
+    console.log("-".repeat(20));
+    console.log("handleFinalizar - iniciado");
+
     if (!allPedidosPagados) {
-      alert("Faltan pagos.");
+      enqueueSnackbar({
+        message: "Faltan pagos de tiendas por completar.",
+        variant: "warning"
+      });
       return;
     }
 
@@ -521,55 +644,69 @@ export default function FinalizarCompra() {
     try {
       for (const p of pedidosCreados) {
         if (!p?.id) {
-          console.warn("cart y emojis - pedido sin id, se omite:", p);
+          console.warn("handleFinalizar - pedido sin id, se omite:", p);
           continue;
         }
 
-        console.log("cart y emojis - marcando pedido como pagado, id:", p.id);
+        console.log("handleFinalizar- marcando pedido como pagado, id:", p.id);
 
         const upd = await fetch(`${STRAPI}/api/pedidos/${p.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             data: {
-              status: "enviar",
+              status: "pendiente_verificacion",
               fecha_pagado: new Date().toISOString(),
             },
           }),
         });
 
         if (!upd.ok) {
-          console.error("cart y emojis - error actualizando pedido id:", p.id, await upd.text());
+          console.error("handleFinalizar - error actualizando pedido id:", p.id, await upd.text());
         } else {
-          console.log("cart y emojis - pedido actualizado correctamente id:", p.id);
+          console.log("handleFinalizar - pedido actualizado correctamente id:", p.id);
         }
       }
 
-      if (carritoId) {
-        console.log("cart y emojis - marcando carrito como pagado id:", carritoId);
-        const updCar = await fetch(`${STRAPI}/api/carritos/${carritoId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            data: { estado: "pagado" },
-          }),
-        });
+      // Omitimos el marcar carrito como pagado por el momento
+      // if (carritoId) {
+      //   console.log("handleFinalizar- marcando carrito como pagado id:", carritoId);
+      //   const updCar = await fetch(`${STRAPI}/api/carritos/${carritoId}`, {
+      //     method: "PUT",
+      //     headers: { "Content-Type": "application/json" },
+      //     body: JSON.stringify({
+      //       data: { estado: "pagado" },
+      //     }),
+      //   });
+      //   if (!updCar.ok) {
+      //     console.error("cart y emojis - error actualizando carrito:", await updCar.text());
+      //   } else {
+      //     console.log("cart y emojis - carrito actualizado a pagado:", carritoId);
+      //   }
+      // }
 
-        if (!updCar.ok) {
-          console.error("cart y emojis - error actualizando carrito:", await updCar.text());
-        } else {
-          console.log("cart y emojis - carrito actualizado a pagado:", carritoId);
-        }
-      }
-
-      setActiveStep(2);
+      setActiveStep(4);
     } catch (err) {
-      console.error("cart y emojis - error en handleFinalizar:", err);
-      alert("Ocurrió un error al finalizar. Revisa la consola.");
+      console.error("handleFinalizar - error:", err);
+      enqueueSnackbar({
+        message: 'Ocurrió un error al finalizar el proceso.',
+        variant: "error",
+      })
     } finally {
+      console.log("-".repeat(20));
       setFinalizing(false);
     }
   };
+
+  // Comprueba si todos los pedidos ya tienen pago registrado. Se soportan múltiples formas: pedido.pago, pedido.attributes.pago_id, etc.
+  const allPedidosPagados = pedidosCreados.length > 0 && pedidosCreados.every((p) => {
+    const hasRootPago = Boolean(p?.pago);
+    const hasAttributesPago = Boolean(p?.attributes?.pago) || Boolean(p?.attributes?.pago_id) || Boolean(p?.attributes?.pagoId);
+    return hasRootPago || hasAttributesPago;
+  });
+
+  // Comprueba si todas las tiendas tienen cotización de envío
+  const todasLasTiendasTienenEnvio = Object.keys(porTienda).every((storeId) => Boolean(tarifasSeleccionadas[storeId]?.rateId));
 
   return (
     <Box sx={{ maxWidth: 980, margin: "0 auto", p: 2 }}>
@@ -586,7 +723,22 @@ export default function FinalizarCompra() {
       </Stepper>
 
       <AnimatePresence mode="wait">
+        {/* Paso 1 - Formulario de contacto */}
         {activeStep === 0 && (
+          <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Paper sx={{ p: 2 }}>
+              <FormDatosEntrega
+                nombre={datosEntrega.nombre}
+                telefono={datosEntrega.telefono}
+                notas={datosEntrega.notas}
+                onChange={handleChangeDatosEntrega}
+              />
+            </Paper>
+          </motion.div>
+        )}
+
+        {/* Paso 2 - Selección de dirección */}
+        {activeStep === 1 && (
           <motion.div key="dir" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <Paper sx={{ p: 2 }}>
               <DireccionSelector onConfirm={handleConfirmAddress} />
@@ -594,7 +746,45 @@ export default function FinalizarCompra() {
           </motion.div>
         )}
 
-        {activeStep === 1 && (
+        {/* Paso 3 - Seleccionar cotización de envío */}
+        {activeStep === 2 && (
+          <motion.div key="envios" initial={{ opacity: 0 }} animate={{ opacity: 1 }} >
+            <Paper sx={{ p: 2 }}>
+              <Typography
+                variant="h5"
+                sx={{ mb: 1 }}
+              >
+                Opciones de envío
+              </Typography>
+
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 3 }}
+              >
+                Selecciona una opción de envío para cada tienda.
+              </Typography>
+
+              {Object.entries(porTienda).map(
+                ([storeId, storeData]) => (
+                  <EnvioPorTienda
+                    key={storeId}
+                    store={storeData.store}
+                    quotation={cotizacionesEnvio[storeId]}
+                    selectedRateId={tarifasSeleccionadas[storeId]?.rateId ?? ""}
+                    onSelectRate={(rate) => {
+                      handleSeleccionarTarifa(storeId, rate)
+                    }}
+                    loading={cargandoCotizaciones}
+                  />
+                )
+              )}
+            </Paper>
+          </motion.div>
+        )}
+
+        {/* Paso 4 - Subir comprobantes por tienda */}
+        {activeStep === 3 && (
           <motion.div key="pagos" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <Paper sx={{ p: 2 }}>
               {/* Si no hay pedidos, mostramos mensaje */}
@@ -618,45 +808,148 @@ export default function FinalizarCompra() {
           </motion.div>
         )}
 
-        {activeStep === 2 && (
-          <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <Paper sx={{ p: 4, textAlign: "center" }}>
-              <Typography variant="h5">¡Pedido enviado!</Typography>
-              <Button
-                variant="contained"
-                sx={{ mt: 2 }}
-                onClick={() => {
-                  console.log("cart y emojis - navegando a /mis-compras");
-                  navigate("/mis-compras");
-                }}
-              >
-                Ver mis compras
-              </Button>
+        {/* Paso 5 - Finalización */}
+        {activeStep === 4 && (
+          <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }} >
+            <Paper
+              sx={{
+                p: { xs: 3, sm: 4 },
+                borderRadius: 3,
+              }}
+            >
+              <Stack spacing={3} alignItems="center">
+                <CheckCircleRounded
+                  color="success"
+                  sx={{ fontSize: 70 }}
+                />
+
+                <Box textAlign="center">
+                  <Typography variant="h5" fontWeight={700}>
+                    ¡Comprobante enviado!
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                    sx={{ mt: 1 }}
+                  >
+                    Tu comprobante de pago fue recibido correctamente.
+                    Ahora comenzará el proceso de validación antes del envío
+                    de tu pedido.
+                  </Typography>
+                </Box>
+
+                <Stack
+                  spacing={2}
+                  sx={{
+                    width: "100%",
+                    mt: 1,
+                  }}
+                >
+                  <Box display="flex" gap={2}>
+                    <UploadFileRounded color="primary" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        1. Comprobante recibido
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Tu comprobante ya fue registrado en el sistema.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <VerifiedRounded color="warning" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        2. Validación del vendedor
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        El vendedor fue notificado y verificará que el pago
+                        haya sido recibido correctamente.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box display="flex" gap={2}>
+                    <LocalShippingRounded color="success" />
+                    <Box>
+                      <Typography fontWeight={600}>
+                        3. Preparación y envío
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Una vez confirmado el pago, tu pedido será preparado y
+                        enviado. Podrás consultar su avance desde la sección
+                        <strong> Mis compras</strong>.
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  onClick={() => navigate("/compras/pedidos")}
+                >
+                  Ir a Mis compras
+                </Button>
+              </Stack>
             </Paper>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <Box mt={3} display="flex" justifyContent={activeStep < 1 ? "space-between" : "flex-end"}>
-        {
-          activeStep < 1 && (
-            <Button disabled={activeStep === 0} onClick={() => setActiveStep((s) => s - 1)}>
-              Volver
-            </Button>
-          )
-        }
+      {/* Acciones */}
+      <Box mt={3} display="flex" justifyContent={activeStep <= 2 ? "space-between" : "flex-end"}>
+        {activeStep <= 2 && (
+          <Button
+            disabled={activeStep === 0}
+            onClick={() => setActiveStep((s) => s - 1)}
+          >
+            Volver
+          </Button>
+        )}
 
         {activeStep === 0 && (
           <Button
             variant="contained"
-            onClick={handleCrearPedidos}
-            disabled={!selectedAddress || creatingPedidos}
+            onClick={handleContinuarDatosEntrega}
           >
-            {creatingPedidos ? <CircularProgress size={18} /> : "Crear pedidos"}
+            Continuar
           </Button>
         )}
 
         {activeStep === 1 && (
+          <Button
+            variant="contained"
+            onClick={cotizarEnvios}
+            disabled={!selectedAddress || cargandoCotizaciones}
+          >
+            {cargandoCotizaciones ? (<CircularProgress size={18} sx={{ mr: 1 }} />) : null}
+            {cargandoCotizaciones ? "Cotizando..." : "Continuar"}
+          </Button>
+        )}
+
+        {activeStep === 2 && (
+          <Button
+            variant="contained"
+            onClick={handleCrearPedidos}
+            disabled={!selectedAddress || !todasLasTiendasTienenEnvio || creatingPedidos}
+          >
+            {creatingPedidos ? <CircularProgress size={18} /> : "Continuar"}
+          </Button>
+        )}
+
+        {activeStep === 3 && (
           <Button
             variant="contained"
             onClick={handleFinalizar}

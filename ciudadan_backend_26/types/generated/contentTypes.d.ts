@@ -4283,6 +4283,8 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
     skydropx_label_url: Attribute.String;
     skydropx_status: Attribute.String;
     skydropx_rate: Attribute.JSON;
+    delivery_contact_information: Attribute.JSON;
+    pickup_contact_information: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

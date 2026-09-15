@@ -23,36 +23,27 @@ import ChecarPagoTienda from '../../components/MarketPlace/ChecarPagoTienda.jsx'
 import PrintIcon from '@mui/icons-material/Print';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SendIcon from '@mui/icons-material/Send';
+import BlockIcon from '@mui/icons-material/Block';
+import DoneIcon from '@mui/icons-material/Done';
+import UndoIcon from '@mui/icons-material/Undo';
+import PendingIcon from '@mui/icons-material/Pending';
 
 // Configuración de estados con iconos (puedes ajustar)
 // Usado para mostrar un Chip similar a PedidosEntregados
 const statusPedidoConfigUi = {
-  enviar: { label: 'Por enviar', color: 'warning', icon: <SendIcon /> },
+  pendiente_pago: { label: 'Pendiente de pago', color: 'warning', icon: <PendingIcon /> },
+  pendiente_verificacion: { label: 'Pendiente de verificación', color: 'warning', icon: <PendingIcon /> },
+  pendiente_envio: { label: 'Pendiente de envío', color: 'warning', icon: <SendIcon /> },
+  enviado: { label: "Enviado", color: 'primary', icon: <LocalShippingIcon /> },
   encamino: { label: 'En camino', color: 'info', icon: <LocalShippingIcon /> },
+  cancelado: { label: "Cancelado", color: "error", icon: <BlockIcon /> },
+  recibido: { label: "Recibido", color: "success", icon: <DoneIcon /> },
+  devuelto: { label: "Devuelto", color: "secondary", icon: <UndoIcon /> }
 };
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
-/**
- * buildHeaders:
- * Construye headers para las peticiones; intenta obtener token si corresponde.
- * Nota: la lógica original construye headers pero no los inyecta sistemáticamente
- * en todas las llamadas fetch; se mantiene ese comportamiento para que todo quede intacto.
- */
-// const buildHeaders = useCallback(async () => {
-//   const headers = { 'Content-Type': 'application/json' };
-//   try {
-//     if (conAutenticacion === true && isAuthenticated && typeof getAccessTokenSilently === 'function') {
-//       const token = await getAccessTokenSilently();
-//       if (token) headers.Authorization = `Bearer ${token}`;
-//     }
-//   } catch (err) {
-//     // Si no se pudo obtener token, continuamos sin Authorization.
-//     // No usamos console.* para respetar tu petición.
-//   }
-//   return headers;
-// }, [getAccessTokenSilently, isAuthenticated]);
-const PedidosPendientes = ({ store }) => {
 
+const PedidosPendientes = ({ store }) => {
   // Auth & datos
   const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
   const { cargando, apiLoading, snack, setSnack, patchPedido, getPedidosPendientes, patchPago } = useStoreAdminPedidos();
@@ -79,9 +70,10 @@ const PedidosPendientes = ({ store }) => {
     setSelectedPagoPedido(null);
   };
 
-  // Confirmar pago -> set fecha_pagado y metadata.payment_confirmed
-  const handleConfirmPago = async () => {
+  // Confirmar pago de pedido agregando información de contacto del remitenten
+  const handleConfirmPago = async (pickupContact = {}) => {
     if (!selectedPagoPedido) return;
+
     const now = new Date().toISOString();
     const payload = {
       fecha_pagado: now,
@@ -91,6 +83,7 @@ const PedidosPendientes = ({ store }) => {
         payment_confirmed: true,
         payment_confirmed_at: now,
       },
+      pickup_contact_information: { ...pickupContact }
     };
     await patchPedido(selectedPagoPedido.id, payload);
     if (selectedPagoPedido?.attributes?.pago_id?.data) {
@@ -321,7 +314,7 @@ const PedidosPendientes = ({ store }) => {
         // ahora usamos normalizeItems para obtener items en cualquier forma
         const itemList = normalizeItems(attributes.item);
         const pago = attributes.pago?.data?.attributes || null;
-        const guiaExiste = Boolean(attributes.guia);
+        const guiaExiste = Boolean(attributes.skydropx_tracking_number);
         const cfg = statusPedidoConfigUi[attributes.status];
         return (
           <Box key={id} mb={4}>
@@ -352,9 +345,39 @@ const PedidosPendientes = ({ store }) => {
 
             {/* Acciones del pedido */}
             <Box display="flex" gap={1} mt={2}>
-              <Button variant="contained" onClick={() => handleOpenPago({ id, attributes })}>Checar pago</Button>
+              <Button
+                variant="contained"
+                onClick={() => handleOpenPago({ id, attributes })}
+              >
+                Verificar pago
+              </Button>
 
-              {!guiaExiste ? (
+              {attributes.status === "pendiente_envio" && (
+                <Button
+                  variant="contained"
+                  disabled={apiLoading}
+                  startIcon={<LocalShippingIcon />}
+                  onClick={() => handleOpenGuia({ id, attributes })}
+                >
+                  Generar envío
+                </Button>
+              )}
+              {attributes.skydropx_tracking_number && (
+                <>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PrintIcon />}
+                  // onClick={() => handleAbrirGuia(attributes.skydropx_label_url)}
+                  >
+                    Imprimir guía
+                  </Button>
+
+                  <Typography variant="caption" display="block">
+                    Rastreo: {attributes.skydropx_tracking_number}
+                  </Typography>
+                </>
+              )}
+              {/* {!guiaExiste ? (
                 <Button variant="outlined" onClick={() => handleOpenGuia({ id, attributes })}>Generar guía</Button>
               ) : (
                 <>
@@ -363,7 +386,7 @@ const PedidosPendientes = ({ store }) => {
                   </Button>
                   <Button variant="contained" onClick={() => handleMarcarEnviado({ id, attributes })}>Marcar como enviado</Button>
                 </>
-              )}
+              )} */}
             </Box>
 
             {attributes.guia && (

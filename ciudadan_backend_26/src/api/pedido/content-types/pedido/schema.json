@@ -158,6 +158,12 @@
     },
     "skydropx_rate": {
       "type": "json"
+    },
+    "delivery_contact_information": {
+      "type": "json"
+    },
+    "pickup_contact_information": {
+      "type": "json"
     }
   }
 }
