@@ -139,6 +139,9 @@
     "usa_stock": {
       "type": "boolean",
       "default": false
+    },
+    "shipping": {
+      "type": "json"
     }
   }
 }

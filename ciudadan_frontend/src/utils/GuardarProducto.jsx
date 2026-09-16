@@ -37,6 +37,10 @@ export const GuardarProducto = async (params) => {
     fecha_creacion: new Date().toISOString(),
     slug: formData.nombre.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""),
     activo: true,
+    shipping: {
+      consignment_note: formData?.consignment_note ?? null,
+      package_type: formData?.package_type ?? null,
+    },
   };
 
   data.append('data', JSON.stringify(payload));

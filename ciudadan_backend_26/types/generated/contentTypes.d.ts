@@ -4561,6 +4561,7 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'api::favorito.favorito'
     >;
     usa_stock: Attribute.Boolean & Attribute.DefaultTo<false>;
+    shipping: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

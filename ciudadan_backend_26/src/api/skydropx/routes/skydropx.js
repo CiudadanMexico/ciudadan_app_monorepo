@@ -26,5 +26,21 @@ module.exports = {
         auth: false,
       },
     },
+    {
+      method: "GET",
+      path: "/skydropx/consignment-notes",
+      handler: "skydropx.getConsignmentNotes",
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: "GET",
+      path: "/skydropx/packagings",
+      handler: "skydropx.getPackagings",
+      config: {
+        auth: false,
+      },
+    },
   ],
 };
