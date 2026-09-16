@@ -260,7 +260,7 @@ export default function FinalizarCompra() {
       return false;
     }
 
-    if (notas && notas.length > 70){
+    if (notas && notas.length > 70) {
       enqueueSnackbar('La información adicional no debe superar los 70 caracteres', { variant: 'warning' });
       return false;
     }
@@ -299,7 +299,7 @@ export default function FinalizarCompra() {
             direccionDestinoId: selectedAddress?.id,
             items: storeData.items,
           });
-
+          const direccion_origen_id = response?.context?.dirección_origen_id;
           const quotationId = response?.quotation?.id;
 
           if (!quotationId)
@@ -318,6 +318,7 @@ export default function FinalizarCompra() {
               isCompleted: quotation?.is_completed ?? false,
               rates: quotation?.rates ?? [],
               raw: quotation?.raw ?? quotation ?? {},
+              direccion_origen_id,
             },
           ];
         })
@@ -446,6 +447,19 @@ export default function FinalizarCompra() {
     }
   };
 
+  const handleGetStoreDireccion = async (storeId) => {
+    try {
+      if (!storeId) return null;
+      const response = await fetch(`${STRAPI}/api/stores/${storeId}?populate=direccion`);
+      const response_data = await response.json().catch(() => null);
+      const store = response_data?.data;
+      const direccion = store?.attributes?.direccion?.data ?? {};
+      return { id: direccion?.id, ...direccion?.attributes }
+    } catch (error) {
+      return null;
+    }
+  };
+
   //  Función principal para crear pedidos agrupados por tienda.
   const handleCrearPedidos = async () => {
     console.log("-".repeat(20));
@@ -521,6 +535,11 @@ export default function FinalizarCompra() {
           const subtotal = storeItems.reduce((acc, i) => acc + (i.subtotal || 0), 0);
           const envio = obtenerEnvioTienda(storeKey);
           const storeName = storeGroup.store?.name ?? storeKey;
+          const cotizacionTienda = cotizacionesEnvio[storeKey];
+
+          console.log("Cotización tienda:", cotizacionTienda);
+          const direccionStore = await handleGetStoreDireccion(storeKey);
+          console.log("Dirección tienda:", direccionStore);
 
           console.log("handleCrearPedidos - creando pedido para tienda:", storeName, { subtotal, envio, cantidadItems: storeGroup.items.length, storeGroupStore: storeGroup.store });
 
@@ -534,6 +553,7 @@ export default function FinalizarCompra() {
               status: "pendiente_pago",
               carrito_id: carritoCreatedId,
               direccion_destino: selectedAddress.id,
+              direccion_origen: direccionStore?.id,
               store: Number(storeKey),
               skydropx_quotation_id: cotizacionesEnvio[storeKey].quotationId,
               skydropx_rate_id: tarifasSeleccionadas[storeKey].rateId,
