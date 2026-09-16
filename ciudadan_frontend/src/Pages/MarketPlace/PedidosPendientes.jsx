@@ -340,17 +340,22 @@ const PedidosPendientes = ({ store }) => {
             {itemList.length === 0 ? (
               <Typography color="text.secondary">No hay artículos en este pedido.</Typography>
             ) : (
-              renderItems(itemList)
+              <>
+                <Typography color="text.secondary">Productos:</Typography>
+                {renderItems(itemList)}
+              </>
             )}
 
             {/* Acciones del pedido */}
             <Box display="flex" gap={1} mt={2}>
-              <Button
-                variant="contained"
-                onClick={() => handleOpenPago({ id, attributes })}
-              >
-                Verificar pago
-              </Button>
+              {attributes?.status === "pendiente_verificacion" && (
+                <Button
+                  variant="contained"
+                  onClick={() => handleOpenPago({ id, attributes })}
+                >
+                  Verificar pago
+                </Button>
+              )}
 
               {attributes.status === "pendiente_envio" && (
                 <Button
