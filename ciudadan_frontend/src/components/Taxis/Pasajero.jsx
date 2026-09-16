@@ -38,22 +38,46 @@ const DEFAULT_PREFERENCES = {
   otro_genero: false,
 };
 
-//const OFFERS_STORAGE_KEY = 'pasajero-offers-v1';
-
 const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
   const navigate = useNavigate();
 
-  const [fromAddress, setFromAddress] = useState('');
-  const [toAddress, setToAddress] = useState('');
+  const [fromAddress, setFromAddress] = useState(() => {
+    const raw = localStorage.getItem('from_address');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
+  const [toAddress, setToAddress] = useState(() => {
+    const raw = localStorage.getItem('to_address');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
 
-  const [fromCoordinates, setFromCoordinates] = useState(null);
-  const [toCoordinates, setToCoordinates] = useState(null);
+  const [fromCoordinates, setFromCoordinates] = useState(() => {
+    const raw = localStorage.getItem('from_coords');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
+  const [toCoordinates, setToCoordinates] = useState(() => {
+    const raw = localStorage.getItem('to_coords');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
 
   const [fromMarkerPosition, setFromMarkerPosition] = useState(null);
   const [toMarkerPosition, setToMarkerPosition] = useState(null);
 
-  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(() => {
+    try {
+      const raw = localStorage.getItem('cancelar');
+      if (!raw) return false;
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('[Pasajero] error leyendo estado de búsqueda desde localStorage:', e);
+      return false;
+    }
+  });
+
   const [error, setError] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [sheetState, setSheetState] = useState('collapsed');
@@ -94,13 +118,17 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const offersRef = useRef([]); // same objects + { marker, infoWindow }
   const pendingOffersRef = useRef([]); // offers received before map is ready
 
-  /*useEffect(() => {
+  useEffect(() => {
     try {
-      localStorage.setItem(OFFERS_STORAGE_KEY, JSON.stringify(offers));
+      localStorage.setItem('cancelar', JSON.stringify(loadingSearch));
+      localStorage.setItem('from_address', JSON.stringify(fromAddress));
+      localStorage.setItem('to_address', JSON.stringify(toAddress));
+      localStorage.setItem('from_coords', JSON.stringify(fromCoordinates));
+      localStorage.setItem('to_coords', JSON.stringify(toCoordinates));
     } catch (e) {
-      console.warn('[Pasajero] error guardando ofertas persistidas en localStorage:', e);
+      console.warn('[Pasajero] error guardando estado de búsqueda en localStorage:', e);
     }
-  }, [offers]);*/
+  }, [loadingSearch, fromAddress, toAddress, fromCoordinates, toCoordinates]);
 
   // Selected offer for modal
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -181,7 +209,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       if (!userData) {
         throw new Error("No se encontró usuario");
       }
-      console.log('[Pasajero] datos del usuario cargados:', userData);
+      //console.log('[Pasajero] datos del usuario cargados:', userData);
       setPassenger(userData);
     } catch (err) {
       console.warn('[Pasajero] no se pudo cargar el usuario:', err);
@@ -378,7 +406,16 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       }
 
       try {
-        const { coordinates, price, id, travelId, driverEmail, travel, driverRating } = offer;
+        const {
+          id,
+          coordinates,
+          price,
+          travelId,
+          driverId,
+          driverEmail,
+          travel,
+          driverRating
+        } = offer;
 
         // Evitar duplicados: si ya existe un marker con este id, no crear otro
         if (offersRef.current.some((o) => o.id === id)) {
@@ -450,7 +487,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
         // Listener en marker: al click abrir modal y seleccionar oferta
         const markerClickListener = marker.addListener('click', () => {
-          setSelectedOffer({ id, travelId, coordinates, price, driverEmail, travel, driverRating });
+          setSelectedOffer(
+            { id, travelId, coordinates, price, driverId, driverEmail, travel, driverRating }
+          );
           setIsModalOpen(true);
         });
 
@@ -465,7 +504,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               elem.style.cursor = 'pointer';
               if (!elem._hasClick) {
                 elem.addEventListener('click', () => {
-                  setSelectedOffer({ id, travelId, coordinates, price, driverEmail, travel, driverRating });
+                  setSelectedOffer(
+                    { id, travelId, coordinates, price, driverId, driverEmail, travel, driverRating }
+                  );
                   setIsModalOpen(true);
                 });
                 elem._hasClick = true;
@@ -538,11 +579,12 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         const normalizedOffer = {
           id: offer.id,
           travelId: offer.attributes?.viaje?.data?.attributes?.travelid,
+          travel: offer.attributes?.viaje?.data?.attributes,
           coordinates: offer.attributes?.coordenadas,
           price: offer.attributes?.precio_sugerido,
-          driverRating: offer.attributes?.calif_conductor,
+          driverId: offer.attributes?.conductor?.data?.id,
           driverEmail: offer.attributes?.driver_email,
-          travel: offer.attributes?.viaje?.data?.attributes,
+          driverRating: offer.attributes?.calif_conductor,
           timestamp: offer.attributes?.createdAt || new Date().toISOString(),
         };
 
@@ -667,6 +709,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           offersRef.current.splice(idx, 1);
           setOffers((prev) => prev.filter((p) => p.driver?.email !== payload?.driver));
         }
+        await getTravelOffers();
       });
 
       // NUEVO: escucha del evento de oferta de viaje
@@ -674,10 +717,6 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         try {
           const coordinates =
             payload.coordinates || payload.coords || payload.location || null;
-          const price = payload.precio || payload.price || null;
-          const travel = payload.travel || payload.rawTravel || null;
-          const driverRating = payload.userRating || null;
-          const driver = payload.driver || null;
           if (
             !coordinates ||
             typeof coordinates.lat !== 'number' ||
@@ -689,23 +728,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             );
             return;
           }
-          const id = payload.meta.travelId;
+          //const id = payload.meta.travelId;
           await getTravelOffers();
-
-          const offer = {
-            id,
-            driver,
-            travel,
-            coordinates: {
-              lat: Number(coordinates.lat),
-              lng: Number(coordinates.lng),
-            },
-            price,
-            driverRating,
-            timestamp: new Date().toISOString(),
-            raw: payload,
-          };
-          //createMarkerForOffer(offer);
         } catch (e) {
           console.warn('[ofertaviaje] error procesando payload', e);
         }
@@ -1032,7 +1056,11 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
   // Aceptar oferta: ahora llama al backend /api/aceptar-viaje y navega a /taxis/viaje/:travelId
   const acceptOffer = async () => {
-    console.log('aceptando oferta');
+    setLoadingSearch(false);
+    setFromAddress(null);
+    setToAddress(null);
+    setFromCoordinates(null);
+    setToCoordinates(null);
 
     if (!selectedOffer) {
       console.warn('[acceptOffer] no hay oferta seleccionada');
@@ -1079,7 +1107,6 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           setSelectedOffer(null);
           setIsModalOpen(false);
         }
-        return;
       }
 
       try {
@@ -1104,6 +1131,14 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             }),
           }
         );
+
+        await fetch(`${strapiUrl}/api/drivers/${selectedOffer.driverId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            data: { en_viaje: true }
+          }),
+        });
       } catch (err) {
         console.error('[acceptOffer] error en fetch aceptar-viaje:', err);
         setError(err.message || 'Error actualizando estado de pasajero');
@@ -1215,7 +1250,6 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     if (socketRef.current) {
       socketRef.current.emit('cancel-search', user?.email);
     }
-
     removeAllOfferMarkers();
     setLoadingSearch(false);
   };

@@ -1,5 +1,5 @@
 // src/components/Trips/TripView.jsx
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ViajeConductor from './ViajeConductor.jsx';
 import ViajeUsuario from './ViajeUsuario.jsx';
@@ -10,9 +10,7 @@ import SolicitudCancelar from './SolicitudCancelar.jsx';
 import ConfirmarCancelar from './ConfirmarCancelar.jsx';
 import taxiIcon from '../../assets/taxi_marker.png';
 import userIcon from '../../assets/user_marker.png';
-import guestImage from '../../assets/guest.png';
 import { normalizeCoord } from '../../utils/mapUtils.jsx';
-import { PAYMENT_STATES, getTripPaymentFlowState } from '../../utils/tripPaymentFlowUtils.js';
 import { calculateDistanceKm } from '../../utils/geo';
 
 const ZOCALO = { lat: 19.432607, lng: -99.133209 };
@@ -71,7 +69,6 @@ const loadGoogleMaps = () => {
 };
 
 const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
-  //console.log('[TripView] user:', user);
   //console.log('[TripView] strapiConfig:', strapiConfig);
   const { travel } = useParams(); // :travel en la ruta (ej. offer-1765...)
   // travelD toma la última parte del path (por seguridad)
@@ -90,8 +87,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const [viaje, setViaje] = useState(null);
   const [loadingViaje, setLoadingViaje] = useState(false);
   const [statusPayment, setStatusPayment] = useState(null);
-  const [driverPaymentState, setDriverPaymentState] = useState(PAYMENT_STATES.pending);
-  const [passengerPaymentState, setPassengerPaymentState] = useState(PAYMENT_STATES.pending);
 
   // coordenadas locales / datos del viaje
   const [userCoords, setUserCoords] = useState(null); // posición del conductor (o GPS)
@@ -103,11 +98,12 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
   const [showVerifyPINModal, setShowVerifyPINModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [showAmountModal, setShowAmountModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
 
-  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [hasLabory, setHasLabory] = useState(false);
+  const [saldoLabory, setSaldoLabory] = useState(0);
   const [cashAmount, setCashAmount] = useState(0);
   const [laboryAmount, setLaboryAmount] = useState(0);
   const [simulationEnabled, setSimulationEnabled] = useState(false);
@@ -117,12 +113,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   const isDriver = !!user?.isDriver || user?.role === 'driver';
   const isTripFinished = ['finalizado', 'cerrado'].includes(tripStatus);
   const isTripInProgress = tripStatus === 'en_curso';
-
-  const paymentFlowState = getTripPaymentFlowState({
-    tripStatus,
-    driverPaymentState,
-    passengerPaymentState,
-  });
 
   // mapa & google refs
   const mapRef = useRef(null);
@@ -809,7 +799,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           return copy;
         });
       }
-      if (payload.status === 'cerrado' && !ratingSubmitted) setShowRatingModal(true);
+      if (payload.status === 'cerrado') setShowRatingModal(true);
     };
 
     try { socket.emit('joinRoom', { channel, client: { id: driverId } }); } catch (e) { }
@@ -982,39 +972,13 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
   }
 
   useEffect(() => {
-    if (!ratingSubmitted && paymentFlowState.shouldOpenRatingModal) {
-      setShowRatingModal(true);
-    }
-  }, [paymentFlowState.shouldOpenRatingModal, ratingSubmitted]);
-
-  useEffect(() => {
-    if (statusPayment === 'paid' || statusPayment === 'partial' || statusPayment === 'unpaid') {
-      setShowAmountModal(true);
+    if (statusPayment === 'paid' ||
+      statusPayment === 'partial' ||
+      statusPayment === 'unpaid'
+    ) {
+      setShowPaymentModal(true);
     }
   }, [statusPayment]);
-
-  /*const handlePassengerPaymentChoice = (nextState) => {
-    console.log('[TripView] handlePassengerPaymentChoice', nextState);
-    setPassengerPaymentState(nextState);
-
-    const socket = socketRef.current;
-    if (socket) {
-      try {
-        socket.emit('trip-update', {
-          status: nextState
-        });
-      } catch (e) {
-        console.warn('[TripView] error emitiendo trip-update', e);
-      }
-    }
-    setShowAmountModal(false);
-  };*/
-
-  const closeRatingFlow = () => {
-    setShowRatingModal(false);
-    setRatingSubmitted(true);
-    navigate('/taxis');
-  };
 
   const handleRatingSubmit = async (value) => {
     const base = (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE;
@@ -1023,7 +987,6 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
 
     if (!base || !viajeId) {
       setShowRatingModal(false);
-      setRatingSubmitted(true);
       return;
     }
 
@@ -1053,7 +1016,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
     } catch (e) {
       console.warn('[TripView] no se pudo guardar la calificación', e);
     } finally {
-      closeRatingFlow();
+      setShowRatingModal(false);
     }
   };
 
@@ -1066,25 +1029,28 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
           viaje={viaje}
           userData={userData}
           driverData={driverData}
-          socket={socketRef.current}
+          //socket={socketRef.current}
           strapiConfig={{ baseUrl: (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE, token: (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN }}
           userCoords={userCoords}
           routeInfo={routeInfo}
-          setUserCoords={setUserCoords}
-          travelData={travelData}
-          consultedTravel={consultedTravel}
-          handleTravelCardClick={handleTravelCardClick}
-          handleBackButtonClick={handleBackButtonClick}
-          handleCloseButtonClick={handleCloseButtonClick}
-          handleAcceptTrip={handleAcceptTrip}
+          //setUserCoords={setUserCoords}
+          //travelData={travelData}
+          //consultedTravel={consultedTravel}
+          //handleTravelCardClick={handleTravelCardClick}
+          //handleBackButtonClick={handleBackButtonClick}
+          //handleCloseButtonClick={handleCloseButtonClick}
+          //handleAcceptTrip={handleAcceptTrip}
           mapRef={mapRef}
           onStatusChange={handleTripStatusChange}
           onVerifyPIN={handleVerifyPIN}
           onCancel={handleCancelTrip}
+          onSaveRating={handleRatingSubmit}
           setStatusPayment={setStatusPayment}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
           setCashAmount={setCashAmount}
           setLaboryAmount={setLaboryAmount}
+          hasLabory={hasLabory}
+          saldoLabory={saldoLabory}
           simulationEnabled={simulationEnabled}
           onToggleSimulation={toggleTripSimulation}
         />
@@ -1092,14 +1058,19 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         <ViajeUsuario
           viaje={viaje}
           driverData={driverData}
-          socket={socketRef.current}
+          //socket={socketRef.current}
           userCoords={userCoords}
           routeInfo={routeInfo}
-          setUserCoords={setUserCoords}
+          //setUserCoords={setUserCoords}
           mapRef={mapRef}
           setConsultedTravel={setConsultedTravel}
           paymentAmount={viaje?.attributes?.costo || viaje?.attributes?.price || null}
+          hasLabory={hasLabory}
+          saldoLabory={saldoLabory}
+          setHasLabory={setHasLabory}
+          setSaldoLabory={setSaldoLabory}
           onCancel={handleCancelTrip}
+          onSaveRating={handleRatingSubmit}
         />
       )}
       <VerifyPIN
@@ -1113,7 +1084,7 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
         open={showRatingModal}
         isDriver={isDriver}
         onSubmit={handleRatingSubmit}
-        onClose={closeRatingFlow}
+        onClose={() => setShowRatingModal(false)}
       />
       <SolicitudCancelar
         trip={viaje}
@@ -1131,12 +1102,14 @@ const TripView = ({ user, socket: externalSocket, strapiConfig }) => {
       />
       {isDriver && (
         <ConfirmPayment
-          open={showAmountModal}
-          onClose={() => setShowAmountModal(false)}
+          open={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
           onSubmit={handleTripStatusChange}
           tripData={viaje}
           statusPayment={statusPayment}
           setStatusPayment={setStatusPayment}
+          hasLabory={hasLabory}
+          saldoLabory={saldoLabory}
           cashAmount={cashAmount}
           laboryAmount={laboryAmount}
           strapiConfig={{ baseUrl: (strapiConfig && strapiConfig.baseUrl) ? strapiConfig.baseUrl : STRAPI_BASE, token: (strapiConfig && strapiConfig.token) ? strapiConfig.token : STRAPI_TOKEN }}

@@ -59,13 +59,12 @@ router.post('/aceptar-viaje', async (req, res) => {
     }
 
     /* ======================================================
-       1️⃣ Buscar el viaje existente por travelid
+      Buscar el viaje existente por travelid
     ====================================================== */
     const findResp = await axios.get(
       `${STRAPI_URL}/api/viajes?filters[travelid][$eq]=${encodeURIComponent(travelIdFinal)}`,
       { headers: buildStrapiHeaders(), timeout: 10000 }
     );
-    console.log(`[aceptar-viaje] findResp.data:`, findResp.data);
 
     const existing = findResp.data?.data?.[0];
     console.log(`[aceptar-viaje] viaje encontrado: ${existing ? existing : 'no encontrado'}`);
@@ -75,11 +74,32 @@ router.post('/aceptar-viaje', async (req, res) => {
     }
 
     /* ======================================================
-       2️⃣ Preparar SOLO los campos a actualizar
+      Buscar el conductor existente por driverEmail
+    ====================================================== */
+    const resp = await axios.get(
+      `${STRAPI_URL}/api/users?filters[email][$eq]=${driverEmail}`,
+      { headers: buildStrapiHeaders(), timeout: 10000 }
+    );
+    if (!resp) {
+      console.warn('[aceptar-viaje] error obteniendo usuario de Strapi');
+      return;
+    }
+
+    const user = await resp.data;
+    if (!user) {
+      console.warn('[aceptar-viaje] no se encontró usuario Strapi con email:', user);
+      return;
+    }
+    const driverId = user[0].id;
+    console.log('[aceptar-viaje] driverId obtenido:', driverId);
+
+    /* ======================================================
+      Preparar SOLO los campos a actualizar
     ====================================================== */
     const pin = generatePIN();
 
     const updateData = {
+      conductor: driverId,
       conductormail: driverEmail,
       status: 'iniciando',
       pincode: pin,
@@ -102,16 +122,8 @@ router.post('/aceptar-viaje', async (req, res) => {
       updateData.costo = costo;
     }
 
-    if (typeof pagadoefectivo === 'number') {
-      updateData.pagadoefectivo = pagadoefectivo;
-    }
-
-    if (typeof pagadolabory === 'number') {
-      updateData.pagadolabory = pagadolabory;
-    }
-
     /* ======================================================
-       3️⃣ Update REAL del viaje (NO POST)
+      Update REAL del viaje (NO POST)
     ====================================================== */
     const updateResp = await axios.put(
       `${STRAPI_URL}/api/viajes/${existing.id}`,
@@ -122,7 +134,7 @@ router.post('/aceptar-viaje', async (req, res) => {
     const updated = updateResp.data?.data || null;
 
     /* ======================================================
-       4️⃣ Emitir evento por socket
+      Emitir evento por socket
     ====================================================== */
     try {
       const io = req.app?.get?.('io');

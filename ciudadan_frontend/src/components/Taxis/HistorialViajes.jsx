@@ -76,7 +76,7 @@ const normalizeTravel = (entry) => {
             getStringValue(attrs.destinationAddress) ||
             getStringValue(attrs.destination) ||
             'Sin destino',
-        updatedAt: attrs.updatedAt || attrs.createdAt || attrs.solicitado || null,
+        updatedAt: attrs.iniciado || null,
     };
 };
 

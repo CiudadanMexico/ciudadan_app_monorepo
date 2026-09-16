@@ -441,6 +441,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, rejectOffer, cl
               borderRadius: 8,
               border: "none",
               background: loading ? "#ccc" : "#e31717",
+              fontWeight: 700,
               color: "#fff",
               cursor: loading ? "default" : "pointer",
             }}
@@ -457,6 +458,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, rejectOffer, cl
               borderRadius: 8,
               border: "none",
               background: loading ? "#ccc" : "#12aa12",
+              fontWeight: 700,
               color: "#fff",
               cursor: loading ? "default" : "pointer",
             }}

@@ -2916,6 +2916,54 @@ export interface ApiDriverLocationDriverLocation extends Schema.CollectionType {
   };
 }
 
+export interface ApiDriverVerifierCandidacyDriverVerifierCandidacy
+  extends Schema.CollectionType {
+  collectionName: 'driver_verifier_candidacies';
+  info: {
+    singularName: 'driver-verifier-candidacy';
+    pluralName: 'driver-verifier-candidacies';
+    displayName: 'Driver Verifier Candidacy';
+    description: 'Candidatura de L\u00EDder Verificador de Conductores';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::driver-verifier-candidacy.driver-verifier-candidacy',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    > &
+      Attribute.Private;
+    referred_drivers: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    registered_since: Attribute.DateTime;
+    closes_at: Attribute.DateTime;
+    activated: Attribute.Boolean & Attribute.DefaultTo<false>;
+    closed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::driver-verifier-candidacy.driver-verifier-candidacy',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::driver-verifier-candidacy.driver-verifier-candidacy',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiEnlaceEnlace extends Schema.CollectionType {
   collectionName: 'enlaces';
   info: {
@@ -4866,6 +4914,10 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
   };
   attributes: {
     labory_to_pesos_exchange_rate: Attribute.Decimal;
+    driver_verifier_testing_days: Attribute.Integer & Attribute.DefaultTo<15>;
+    driver_verifier_required_referrals: Attribute.Integer &
+      Attribute.DefaultTo<10>;
+    verifier_candidates_whatsapp_group_url: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5860,6 +5912,7 @@ declare module '@strapi/types' {
       'api::direccion.direccion': ApiDireccionDireccion;
       'api::driver.driver': ApiDriverDriver;
       'api::driver-location.driver-location': ApiDriverLocationDriverLocation;
+      'api::driver-verifier-candidacy.driver-verifier-candidacy': ApiDriverVerifierCandidacyDriverVerifierCandidacy;
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
       'api::favorito.favorito': ApiFavoritoFavorito;

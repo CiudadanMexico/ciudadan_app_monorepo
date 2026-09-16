@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useCallback, useState } from 'react';
 
 const ConfirmPayment = ({
     tripData,
@@ -6,6 +7,8 @@ const ConfirmPayment = ({
     setStatusPayment,
     cashAmount,
     laboryAmount,
+    hasLabory,
+    saldoLabory,
     open,
     onClose,
     onSubmit,
@@ -14,10 +17,23 @@ const ConfirmPayment = ({
     const [monto, setMonto] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const { getAccessTokenSilently } = useAuth0();
+
+    const getToken = useCallback(async () => {
+        try {
+            return await getAccessTokenSilently({
+                authorizationParams: { audience: 'https://api.ciudadan.org' },
+            });
+        } catch (e) {
+            console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+            return null;
+        }
+    }, [getAccessTokenSilently]);
 
     if (!open) return null;
 
     const userEmail = tripData?.attributes?.pasajeromail;
+    const userId = tripData?.attributes?.pasajero?.data?.id;
     const driverId = tripData?.attributes?.conductor?.data?.id;
 
     const headers = { 'Content-Type': 'application/json' };
@@ -41,16 +57,45 @@ const ConfirmPayment = ({
             break;
     }
 
+    const transferPayment = async () => {
+        if (!hasLabory || saldoLabory <= 0 || !strapiConfig?.baseUrl) return;
+
+        try {
+            const url = `${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viaje/pagar`;
+            const token = await getToken();
+
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({
+                    userId,
+                    amount: laboryAmount
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('No se pudo consultar la cartera del usuario');
+            }
+            const data = await response.json();
+            console.log('[ConfirmPayment] pago confirmado:', data);
+        } catch (err) {
+            console.warn('[ConfirmPayment] no se pudo confirmar el pago:', err);
+        }
+    }
+
     const confirmPayment = async () => {
         if (!strapiConfig?.baseUrl || !tripData) return;
 
         try {
-            await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viajes/${tripData?.id}`, {
+            // Hacer la transferencia del pasajero al conductor
+            await transferPayment();
+
+            // Guardar pago del pasajero en strapi
+            const payResp = await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/viajes/${tripData?.id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(strapiConfig.token ? { Authorization: `Bearer ${strapiConfig.token}` } : {})
-                },
+                headers,
                 body: JSON.stringify({
                     data: {
                         pagadoefectivo: Number(cashAmount),
@@ -59,12 +104,16 @@ const ConfirmPayment = ({
                     }
                 }),
             });
+            if (!payResp.ok) {
+                throw new Error('No se pudo guardar el pago del usuario');
+            }
 
-            const response = await fetch(
+            // Actualizar disponibilidad de viaje en pasajero y conductor
+            const findResp = await fetch(
                 `${strapiConfig.baseUrl}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}`,
                 { headers }
             );
-            const findData = await response.json();
+            const findData = await findResp.json();
             const existing = findData?.data?.[0];
 
             await fetch(
@@ -86,7 +135,7 @@ const ConfirmPayment = ({
                 }),
             });
         } catch (error) {
-            console.error('Error al confirmar el pago:', error);
+            console.error('[ConfirmPayment] Error al confirmar el pago:', error);
             setError('Ocurrió un error al confirmar el pago. Por favor, inténtelo de nuevo.');
             setIsSubmitting(false);
             return;
@@ -131,7 +180,8 @@ const ConfirmPayment = ({
                 destino_direccion: tripData.attributes.destinodireccion.label,
                 viaje: tripData.id,
             };
-            await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/taxi-debts`, {
+
+            const response = await fetch(`${strapiConfig.baseUrl.replace(/\/$/, '')}/api/taxi-debts`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,7 +189,10 @@ const ConfirmPayment = ({
                 },
                 body: JSON.stringify({ data: payload }),
             });
-        } catch (e) { console.error('no pudo agregar deuda', e); }
+            if (!response.ok) {
+                throw new Error('No se pudo guardar el pago del usuario');
+            }
+        } catch (e) { console.error('[ConfirmPayment] no pudo agregar deuda', e); }
 
         await confirmPayment();
         if (typeof onSubmit === 'function') onSubmit('cerrado');

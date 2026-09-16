@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Rating from '@mui/material/Rating';
+import { useNavigate } from 'react-router-dom';
 
 const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
+  const navigate = useNavigate();
   const [selectedRating, setSelectedRating] = useState(0);
 
   useEffect(() => {
@@ -12,11 +14,12 @@ const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
 
   const title = isDriver ? 'Califica al pasajero' : 'Califica al conductor';
   const description = isDriver
-    ? 'Tu valoración ayuda a mejorar la experiencia del viaje.'
-    : 'Tu valoración ayuda a reconocer el servicio del conductor.';
+    ? 'Tu valoración ayuda a mejorar la experiencia del viaje'
+    : 'Tu valoración ayuda a reconocer el servicio del conductor';
 
   const handleSubmit = () => {
     if (typeof onSubmit === 'function') onSubmit(selectedRating || null);
+    navigate('/taxis');
   };
 
   return (
@@ -76,22 +79,26 @@ const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof onClose === 'function') onClose();
-            }}
-            style={{
-              flex: 1,
-              padding: '12px 14px',
-              borderRadius: 10,
-              border: '1px solid #ddd',
-              background: '#fff',
-              fontWeight: 600,
-            }}
-          >
-            Omitir
-          </button>
+          {selectedRating !== 0 &&
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof onClose === 'function') onClose();
+                navigate('/taxis');
+              }}
+              style={{
+                flex: 1,
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: '1px solid #ddd',
+                background: '#fff',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Omitir
+            </button>
+          }
           <button
             type="button"
             onClick={handleSubmit}
@@ -103,7 +110,7 @@ const RatingModal = ({ open, isDriver, onSubmit, onClose }) => {
               background: '#2f6fed',
               color: '#fff',
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: 'pointer'
             }}
           >
             {selectedRating ? 'Guardar calificación' : 'Guardar sin calificación'}

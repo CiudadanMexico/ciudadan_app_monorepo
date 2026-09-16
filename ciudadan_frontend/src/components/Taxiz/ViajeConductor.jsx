@@ -1,6 +1,7 @@
 // src/components/Trips/ViajeConductor.jsx
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Rating } from '@mui/material';
 
 // Este componente mantiene la UX/controles que ya diseñamos antes (botones, iniciar/terminar, centrar, tarjeta colapsable)
 // pero **usa** la lógica de mapas y markers del Conductor.js (esa lógica ya está en TripView).
@@ -8,26 +9,30 @@ const ViajeConductor = ({
   viaje,
   userData,
   driverData,
-  socket,
   strapiConfig,
   userCoords,
   routeInfo,
-  setUserCoords,
   mapRef,
   onStatusChange,
   onVerifyPIN,
   onCancel,
+  onSaveRating,
   setStatusPayment,
   paymentAmount,
   setCashAmount,
   setLaboryAmount,
+  hasLabory,
+  saldoLabory,
   simulationEnabled,
   onToggleSimulation,
 }) => {
+  const rating = viaje?.attributes?.calificacionpasajero || null;
   const [expanded, setExpanded] = useState(true);
   const [status, setStatus] = useState(viaje?.attributes?.status || 'pending');
-  const [hasLabory, setHasLabory] = useState(false);
-  const [saldoLabory, setSaldoLabory] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(rating);
+  const [canSave, setCanSave] = useState(false);
+  //const [hasLabory, setHasLabory] = useState(false);
+  //const [saldoLabory, setSaldoLabory] = useState(0);
 
   //const routeInfo = viaje?.attributes?.routeInfo || null;
   const { getAccessTokenSilently } = useAuth0();
@@ -47,12 +52,15 @@ const ViajeConductor = ({
     setStatus(viaje?.attributes?.status || 'pending');
   }, [viaje?.attributes?.status]);
 
+  useEffect(() => {
+    if (rating) setSelectedRating(rating);
+  }, [rating]);
+
   // eslint-disable-next-line no-unused-vars
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
+
   const userEmail = viaje?.attributes?.pasajeromail;
-  // eslint-disable-next-line no-unused-vars
-  const driverEmail = viaje?.attributes?.conductormail;
   const userId = viaje?.attributes?.pasajero?.data?.id;
   const driverId = viaje?.attributes?.conductor?.data?.id;
   const isTripFree = viaje?.attributes?.isTripFree || false;
@@ -66,7 +74,7 @@ const ViajeConductor = ({
     if (typeof onCancel === 'function') onCancel();
   };
 
-  const consultarSaldo = useCallback(async () => {
+  /*const consultarSaldo = useCallback(async () => {
     if (!strapiConfig?.baseUrl) return;
 
     try {
@@ -88,9 +96,9 @@ const ViajeConductor = ({
     } catch (err) {
       console.warn('[Pasajero] no se pudo consultar la cartera del usuario:', err);
     }
-  }, [getToken, strapiConfig?.baseUrl]);
+  }, [getToken, strapiConfig?.baseUrl]);*/
 
-  const loadLabory = useCallback(async () => {
+  /*const loadLabory = useCallback(async () => {
     if (!userEmail || !strapiConfig?.baseUrl) return;
 
     try {
@@ -119,21 +127,9 @@ const ViajeConductor = ({
 
   useEffect(() => {
     loadLabory();
-  }, [loadLabory]);
+  }, [loadLabory]);*/
 
-  useEffect(() => {
-    if (!socket || !viaje?.id) return;
-    const channel = viaje.id;
-    console.log('[ViajeConductor] uniendo a canal de viaje:', channel);
-
-    try { socket.emit('joinRoom', { channel, client: { type: 'driver' } }); } catch (e) { }
-
-    return () => {
-      try { socket.emit('leaveRoom', { channel, client: { type: 'driver' } }); } catch (e) { }
-    };
-  }, [socket, viaje, setUserCoords]);
-
-  const confirmPayment = async (amount) => {
+  /*const confirmPayment = async (amount) => {
     if (!strapiConfig?.baseUrl) return;
 
     try {
@@ -161,19 +157,17 @@ const ViajeConductor = ({
     } catch (err) {
       console.warn('[Pasajero] no se pudo confirmar el pago:', err);
     }
-  };
+  };*/
 
   const handlePaymentChoice = async (nextState) => {
     setStatusPayment(nextState);
-    /*setStatus(nextState);
-    if (typeof onStatusChange === 'function') onStatusChange(nextState);*/
 
     if (hasLabory && saldoLabory > 0) {
       const amountLabory = saldoLabory >= (paymentAmount * 0.1)
         ? paymentAmount * 0.1 : saldoLabory;
       setCashAmount(paymentAmount - amountLabory);
       setLaboryAmount(amountLabory);
-      await confirmPayment(amountLabory);
+      //await confirmPayment(amountLabory);
     } else {
       setCashAmount(paymentAmount);
     }
@@ -234,6 +228,11 @@ const ViajeConductor = ({
       });
     } catch (e) { console.warn('no pudo actualizar viaje', e); }
   }
+
+  const handleSubmit = () => {
+    if (typeof onSaveRating === 'function') onSaveRating(selectedRating || null);
+    setCanSave(false);
+  };
 
   const username = userData?.nombre_completo || userData?.username || 'Usuario';
   let userPhoto = null;
@@ -334,8 +333,9 @@ const ViajeConductor = ({
                           <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
                         </div>
                         <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
-                          Efectivo restante:
-                          <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong>
+                          Efectivo restante: <strong style={{ color: '#12aa12' }}>
+                            ${Number(paymentAmount * 0.9).toFixed(2)} MXN
+                          </strong>
                         </div>
                       </>
                     )}
@@ -441,6 +441,52 @@ const ViajeConductor = ({
                 style={{ flex: 1, minWidth: 110, padding: 10, borderRadius: 8, background: '#2f6fed', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
                 Confirmar viaje gratis
               </button>
+          )}
+
+          {status === 'cerrado' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: '#ddd',
+              borderRadius: 8,
+              width: '75%',
+              gap: 16,
+              padding: 20,
+              margin: '12px auto'
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 700, textAlign: 'center' }}>
+                Tu valoración ayuda a mejorar la experiencia del viaje
+              </div>
+              <Rating
+                name="simple-controlled"
+                value={selectedRating}
+                sx={{ fontSize: 40 }}
+                onChange={(e, newValue) => {
+                  setSelectedRating(newValue);
+                  setCanSave(true);
+                }}
+                size="large"
+              />
+              <button
+                type="button"
+                disabled={!canSave}
+                onClick={handleSubmit}
+                style={{
+                  padding: '12px 14px',
+                  width: '100%',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: '#2f6fed',
+                  opacity: !canSave && 0.5,
+                  color: '#fff',
+                  fontWeight: 700,
+                  cursor: canSave ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Guardar calificación
+              </button>
+            </div>
           )}
 
           <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>

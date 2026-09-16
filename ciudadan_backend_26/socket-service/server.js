@@ -251,7 +251,8 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const url = `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas?filters[user_email][$eq]=${payload.user}&filters[driver_email][$eq]=${payload.driver}&populate=*`;
+      const url =
+        `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas?filters[$or][0][user_email][$eq]=${payload.user}&filters[$or][1][driver_email][$eq]=${payload.driver}&populate=*`;
       const res = await axios.get(url, { headers });
 
       if (!res) return;

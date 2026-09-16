@@ -1,6 +1,8 @@
 // src/components/Trips/ViajeUsuario.jsx
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Rating } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 // normaliza coords a {lat, lng} o null
 const normalizeCoord = (c) => {
@@ -21,18 +23,21 @@ const normalizeCoord = (c) => {
 const ViajeUsuario = ({
   viaje,
   driverData,
-  socket,
   userCoords,
   routeInfo,
-  setUserCoords,
   mapRef,
-  setConsultedTravel,
   paymentAmount,
-  onCancel
+  hasLabory,
+  saldoLabory,
+  setHasLabory,
+  setSaldoLabory,
+  onCancel,
+  onSaveRating
 }) => {
   const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
   const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || "";
   const { getAccessTokenSilently } = useAuth0();
+  const navigate = useNavigate();
 
   const getToken = useCallback(async () => {
     try {
@@ -53,14 +58,20 @@ const ViajeUsuario = ({
   const destiNorm = normalizeCoord(viaje?.attributes?.destination);
   const taxiNorm = normalizeCoord(userCoords);
   const userEmail = viaje?.attributes?.pasajeromail;
+  const rating = viaje?.attributes?.calificacionconductor || null;
 
   const [expanded, setExpanded] = useState(true);
-  const [hasLabory, setHasLabory] = useState(false);
-  const [saldoLabory, setSaldoLabory] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(rating);
+  const [canSave, setCanSave] = useState(false);
+  //const [hasLabory, setHasLabory] = useState(false);
+  //const [saldoLabory, setSaldoLabory] = useState(0);
   const status = viaje?.attributes?.status || 'esperando';
   const pincode = viaje?.attributes?.pincode || null;
   const isTripFree = viaje?.attributes?.isTripFree || false;
-  //const routeInfo = viaje?.attributes?._routeInfo || null;
+
+  useEffect(() => {
+    if (rating) setSelectedRating(rating);
+  }, [rating]);
 
   const interrumpirViaje = async () => {
     if (typeof onCancel === 'function') onCancel();
@@ -138,50 +149,14 @@ const ViajeUsuario = ({
     }
   }, [strapiToken, strapiUrl, userEmail, consultarSaldo]);
 
-  /*const confirmPayment = async (amount) => {
-    if (!strapiUrl) return;
-
-    try {
-      const url = `${strapiUrl}/api/viaje/pagar`;
-      const headers = { 'Content-Type': 'application/json' };
-      const token = await getToken();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          driverId: viaje?.attributes?.conductor?.data?.id,
-          amount
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('No se pudo consultar la cartera del usuario');
-      }
-
-      const data = await response.json();
-    } catch (err) {
-      console.warn('[Pasajero] no se pudo confirmar el pago:', err);
-    }
-  };*/
-
   useEffect(() => {
     loadLabory();
   }, [loadLabory]);
 
-  useEffect(() => {
-    if (!socket || !viaje?.id) return;
-    const channel = viaje.id;
-    console.log('[ViajeUsuario] uniendo a canal:', channel);
-
-    try { socket.emit('joinRoom', { channel, client: { type: 'passenger' } }); } catch (e) { }
-
-    return () => {
-      try { socket.emit('leaveRoom', { channel, client: { type: 'passenger' } }); } catch (e) { }
-    };
-  }, [socket, viaje, setUserCoords]);
+  const handleSubmit = () => {
+    if (typeof onSaveRating === 'function') onSaveRating(selectedRating || null);
+    setCanSave(false);
+  };
 
   return (
     <div style={{
@@ -372,9 +347,70 @@ const ViajeUsuario = ({
             )
           )}
           {status === 'finalizado' && (
-            <h4 style={{ color: '#151bc1', textAlign: 'center' }}>
-              Confirma tu pago con el conductor
-            </h4>
+            <button onClick={() => navigate('/taxis')}
+              style={{
+                flex: 1,
+                minWidth: 110,
+                padding: 10,
+                marginBottom: 8,
+                borderRadius: 8,
+                background: '#2f6fed',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}>
+              {isTripFree
+                ? 'Confirmar viaje gratis'
+                : 'Confirma tu pago con el conductor'
+              }
+            </button>
+          )}
+
+          {status === 'cerrado' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: '#ddd',
+              borderRadius: 8,
+              width: '75%',
+              gap: 16,
+              padding: 20,
+              margin: '12px auto'
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 700, textAlign: 'center' }}>
+                Tu valoración ayuda a reconocer el servicio del conductor
+              </div>
+              <Rating
+                name="simple-controlled"
+                value={selectedRating}
+                sx={{ fontSize: 40 }}
+                onChange={(e, newValue) => {
+                  setSelectedRating(newValue);
+                  setCanSave(true);
+                }}
+                size="large"
+              />
+              <button
+                type="button"
+                disabled={!canSave}
+                onClick={handleSubmit}
+                style={{
+                  padding: '12px 14px',
+                  width: '100%',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: '#2f6fed',
+                  opacity: !canSave && 0.5,
+                  color: '#fff',
+                  fontWeight: 700,
+                  cursor: canSave ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Guardar calificación
+              </button>
+            </div>
           )}
 
           <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
@@ -406,24 +442,6 @@ const ViajeUsuario = ({
               MARCAR AL 911
             </button>
           </div>
-
-          {/*paymentFlowState?.isPaymentFlowActive && (
-            <div style={{ borderTop: '1px solid #eee', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {paymentFlowState.showPassengerConfirmationOptions && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => onPassengerPaymentChoice?.('paid')} style={{ flex: 1, padding: 10, borderRadius: 8, background: '#2f6fed', color: '#fff', border: 'none', fontWeight: 700 }}>
-                    Sí pagué
-                  </button>
-                  <button onClick={() => onPassengerPaymentChoice?.('pending')} style={{ flex: 1, padding: 10, borderRadius: 8, background: '#f5a623', color: '#fff', border: 'none', fontWeight: 700 }}>
-                    Pago pendiente
-                  </button>
-                </div>
-              )}
-              {passengerPaymentState === 'paid' && (
-                <div style={{ fontSize: 13, color: '#2f6fed' }}>Pago confirmado.</div>
-              )}
-            </div>
-          )*/}
         </div>
       )}
     </div>
