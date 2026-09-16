@@ -705,6 +705,7 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       }>;
     email: Attribute.Email &
       Attribute.Required &
+      Attribute.Unique &
       Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
@@ -4908,6 +4909,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     singularName: 'site-setting';
     pluralName: 'site-settings';
     displayName: 'Site_setting';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -4918,6 +4920,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     driver_verifier_required_referrals: Attribute.Integer &
       Attribute.DefaultTo<10>;
     verifier_candidates_whatsapp_group_url: Attribute.String;
+    whatsapp_number: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

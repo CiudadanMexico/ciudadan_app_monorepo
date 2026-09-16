@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Rating } from '@mui/material';
+import { sendToWhatsApp } from '../../utils/sendToWhatsApp';
 
 // Este componente mantiene la UX/controles que ya diseñamos antes (botones, iniciar/terminar, centrar, tarjeta colapsable)
 // pero **usa** la lógica de mapas y markers del Conductor.js (esa lógica ya está en TripView).
@@ -493,7 +494,7 @@ const ViajeConductor = ({
             En caso de emergencia, puede marcar a los siguientes contactos.
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-            <button onClick={() => { }}
+            <button onClick={sendToWhatsApp}
               style={{
                 padding: 12,
                 borderRadius: 8,

@@ -4,7 +4,8 @@
   "info": {
     "singularName": "site-setting",
     "pluralName": "site-settings",
-    "displayName": "Site_setting"
+    "displayName": "Site_setting",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -27,6 +28,9 @@
     "verifier_candidates_whatsapp_group_url": {
       "type": "string",
       "comment": "URL del grupo de WhatsApp de candidatos a Líder Verificador (la usa la landing)"
+    },
+    "whatsapp_number": {
+      "type": "string"
     }
   }
 }

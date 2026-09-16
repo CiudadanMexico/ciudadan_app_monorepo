@@ -155,7 +155,7 @@ const ConfirmPayment = ({
             return;
         }
 
-        if (monto <= 0) {
+        if (monto < 0) {
             setError('Por favor, ingrese un monto válido');
             setIsSubmitting(false);
             return;
