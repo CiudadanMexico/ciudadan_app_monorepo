@@ -188,70 +188,54 @@ function buildParcelsFromItems(items = []) {
  * email
  * reference
  */
-function normalizeShipmentAddress(
-  direccion,
-  options = {}
-) {
+function normalizeShipmentAddress(direccion, options = {}) {
   if (!direccion) {
     throw new Error("La dirección es requerida para crear el envío");
   }
 
-  const attrs = direccion?.attributes || direccion;
-  const direccionJson = attrs.direccion || {};
-  const postalCode = direccionJson.postal_code || attrs.cp;
-  const state = direccionJson.state || attrs.estado;
-  const city = direccionJson.city || attrs.ciudad;
-  const neighborhood = direccionJson.neighborhood;
-  const street = direccionJson.street || attrs.route;
-  const number = direccionJson.number || attrs.numero;
-  const formattedAddress = direccionJson.formatted_address || "";
-  const reference = attrs.observaciones || options.reference || formattedAddress;
+  const direccionJson = direccion?.direccion ?? {};
+  const postalCode = direccionJson.postal_code ?? direccion.cp;
+  const state = direccionJson.state ?? direccion.estado;
+  const city = direccionJson.city ?? direccion.ciudad;
+  const neighborhood = direccionJson.neighborhood?? direccion?.colonia;
+  const street = direccionJson.street ?? direccion.route;
+  const number = direccionJson.number ?? direccion.numero;
+  const formattedAddress = direccionJson.formatted_address ?? "";
+  const reference = direccion.observaciones ?? options.reference ?? formattedAddress;
 
-  const name = options.name || attrs.nombre || "";
+  const name = options?.name ?? direccion.nombre ?? "";
+  const company = options?.company ?? "";
+  const phone = options?.phone ?? "";
+  const email = options?.email ?? "";
 
-  const company = options.company || "";
-
-  const phone = options.phone || "";
-
-  const email = options.email || "";
-
-  if (!postalCode) {
+  if (!postalCode)
     throw new Error("La dirección no tiene código postal");
-  }
 
-  if (!state) {
+  if (!state)
     throw new Error("La dirección no tiene estado");
-  }
 
-  if (!city) {
+  if (!city)
     throw new Error("La dirección no tiene ciudad");
-  }
 
-  if (!neighborhood) {
+  if (!neighborhood)
     throw new Error("La dirección no tiene colonia");
-  }
 
-  if (!street && !formattedAddress) {
+  if (!street && !formattedAddress)
     throw new Error("La dirección no tiene calle");
-  }
 
-  if (!name) {
+  if (!name)
     throw new Error("No se pudo determinar el nombre del destinatario/remitente");
-  }
 
-  if (!company) {
+  if (!company)
     throw new Error("No se pudo determinar la empresa del remitente/destinatario");
-  }
 
-  if (!phone) {
+  if (!phone)
     throw new Error("Se requiere un teléfono para crear el envío en Skydropx");
-  }
 
-  if (!email) {
+  if (!email)
     throw new Error("Se requiere un correo electrónico para crear el envío en Skydropx");
-  }
 
-  const street1 = street && number ? `${street} ${number}` : street || formattedAddress;
+  const street1 = street && number ? (street.includes(number) ? street : `${street} ${number}`) : street || formattedAddress;
 
   return {
     country_code: "MX",
@@ -286,9 +270,27 @@ function buildShipmentPackages(items) {
     throw new Error("No se encontraron productos para crear el envío");
   }
 
-  return items.map((item, index) => ({
-    package_number: String(index + 1),
-  }));
+  
+
+  return items.map((item, index) => {
+    const producto = item?.producto;
+
+    return {
+      package_number: String(index + 1),
+      consignment_note: producto?.shipping?.consignment_note,
+      package_type: producto?.shipping?.package_type,
+      products:[
+        {
+          product_id: `product-market-${producto?.id}`,
+          name: producto?.nombre?.slice(0,40),
+          description_en: producto?.descripcion?.slice(0,50),
+          quantity: item.cantidad,
+          price: item?.precio_unitario ?? producto?.precio,
+          country_code: "MX"
+        }
+      ]
+    }
+  });
 }
 
 /**
@@ -370,7 +372,7 @@ async function getPackagings({ page = 1, per_page = 20, code, name }) {
     params.append('name', name);
   }
 
-  return skydropxRequest(`/api/v1/shipments/packagings?${params.toString()}`,{ method: "GET" });
+  return skydropxRequest(`/api/v1/shipments/packagings?${params.toString()}`, { method: "GET" });
 };
 
 /**
@@ -410,16 +412,12 @@ async function createShipment(shipment) {
       // Evita crear dos envíos accidentalmente si el administrador pulsa dos veces.
       unique_shipment: shipment.unique_shipment !== false,
       // Formato de guía.
-      printing_format: shipment.printing_format || "standard",
+      printing_format: shipment?.printing_format ?? "standard",
       // * Opcional. Generamos también packing slip.
-      include_order_detail: Boolean(shipment.include_order_detail),
+      include_order_detail: Boolean(shipment?.include_order_detail),
       address_from: shipment.address_from,
       address_to: shipment.address_to,
       packages: shipment.packages,
-      // Sólo se agregan si fueron proporcionados.
-      ...(shipment.office_delivery ? { office_delivery: true, office_delivery_point_id: shipment.office_delivery_point_id, } : {}),
-      ...(shipment.office_pickup ? { office_pickup: true, office_pickup_point_id: shipment.office_pickup_point_id, } : {}),
-      ...(Array.isArray(shipment.products) ? { products: shipment.products, } : {}),
     },
   };
 

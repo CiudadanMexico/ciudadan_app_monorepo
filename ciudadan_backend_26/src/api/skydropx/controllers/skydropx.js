@@ -356,6 +356,7 @@ module.exports = {
       strapi.log.debug(JSON.stringify({
         store_id,
         direccion_destino_id,
+        direccion_origen_id: store?.direccion?.id,
         quotation: quotationPayload
       }, null, 2));
 
@@ -377,6 +378,7 @@ module.exports = {
         context: {
           store_id: Number(store_id),
           direccion_destino_id: Number(direccion_destino_id),
+          dirección_origen_id: store?.direccion?.id,
           items: normalizedItems,
           parcels,
         },
@@ -436,19 +438,15 @@ module.exports = {
    */
   async createShipment(ctx) {
     try {
-      const body = ctx.request.body || {};
+      const body = ctx?.request?.body ?? {};
 
-      const pedidoId = Number(body.pedido_id);
+      const pedidoId = Number(body?.pedido_id);
 
       if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
         return ctx.badRequest("pedido_id es requerido y debe ser válido");
       }
 
-      /**
-       * -------------------------------------------------
-       * 1. Obtener pedido
-       * -------------------------------------------------
-       */
+      // * 1. Obtener pedido
       const pedido = await strapi.entityService.findOne(PEDIDO_UID, pedidoId, {
         populate: {
           store: {
@@ -460,11 +458,16 @@ module.exports = {
           direccion_destino: true,
           usuario: true,
           pago_id: true,
+          item: {
+            populate: {
+              producto: true
+            }
+          }
         },
       });
 
       if (!pedido) {
-        return ctx.notFound("El pedido no existe");
+        return ctx.notFound("Pedido no encontrado.");
       }
 
       /**
@@ -509,10 +512,10 @@ module.exports = {
         return ctx.badRequest("El pedido no tiene tienda asociada");
       }
 
-      const direccionOrigen = pedido.direccion_origen || store.direccion;
+      const direccionOrigen = pedido?.direccion_origen ?? store?.direccion;
 
       if (!direccionOrigen) {
-        return ctx.badRequest("La tienda no tiene dirección de origen");
+        return ctx.badRequest("Dirección de origen no encontrada");
       }
 
       /**
@@ -537,11 +540,15 @@ module.exports = {
         return ctx.badRequest("El pedido no tiene usuario asociado");
       }
 
-      const usuarioNombre = usuario?.name;
+      const delivery_contact_information = pedido?.delivery_contact_information;
 
-      const usuarioEmail = usuario.email || direccionDestino.usuario_email || direccionDestino.user_email;
+      if (!delivery_contact_information) {
+        return ctx.badRequest("Datos de contacto para entrega no asociados.")
+      }
 
-      const usuarioPhone = usuario?.phone;
+      const usuarioNombre = delivery_contact_information?.name ?? usuario?.username;
+      const usuarioPhone = delivery_contact_information?.phone;
+      const usuarioEmail = usuario?.email ?? direccionDestino.usuario_email ?? direccionDestino.user_email;
 
       /**
        * -------------------------------------------------
@@ -549,19 +556,17 @@ module.exports = {
        * -------------------------------------------------
        *
        * IMPORTANTE:
-       * Skydropx requiere teléfono.
-       *
-       * Actualmente tu schema de store no tiene phone,
-       * por eso primero intentamos obtenerlo del usuario
-       * propietario de la tienda si está disponible.
-       *
+       * Skydropx requiere teléfono
        * Si no existe, devolveremos un error explícito.
        */
+
+      const pickup_contact_information = pedido?.pickup_contact_information;
+      if (!pickup_contact_information)
+        return ctx.badRequest("Datos de contacto de recepción no asociados.");
+
       const storeOwner = store.users_permissions_user;
-
-      const storePhone = store.phone || storeOwner?.phone;
-
-      const storeEmail = store.email || storeOwner?.email;
+      const storePhone = pickup_contact_information?.phone ?? store.phone ?? storeOwner?.phone;
+      const storeEmail = store?.email ?? storeOwner?.email;
 
       if (!storeEmail) {
         return ctx.badRequest("La tienda no tiene correo electrónico configurado para el envío");
@@ -579,11 +584,12 @@ module.exports = {
       const addressFrom = skydropxService.normalizeShipmentAddress(
         direccionOrigen,
         {
-          name: store.name,
+          name: store.name ?? pickup_contact_information?.name,
           company: store.name,
           phone: storePhone,
           email: storeEmail,
-          reference: direccionOrigen.observaciones || store.name,
+          reference: direccionOrigen?.observaciones ?? store?.name,
+          further_information: pickup_contact_information?.further_information,
         }
       );
 
@@ -591,17 +597,11 @@ module.exports = {
         direccionDestino,
         {
           name: usuarioNombre,
-          /*
-           * Para un destinatario particular usamos
-           * "Particular" como empresa.
-           *
-           * Si posteriormente guardamos company en
-           * la dirección del usuario, podemos usarla.
-           */
-          company: direccionDestino.company || "Particular",
+          company: "Particular",
           phone: usuarioPhone,
           email: usuarioEmail,
-          reference: direccionDestino.observaciones || "Domicilio",
+          reference: direccionDestino?.observaciones ?? "Domicilio",
+          further_information: delivery_contact_information?.further_information,
         }
       );
 
@@ -610,11 +610,9 @@ module.exports = {
        * 10. Obtener items
        * -------------------------------------------------
        *
-       * El componente item puede venir con distintas
-       * estructuras dependiendo del populate.
+       * El componente item puede venir con distintas estructuras dependiendo del populate.
        */
-      const items =
-        normalizeItems(pedido.item);
+      const items = normalizeItems(pedido.item);
 
       if (items.length === 0) {
         return ctx.badRequest("El pedido no tiene productos");
@@ -624,12 +622,8 @@ module.exports = {
        * -------------------------------------------------
        * 11. Construir packages
        * -------------------------------------------------
-       *
-       * Nuestra cotización actual crea un parcel
-       * por item/producto.
-       *
-       * Por eso el número de packages debe coincidir
-       * con el número de items cotizados.
+       * Nuestra cotización actual crea un parcel por item/producto.
+       * Por eso el número de packages debe coincidir con el número de items cotizados.
        */
       const packages = skydropxService.buildShipmentPackages(items);
 
@@ -638,57 +632,52 @@ module.exports = {
        * 12. Productos opcionales
        * -------------------------------------------------
        *
-       * Para un envío nacional V1 no son necesarios
-       * para todos los casos.
-       *
-       * Sin embargo, podemos enviar información básica
-       * cuando la tengamos.
+       * Para un envío nacional V1 no son necesarios para todos los casos.
+       * Sin embargo, podemos enviar información básica  cuando la tengamos.
        */
-      const products = items.map((item) => {
-        const producto = getProductoFromItem(item);
+      // const products = items.map((item) => {
+      //   const producto = getProductoFromItem(item);
 
-        if (!producto) {
-          return null;
-        }
+      //   if (!producto) {
+      //     return null;
+      //   }
 
-        return {
-          product_id: producto.id ? String(producto.id) : undefined,
-          name: item.nombre || producto.nombre || "Producto",
-          quantity: Number(item.cantidad) || 1,
-          price: Number(item.precio_unitario ?? producto.precio ?? 0),
-          sku: producto.sku || undefined,
-          country_code: "MX",
-        };
-      }).filter(Boolean);
+      //   return {
+      //     product_id: producto.id ? String(producto.id) : undefined,
+      //     name: item.nombre || producto.nombre || "Producto",
+      //     quantity: Number(item.cantidad) || 1,
+      //     price: Number(item.precio_unitario ?? producto.precio ?? 0),
+      //     sku: producto.sku || undefined,
+      //     country_code: "MX",
+      //   };
+      // }).filter(Boolean);
 
       /**
        * -------------------------------------------------
        * 13. Crear envío en Skydropx
        * -------------------------------------------------
        */
-      const shipment = await skydropxService.createShipment(
-        {
-          rate_id: pedido.skydropx_rate_id,
-          unique_shipment: true,
-          printing_format: "standard",
-          include_order_detail: false,
-          address_from: addressFrom,
-          address_to: addressTo,
-          packages,
-          products,
-        }
-      );
+      const shipment = await skydropxService.createShipment({
+        rate_id: pedido.skydropx_rate_id,
+        unique_shipment: true,
+        auto_advance: true,
+        printing_format: "standard",
+        include_order_detail: false,
+        address_from: addressFrom,
+        address_to: addressTo,
+        packages,
+      });
 
       /**
        * -------------------------------------------------
        * 14. Extraer respuesta inicial
        * -------------------------------------------------
        */
-      const shipmentData = shipment?.data || shipment;
+      const shipmentData = shipment?.data ?? shipment;
 
-      const shipmentAttributes = shipmentData?.attributes || {};
+      const shipmentAttributes = shipmentData?.attributes ?? {};
 
-      const shipmentId = shipmentData?.id || shipmentAttributes?.id || null;
+      const shipmentId = shipmentData?.id ?? shipmentAttributes?.id ?? null;
 
       if (!shipmentId) {
         strapi.log.error("Skydropx no devolvió shipment ID:", shipment);
@@ -755,43 +744,26 @@ module.exports = {
 
       ctx.body = {
         success: true,
-
         message: "El envío fue aceptado por Skydropx y está siendo procesado",
-
         pedido_id: pedidoId,
-
         shipment: {
           id: shipmentId,
-
           status: workflowStatus,
-
           carrier_name: carrierName,
-
           tracking_number: shipmentAttributes?.master_tracking_number || null,
-
           label_url: shipmentAttributes?.label_url || null,
-
           raw: shipment,
         },
       };
     } catch (error) {
-      strapi.log.error(
-        "Error creando envío Skydropx:",
-        error
-      );
+      strapi.log.error("Error creando envío Skydropx:", error);
 
-      ctx.status =
-        error.status || 500;
+      ctx.status = error.status || 500;
 
       ctx.body = {
         success: false,
-
-        message:
-          error.message ||
-          "No fue posible crear el envío",
-
-        details:
-          error.details || null,
+        message: error.message || "No fue posible crear el envío",
+        details: error.details || null,
       };
     }
   },
@@ -807,249 +779,130 @@ module.exports = {
       } = ctx.params;
 
       if (!id) {
-        return ctx.badRequest(
-          "El ID del envío es requerido"
-        );
+        return ctx.badRequest("El ID del envío es requerido");
       }
 
-      const shipment =
-        await skydropxService.getShipment(
-          id
-        );
+      const shipment = await skydropxService.getShipment(id);
 
-      const shipmentData =
-        shipment?.data ||
-        shipment;
+      const shipmentData = shipment?.data || shipment;
 
-      const attrs =
-        shipmentData?.attributes ||
-        {};
+      const attrs = shipmentData?.attributes || {};
 
       /**
        * Obtener tracking.
        *
-       * En la respuesta 202 el tracking puede estar
-       * dentro de included/packages.
+       * En la respuesta 202 el tracking puede estar dentro de included/packages.
        */
-      let trackingNumber =
-        attrs.master_tracking_number ||
-        null;
+      let trackingNumber = attrs.master_tracking_number || null;
 
-      let labelUrl =
-        attrs.label_url ||
-        null;
+      let labelUrl = attrs.label_url || null;
 
-      let trackingUrl =
-        null;
+      let trackingUrl = null;
 
-      let packageTrackingStatus =
-        null;
+      let packageTrackingStatus = null;
 
-      const included =
-        Array.isArray(
-          shipment?.included
-        )
-          ? shipment.included
-          : [];
+      const included = Array.isArray(shipment?.included) ? shipment.included : [];
 
-      const packageData =
-        included.find(
-          (item) =>
-            item?.type ===
-            "package"
-        );
+      const packageData = included.find((item) => item?.type === "package");
 
-      const packageAttributes =
-        packageData?.attributes ||
-        null;
+      const packageAttributes = packageData?.attributes || null;
 
       if (packageAttributes) {
-        trackingNumber =
-          trackingNumber ||
-          packageAttributes
-            .tracking_number ||
-          null;
+        trackingNumber = trackingNumber || packageAttributes.tracking_number || null;
 
-        labelUrl =
-          labelUrl ||
-          packageAttributes
-            .label_url ||
-          null;
+        labelUrl = labelUrl || packageAttributes.label_url || null;
 
-        trackingUrl =
-          packageAttributes
-            .tracking_url_provider ||
-          null;
+        trackingUrl = packageAttributes.tracking_url_provider || null;
 
-        packageTrackingStatus =
-          packageAttributes
-            .tracking_status ||
-          null;
+        packageTrackingStatus = packageAttributes.tracking_status || null;
       }
 
       /**
        * Buscar pedido asociado por shipment_id.
        */
-      const pedidos =
-        await strapi.entityService.findMany(
-          PEDIDO_UID,
-          {
-            filters: {
-              skydropx_shipment_id:
-                id,
-            },
+      const pedidos = await strapi.entityService.findMany(PEDIDO_UID, {
+        filters: {
+          skydropx_shipment_id: id,
+        },
+        limit: 1,
+      });
 
-            limit: 1,
-          }
-        );
-
-      const pedido =
-        pedidos?.[0];
+      const pedido = pedidos?.[0];
 
       if (pedido) {
-        const metadataActual =
-          pedido.metadata || {};
+        const metadataActual = pedido.metadata || {};
 
         const metadataNueva = {
           ...metadataActual,
-
-          skydropx_last_sync_at:
-            new Date().toISOString(),
+          skydropx_last_sync_at: new Date().toISOString(),
         };
 
         const updateData = {
-          skydropx_status:
-            attrs.workflow_status ||
-            packageTrackingStatus ||
-            null,
-
-          metadata:
-            metadataNueva,
+          skydropx_status: attrs.workflow_status || packageTrackingStatus || null,
+          metadata: metadataNueva,
         };
 
-        if (
-          trackingNumber
-        ) {
-          updateData.skydropx_tracking_number =
-            trackingNumber;
+        if (trackingNumber) {
+          updateData.skydropx_tracking_number = trackingNumber;
 
           /*
-           * Conservamos también guia para que
-           * el código actual de PedidosPendientes
-           * pueda seguir funcionando.
+           * Conservamos también guia para que el código actual de PedidosPendientes pueda seguir funcionando.
            */
-          updateData.guia =
-            trackingNumber;
+          updateData.guia = trackingNumber;
         }
 
-        if (
-          labelUrl
-        ) {
-          updateData.skydropx_label_url =
-            labelUrl;
+        if (labelUrl) {
+          updateData.skydropx_label_url = labelUrl;
         }
 
-        if (
-          attrs.carrier_name
-        ) {
-          updateData.proveedor =
-            attrs.carrier_name;
+        if (attrs.carrier_name) {
+          updateData.proveedor = attrs.carrier_name;
         }
 
         /**
-         * Si Skydropx ya tiene tracking/guía,
-         * el pedido puede considerarse enviado.
+         * Si Skydropx ya tiene tracking/guía, el pedido puede considerarse enviado.
          *
-         * No cambiamos a enviado sólo por recibir
-         * el shipment_id.
+         * No cambiamos a enviado sólo por recibir el shipment_id.
          */
-        if (
-          trackingNumber ||
-          labelUrl
-        ) {
-          updateData.status =
-            "enviado";
+        if (trackingNumber || labelUrl) {
+          updateData.status = "enviado";
 
-          if (
-            !pedido.fecha_envio
-          ) {
-            updateData.fecha_envio =
-              new Date().toISOString();
+          if (!pedido.fecha_envio) {
+            updateData.fecha_envio = new Date().toISOString();
           }
         }
 
-        await strapi.entityService.update(
-          PEDIDO_UID,
-          pedido.id,
-          {
-            data:
-              updateData,
-          }
-        );
+        await strapi.entityService.update(PEDIDO_UID, pedido.id, {
+          data: updateData,
+        });
       }
 
       ctx.body = {
         success: true,
 
         shipment: {
-          id:
-            shipmentData?.id ||
-            id,
-
-          workflow_status:
-            attrs.workflow_status ||
-            null,
-
-          payment_status:
-            attrs.payment_status ||
-            null,
-
-          carrier_name:
-            attrs.carrier_name ||
-            null,
-
-          total:
-            attrs.total ||
-            null,
-
-          tracking_number:
-            trackingNumber,
-
-          label_url:
-            labelUrl,
-
-          tracking_url:
-            trackingUrl,
-
-          package_tracking_status:
-            packageTrackingStatus,
-
-          order_detail_url:
-            attrs.order_detail_url ||
-            null,
-
-          raw:
-            shipment,
+          id:shipmentData?.id ||id,
+          workflow_status:attrs.workflow_status ||null,
+          payment_status:attrs.payment_status ||null,
+          carrier_name:attrs.carrier_name ||null,
+          total:attrs.total ||null,
+          tracking_number:trackingNumber,
+          label_url:labelUrl,
+          tracking_url:trackingUrl,
+          package_tracking_status:packageTrackingStatus,
+          order_detail_url:attrs.order_detail_url ||null,
+          raw: shipment,
         },
       };
     } catch (error) {
-      strapi.log.error(
-        "Error consultando envío Skydropx:",
-        error
-      );
+      strapi.log.error("Error consultando envío Skydropx:",error);
 
-      ctx.status =
-        error.status || 500;
+      ctx.status =error.status || 500;
 
       ctx.body = {
         success: false,
-
-        message:
-          error.message ||
-          "No fue posible consultar el envío",
-
-        details:
-          error.details || null,
+        message:error.message ||"No fue posible consultar el envío",
+        details:error.details || null,
       };
     }
   },

@@ -11,6 +11,22 @@ module.exports = {
       },
     },
     {
+      method: "GET",
+      path: "/skydropx/consignment-notes",
+      handler: "skydropx.getConsignmentNotes",
+      config: {
+        auth: false,
+      },
+    },
+    {
+      method: "GET",
+      path: "/skydropx/packagings",
+      handler: "skydropx.getPackagings",
+      config: {
+        auth: false,
+      },
+    },
+    {
       method: "POST",
       path: "/skydropx/quotation",
       handler: "skydropx.createQuotation",
@@ -26,18 +42,25 @@ module.exports = {
         auth: false,
       },
     },
+    /**
+     * Crear envío
+    */
     {
-      method: "GET",
-      path: "/skydropx/consignment-notes",
-      handler: "skydropx.getConsignmentNotes",
+      method: "POST",
+      path: "/skydropx/shipment",
+      handler: "skydropx.createShipment",
       config: {
         auth: false,
       },
     },
+
+    /**
+     * Consultar envío
+     */
     {
       method: "GET",
-      path: "/skydropx/packagings",
-      handler: "skydropx.getPackagings",
+      path: "/skydropx/shipment/:id",
+      handler: "skydropx.getShipment",
       config: {
         auth: false,
       },
