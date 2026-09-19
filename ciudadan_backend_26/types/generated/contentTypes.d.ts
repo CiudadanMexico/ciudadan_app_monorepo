@@ -1509,7 +1509,9 @@ export interface ApiCarsEvidenceCarsEvidence extends Schema.CollectionType {
         'vin',
         'interior',
         'trunk',
-        'video_360'
+        'video_360',
+        'official_query_capture',
+        'incident'
       ]
     >;
     file: Attribute.Media<'images' | 'videos' | 'files'> & Attribute.Required;
@@ -1542,9 +1544,11 @@ export interface ApiCarsEvidenceCarsEvidence extends Schema.CollectionType {
     >;
     origin: Attribute.Enumeration<['preregister', 'reupload', 'live_capture']> &
       Attribute.DefaultTo<'preregister'>;
-    sha256: Attribute.String;
+    client_sha256: Attribute.String;
+    server_sha256: Attribute.String;
     perceptual_hash: Attribute.String;
     nonce: Attribute.String;
+    idempotency_key: Attribute.String;
     timestamp_client: Attribute.DateTime;
     timestamp_server: Attribute.DateTime;
     gps_lat: Attribute.Decimal;
@@ -1617,7 +1621,8 @@ export interface ApiCarsValidationCarsValidation extends Schema.CollectionType {
         'expired',
         'cancelled',
         'under_review',
-        'awaiting_resubmission'
+        'awaiting_resubmission',
+        'automatic_review'
       ]
     > &
       Attribute.DefaultTo<'pending'>;
@@ -1652,6 +1657,18 @@ export interface ApiCarsValidationCarsValidation extends Schema.CollectionType {
       'oneToMany',
       'api::cars-validation-event.cars-validation-event'
     >;
+    protocol_version: Attribute.String & Attribute.DefaultTo<'1.0'>;
+    reverification_of: Attribute.Relation<
+      'api::cars-validation.cars-validation',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    reverifications: Attribute.Relation<
+      'api::cars-validation.cars-validation',
+      'oneToMany',
+      'api::cars-validation.cars-validation'
+    >;
+    reverification_reason: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1662,6 +1679,49 @@ export interface ApiCarsValidationCarsValidation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::cars-validation.cars-validation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiCarsValidationChallengeCarsValidationChallenge
+  extends Schema.CollectionType {
+  collectionName: 'cars_validation_challenges';
+  info: {
+    singularName: 'cars-validation-challenge';
+    pluralName: 'cars-validation-challenges';
+    displayName: 'Cars Validation Challenge';
+    description: 'Nonce/challenge de un solo uso por paso del protocolo de verificacion (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 1)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    validation: Attribute.Relation<
+      'api::cars-validation-challenge.cars-validation-challenge',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    nonce_id: Attribute.String & Attribute.Required & Attribute.Unique;
+    session_id: Attribute.String & Attribute.Required;
+    step: Attribute.String & Attribute.Required;
+    issued_at: Attribute.DateTime;
+    expires_at: Attribute.DateTime;
+    used_at: Attribute.DateTime;
+    status: Attribute.Enumeration<['issued', 'used', 'expired', 'revoked']> &
+      Attribute.DefaultTo<'issued'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::cars-validation-challenge.cars-validation-challenge',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::cars-validation-challenge.cars-validation-challenge',
       'oneToOne',
       'admin::user'
     > &
@@ -1713,7 +1773,16 @@ export interface ApiCarsValidationEventCarsValidationEvent
         'checklist_updated',
         'agenda_synced',
         'validation_status_changed',
-        'resubmission_requested'
+        'resubmission_requested',
+        'external_verification_registered',
+        'audit_created',
+        'audit_completed',
+        'audit_escalated',
+        'reverification_created',
+        'challenge_issued',
+        'evidence_uploaded',
+        'evidence_validated',
+        'risk_calculated'
       ]
     >;
     payload: Attribute.JSON;
@@ -3082,6 +3151,77 @@ export interface ApiEventoEvento extends Schema.CollectionType {
   };
 }
 
+export interface ApiExternalVerificationExternalVerification
+  extends Schema.CollectionType {
+  collectionName: 'external_verifications';
+  info: {
+    singularName: 'external-verification';
+    pluralName: 'external-verifications';
+    displayName: 'External Verification';
+    description: 'Consulta oficial externa (INE, REPUVE, licencias estatales) durante la verificaci\u00F3n presencial (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 4). Separada de cars-evidence: una consulta oficial no es una foto.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    validation: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    entity_type: Attribute.Enumeration<['driver', 'vehicle', 'license']> &
+      Attribute.Required;
+    entity_id: Attribute.Integer & Attribute.Required;
+    source_name: Attribute.String & Attribute.Required;
+    source_type: Attribute.Enumeration<
+      ['official_api', 'official_app', 'official_web']
+    > &
+      Attribute.Required;
+    verification_method: Attribute.Enumeration<['api', 'app', 'web']> &
+      Attribute.Required;
+    check_type: Attribute.Enumeration<
+      ['credential', 'vehicle_theft', 'license']
+    > &
+      Attribute.Required;
+    query_reference_hash: Attribute.String;
+    query_reference_masked: Attribute.String;
+    requested_at: Attribute.DateTime;
+    completed_at: Attribute.DateTime;
+    result: Attribute.Enumeration<
+      ['verified', 'not_found', 'reported', 'mismatch', 'unavailable', 'error']
+    > &
+      Attribute.Required;
+    result_data: Attribute.JSON;
+    result_hash: Attribute.String;
+    evidence: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'manyToOne',
+      'api::cars-evidence.cars-evidence'
+    >;
+    performed_by: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    status: Attribute.Enumeration<['valid', 'suspicious', 'failed']> &
+      Attribute.DefaultTo<'valid'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiFavoritoFavorito extends Schema.CollectionType {
   collectionName: 'favoritos';
   info: {
@@ -3816,6 +3956,49 @@ export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLicenseCatalogLicenseCatalog extends Schema.CollectionType {
+  collectionName: 'license_catalogs';
+  info: {
+    singularName: 'license-catalog';
+    pluralName: 'license-catalogs';
+    displayName: 'License Catalog';
+    description: 'Cat\u00E1logo de verificaci\u00F3n de licencias de conducir por entidad federativa (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 4). No hay API nacional \u00FAnica: 32 entidades, cada una con su propio m\u00E9todo/portal.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    entidad_federativa: Attribute.String &
+      Attribute.Required &
+      Attribute.Unique;
+    license_provider: Attribute.String & Attribute.Required;
+    official_url: Attribute.String;
+    method: Attribute.Enumeration<
+      ['official_api', 'official_web', 'official_app']
+    > &
+      Attribute.DefaultTo<'official_web'>;
+    required_fields: Attribute.JSON;
+    verification_enabled: Attribute.Boolean & Attribute.DefaultTo<true>;
+    reference_type: Attribute.String;
+    evidence_required: Attribute.Boolean & Attribute.DefaultTo<true>;
+    notes: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::license-catalog.license-catalog',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::license-catalog.license-catalog',
       'oneToOne',
       'admin::user'
     > &
@@ -5659,6 +5842,130 @@ export interface ApiTriprequestTriprequest extends Schema.CollectionType {
   };
 }
 
+export interface ApiVerificationAuditVerificationAudit
+  extends Schema.CollectionType {
+  collectionName: 'verification_audits';
+  info: {
+    singularName: 'verification-audit';
+    pluralName: 'verification-audits';
+    displayName: 'Verification Audit';
+    description: 'Auditor\u00EDa independiente de una validaci\u00F3n presencial (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 6). El auditor nunca es el mismo usuario que el verificador del expediente.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    validation: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    auditor: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    auditor_agency: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    audit_type: Attribute.Enumeration<
+      ['sample', 'deep', 'reverification_trigger']
+    > &
+      Attribute.Required;
+    selection_reason: Attribute.Enumeration<
+      [
+        'random',
+        'risk',
+        'complaint',
+        'new_verifier',
+        'anomaly',
+        'critical_case',
+        'escalation'
+      ]
+    > &
+      Attribute.Required;
+    status: Attribute.Enumeration<
+      ['pending', 'in_progress', 'completed', 'escalated']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    result: Attribute.Enumeration<
+      ['conformity', 'inconsistency', 'insufficient', 'evidence_fraud']
+    >;
+    score: Attribute.Integer;
+    notes: Attribute.Text;
+    started_at: Attribute.DateTime;
+    completed_at: Attribute.DateTime;
+    protocol_version: Attribute.String & Attribute.DefaultTo<'1.0'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiVerificationAuditItemVerificationAuditItem
+  extends Schema.CollectionType {
+  collectionName: 'verification_audit_items';
+  info: {
+    singularName: 'verification-audit-item';
+    pluralName: 'verification-audit-items';
+    displayName: 'Verification Audit Item';
+    description: 'Punto individual revisado dentro de una auditor\u00EDa (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 6, secci\u00F3n 25/26)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    audit: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'manyToOne',
+      'api::verification-audit.verification-audit'
+    >;
+    check_key: Attribute.String & Attribute.Required;
+    result: Attribute.Enumeration<
+      ['pass', 'fail', 'uncertain', 'not_applicable']
+    > &
+      Attribute.Required;
+    evidence_reviewed: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'manyToMany',
+      'api::cars-evidence.cars-evidence'
+    >;
+    external_verifications_reviewed: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'manyToMany',
+      'api::external-verification.external-verification'
+    >;
+    note: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiViajeViaje extends Schema.CollectionType {
   collectionName: 'viajes';
   info: {
@@ -5895,6 +6202,7 @@ declare module '@strapi/types' {
       'api::carro.carro': ApiCarroCarro;
       'api::cars-evidence.cars-evidence': ApiCarsEvidenceCarsEvidence;
       'api::cars-validation.cars-validation': ApiCarsValidationCarsValidation;
+      'api::cars-validation-challenge.cars-validation-challenge': ApiCarsValidationChallengeCarsValidationChallenge;
       'api::cars-validation-event.cars-validation-event': ApiCarsValidationEventCarsValidationEvent;
       'api::cartera.cartera': ApiCarteraCartera;
       'api::categoria-contenido.categoria-contenido': ApiCategoriaContenidoCategoriaContenido;
@@ -5918,6 +6226,7 @@ declare module '@strapi/types' {
       'api::driver-verifier-candidacy.driver-verifier-candidacy': ApiDriverVerifierCandidacyDriverVerifierCandidacy;
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
+      'api::external-verification.external-verification': ApiExternalVerificationExternalVerification;
       'api::favorito.favorito': ApiFavoritoFavorito;
       'api::food-cart.food-cart': ApiFoodCartFoodCart;
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
@@ -5932,6 +6241,7 @@ declare module '@strapi/types' {
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
+      'api::license-catalog.license-catalog': ApiLicenseCatalogLicenseCatalog;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
@@ -5963,6 +6273,8 @@ declare module '@strapi/types' {
       'api::todo.todo': ApiTodoTodo;
       'api::transaccion.transaccion': ApiTransaccionTransaccion;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
+      'api::verification-audit.verification-audit': ApiVerificationAuditVerificationAudit;
+      'api::verification-audit-item.verification-audit-item': ApiVerificationAuditItemVerificationAuditItem;
       'api::viaje.viaje': ApiViajeViaje;
       'api::viaje-oferta.viaje-oferta': ApiViajeOfertaViajeOferta;
       'api::wallet.wallet': ApiWalletWallet;

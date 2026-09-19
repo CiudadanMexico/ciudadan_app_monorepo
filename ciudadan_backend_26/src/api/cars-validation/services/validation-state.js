@@ -5,6 +5,7 @@ const ACTIVE_VALIDATION_STATUSES = [
   'active',
   'under_review',
   'awaiting_resubmission',
+  'automatic_review',
 ];
 
 const UI_TO_REVIEW_STATUS = {
@@ -78,13 +79,30 @@ const evaluateCompletion = (evidences = []) => {
   return { canApprove: false, reason: 'Estado documental inconsistente.' };
 };
 
-const mapCompleteAction = (action, evidences) => {
+const mapCompleteAction = (action, evidences, riskAssessment) => {
   const current = getCurrentEvidences(evidences);
   const evaluation = evaluateCompletion(current);
 
   if (action === 'approve') {
     if (!evaluation.canApprove) {
       const error = new Error(evaluation.reason || 'No se puede aprobar la validación.');
+      error.status = 400;
+      throw error;
+    }
+    // Fase 5 (sección 22): checklist incompleto o una señal de "revisión
+    // crítica" (REPUVE con reporte, VIN mismatch) nunca se puede cerrar
+    // aprobado, sin importar que los documentos ya estén aprobados uno a uno.
+    if (riskAssessment && !riskAssessment.checklistComplete) {
+      const error = new Error(
+        'No se puede aprobar: el checklist físico está incompleto.'
+      );
+      error.status = 400;
+      throw error;
+    }
+    if (riskAssessment?.hasCriticalSignals) {
+      const error = new Error(
+        `No se puede aprobar: hay señales de revisión crítica (${riskAssessment.criticalSignals.join(', ')}).`
+      );
       error.status = 400;
       throw error;
     }

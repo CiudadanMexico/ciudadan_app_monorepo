@@ -10,12 +10,16 @@ import {
   Typography,
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import {
   ActivityTimeline,
   DocumentGrid,
+  ExternalVerificationDialog,
   FinalActions,
+  LiveCaptureWizard,
   OperativeChecklist,
   ReviewerObservations,
+  RiskAssessmentPanel,
   VerificationHeader,
   VerificationSidebar,
 } from '../../components/Taxis/driver-verification';
@@ -44,6 +48,26 @@ const UI_TO_API_STATUS = {
 const DriverVerificationPage = () => {
   const navigate = useNavigate();
   const { validationId } = useParams();
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+
+  // docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 8: los endpoints de
+  // challenges/evidences/risk-assessment/external-verifications quedaron
+  // protegidos por la policy `is-verificador` — necesitan el token de Auth0
+  // del verificador, no solo la cookie de sesión que usa el resto de esta
+  // página (endpoints preexistentes, sin tocar).
+  const getToken = useCallback(async () => {
+    try {
+      if (!isAuthenticated) return null;
+      return await getAccessTokenSilently({
+        authorizationParams: {
+          audience: 'https://api.ciudadan.org',
+          scope: 'openid profile email offline_access',
+        },
+      });
+    } catch {
+      return null;
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -53,6 +77,9 @@ const DriverVerificationPage = () => {
   const [observations, setObservations] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState({ open: false, message: '', severity: 'success' });
+  const [liveCaptureOpen, setLiveCaptureOpen] = useState(false);
+  const [liveCaptureSessionId] = useState(() => crypto.randomUUID());
+  const [externalVerificationOpen, setExternalVerificationOpen] = useState(false);
 
   const showFeedback = useCallback((message, severity = 'success') => {
     setFeedback({ open: true, message, severity });
@@ -301,6 +328,41 @@ const DriverVerificationPage = () => {
           <Stack spacing={2}>
             <Paper variant="outlined" sx={{ p: 1.5 }}>
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Captura en vivo
+              </Typography>
+              <Button
+                variant="outlined"
+                fullWidth
+                disabled={isClosed}
+                onClick={() => setLiveCaptureOpen(true)}
+              >
+                Iniciar captura en vivo
+              </Button>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Consultas oficiales
+              </Typography>
+              <Button
+                variant="outlined"
+                fullWidth
+                disabled={isClosed}
+                onClick={() => setExternalVerificationOpen(true)}
+              >
+                Registrar consulta oficial (INE / REPUVE / licencia)
+              </Button>
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Motor de riesgo
+              </Typography>
+              <RiskAssessmentPanel validationId={validationId} getToken={getToken} />
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 Acciones finales
               </Typography>
               <FinalActions
@@ -340,6 +402,32 @@ const DriverVerificationPage = () => {
         onClose={() => setFeedback((prev) => ({ ...prev, open: false }))}
         message={feedback.message}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+
+      <LiveCaptureWizard
+        open={liveCaptureOpen}
+        validationId={validationId}
+        sessionId={liveCaptureSessionId}
+        getToken={getToken}
+        onClose={() => setLiveCaptureOpen(false)}
+        onEvidenceUploaded={() => refreshReviewBundle()}
+        onFinished={() => {
+          setLiveCaptureOpen(false);
+          showFeedback('Captura en vivo completada. Evidencias registradas.');
+        }}
+      />
+
+      <ExternalVerificationDialog
+        open={externalVerificationOpen}
+        validationId={validationId}
+        driverId={viewModel?.driver?.id}
+        sessionId={liveCaptureSessionId}
+        getToken={getToken}
+        onClose={() => setExternalVerificationOpen(false)}
+        onRegistered={() => {
+          refreshReviewBundle();
+          showFeedback('Consulta oficial registrada.');
+        }}
       />
     </Box>
   );
