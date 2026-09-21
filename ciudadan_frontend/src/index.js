@@ -33,12 +33,20 @@ const AppWrapper = () => {
   const { isLoading } = useAuth0();
   const location = useLocation();
 
+  const hostname = window.location.hostname;
+  const dominiosPrelanzamiento = [
+    "taxis.ciudadan.org",
+    "lideres.ciudadan.org",
+    "socios.ciudadan.org",
+  ];
+  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
+
   if (isLoading) {
     return <PreLoader />;
   }
 
   const isWikiRoute = location.pathname.startsWith('/wiki');
-  const isPrelanzamiento = location.pathname.replace(/\/$/, '') === '/prelanzamiento';
+  const isPrelanzamiento = location.pathname.replace(/\/$/, '') === '/prelanzamiento' || isDomainPrelanzamiento;
 
   const sectionMap = {
     productos: 'market',
@@ -52,6 +60,16 @@ const AppWrapper = () => {
   const pathSection = location.pathname.split('/').filter(Boolean)[0];
   const siteSection = sectionMap[pathSection] ?? pathSection ?? '';
 
+  if (isDomainPrelanzamiento) {
+    // Si viene por subdominio, forzamos la vista de Prelanzamiento
+    // pero mantenemos el wrapper para consistencia de Providers si fuera necesario
+    return <Rutas />; 
+    // Nota: Rutas ya maneja la lógica de <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+    // pero para que el subdominio muestre Prelanzamiento sin que el usuario escriba /prelanzamiento,
+    // necesitamos que Rutas sepa que debe renderizar Prelanzamiento.
+    // Para evitar cambiar Rutas, podemos envolver el renderizado.
+  }
+
   return (
     <Box
       id="ciudadan-app"
@@ -60,7 +78,6 @@ const AppWrapper = () => {
         flexDirection: "column",
         width: "100%",
         minHeight: "100dvh",
-        // clip (no hidden): recorta sin crear scroll container, para no romper position:sticky
         overflowX: "clip",
       }}
     >
@@ -73,10 +90,6 @@ const AppWrapper = () => {
         </AuthGate>}
       </Box>
 
-      {/* Separador vertical global: reserva el espacio de la barra amarilla fija
-          inferior (.bottom-bar, 72px según lo que la app misma asume en
-          split-action-button) para que no tape el final del contenido en
-          ninguna página. En /wiki la barra no existe, así que no se inserta. */}
       {!isWikiRoute && !isPrelanzamiento && (
         <Box
           aria-hidden="true"
