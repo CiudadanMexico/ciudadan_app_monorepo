@@ -13,8 +13,9 @@ import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
 import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
 import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
-import LiderVerificadorRegistroPage from '../Pages/Gana/LiderVerificadorRegistroPage.jsx';
+import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
+import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
@@ -25,8 +26,6 @@ import GenRoute from '../Pages/GenRoute.jsx';
 import OpWalletRoute from '../Pages/OpWalletRoute.jsx';
 import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
-import RegistroConductor from '../Pages/RegistroConductor.jsx';
-import PreRegistroConductor from '../Pages/PreRegistroConductor.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
 import MiMembresia from '../Pages/MiMembresia.jsx';
@@ -319,6 +318,8 @@ const TripViewRoute = () => {
 
 const Rutas = () => (
   <Routes>
+    <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+    <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
     <Route
       path='/'
@@ -376,7 +377,7 @@ const Rutas = () => (
     />
     <Route
       path='/gana/lideresverificadores/registro'
-      element={<LiderVerificadorRegistroPage />}
+      element={<RedireccionPrelanzamiento tipo='lider' />}
     />
     {/* Taxis */}
     
@@ -388,11 +389,11 @@ const Rutas = () => (
     />
     <Route
       path='/taxis/conductor/registro'
-      element={<RegistroConductor />}
+      element={<RedireccionPrelanzamiento tipo='conductor' />}
     />
     <Route
       path='/taxis/conductor/preregistro'
-      element={<PreRegistroConductor />}
+      element={<RedireccionPrelanzamiento tipo='conductor' />}
     />
     <Route
       path='/taxis/conductor/esperando'
