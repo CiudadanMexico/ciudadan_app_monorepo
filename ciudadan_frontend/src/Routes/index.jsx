@@ -316,9 +316,23 @@ const TripViewRoute = () => {
   );
 };
 
-const Rutas = () => (
-  <Routes>
-    <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+const Rutas = () => {
+  const hostname = window.location.hostname;
+  const dominiosPrelanzamiento = [
+    "taxis.ciudadan.org",
+    "lideres.ciudadan.org",
+    "socios.ciudadan.org",
+  ];
+  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
+
+  if (isDomainPrelanzamiento) {
+    return <Prelanzamiento />;
+  }
+
+  return (
+    <Routes>
+      <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
     <Route
