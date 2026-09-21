@@ -1,6 +1,6 @@
 'use strict';
 const { errors } = require('@strapi/utils');
-const { Forbidden } = errors;
+const { ForbiddenError } = errors;
 const { getAuth0Email } = require('../utils/auth0-verify');
 
 /**
@@ -22,7 +22,7 @@ module.exports = async (ctx, config, { strapi }) => {
 
   if (!authHeader.startsWith('Bearer ')) {
     strapi.log.warn('is-authenticated-auth0: falta el header Authorization');
-    throw new Forbidden('Auth0 token requerido');
+    throw new ForbiddenError('Auth0 token requerido');
   }
 
   const token = authHeader.slice(7);
@@ -32,7 +32,7 @@ module.exports = async (ctx, config, { strapi }) => {
     email = await getAuth0Email(token, { strapi });
   } catch (err) {
     strapi.log.warn('is-authenticated-auth0: token inválido en Auth0', err.response?.data || err.message);
-    throw new Forbidden('Sesión Auth0 invalida');
+    throw new ForbiddenError('Sesión Auth0 invalida');
   }
 
   const user = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -41,7 +41,7 @@ module.exports = async (ctx, config, { strapi }) => {
 
   if (!user) {
     strapi.log.warn(`is-authenticated-auth0: no existe usuario en Strapi con email ${email}`);
-    throw new Forbidden('Usuario Strapi no encontrado');
+    throw new ForbiddenError('Usuario Strapi no encontrado');
   }
 
   ctx.state.strapiUser = user;
