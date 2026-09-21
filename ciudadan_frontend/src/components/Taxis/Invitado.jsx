@@ -8,7 +8,7 @@ import {
   ListItemIcon,
   useMediaQuery,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import './MapAnimation.css';
 import LaboryBadge from '../LaboryBadge.jsx';
@@ -34,7 +34,7 @@ const Invitado = () => {
       style={{
         position: 'relative',
         width: '100%',
-        height: isMobile ? '420vh' : isTablet ? '279vh' : '166vh',
+        minHeight: isMobile ? '420vh' : isTablet ? '279vh' : '166vh',
         overflow: 'hidden',
         display: 'flex',
         justifyContent: 'center',
@@ -61,7 +61,7 @@ const Invitado = () => {
         component={motion.div}
         elevation={8}
         sx={{
-          position: 'absolute',
+          position: 'relative',
           zIndex: 3,
           textAlign: 'center',
           borderRadius: '10px',
@@ -335,13 +335,11 @@ const Invitado = () => {
           Únete y Viaja Seguro
         </Button>
         <div className='conoces-taxi ct1'>
-          <a
-            onClick={() => handleNavigation('/taxis/conductor/preregistro')}
-            href='#'
-          >
-            ¿ Eres Conductor de Taxi Concesionado en CDMX ?
-          </a>
+          <Link to='/prelanzamiento?tipo=conductor'>
+            ¿Eres Conductor?
+          </Link>
         </div>
+        <Box aria-hidden='true' sx={{ height: { xs: 240, md: 320 }, flexShrink: 0 }} />
       </Paper>
 
       <BottomSheet
