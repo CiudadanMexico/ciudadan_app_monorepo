@@ -1,6 +1,7 @@
 "use strict";
 
 const skydropxService = require("../services/skydropx");
+const logisticsBalanceService = require("../../logistics-balance/services/logistics-balance");
 
 const STORE_UID = "api::store.store";
 const PRODUCT_UID = "api::producto.producto";
@@ -50,43 +51,7 @@ function normalizeItems(raw) {
   return [];
 }
 
-/**
- * Extrae producto de un item del componente.
- */
-function getProductoFromItem(item) {
-  if (!item) return null;
-
-  if (item.producto?.data) {
-    return (
-      item.producto.data.attributes
-        ? {
-          id:
-            item.producto.data.id,
-          ...item.producto.data.attributes,
-        }
-        : item.producto.data
-    );
-  }
-
-  if (item.producto?.attributes) {
-    return {
-      id:
-        item.producto.id,
-      ...item.producto.attributes,
-    };
-  }
-
-  if (item.producto) {
-    return item.producto;
-  }
-
-  return null;
-}
-
 module.exports = {
-  /**
-   * GET /api/skydropx/test-auth
-   */
   async testAuth(ctx) {
     try {
       const token = await skydropxService.getAccessToken();
@@ -176,16 +141,12 @@ module.exports = {
   /**
    * Crea una cotización de envío con base a una tienda, una dirección destino y un conjunto de productos
    * POST /api/skydropx/quotation
-   *
    * Body:
    * {
    *   store_id: 1,
    *   direccion_destino_id: 20,
    *   items: [
-   *     {
-   *       producto_id: 15,
-   *       cantidad: 2
-   *     }
+   *     { producto_id: 15, cantidad: 2 }
    *   ]
    * }
    */
@@ -251,7 +212,7 @@ module.exports = {
       if (!direccionDestino)
         return ctx.notFound("Dirección destino no encontrada.");
 
-      const usuarioEmail = ctx.state.user?.email;
+      const usuarioEmail = ctx.state.strapiUser?.email;
       strapi.log.info(`User request email: ${usuarioEmail}`);
 
       // Verificar que la dirección pertenezca al usuario del request
@@ -470,11 +431,7 @@ module.exports = {
         return ctx.notFound("Pedido no encontrado.");
       }
 
-      /**
-       * -------------------------------------------------
-       * 2. Validar estado
-       * -------------------------------------------------
-       */
+      // * 2. Validar estado
       if (pedido.status !== "pendiente_envio") {
         return ctx.badRequest(`El pedido no está listo para generar el envío. Estado actual: ${pedido.status}`);
       }
@@ -627,139 +584,123 @@ module.exports = {
        */
       const packages = skydropxService.buildShipmentPackages(items);
 
-      /**
-       * -------------------------------------------------
-       * 12. Productos opcionales
-       * -------------------------------------------------
-       *
-       * Para un envío nacional V1 no son necesarios para todos los casos.
-       * Sin embargo, podemos enviar información básica  cuando la tengamos.
-       */
-      // const products = items.map((item) => {
-      //   const producto = getProductoFromItem(item);
+      // -------------------------------------------------
+      // 12. Obtener el importe de rate seleccionado y validar
+      const shippingAmount = Number(pedido.skydropx_rate.total);
+      if (!shippingAmount || shippingAmount <= 0)
+        return ctx.badRequest("No fue posible determinar el costo de la tarifa de Skydropx");
 
-      //   if (!producto) {
-      //     return null;
-      //   }
-
-      //   return {
-      //     product_id: producto.id ? String(producto.id) : undefined,
-      //     name: item.nombre || producto.nombre || "Producto",
-      //     quantity: Number(item.cantidad) || 1,
-      //     price: Number(item.precio_unitario ?? producto.precio ?? 0),
-      //     sku: producto.sku || undefined,
-      //     country_code: "MX",
-      //   };
-      // }).filter(Boolean);
-
-      /**
-       * -------------------------------------------------
-       * 13. Crear envío en Skydropx
-       * -------------------------------------------------
-       */
-      const shipment = await skydropxService.createShipment({
-        rate_id: pedido.skydropx_rate_id,
-        unique_shipment: true,
-        auto_advance: true,
-        printing_format: "standard",
-        include_order_detail: false,
-        address_from: addressFrom,
-        address_to: addressTo,
-        packages,
+      //--------------------------------------------------
+      // 13. Reservar saldo
+      const reservation = await strapi.service("api::logistics-balance.logistics-balance").reserveShipmentBalance({
+        storeId: store.id,
+        orderId: pedidoId,
+        amount: shippingAmount,
+        userId: ctx.state.user?.id ?? null,
+        idempotencyKey: `shipment:${pedidoId}`,
+        metadata: {
+          rate_id: pedido.skydropx_rate_id,
+          provider_name:pedido.skydropx_rate.provider_name,
+          provider_service_name:pedido.skydropx_rate.provider_service_name,
+          currency_code:pedido.skydropx_rate.currency_code,
+          rate_amount:pedido.skydropx_rate.amount,
+          service_fee:pedido.skydropx_rate.service_fee,
+          vat_fee:pedido.skydropx_rate.vat_fee,
+          total:pedido.skydropx_rate.total,
+        },
       });
 
-      /**
-       * -------------------------------------------------
-       * 14. Extraer respuesta inicial
-       * -------------------------------------------------
-       */
-      const shipmentData = shipment?.data ?? shipment;
+      // * 14. Crear envío en Skydropx
+      try {
+        const shipment = await skydropxService.createShipment({
+          rate_id: pedido.skydropx_rate_id,
+          unique_shipment: true,
+          auto_advance: true,
+          printing_format: "standard",
+          include_order_detail: false,
+          address_from: addressFrom,
+          address_to: addressTo,
+          packages,
+        });
 
-      const shipmentAttributes = shipmentData?.attributes ?? {};
+        // * 15. Extraer respuesta inicial
+        const shipmentData = shipment?.data ?? shipment;
+        const shipmentAttributes = shipmentData?.attributes ?? {};
+        const shipmentId = shipmentData?.id ?? shipmentAttributes?.id ?? null;
 
-      const shipmentId = shipmentData?.id ?? shipmentAttributes?.id ?? null;
+        // 16. Validar shipmentId
+        if (!shipmentId) {
+          strapi.log.error("Skydropx no devolvió shipment ID:", shipment);
+          throw new Error("Skydropx aceptó la solicitud pero no devolvió el ID del envío");
+        }
 
-      if (!shipmentId) {
-        strapi.log.error("Skydropx no devolvió shipment ID:", shipment);
+        // 17. Confirmar cargo
+        await strapi.service("api::logistics-balance.logistics-balance").commitShipmentCharge({
+          transactionId: reservation.transactionId,
+          shipmentId,
+        });
 
-        throw new Error("Skydropx aceptó la solicitud pero no devolvió el ID del envío");
+        const carrierName = shipmentAttributes?.carrier_name || pedido.skydropx_rate?.provider_display_name || pedido.skydropx_rate?.provider_name || null;
+        const workflowStatus = shipmentAttributes?.workflow_status || "pending";
+
+        /**
+         * 18. Actualizar en pedido
+         * IMPORTANTE:
+         * Como Skydropx responde 202, todavía puede no existir tracking_number ni label_url.
+         * Por eso guardamos inicialmente:
+         * - shipment_id
+         * - skydropx_status
+         * - proveedor
+         *
+         * Posteriormente getShipment() actualizará:
+         * - tracking
+         * - label
+         * - status
+         */
+        const metadataActual = pedido.metadata || {};
+
+        const metadataNueva = {
+          ...metadataActual,
+          skydropx_shipment_created_at: new Date().toISOString(),
+          skydropx_creation_response: shipment,
+        };
+
+        await strapi.entityService.update(PEDIDO_UID, pedidoId, {
+          data: {
+            skydropx_shipment_id: shipmentId,
+            skydropx_status: workflowStatus,
+            proveedor: carrierName,
+            metadata: metadataNueva,
+          },
+        });
+
+        // * 19. Respuesta al frontend
+        ctx.status = 202;
+        ctx.body = {
+          success: true,
+          message: "El envío fue aceptado por Skydropx y está siendo procesado",
+          pedido_id: pedidoId,
+          shipment: {
+            id: shipmentId,
+            status: workflowStatus,
+            carrier_name: carrierName,
+            tracking_number: shipmentAttributes?.master_tracking_number || null,
+            label_url: shipmentAttributes?.label_url || null,
+            raw: shipment,
+          },
+        };
+      } catch (error) {
+        // 20. Liberar reserva
+        await strapi.service("api::logistics-balance.logistics-balance").releaseShipmentReservation({
+          transactionId: reservation.transactionId,
+          reason: error?.message,
+        });
+
+        throw error;
       }
-
-      /**
-       * -------------------------------------------------
-       * 15. Datos iniciales
-       * -------------------------------------------------
-       */
-      const carrierName = shipmentAttributes?.carrier_name || pedido.skydropx_rate?.provider_display_name || pedido.skydropx_rate?.provider_name || null;
-
-      const workflowStatus = shipmentAttributes?.workflow_status || "pending";
-
-      /**
-       * -------------------------------------------------
-       * 16. Guardar en pedido
-       * -------------------------------------------------
-       *
-       * IMPORTANTE:
-       *
-       * Como Skydropx responde 202, todavía puede no
-       * existir tracking_number ni label_url.
-       *
-       * Por eso guardamos inicialmente:
-       *
-       * - shipment_id
-       * - skydropx_status
-       * - proveedor
-       *
-       * Posteriormente getShipment() actualizará:
-       *
-       * - tracking
-       * - label
-       * - status
-       */
-      const metadataActual = pedido.metadata || {};
-
-      const metadataNueva = {
-        ...metadataActual,
-
-        skydropx_shipment_created_at: new Date().toISOString(),
-
-        skydropx_creation_response: shipment,
-      };
-
-      await strapi.entityService.update(PEDIDO_UID, pedidoId, {
-        data: {
-          skydropx_shipment_id: shipmentId,
-          skydropx_status: workflowStatus,
-          proveedor: carrierName,
-          metadata: metadataNueva,
-        },
-      });
-
-      /**
-       * -------------------------------------------------
-       * 17. Respuesta al frontend
-       * -------------------------------------------------
-       */
-      ctx.status = 202;
-
-      ctx.body = {
-        success: true,
-        message: "El envío fue aceptado por Skydropx y está siendo procesado",
-        pedido_id: pedidoId,
-        shipment: {
-          id: shipmentId,
-          status: workflowStatus,
-          carrier_name: carrierName,
-          tracking_number: shipmentAttributes?.master_tracking_number || null,
-          label_url: shipmentAttributes?.label_url || null,
-          raw: shipment,
-        },
-      };
     } catch (error) {
       strapi.log.error("Error creando envío Skydropx:", error);
-
       ctx.status = error.status || 500;
-
       ctx.body = {
         success: false,
         message: error.message || "No fue posible crear el envío",
@@ -881,28 +822,28 @@ module.exports = {
         success: true,
 
         shipment: {
-          id:shipmentData?.id ||id,
-          workflow_status:attrs.workflow_status ||null,
-          payment_status:attrs.payment_status ||null,
-          carrier_name:attrs.carrier_name ||null,
-          total:attrs.total ||null,
-          tracking_number:trackingNumber,
-          label_url:labelUrl,
-          tracking_url:trackingUrl,
-          package_tracking_status:packageTrackingStatus,
-          order_detail_url:attrs.order_detail_url ||null,
+          id: shipmentData?.id || id,
+          workflow_status: attrs.workflow_status || null,
+          payment_status: attrs.payment_status || null,
+          carrier_name: attrs.carrier_name || null,
+          total: attrs.total || null,
+          tracking_number: trackingNumber,
+          label_url: labelUrl,
+          tracking_url: trackingUrl,
+          package_tracking_status: packageTrackingStatus,
+          order_detail_url: attrs.order_detail_url || null,
           raw: shipment,
         },
       };
     } catch (error) {
-      strapi.log.error("Error consultando envío Skydropx:",error);
+      strapi.log.error("Error consultando envío Skydropx:", error);
 
-      ctx.status =error.status || 500;
+      ctx.status = error.status || 500;
 
       ctx.body = {
         success: false,
-        message:error.message ||"No fue posible consultar el envío",
-        details:error.details || null,
+        message: error.message || "No fue posible consultar el envío",
+        details: error.details || null,
       };
     }
   },

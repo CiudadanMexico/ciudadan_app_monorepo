@@ -834,6 +834,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'api::agencia.agencia'
     >;
     free_trip: Attribute.Boolean;
+    logistics_transactions: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::logistics-transaction.logistics-transaction'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -3881,6 +3886,128 @@ export interface ApiListaSuscripcionListaSuscripcion
   };
 }
 
+export interface ApiLogisticsBalanceLogisticsBalance
+  extends Schema.CollectionType {
+  collectionName: 'logistics_balances';
+  info: {
+    singularName: 'logistics-balance';
+    pluralName: 'logistics-balances';
+    displayName: 'LogisticsBalance';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    store: Attribute.Relation<
+      'api::logistics-balance.logistics-balance',
+      'oneToOne',
+      'api::store.store'
+    >;
+    availableBalance: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    reservedBalance: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    currency: Attribute.String;
+    status: Attribute.Enumeration<['active', 'blocked']> &
+      Attribute.DefaultTo<'active'>;
+    lastTransactionAt: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::logistics-balance.logistics-balance',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::logistics-balance.logistics-balance',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLogisticsTransactionLogisticsTransaction
+  extends Schema.CollectionType {
+  collectionName: 'logistics_transactions';
+  info: {
+    singularName: 'logistics-transaction';
+    pluralName: 'logistics-transactions';
+    displayName: 'LogisticsTransaction';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    stores: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToMany',
+      'api::store.store'
+    >;
+    type: Attribute.Enumeration<
+      ['deposit', 'shipment_charge', 'refund', 'adjustment']
+    >;
+    amount: Attribute.Decimal;
+    status: Attribute.Enumeration<
+      ['pending', 'completed', 'cancelled', 'failed', 'reversed', 'rejected']
+    >;
+    balanceBefore: Attribute.Decimal;
+    balanceAfter: Attribute.Decimal;
+    orders: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToMany',
+      'api::pedido.pedido'
+    >;
+    payment: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToOne',
+      'api::pago.pago'
+    >;
+    shipment: Attribute.String;
+    externalReference: Attribute.String;
+    idempotencyKey: Attribute.String;
+    description: Attribute.String;
+    metadata: Attribute.JSON;
+    by_user: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    completedAt: Attribute.DateTime;
+    transactionReference: Attribute.String;
+    reservationReference: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiMembresiaMembresia extends Schema.CollectionType {
   collectionName: 'membresias';
   info: {
@@ -4113,7 +4240,8 @@ export interface ApiPagoPago extends Schema.CollectionType {
         'servicio',
         'membresia',
         'carrito',
-        'comida'
+        'comida',
+        'logistica'
       ]
     >;
     carrito_id: Attribute.Relation<
@@ -4147,7 +4275,7 @@ export interface ApiPagoPago extends Schema.CollectionType {
     descripcion: Attribute.String;
     metadata: Attribute.JSON;
     disputa: Attribute.Boolean;
-    metodo_pago: Attribute.Enumeration<['stripe']>;
+    metodo_pago: Attribute.Enumeration<['stripe', 'spei', 'transferencia']>;
     Observaciones: Attribute.Text;
     pago_guia: Attribute.Decimal;
     pago_vendedor: Attribute.Decimal;
@@ -5840,6 +5968,8 @@ declare module '@strapi/types' {
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
+      'api::logistics-balance.logistics-balance': ApiLogisticsBalanceLogisticsBalance;
+      'api::logistics-transaction.logistics-transaction': ApiLogisticsTransactionLogisticsTransaction;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
       'api::message.message': ApiMessageMessage;

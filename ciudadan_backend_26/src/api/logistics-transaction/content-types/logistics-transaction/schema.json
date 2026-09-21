@@ -1,0 +1,90 @@
+{
+  "kind": "collectionType",
+  "collectionName": "logistics_transactions",
+  "info": {
+    "singularName": "logistics-transaction",
+    "pluralName": "logistics-transactions",
+    "displayName": "LogisticsTransaction",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "stores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::store.store"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "deposit",
+        "shipment_charge",
+        "refund",
+        "adjustment"
+      ]
+    },
+    "amount": {
+      "type": "decimal"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "completed",
+        "cancelled",
+        "failed",
+        "reversed",
+        "rejected"
+      ]
+    },
+    "balanceBefore": {
+      "type": "decimal"
+    },
+    "balanceAfter": {
+      "type": "decimal"
+    },
+    "orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::pedido.pedido"
+    },
+    "payment": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pago.pago"
+    },
+    "shipment": {
+      "type": "string"
+    },
+    "externalReference": {
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "by_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "logistics_transactions"
+    },
+    "completedAt": {
+      "type": "datetime"
+    },
+    "transactionReference": {
+      "type": "string"
+    },
+    "reservationReference": {
+      "type": "string"
+    }
+  }
+}

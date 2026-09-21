@@ -25,7 +25,8 @@
         "servicio",
         "membresia",
         "carrito",
-        "comida"
+        "comida",
+        "logistica"
       ]
     },
     "carrito_id": {
@@ -84,7 +85,9 @@
     "metodo_pago": {
       "type": "enumeration",
       "enum": [
-        "stripe"
+        "stripe",
+        "spei",
+        "transferencia"
       ]
     },
     "Observaciones": {
