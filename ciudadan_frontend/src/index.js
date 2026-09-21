@@ -38,6 +38,7 @@ const AppWrapper = () => {
   }
 
   const isWikiRoute = location.pathname.startsWith('/wiki');
+  const isPrelanzamiento = location.pathname.replace(/\/$/, '') === '/prelanzamiento';
 
   const sectionMap = {
     productos: 'market',
@@ -63,20 +64,20 @@ const AppWrapper = () => {
         overflowX: "clip",
       }}
     >
-      {!isWikiRoute && <NavBar siteSection={siteSection} />}
+      {!isWikiRoute && !isPrelanzamiento && <NavBar siteSection={siteSection} />}
 
       <Box sx={{ flex: 1 }}>
         <Rutas />
-        <AuthGate>
+        {!isPrelanzamiento && <AuthGate>
           <Asistente />
-        </AuthGate>
+        </AuthGate>}
       </Box>
 
       {/* Separador vertical global: reserva el espacio de la barra amarilla fija
           inferior (.bottom-bar, 72px según lo que la app misma asume en
           split-action-button) para que no tape el final del contenido en
           ninguna página. En /wiki la barra no existe, así que no se inserta. */}
-      {!isWikiRoute && (
+      {!isWikiRoute && !isPrelanzamiento && (
         <Box
           aria-hidden="true"
           sx={{
