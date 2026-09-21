@@ -147,6 +147,7 @@ import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
 import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
 import FoodCheckout from '../components/Food/FoodCheckout.jsx';
+import SaldoLogistico from '../Pages/MarketPlace/SaldoLogistico';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -502,6 +503,10 @@ const Rutas = () => (
       <Route
         path='configuracion'
         element={<ConfiguracionTienda />}
+      />
+      <Route 
+        path='saldo-logistico'
+        element={<SaldoLogistico />}
       />
     </Route>
     <Route
