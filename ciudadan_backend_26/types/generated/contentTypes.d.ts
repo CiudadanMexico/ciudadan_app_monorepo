@@ -3954,9 +3954,9 @@ export interface ApiLogisticsTransactionLogisticsTransaction
     draftAndPublish: false;
   };
   attributes: {
-    stores: Attribute.Relation<
+    store: Attribute.Relation<
       'api::logistics-transaction.logistics-transaction',
-      'oneToMany',
+      'manyToOne',
       'api::store.store'
     >;
     type: Attribute.Enumeration<
@@ -5131,6 +5131,43 @@ export interface ApiSkillSkill extends Schema.CollectionType {
   };
 }
 
+export interface ApiSkydropxRechargeAccountSkydropxRechargeAccount
+  extends Schema.SingleType {
+  collectionName: 'skydropx_recharge_accounts';
+  info: {
+    singularName: 'skydropx-recharge-account';
+    pluralName: 'skydropx-recharge-accounts';
+    displayName: 'Skydropx-recharge-account';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    bank: Attribute.String & Attribute.Required;
+    clabe: Attribute.String & Attribute.Required;
+    beneficiary: Attribute.String & Attribute.Required;
+    rfc: Attribute.String;
+    reference: Attribute.String;
+    instructions: Attribute.Text;
+    active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::skydropx-recharge-account.skydropx-recharge-account',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::skydropx-recharge-account.skydropx-recharge-account',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSolicitudafiliacionSolicitudafiliacion
   extends Schema.CollectionType {
   collectionName: 'solicitudafiliaciones';
@@ -5366,6 +5403,11 @@ export interface ApiStoreStore extends Schema.CollectionType {
           localized: true;
         };
       }>;
+    logistics_transactions: Attribute.Relation<
+      'api::store.store',
+      'oneToMany',
+      'api::logistics-transaction.logistics-transaction'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5990,6 +6032,7 @@ declare module '@strapi/types' {
       'api::servicio.servicio': ApiServicioServicio;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::skill.skill': ApiSkillSkill;
+      'api::skydropx-recharge-account.skydropx-recharge-account': ApiSkydropxRechargeAccountSkydropxRechargeAccount;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;

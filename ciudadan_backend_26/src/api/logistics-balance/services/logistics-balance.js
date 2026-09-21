@@ -783,10 +783,10 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
    * Aprueba un depósito y agrega el importe al saldo disponible.
    */
   async approveDeposit({
-    transactionId,
+    transactionId=null,
     userId = null,
     externalReference = null,
-    metadata = null,
+    metadata = {},
   }) {
     if (!transactionId) {
       const error = new Error("transactionId es requerido");
@@ -803,6 +803,10 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         .findOne({
           where: {
             id: transactionId,
+          },
+          populate: {
+            store: true,
+            by_user: true,
           },
           transacting: trx,
         });
@@ -842,6 +846,13 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       const storeId = transaction.store?.id ?? transaction.store;
 
+      if(!storeId){
+        const error = new Error("Tienda no localizada.");
+        // @ts-ignore
+        error.status = 404;
+        throw error;
+      }
+
       // -----------------------------------------------------
       // Obtener balance
       // -----------------------------------------------------
@@ -850,6 +861,9 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         .findOne({
           where: {
             store: storeId,
+          },
+          populate:{
+            store:true
           },
           transacting: trx,
         });
@@ -903,7 +917,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
       // Actualizar transacción
       // -----------------------------------------------------
 
-      const transactionMetadata = metadata? {...(transaction.metadata ?? {}),...metadata,}: transaction.metadata;
+      const transactionMetadata = metadata ? { ...(transaction.metadata ?? {}), ...metadata, } : transaction.metadata;
 
       const updatedTransaction = await strapi.db
         .query(TRANSACTION_UID)
@@ -1278,28 +1292,28 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
     if (!shipmentId) {
       throw new Error("shipmentId es requerido para reconciliar el cargo del envío");
     }
-  
+
     if (!orderId) {
       throw new Error("orderId es requerido para reconciliar el cargo del envío");
     }
-  
+
     // Buscar transacciones de envío asociadas al pedido.
     const transactions = await strapi.entityService.findMany(
-        TRANSACTION_UID,
-        {
-          filters: {
-            order: {
-              id: orderId,
-            },
-            type: "shipment_charge",
+      TRANSACTION_UID,
+      {
+        filters: {
+          order: {
+            id: orderId,
           },
-          sort: {
-            createdAt: "desc",
-          },
-          limit: 10,
-        }
-      );
-  
+          type: "shipment_charge",
+        },
+        sort: {
+          createdAt: "desc",
+        },
+        limit: 10,
+      }
+    );
+
     if (!transactions || transactions.length === 0) {
       return {
         reconciled: false,
@@ -1307,11 +1321,11 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         transaction: null,
       };
     }
-  
+
     // Primero buscamos una transacción que ya tenga
     // este shipment_id.
-    const existingTransaction =  transactions.find((transaction) => transaction.shipment === String(shipmentId));
-  
+    const existingTransaction = transactions.find((transaction) => transaction.shipment === String(shipmentId));
+
     if (existingTransaction) {
       if (existingTransaction.status === "completed") {
         return {
@@ -1320,7 +1334,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
           transaction: existingTransaction,
         };
       }
-  
+
       if (existingTransaction.status === "pending") {
         const committed =
           await this.commitShipmentCharge({
@@ -1329,7 +1343,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
             externalReference,
             metadata,
           });
-  
+
         return {
           reconciled: true,
           transaction: committed?.transaction ??
@@ -1337,7 +1351,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         };
       }
     }
-  
+
     // Buscar una reserva pendiente sin shipment.
     const pendingTransaction =
       transactions.find(
@@ -1345,7 +1359,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
           transaction.status === "pending" &&
           !transaction.shipment
       );
-  
+
     if (!pendingTransaction) {
       return {
         reconciled: false,
@@ -1353,7 +1367,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         transaction: null,
       };
     }
-  
+
     const mergedMetadata = {
       ...(pendingTransaction.metadata || {}),
       ...metadata,
@@ -1363,7 +1377,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         shipmentId: String(shipmentId),
       },
     };
-  
+
     const committed =
       await this.commitShipmentCharge({
         transactionId: pendingTransaction.id,
@@ -1373,7 +1387,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
           String(shipmentId),
         metadata: mergedMetadata,
       });
-  
+
     return {
       reconciled: true,
       transaction: committed?.transaction ??
