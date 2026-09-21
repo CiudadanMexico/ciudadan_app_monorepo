@@ -10,7 +10,7 @@ import { RolesProvider } from './Contexts/RolesContext';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
-import { CartProvider }  from './Contexts/CartContext';
+import { CartProvider } from './Contexts/CartContext';
 import NavBar from './components/NavBar/NavBar.jsx';
 import Rutas from './Routes/index.jsx';
 import Asistente from './components/Asistente/Asistente';
@@ -22,9 +22,10 @@ import AuthGate from './components/AuthGate.jsx';
 import { Capacitor } from '@capacitor/core';
 import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
 
-const domain    = process.env.REACT_APP_AUTH0_DOMAIN;
-const clientId  = process.env.REACT_APP_AUTH0_CLIENT_ID;
-const audience  = process.env.REACT_APP_AUTH0_AUDIENCE;
+const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
+const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+const scope = process.env.REACT_APP_AUTH0_SCOPES ?? "openid profile email offline_access";
 
 // ==============================
 // APP WRAPPER
@@ -113,7 +114,8 @@ const Auth0ProviderWithNavigate = ({ children }) => {
       clientId={clientId}
       authorizationParams={{
         audience,
-        scope: 'openid profile email offline_access',
+        scope,
+        redirect_uri:redirectUri,
       }}
       redirectUri={redirectUri}
       cacheLocation="localstorage"
