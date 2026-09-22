@@ -1,8 +1,8 @@
 // src/routes/Rutas.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import io from 'socket.io-client';
 import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { getSocket } from '../lib/socketClient.jsx';
 import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
@@ -96,9 +96,10 @@ import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 
 // Taxis (pasajero / conductor / trip)
-import Pasajero from '../components/Taxiz/Pasajero.jsx';
-import Conductor from '../components/Taxiz/ConductorDebug.jsx';
+import Pasajero from '../components/Taxis/Pasajero.jsx';
+import Conductor from '../components/Taxis/Conductor.jsx';
 import TripView from '../components/Taxiz/TripView.jsx';
+import HistorialViajes from '../components/Taxis/HistorialViajes.jsx';
 
 //import QrScanner from '../components/Agencias/QrScanner.jsx';
 
@@ -147,6 +148,7 @@ import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
 import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
 import FoodCheckout from '../components/Food/FoodCheckout.jsx';
+import VerifyFreeTrip from '../components/Taxis/VerifyFreeTrip';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -273,20 +275,30 @@ const TripViewRoute = () => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const socketUrl = process.env.REACT_APP_SOCKET_URL;
-    if (!socketUrl) return undefined;
-
-    const client = io(socketUrl, {
-      transports: ['websocket', 'polling'],
-    });
+    const client = getSocket();
+    if (!client) return;
 
     setSocket(client);
+  }, []);
+
+  useEffect(() => {
+    if (!socket || !user?.email) return;
+
+    const register = () => {
+      socket.emit('register', { email: user.email });
+    };
+
+    if (socket.connected) {
+      register();
+      return undefined;
+    }
+
+    socket.on('connect', register);
 
     return () => {
-      client.disconnect();
-      setSocket(null);
+      socket.off('connect', register);
     };
-  }, []);
+  }, [socket, user?.email]);
 
   const strapiConfig = useMemo(() => ({
     baseUrl: process.env.REACT_APP_STRAPI_URL || '',
@@ -373,7 +385,7 @@ const Rutas = () => {
       element={<Notificacion />}
     />
 
-                {/* Gana / GanaRoute */}
+    {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
@@ -395,7 +407,7 @@ const Rutas = () => {
       element={<RedireccionPrelanzamiento tipo='lider' />}
     />
     {/* Taxis */}
-    
+
 
     {/* Taxis */}
     <Route
@@ -427,8 +439,16 @@ const Rutas = () => {
       element={<Pasajero />}
     />
     <Route
+      path='/taxis/viajes/historial'
+      element={<HistorialViajes />}
+    />
+    <Route
       path='/taxis/viaje/:travelId'
       element={<TripViewRoute />}
+    />
+    <Route
+      path='/taxis/viaje-gratis'
+      element={<VerifyFreeTrip />}
     />
 
     <Route
@@ -465,7 +485,7 @@ const Rutas = () => {
       path='/comida/comprar/:slug'
       element={<ComprarFoodProduct />}
     />
-    <Route 
+    <Route
       path='/comida/ofertas'
       element={<ComidaOfertas />}
     />

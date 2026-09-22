@@ -1,6 +1,5 @@
 import type { Schema, Attribute } from '@strapi/strapi';
 
-<<<<<<< HEAD
 export interface OrdersProductsOrder extends Schema.Component {
   collectionName: 'components_orders_products_orders';
   info: {
@@ -33,8 +32,6 @@ export interface OrdersProductsOrder extends Schema.Component {
   };
 }
 
-=======
->>>>>>> origin/feature/coworkv2
 export interface OffersOfferItem extends Schema.Component {
   collectionName: 'components_offers_offer_items';
   info: {
@@ -73,41 +70,6 @@ export interface OffersOfferItem extends Schema.Component {
   };
 }
 
-<<<<<<< HEAD
-=======
-export interface OrdersProductsOrder extends Schema.Component {
-  collectionName: 'components_orders_products_orders';
-  info: {
-    displayName: 'products_order';
-    icon: 'shoppingCart';
-  };
-  attributes: {
-    product: Attribute.Relation<
-      'orders.products-order',
-      'oneToOne',
-      'api::food-product.food-product'
-    >;
-    restaurant: Attribute.Relation<
-      'orders.products-order',
-      'oneToOne',
-      'api::food-restaurant.food-restaurant'
-    >;
-    nombre: Attribute.String;
-    precio_unitario: Attribute.Decimal;
-    cantidad: Attribute.Integer;
-    subtotal: Attribute.Decimal;
-    envio: Attribute.Decimal;
-    subtotal_volumetrico: Attribute.Decimal;
-    total: Attribute.Decimal;
-    comision_plataforma: Attribute.Decimal;
-    calificado: Attribute.Boolean;
-    calificacion: Attribute.Decimal;
-    fecha_calificado: Attribute.DateTime;
-    status: Attribute.String;
-  };
-}
-
->>>>>>> origin/feature/coworkv2
 export interface FoodCartFoodCartItem extends Schema.Component {
   collectionName: 'components_food_cart_food_cart_items';
   info: {
@@ -187,13 +149,8 @@ export interface CarritosProductoEnCarrito extends Schema.Component {
 declare module '@strapi/types' {
   export module Shared {
     export interface Components {
-<<<<<<< HEAD
       'orders.products-order': OrdersProductsOrder;
       'offers.offer-item': OffersOfferItem;
-=======
-      'offers.offer-item': OffersOfferItem;
-      'orders.products-order': OrdersProductsOrder;
->>>>>>> origin/feature/coworkv2
       'food-cart.food-cart-item': FoodCartFoodCartItem;
       'carritos.producto-en-carrito': CarritosProductoEnCarrito;
     }

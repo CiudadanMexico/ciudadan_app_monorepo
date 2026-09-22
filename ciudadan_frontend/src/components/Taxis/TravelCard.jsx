@@ -1,6 +1,7 @@
 // src/components/Taxis/TravelCard.jsx
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { emitEvent } from '../../lib/socketClient.jsx';
+import Alert from '@mui/material/Alert';
 
 /**
  * TravelCard.jsx
@@ -21,6 +22,12 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   const [elapsedSeconds, setElapsedSeconds] = useState(null);
   const [finalPrice, setFinalPrice] = useState('');
   const [sending, setSending] = useState(false);
+  const [isSent, setIsSent] = useState(false);
+  const [error, setError] = useState(null);
+
+  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
+
+  //console.log('[TravelCard] driver:', driver);
 
   // Obtener timestamp start (buscamos varias propiedades posibles)
   const startTs = useMemo(() => {
@@ -95,7 +102,6 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     (suggestedPrice ? currencyFmt(suggestedPrice) : null);
 
   const passengerName = travel?.userData?.nombre_completo || travel?.username || 'Pasajero desconocido';
-  const strapiUrl = process.env.REACT_APP_STRAPI_URL || "";
 
   let userPhoto = null;
   const profilePicUrl = travel?.userData?.profilepic?.url;
@@ -130,12 +136,11 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     if (sending) return;
 
     const priceToSend = finalPrice !== '' ? Number(finalPrice) : suggestedPrice;
-    if (!priceToSend || isNaN(Number(priceToSend))) {
+    if (!priceToSend || isNaN(Number(priceToSend)) || Number(priceToSend) <= 0) {
       // UX simple: alerta; en producción podrías mostrar un toast
-      alert('Por favor ingresa un precio final válido antes de enviar la propuesta.');
+      setError('Por favor ingrese un precio final válido antes de enviar la propuesta.');
       return;
     }
-
     setSending(true);
 
     let driverCoords = null;
@@ -147,14 +152,21 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
     }
 
     const resolvedTravelId = travel?.travelId ?? travel?.id ?? travel?.travelID ?? null;
-    const userId = travel?.userEmail ?? travel?.id ?? null;
-    console.log('[TravelCard] driverId:', userId);
+    const travelId = travel?.strapiTripId ?? null;
+    const driverId = driver?.id ?? null;
+    const driverEmail = travel?.driverEmail ?? travel?.driver?.email ?? null;
+    const userId = travel?.userId ?? travel?.userid ?? null;
+    const userEmail = travel?.userData?.email ?? travel?.userEmail ?? travel?.email ?? null;
 
     const payload = {
+      travelId,
       coordinates: driverCoords || travel?.driverCoordinates || travel?.coords || null,
       price: Number(priceToSend),
       driver,
-      driverId: userId,
+      driverId,
+      driverEmail,
+      userId,
+      userEmail,
       meta: {
         from: 'conductor',
         travelId: resolvedTravelId,
@@ -182,6 +194,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
       console.warn('[TravelCard] onAccept lanzó error:', e);
     } finally {
       setSending(false);
+      setIsSent(true);
     }
   };
 
@@ -230,6 +243,24 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
   // small accessibility: disable send if ya enviando
   const canSend = !sending && (finalPrice !== '' || (suggestedPrice !== null && !isNaN(Number(suggestedPrice))));
 
+  if (isSent) {
+    return (
+      <div
+        role="article"
+        aria-label={`TravelCard ${travel?.travelId ?? travel?.id ?? index}`}
+        style={{
+          border: '1px solid #e6e6e6',
+          margin: 8,
+          boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
+        }}
+      >
+        <Alert severity="success" variant="filled">
+          Propuesta enviada a {passengerName} por {currencyFmt(finalPrice !== '' ? Number(finalPrice) : suggestedPrice)}
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div
       role="article"
@@ -238,7 +269,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
         border: '1px solid #e6e6e6',
         borderRadius: 12,
         padding: 14,
-        marginBottom: 12,
+        margin: 8,
         boxShadow: '0 6px 18px rgba(0,0,0,0.04)',
         background: '#fff',
         maxHeight: 320,
@@ -251,7 +282,7 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
             {userPhoto ? (
               <img
                 src={userPhoto}
-                alt={travel.username}
+                alt={`Foto de ${passengerName}`}
                 style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", margin: 12 }}
               />
             ) : (
@@ -282,14 +313,14 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
           </div>
 
           <div style={{ flex: 1, padding: 12 }}>
-            <div style={{ fontSize: 12, color: '#666' }}>
+            <div style={{ fontSize: 13, color: '#666' }}>
               <strong>Origen</strong>
             </div>
-            <div style={{ fontSize: 12, marginBottom: 8 }}>{origin}</div>
-            <div style={{ fontSize: 12, color: '#666' }}>
+            <div style={{ fontSize: 13, marginBottom: 8 }}>{origin}</div>
+            <div style={{ fontSize: 13, color: '#666' }}>
               <strong>Destino</strong>
             </div>
-            <div style={{ fontSize: 12, marginBottom: 8 }}>{destination}</div>
+            <div style={{ fontSize: 13, marginBottom: 8 }}>{destination}</div>
           </div>
           {/*<div style={{ fontSize: 12, color: '#999', marginTop: 10 }}>
             ID: {travel.travelId || travel.id || '—'}
@@ -338,6 +369,11 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
                   placeholder={suggestedPrice ? String(suggestedPrice) : 'Ingresa precio final'}
                   style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid #ddd', width: '100%' }}
                 />
+                {error && (
+                  <div style={{ color: 'red', alignItems: 'center', marginTop: 4 }}>
+                    {error}
+                  </div>
+                )}
               </>
             ) :
               <h4 style={{ textAlign: 'center', color: '#f5a623' }}>
@@ -349,13 +385,14 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
             <button
               onClick={handleViewClicked}
+              disabled={!canSend}
               style={{
                 flex: 1,
                 padding: '10px 12px',
                 borderRadius: 8,
                 border: '1px solid #ddd',
-                background: '#fff',
-                cursor: 'pointer',
+                background: '#b0b1aec4',
+                cursor: sending ? 'not-allowed' : 'pointer',
               }}
               aria-label="Ver viaje"
             >
@@ -364,13 +401,16 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
 
             <button
               onClick={handleRejectClicked}
+              disabled={!canSend}
               style={{
                 flex: 1,
                 padding: '10px 12px',
                 borderRadius: 8,
-                border: '1px solid #ddd',
-                background: '#b0b1aec4',
-                cursor: 'pointer',
+                border: '1px solid #e31717',
+                background: '#e31717',
+                opacity: sending ? 0.5 : 1,
+                color: '#fff',
+                cursor: sending ? 'not-allowed' : 'pointer',
               }}
               aria-label="Rechazar viaje"
             >
@@ -385,8 +425,8 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
                 padding: '10px 12px',
                 borderRadius: 8,
                 border: 'none',
-                background: sending ? '#d8c966af' : '#ffbf00',
-                color: '#111',
+                background: '#ffbf00',
+                opacity: sending ? 0.5 : 1,
                 fontWeight: 700,
                 cursor: sending ? 'not-allowed' : 'pointer',
                 boxShadow: '0 6px 12px rgba(255,191,0,0.18)',

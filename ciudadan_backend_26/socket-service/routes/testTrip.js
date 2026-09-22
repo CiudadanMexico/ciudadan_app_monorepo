@@ -48,6 +48,36 @@ async function saveTripToStrapi(data) {
   }
 }
 
+async function saveReportToStrapi(data) {
+  const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (process.env.STRAPI_TOKEN) {
+      headers.Authorization = `Bearer ${process.env.STRAPI_TOKEN}`;
+    }
+
+    const response = await axios.post(
+      `${STRAPI_URL.replace(/\/$/, '')}/api/taxi-reports`,
+      { data },
+      {
+        headers,
+        timeout: 8000,
+      }
+    );
+    return response.data;
+  } catch (err) {
+    console.error(
+      '[testTrip] Error guardando informe en Strapi:',
+      err?.response?.status,
+      err?.response?.data || err.message
+    );
+    return null;
+  }
+}
+
 // constantes (más adelante vendrán de Strapi)
 const STEP_METERS = 2000;
 const DEFAULT_SPEED_M_S = 8.33; // ~30 km/h para estimar duración si no hay ruta
@@ -95,6 +125,7 @@ router.post('/send-trip', async (req, res) => {
       userId: body.userId || null,
       userData: body.userData || null,
       settings: body.settings || {},
+      freeTrip: body.freeTrip || false,
       meta: body.meta || {}
     };
     //console.log('[testTrip] send-trip payload:', payload);
@@ -167,7 +198,6 @@ router.post('/send-trip', async (req, res) => {
     payload.durationSeconds = suggested ? suggested.durationSeconds : null;
     payload.roundedDistanceMeters = roundedDistanceMeters;
     payload.userRating = userRating;
-    payload.freeTrip = payload.userData.free_trip;
     payload.meta.suggested = {
       price: payload.suggestedPrice,
       priceFormatted: payload.suggestedPriceFormatted,
@@ -185,7 +215,7 @@ router.post('/send-trip', async (req, res) => {
       pasajero: payload.userId || null,
       solicitado: payload.createdAt,
       status: 'solicitado',
-      isTripFree: payload.userData.free_trip,
+      isTripFree: payload.freeTrip,
       travelid: payload.id, // útil para correlación futura
     };
 
@@ -208,11 +238,11 @@ router.post('/send-trip', async (req, res) => {
 /**
  * Nuevo endpoint: /test/cancel-trip
  * - body esperado (opcional / con defaults):
- *   { id, driverId, userEmail, cancelledBy, reason, code, refundAmount, notifyDriver, notifyUser, meta }
+ *   { id, driverEmail, userEmail, cancelledBy, reason, code, refundAmount, notifyDriver, notifyUser, meta }
  *
  * Emite:
  *   - evento global 'trip-cancel' con payload completo
- *   - si driverId está presente: emite a room `driver:<driverId>` el mismo evento
+ *   - si driverEmail está presente: emite a room `driver:<driverEmail>` el mismo evento
  *   - si userEmail está presente: emite a room `user:<userEmail>` el mismo evento
  *
  * Ajusta las rooms a la convención que uses en tu app (aquí uso 'driver:<id>' / 'user:<email>' como ejemplo).
@@ -230,9 +260,12 @@ router.post('/cancel-trip', async (req, res) => {
     const payload = {
       id: tripId,
       driverId: body.driverId || null,
+      driverEmail: body.driverEmail || null,
+      userId: body.userId || null,
       userEmail: body.userEmail || null,
       cancelledBy: body.cancelledBy || 'user', // user | driver | system | admin
       reason: body.reason || 'cancelado por usuario',
+      coords: body.coords || null, // opcional: coordenadas del lugar de cancelación
       code: body.code || null, // opcional: código de cancelación o motivo estandarizado
       refundAmount: typeof body.refundAmount === 'number' ? body.refundAmount : null,
       notifyDriver: body.notifyDriver === undefined ? true : Boolean(body.notifyDriver),
@@ -246,24 +279,40 @@ router.post('/cancel-trip', async (req, res) => {
     console.log(`[testTrip] cancel-trip payload:`, payload);
 
     // Emitir evento global para que clientes (paneles, drivers, usuarios en testing) reciban la cancelación
-    io.emit('trip-cancel', payload);
+    //io.emit('trip-cancel', payload);
+
+    const strapiUpdateData = {
+      description: payload.reason,
+      confirmed_by: payload.cancelledBy,
+      date_report: payload.createdAt,
+      coordinates: payload.coords,
+      travel: payload.id,
+      passenger: payload.userId,
+      driver: payload.driverId
+    };
+
+    // Guardar informe de cancelación en Strapi
+    const savedReport = await saveReportToStrapi(strapiUpdateData);
+    if (!savedReport) {
+      console.error('[testTrip] Error guardando informe en Strapi');
+    }
 
     // Si se quiere notificar específicamente al driver (si la app los asigna a rooms)
-    if (payload.driverId && payload.notifyDriver) {
+    if (payload.driverEmail && payload.cancelledBy !== 'driver') {
       try {
-        // Convención de room: 'driver:<driverId>' (ajusta a tu implementación)
-        io.to(`driver:${payload.driverId}`).emit('trip-cancel', payload);
-        console.log(`[testTrip] emit to driver:${payload.driverId}`);
+        // Convención de room: 'driver:<driverEmail>' (ajusta a tu implementación)
+        io.to(payload.driverEmail).emit('trip-cancel', payload);
+        console.log(`[testTrip] emit to driver:${payload.driverEmail}`);
       } catch (e) {
-        console.warn(`[testTrip] fallo al emitir a driver:${payload.driverId}`, e);
+        console.warn(`[testTrip] fallo al emitir a driver:${payload.driverEmail}`, e);
       }
     }
 
     // Si se quiere notificar específicamente al usuario (por ejemplo por email->room)
-    if (payload.userEmail && payload.notifyUser) {
+    if (payload.userEmail && payload.cancelledBy !== 'user') {
       try {
         // Convención de room: 'user:<email>' (ajusta a tu implementación)
-        io.to(`user:${payload.userEmail}`).emit('trip-cancel', payload);
+        io.to(payload.userEmail).emit('trip-cancel', payload);
         console.log(`[testTrip] emit to user:${payload.userEmail}`);
       } catch (e) {
         console.warn(`[testTrip] fallo al emitir a user:${payload.userEmail}`, e);
@@ -273,7 +322,7 @@ router.post('/cancel-trip', async (req, res) => {
     // Respuesta
     return res.json({
       ok: true,
-      emittedTo: 'all' + (payload.driverId && payload.notifyDriver ? `, driver:${payload.driverId}` : '') + (payload.userEmail && payload.notifyUser ? `, user:${payload.userEmail}` : ''),
+      emittedTo: 'all' + (payload.driverEmail && payload.cancelledBy !== 'driver' ? `, driver:${payload.driverEmail}` : '') + (payload.userEmail && payload.cancelledBy !== 'user' ? `, user:${payload.userEmail}` : ''),
       payload
     });
   } catch (err) {
