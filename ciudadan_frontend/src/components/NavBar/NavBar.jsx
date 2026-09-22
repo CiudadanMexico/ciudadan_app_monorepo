@@ -1,5 +1,5 @@
 // src/components/NavBar/NavBar.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 // No socket.io aquí (evitamos duplicados)
@@ -18,6 +18,11 @@ import {
 import { BsBriefcaseFill } from "react-icons/bs";
 import { AiOutlineApartment } from "react-icons/ai";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
+import ForumIcon from '@mui/icons-material/Forum';
+import ContactsIcon from '@mui/icons-material/Contacts';
+import GroupsIcon from '@mui/icons-material/Groups';
+import LogoutIcon from '@mui/icons-material/Logout';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import KeyboardVoiceIcon from '@mui/icons-material/KeyboardVoice';
 import ShareIcon from '@mui/icons-material/Share';
@@ -29,6 +34,7 @@ import MenuIcon from './MenuIcon';
 import NotificationsIcon from './NotificationsIcon.jsx';
 import UserIcon from './UserIcon.jsx';
 import NavButton from './NavButton.jsx';
+import SocialTopBar from './SocialTopBar.jsx';
 import BotonCircular from './../Usuarios/BotonCircular.jsx';
 import AIInput from './AIInput.jsx';
 import Direccionador from '../../utils/Direccionador.jsx';
@@ -77,6 +83,11 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
   const [isSharePopupOpen, setIsSharePopupOpen] = useState(false);
   const location = useLocation();
   const isHomeOrInfo = location.pathname === '/' || location.pathname.startsWith('/info/');
+  const isCommunityShell = location.pathname.startsWith('/comunidad');
+  const communityScreenKey = useMemo(() => {
+    const segments = location.pathname.split('/').filter(Boolean);
+    return segments[1] || 'asamblea';
+  }, [location.pathname]);
 
   const [logoSrc, setLogoSrc] = useState("");
 
@@ -94,6 +105,28 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     academia: <FaUniversity />,
     comunidad: <AiOutlineApartment />
   };
+
+  const defaultBottomBarItems = useMemo(() => ([
+    { section: 'gana', label: 'Gana', path: '/gana' },
+    { section: 'cartera', label: 'Cartera', path: '/cartera' },
+    { section: 'taxis', label: 'Taxis', path: '/taxis' },
+    { section: 'comida', label: 'Comida', path: '/comida' },
+    { section: 'market', label: 'Market', path: '/market' },
+    { section: 'coowork', label: 'Coowork', path: '/coowork' },
+    { section: 'academia', label: 'Academia', path: '/academia' },
+    { section: 'comunidad', label: 'Comunidad', path: '/comunidad' },
+  ]), []);
+
+  const communityBottomBarItems = useMemo(() => ([
+    { label: 'Feed', path: '/comunidad/feed', icon: <RssFeedIcon /> },
+    { label: 'Chats', path: '/comunidad/chats', icon: <ForumIcon /> },
+    { label: 'Contactos', path: '/comunidad/contactos', icon: <ContactsIcon /> },
+    { label: 'Asamblea', path: '/comunidad', icon: <FaUniversity /> },
+    { label: 'Grupos', path: '/comunidad/grupos', icon: <GroupsIcon /> },
+    { label: 'Volver', path: '/', icon: <LogoutIcon /> },
+  ]), []);
+
+  const bottomBarItems = isCommunityShell ? communityBottomBarItems : defaultBottomBarItems;
 
   // Navegación (con re-visit repeat)
   const handleNavigation = (path) => {
@@ -113,8 +146,19 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
 
   // Actualiza activeTab cuando cambia la ruta
   useEffect(() => {
-    setActiveTab(siteSection);
-  }, [location.pathname, siteSection]);
+    const matchedItem = [...bottomBarItems]
+      .sort((left, right) => {
+        const leftPath = left.path || `/${left.section}`;
+        const rightPath = right.path || `/${right.section}`;
+        return rightPath.length - leftPath.length;
+      })
+      .find((item) => {
+        const targetPath = item.path || `/${item.section}`;
+        return location.pathname === targetPath || location.pathname.startsWith(`${targetPath}/`);
+      });
+
+    setActiveTab(matchedItem?.path || (isCommunityShell ? '/comunidad' : siteSection));
+  }, [bottomBarItems, isCommunityShell, location.pathname, siteSection]);
 
   // Responsivo para logo y ajuste topBar
   useEffect(() => {
@@ -250,32 +294,47 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
   // displayCount: número real + optimismo local
   const displayCount = Number(currentNotificationsNum || 0) + Number(optimisticUnread || 0);
 
-  // Los botones que queremos mostrar (del primer NavBar)
-  const menuSections = ["gana", "cartera", "taxis", "comida", "market", "coowork", "academia", "comunidad"];
-
   return (
     <>
       {/* TOP BAR */}
-      <MenuTopBar
-        iconMap={iconMap}
-        isOpen={topBarOpen}
-        setIsOpen={(open) => {
-          if (topBarRef.current) {
-            if (!open) {
-              topBarRef.current.style.maxHeight = '0px';
-            } else {
-              topBarRef.current.style.maxHeight = '0px';
-              setTimeout(() => {
-                if (topBarRef.current) topBarRef.current.style.maxHeight = topBarRef.current.scrollHeight + 'px';
-              }, 20);
+      {isCommunityShell ? (
+        <SocialTopBar
+          screenKey={communityScreenKey}
+          logoSrc={logoSrc}
+          handleLogin={handleLogin}
+          handleLogout={handleLogout}
+          handleLinkClick={handleLinkClick}
+          isProfileMenuOpen={isProfileMenuOpen}
+          setIsProfileMenuOpen={setIsProfileMenuOpen}
+          defaultProfileImage={guestImage}
+          guestImage={guestImage}
+          Link={Link}
+          containerRef={profileRef}
+          userData={user}
+          user={user}
+        />
+      ) : (
+        <MenuTopBar
+          iconMap={iconMap}
+          isOpen={topBarOpen}
+          setIsOpen={(open) => {
+            if (topBarRef.current) {
+              if (!open) {
+                topBarRef.current.style.maxHeight = '0px';
+              } else {
+                topBarRef.current.style.maxHeight = '0px';
+                setTimeout(() => {
+                  if (topBarRef.current) topBarRef.current.style.maxHeight = topBarRef.current.scrollHeight + 'px';
+                }, 20);
+              }
             }
-          }
-          closeAllMenus();
-          setTopBarOpen(open);
-        }}
-        topBarRef={topBarRef}
-        handleNavigation={handleNavigation}
-      />
+            closeAllMenus();
+            setTopBarOpen(open);
+          }}
+          topBarRef={topBarRef}
+          handleNavigation={handleNavigation}
+        />
+      )}
 
       {/* Redireccionador (igual que tenías) */}
       <Direccionador
@@ -284,131 +343,150 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
         redirectPath="/taxi"
       />
 
-      <section className="navbar">
-        <div className="nav-links">
-          <div className='columnas'>
-            <div className="columnax">
-              <div className="logo-container" alt="Ciudadan.org --> Cooperativismo 6.0" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-                <img
-                  id="ciudadan-logo"
-                  src={logoSrc}
-                  alt="Ciudadan Logo"
-                  name="Ciudadan.Org - Cooperativismo 6.0 - Logo"
-                  className={`logo-img ${isHomeOrInfo ? "en-home" : ""}`}
-                />
-                <CiudadanBadge />
+      {!isCommunityShell && (
+        <section className="navbar">
+          <div className="nav-links">
+            <div className='columnas'>
+              <div className="columnax">
+                <div className="logo-container" alt="Ciudadan.org --> Cooperativismo 6.0" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                  <img
+                    id="ciudadan-logo"
+                    src={logoSrc}
+                    alt="Ciudadan Logo"
+                    name="Ciudadan.Org - Cooperativismo 6.0 - Logo"
+                    className={`logo-img ${isHomeOrInfo ? "en-home" : ""}`}
+                  />
+                  <CiudadanBadge />
+                </div>
               </div>
-            </div>
 
-            <div className='columnax columna2'>
-              <div className="nav-link correte">
-                <AIInput />
+              <div className='columnax columna2'>
+                <div className="nav-link correte">
+                  <AIInput />
+                </div>
               </div>
-            </div>
 
-            <div className="columnax columna3">
-              {MOSTRAR_BOTON_IA && (
+              <div className="columnax columna3">
+                {MOSTRAR_BOTON_IA && (
+                  <div className="nav-linky">
+                    <span className="robot-mobile">
+                      <BotonCircular clase="boton-ia" mediaQ={true} />
+                    </span>
+                  </div>
+                )}
+
+              <div className='columnax columna2'>
+                <div className="nav-link correte">
+                  <AIInput />
+                </div>
+              </div>
+
+              <div className="columnax columna3">
                 <div className="nav-linky">
                   <span className="robot-mobile">
                     <BotonCircular clase="boton-ia" mediaQ={true} />
                   </span>
                 </div>
-              )}
 
-              <div className="nav-linky">
-                <MenuIcon
-                  isOpen={topBarOpen}
-                  setIsOpen={(open) => {
-                    if (topBarRef.current) {
-                      if (!open) {
-                        topBarRef.current.style.maxHeight = '0px';
-                      } else {
-                        topBarRef.current.style.maxHeight = '0px';
-                        setTimeout(() => {
-                          if (topBarRef.current) topBarRef.current.style.maxHeight = topBarRef.current.scrollHeight + 'px';
-                        }, 20);
+                <div className="nav-linky">
+                  <MenuIcon
+                    isOpen={topBarOpen}
+                    setIsOpen={(open) => {
+                      if (topBarRef.current) {
+                        if (!open) {
+                          topBarRef.current.style.maxHeight = '0px';
+                        } else {
+                          topBarRef.current.style.maxHeight = '0px';
+                          setTimeout(() => {
+                            if (topBarRef.current) topBarRef.current.style.maxHeight = topBarRef.current.scrollHeight + 'px';
+                          }, 20);
+                        }
                       }
-                    }
-                    closeAllMenus();
-                    setTopBarOpen(open);
-                  }}
-                  className="cuenta-icon"
-                />
-              </div>
+                      closeAllMenus();
+                      setTopBarOpen(open);
+                    }}
+                    className="cuenta-icon"
+                  />
+                </div>
 
-              <div className="nav-linky">
-                <NotificationsIcon
-                  action='notifications'
-                  isOpen={isNotificationMenuOpen}
-                  setIsOpen={(open) => {
-                    closeAllMenus();
-                    setIsNotificationMenuOpen(open);
-                  }}
-                  onClose={() => setIsNotificationMenuOpen(false)}
-                  authenticated={isAuthenticated}
-                  userData={user}
-                  containerRef={notifRef}
-                  className="cuenta-icon"
+                <div className="nav-linky">
+                  <NotificationsIcon
+                    action='notifications'
+                    isOpen={isNotificationMenuOpen}
+                    setIsOpen={(open) => {
+                      closeAllMenus();
+                      setIsNotificationMenuOpen(open);
+                    }}
+                    onClose={() => setIsNotificationMenuOpen(false)}
+                    authenticated={isAuthenticated}
+                    userData={user}
+                    containerRef={notifRef}
+                    className="cuenta-icon"
+                    handleLogout={handleLogout}
+                    count={displayCount}
+                  />
+                </div>
+
+                <div className="nav-linky">
+                  <HearthButton
+                    isOpen={isMenuOpen}
+                    onClose={() => setIsMenuOpen(false)}
+                    authenticated={isAuthenticated}
+                    userData={user}
+                    className="cuenta-icon"
+                  />
+                </div>
+
+                <div className="nav-linky">
+                  <CartIcon
+                    isOpen={isMenuOpen}
+                    onClose={() => setIsMenuOpen(false)}
+                    authenticated={isAuthenticated}
+                    userData={user}
+                    className="cuenta-icon"
+                  />
+                </div>
+
+                <UserIcon
+                  handleLogin={handleLogin}
+                  isProfileMenuOpen={isProfileMenuOpen}
+                  setIsProfileMenuOpen={setIsProfileMenuOpen}
                   handleLogout={handleLogout}
-                  count={displayCount}
+                  handleLinkClick={handleLinkClick}
+                  defaultProfileImage={guestImage}
+                  guestImage={guestImage}
+                  Link={Link}
+                  containerRef={profileRef}
                 />
               </div>
-
-              <div className="nav-linky">
-                <HearthButton
-                  isOpen={isMenuOpen}
-                  onClose={() => setIsMenuOpen(false)}
-                  authenticated={isAuthenticated}
-                  userData={user}
-                  className="cuenta-icon"
-                />
-              </div>
-
-              <div className="nav-linky">
-                <CartIcon
-                  isOpen={isMenuOpen}
-                  onClose={() => setIsMenuOpen(false)}
-                  authenticated={isAuthenticated}
-                  userData={user}
-                  className="cuenta-icon"
-                />
-              </div>
-
-              <UserIcon
-                handleLogin={handleLogin}
-                isProfileMenuOpen={isProfileMenuOpen}
-                setIsProfileMenuOpen={setIsProfileMenuOpen}
-                handleLogout={handleLogout}
-                handleLinkClick={handleLinkClick}
-                defaultProfileImage={guestImage}
-                guestImage={guestImage}
-                Link={Link}
-                containerRef={profileRef}
-              />
             </div>
           </div>
-        </div>
+        </section>
+      )}
 
-        {/* fila inferior: botones del menú */}
-        <div className={`nav-links wraper bottom-bar${isBottomBarVisible ? '' : ' bottom-bar--hidden'}`}
-        style={{ zIndex: 1400 }}>
-          {menuSections.map((section) => {
-            const serverCount = (contadorNotificaciones && contadorNotificaciones[section]) ? Number(contadorNotificaciones[section]) : 0;
-            const optimistic = optimisticByType?.[section] || 0;
-            const totalCount = serverCount + optimistic;
-            return (
-              <NavButton
-                key={section}
-                section={section}
-                activeTab={activeTab}
-                handleNavigation={handleNavigation}
-                count={totalCount}
-                iconMap={iconMap}
-              />
-            );
-          })}
-        </div>
-      </section>
+      {/* fila inferior: botones del menú */}
+      <div className={`nav-links wraper bottom-bar${isBottomBarVisible ? '' : ' bottom-bar--hidden'}`}
+      style={{ zIndex: 1400 }}>
+        {bottomBarItems.map((item) => {
+          const section = item.section || item.label.toLowerCase();
+          const serverCount = (contadorNotificaciones && contadorNotificaciones[section]) ? Number(contadorNotificaciones[section]) : 0;
+          const optimistic = optimisticByType?.[section] || 0;
+          const totalCount = serverCount + optimistic;
+          return (
+            <NavButton
+              key={item.path || section}
+              section={item.section}
+              label={item.label}
+              path={item.path}
+              activeTab={activeTab}
+              handleNavigation={handleNavigation}
+              count={totalCount}
+              iconMap={iconMap}
+              icon={item.icon}
+            />
+          );
+        })}
+      </div>
 
       <button
         className="split-action-button"

@@ -98,7 +98,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
-    "ajv": "^7.2.4",
+    "ajv": "^8.20.0",
     "ajv-keywords": "^5.1.0",
     "sharp": "^0.35.4",
     "typescript": "^4.9.5"

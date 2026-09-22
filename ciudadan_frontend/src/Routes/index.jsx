@@ -114,6 +114,7 @@ import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
 import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
+import SocialSectionPage from '../Pages/Comunidad/SocialSectionPage.jsx';
 
 // Contenidos / Blog
 //import ContenidosPage from '../Pages/Blog/Contenidos.jsx';
@@ -856,6 +857,66 @@ const Rutas = () => {
     <Route
       path='/comunidad'
       element={<ComunidadRoute />}
+    />
+    <Route
+      path='/comunidad/feed'
+      element={(
+        <SocialSectionPage
+          sectionKey='feed'
+          title='Feed'
+          description='Abre el feed social de Ciudadan.'
+          note='Esta pantalla queda conectada al nuevo Social Shell.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats/:conversationId'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='La conversación ocupa el espacio principal de Social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/contactos'
+      element={(
+        <SocialSectionPage
+          sectionKey='contactos'
+          title='Contactos'
+          description='Abre la agenda y los contactos integrados.'
+          note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/grupos'
+      element={(
+        <SocialSectionPage
+          sectionKey='grupos'
+          title='Grupos'
+          description='Pantalla provisional para grupos.'
+          note='Este espacio queda listo para conectar los grupos del ecosistema social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
     />
     <Route
       path='/comunidad/nuevo-anuncio-programado'
