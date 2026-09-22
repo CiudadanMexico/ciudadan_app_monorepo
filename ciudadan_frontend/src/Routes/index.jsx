@@ -104,6 +104,7 @@ import TripView from '../components/Taxiz/TripView.jsx';
 
 // Membresías extras
 import MembershipCheckout from '../components/Membresias/MembershipCheckout.jsx';
+import MercadoPagoRetorno from '../components/Membresias/MercadoPagoRetorno.jsx';
 import ProbarMembresia from '../components/Membresias/ProbarMembresia.jsx';
 import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 
@@ -812,6 +813,10 @@ const Rutas = () => {
     <Route
       path='/membresias/adquirir/*'
       element={<MembershipCheckout />}
+    />
+    <Route
+      path='/membresias/retorno'
+      element={<MercadoPagoRetorno />}
     />
     <Route
       path='/mi-membresia'

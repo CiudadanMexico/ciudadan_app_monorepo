@@ -50,6 +50,8 @@ import { useNotifications } from '../../Contexts/NotificationsContext';
 // - Mantiene optimismo por tipo (para feedback inmediato)
 // ------------------------------
 
+const MOSTRAR_BOTON_IA = false;
+
 const NavBar = ({ SetIsMenuOpen, siteSection }) => {
   // Menús y topbar
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -305,11 +307,13 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
             </div>
 
             <div className="columnax columna3">
-              <div className="nav-linky">
-                <span className="robot-mobile">
-                  <BotonCircular clase="boton-ia" mediaQ={true} />
-                </span>
-              </div>
+              {MOSTRAR_BOTON_IA && (
+                <div className="nav-linky">
+                  <span className="robot-mobile">
+                    <BotonCircular clase="boton-ia" mediaQ={true} />
+                  </span>
+                </div>
+              )}
 
               <div className="nav-linky">
                 <MenuIcon

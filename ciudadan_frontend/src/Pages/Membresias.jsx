@@ -15,8 +15,11 @@ import {
 import '../styles/membresias.css';
 import membresiasImg from '../assets/como.png';
 
+import { useAuth0 } from '@auth0/auth0-react';
+
 import { useRoles } from '../Contexts/RolesContext';
 import MiMembresia from '../components/Membresias/MiMembresia.jsx';
+import MercadoPagoBoton from '../components/Membresias/MercadoPagoBoton.jsx';
 import { useNavigate } from 'react-router-dom';
 import PreLoader from '../components/PreLoader.jsx';
 
@@ -25,6 +28,7 @@ const COLLECTION_ENDPOINT = "membresias-tipos";
 const Membresias = () => {
   const chargeText = 'Cargando Membresías';
   const { isActivaMembresia } = useRoles();
+  const { user, isAuthenticated } = useAuth0();
 
   const [planes, setPlanes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,22 +39,8 @@ const Membresias = () => {
 
   const handleMembresiaClick = (plan) => (e) => {
     e.preventDefault();
-
     const order = plan?.order || plan?.id;
-
-    let path;
-
-    if (order === 1) {
-      path = '/membresias/comunidad/order';
-    } else if (order === 2) {
-      path = '/membresias/impulsor/order';
-    } else if (order === 3) {
-      path = '/membresias/nodo/order';
-    } else {
-      path = `/membresias/pagar/order/${order}`;
-    }
-
-    navigate(path);
+    navigate(`/membresias/pagar/order/${order}`);
   };
 
   useEffect(() => {
@@ -70,6 +60,25 @@ const Membresias = () => {
         const mapped = items.map((r) => {
           const attrs = r.attributes || {};
 
+          let datos = null;
+          if (attrs.json) {
+            try {
+              datos = typeof attrs.json === "string" ? JSON.parse(attrs.json) : attrs.json;
+            } catch {
+              datos = null;
+            }
+          }
+
+          const tomar = (clave, porDefecto) => {
+            if (attrs[clave] !== undefined && attrs[clave] !== null && attrs[clave] !== "") {
+              return attrs[clave];
+            }
+            if (datos && datos[clave] !== undefined && datos[clave] !== null && datos[clave] !== "") {
+              return datos[clave];
+            }
+            return porDefecto;
+          };
+
           let picUrl = null;
 
           if (attrs.pic?.data?.attributes?.url) {
@@ -81,11 +90,12 @@ const Membresias = () => {
           return {
             id: r.id,
             order: attrs.order ?? 0,
-            nombre: attrs.nombre || "Membresía",
-            precio: attrs.precio || 0,
-            beneficios: attrs.beneficios || [],
-            color: attrs.color || "#4F46E5",
-            destacado: attrs.destacado || false,
+            nombre: tomar("nombre", "Membresía"),
+            precio: tomar("precio", 0),
+            beneficios: tomar("beneficios", []),
+            color: tomar("color", "#4F46E5"),
+            destacado: tomar("destacado", false),
+            cobro: tomar("cobro", "unico"),
             picUrl,
           };
         });
@@ -317,24 +327,46 @@ const Membresias = () => {
 
                     <Box mt={4}>
 
+                      {isAuthenticated && user?.email ? (
+                        <MercadoPagoBoton
+                          order={plan.order || plan.id}
+                          email={user.email}
+                          precioMostrado={`$${new Intl.NumberFormat("es-MX").format(plan.precio)} MXN`}
+                        />
+                      ) : (
+                        <Button
+                          fullWidth
+                          variant="contained"
+                          onClick={handleMembresiaClick(plan)}
+                          sx={{
+                            backgroundColor: plan.color,
+                            color: "#fff",
+                            py: 1.4,
+                            borderRadius: "14px",
+                            fontWeight: 800,
+                            textTransform: "none",
+                            fontSize: "1rem",
+                            '&:hover': {
+                              backgroundColor: plan.color
+                            }
+                          }}
+                        >
+                          Unirme a Ciudadan
+                        </Button>
+                      )}
+
                       <Button
                         fullWidth
-                        variant="contained"
+                        variant="text"
                         onClick={handleMembresiaClick(plan)}
                         sx={{
-                          backgroundColor: plan.color,
-                          color: "#fff",
-                          py: 1.4,
-                          borderRadius: "14px",
-                          fontWeight: 800,
+                          mt: 1,
+                          color: "#64748B",
                           textTransform: "none",
-                          fontSize: "1rem",
-                          '&:hover': {
-                            backgroundColor: plan.color
-                          }
+                          fontSize: "0.85rem"
                         }}
                       >
-                        Unirme a Ciudadan
+                        Ver detalles y otras formas de pago
                       </Button>
 
                     </Box>

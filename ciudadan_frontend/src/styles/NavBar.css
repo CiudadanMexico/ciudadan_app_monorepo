@@ -169,6 +169,16 @@
     position: relative !important;
     left: auto !important;
     top: auto !important;
+    filter:
+      drop-shadow(2px 0 5px rgba(138, 43, 226, 0.7))
+      drop-shadow(4px 0 9px rgba(138, 43, 226, 0.4))
+      brightness(1.08);
+  }
+
+  .logo-container::before,
+  .logo-container::after {
+    opacity: 0.45;
+    filter: blur(9px);
   }
 }
 
