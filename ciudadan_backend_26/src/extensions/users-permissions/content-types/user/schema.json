@@ -348,6 +348,15 @@
       "relation": "manyToOne",
       "target": "api::agencia.agencia",
       "inversedBy": "socios"
+    },
+    "free_trip": {
+      "type": "boolean"
+    },
+    "logistics_transactions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::logistics-transaction.logistics-transaction",
+      "mappedBy": "by_user"
     }
   }
 }

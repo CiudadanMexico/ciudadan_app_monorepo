@@ -1,5 +1,6 @@
 'use strict';
-
+const { errors } = require('@strapi/utils');
+const { ForbiddenError } = errors;
 const { getAuth0Email } = require('../utils/auth0-verify');
 
 /**
@@ -17,11 +18,11 @@ const { getAuth0Email } = require('../utils/auth0-verify');
  * servidor: la misma request exacta respondió 200 y, 200ms después, 403.
  */
 module.exports = async (ctx, config, { strapi }) => {
-  const authHeader = ctx.request.headers.authorization || '';
+  const authHeader = ctx.request.header.authorization || '';
 
   if (!authHeader.startsWith('Bearer ')) {
     strapi.log.warn('is-authenticated-auth0: falta el header Authorization');
-    return false;
+    throw new ForbiddenError('Auth0 token requerido');
   }
 
   const token = authHeader.slice(7);
@@ -31,7 +32,7 @@ module.exports = async (ctx, config, { strapi }) => {
     email = await getAuth0Email(token, { strapi });
   } catch (err) {
     strapi.log.warn('is-authenticated-auth0: token inválido en Auth0', err.response?.data || err.message);
-    return false;
+    throw new ForbiddenError('Sesión Auth0 invalida');
   }
 
   const user = await strapi.db.query('plugin::users-permissions.user').findOne({
@@ -40,7 +41,7 @@ module.exports = async (ctx, config, { strapi }) => {
 
   if (!user) {
     strapi.log.warn(`is-authenticated-auth0: no existe usuario en Strapi con email ${email}`);
-    return false;
+    throw new ForbiddenError('Usuario Strapi no encontrado');
   }
 
   ctx.state.strapiUser = user;
