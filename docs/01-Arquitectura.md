@@ -86,7 +86,13 @@ socket-service para tiempo real. Empaquetable para Android/iOS con Capacitor.
   y setean **`ctx.state.strapiUser`**.
 - Los JWT nativos de Strapi casi no se usan; las rutas custom llevan `auth: false` + policies.
 
-**Roles** (informales, en `up_users.roles.extra`): `admin`, `socio`, `verificador`, `editor`, `root`.
+**Roles** (informales, en `up_users.roles.extra`): `admin`, `socio`, `verificador`, `auditor`, `editor`, `root`.
+
+`auditor` (docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md) es independiente de
+`verificador` — audita el trabajo del verificador para el módulo de Taxis
+(verificación de conductores/vehículos), sin permisos extra sobre
+tareas/agencia. El sistema de roles no impone hoy exclusión mutua entre
+`verificador` y `auditor` en `roles.extra` (pendiente de decisión de negocio).
 
 ## 4. Middlewares / Policies (resumen)
 
@@ -94,8 +100,9 @@ socket-service para tiempo real. Empaquetable para Android/iOS con Capacitor.
 |---|---|
 | `is-authenticated-auth0` | Cualquier usuario autenticado (resolver, completar) |
 | `is-admin-or-socio` | admin/socio (calificar, delete, gestionar todos/áreas) |
-| `is-verificador` | admin/verificador (corregir flow) |
+| `is-verificador` | admin/socio/verificador (verificación de áreas) |
 | `is-admin-or-socio-or-verificador` | admin/socio/verificador |
+| `is-auditor` | admin/auditor (pendiente de uso real: depende de endpoints de auditoría en Taxis) |
 | `can-asignar-tarea` | Asignación según matriz agencia × tipo de tarea |
 | `can-calificar-tarea` | Calificación según agencia/tipo/asignación |
 | `allow-public-relations` | Rellenar `ctx.state.auth` en públicas (no eliminar relaciones) |

@@ -58,6 +58,43 @@
       "relation": "oneToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "agencia"
+    },
+    "total_verifications": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "total_audited": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "conforming": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "inconsistencies": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "critical_findings": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "reverifications": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "trust_score": {
+      "type": "decimal",
+      "default": 0
+    },
+    "trust_algorithm_version": {
+      "type": "string"
     }
   }
 }
