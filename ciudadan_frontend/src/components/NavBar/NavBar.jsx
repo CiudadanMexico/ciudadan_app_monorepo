@@ -465,7 +465,7 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
       )}
 
       {/* fila inferior: botones del menú */}
-      <div className={`nav-links wraper bottom-bar${isBottomBarVisible ? '' : ' bottom-bar--hidden'}`}
+      <div className={`nav-links wraper bottom-bar${isBottomBarVisible ? '' : ' bottom-bar--hidden'}${isCommunityShell ? ' community-mode' : ''}`}
       style={{ zIndex: 1400 }}>
         {bottomBarItems.map((item) => {
           const section = item.section || item.label.toLowerCase();

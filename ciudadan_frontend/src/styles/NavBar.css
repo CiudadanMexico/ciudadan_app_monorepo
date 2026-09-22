@@ -492,6 +492,43 @@
   display: none;
 }
 
+/* Modo comunidad: iconos morados en la barra inferior */
+.bottom-bar.community-mode .small-icon {
+  color: #8A5CF5;
+}
+
+.bottom-bar.community-mode .big-icon {
+  color: #8A5CF5;
+}
+
+.bottom-bar.community-mode .middium-icon {
+  color: #8A5CF5;
+}
+
+/* Icono activo en comunidad: verde fuerte (sobresale sobre morado inactivo) */
+.bottom-bar.community-mode .nav-link.active .small-icon,
+.bottom-bar.community-mode .nav-link.active .big-icon,
+.bottom-bar.community-mode .nav-link.active .middium-icon {
+  color: #008000;
+}
+
+/* Glow verde en icono activo dentro de comunidad */
+.bottom-bar.community-mode .nav-link.active .big-icon svg,
+.bottom-bar.community-mode .nav-link.active .middium-icon svg,
+.bottom-bar.community-mode .nav-link.active .small-icon svg {
+  filter: drop-shadow(0 0 8px #008000);
+}
+
+/* Glow verde en texto activo dentro de comunidad */
+.bottom-bar.community-mode .nav-link.active {
+  text-shadow: 0 0 8px #008000;
+}
+
+/* Raya inferior: morado en pestaña activa dentro de comunidad */
+.bottom-bar.community-mode .nav-link.active::after {
+  background-color: #8A5CF5;
+}
+
 .split-action-button {
   position: fixed;
   right: 14px;
