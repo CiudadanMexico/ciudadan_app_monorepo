@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { WikiService } from "./WikiService";
+import { WIKI_FS_ROOT } from "../config/WikiPaths";
 
 /**
  * Observa la carpeta de la wiki y sincroniza los .md con la BD (metadatos) SIN reescribir
@@ -18,10 +19,7 @@ export class WikiWatcherService {
 
   constructor(wikiService: WikiService) {
     this.wikiService = wikiService;
-    const defaultPath = process.platform === 'win32'
-      ? path.resolve('./wikis')
-      : '/var/www/apps/wikis';
-    this.pathToWatch = process.env.WIKI_ROOT_PATH || defaultPath;
+    this.pathToWatch = WIKI_FS_ROOT;
   }
 
   public start(): void {
