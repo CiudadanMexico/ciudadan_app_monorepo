@@ -375,19 +375,6 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
                   </div>
                 )}
 
-              <div className='columnax columna2'>
-                <div className="nav-link correte">
-                  <AIInput />
-                </div>
-              </div>
-
-              <div className="columnax columna3">
-                <div className="nav-linky">
-                  <span className="robot-mobile">
-                    <BotonCircular clase="boton-ia" mediaQ={true} />
-                  </span>
-                </div>
-
                 <div className="nav-linky">
                   <MenuIcon
                     isOpen={topBarOpen}
