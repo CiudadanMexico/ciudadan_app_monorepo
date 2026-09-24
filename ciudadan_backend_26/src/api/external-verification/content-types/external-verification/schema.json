@@ -1,0 +1,87 @@
+{
+  "kind": "collectionType",
+  "collectionName": "external_verifications",
+  "info": {
+    "singularName": "external-verification",
+    "pluralName": "external-verifications",
+    "displayName": "External Verification",
+    "description": "Consulta oficial externa (INE, REPUVE, licencias estatales) durante la verificación presencial (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 4). Separada de cars-evidence: una consulta oficial no es una foto."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "validation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-validation.cars-validation"
+    },
+    "entity_type": {
+      "type": "enumeration",
+      "enum": ["driver", "vehicle", "license"],
+      "required": true
+    },
+    "entity_id": {
+      "type": "integer",
+      "required": true
+    },
+    "source_name": {
+      "type": "string",
+      "required": true
+    },
+    "source_type": {
+      "type": "enumeration",
+      "enum": ["official_api", "official_app", "official_web"],
+      "required": true
+    },
+    "verification_method": {
+      "type": "enumeration",
+      "enum": ["api", "app", "web"],
+      "required": true
+    },
+    "check_type": {
+      "type": "enumeration",
+      "enum": ["credential", "vehicle_theft", "license"],
+      "required": true
+    },
+    "query_reference_hash": {
+      "type": "string"
+    },
+    "query_reference_masked": {
+      "type": "string"
+    },
+    "requested_at": {
+      "type": "datetime"
+    },
+    "completed_at": {
+      "type": "datetime"
+    },
+    "result": {
+      "type": "enumeration",
+      "enum": ["verified", "not_found", "reported", "mismatch", "unavailable", "error"],
+      "required": true
+    },
+    "result_data": {
+      "type": "json"
+    },
+    "result_hash": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-evidence.cars-evidence"
+    },
+    "performed_by": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["valid", "suspicious", "failed"],
+      "default": "valid"
+    }
+  }
+}

@@ -205,7 +205,7 @@ const getOrderId = (orden) => {
  * Determina si el objeto ya contiene comprobante.
  */
 const getExistingReceipt = (orden) => {
-  return (getValue(orden, ["comprobante", "comprobante_pago", "comprobantePago", "receipt", "payment_receipt",], null) || null);
+  return (getValue(orden, ["pago", "comprobante", "comprobante_pago", "comprobantePago", "receipt", "payment_receipt",], null) || null);
 };
 
 
@@ -295,7 +295,7 @@ const FoodCheckoutPago = ({
 
       return Boolean(uploadedReceipts[id]);
     }).length;
-  }, [ordenes, uploadedReceipts,]);
+  }, [ordenes, uploadedReceipts]);
 
 
   const todosLosPagosSubidos = totalOrdenes > 0 && pagosCompletados === totalOrdenes;
@@ -450,7 +450,8 @@ const FoodCheckoutPago = ({
         file,
       });
 
-
+      console.log("SubirComprobante data:", comprobante);
+      
       setUploadedReceipts((current) => ({
         ...current,
         [ordenId]: comprobante,
@@ -830,33 +831,8 @@ const FoodCheckoutPago = ({
                             </Paper>
                           </Grid>
                         )}
-
-                        {/* TARJETA */}
-
-                        {bank.tarjeta && (
-                          <Grid item xs={12} sm={6} >
-                            <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 2 }} >
-                              <Stack direction="row" alignItems="center" justifyContent="space-between" >
-                                <Box>
-                                  <Typography variant="caption" color="text.secondary" >
-                                    Número de tarjeta
-                                  </Typography>
-                                  <Typography variant="body1" fontWeight={600} >
-                                    {bank.tarjeta}
-                                  </Typography>
-                                </Box>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleCopy(bank.tarjeta, "tarjeta")}
-                                >
-                                  {copied === "tarjeta" ? (<MdCheckCircle />) : (<MdContentCopy />)}
-                                </IconButton>
-                              </Stack>
-                            </Paper>
-                          </Grid>
-                        )}
                       </Grid>
-                      {!bank.banco && !bank.titular && !bank.clabe && !bank.cuenta && !bank.tarjeta && (
+                      {!bank.banco && !bank.titular && !bank.clabe && !bank.cuenta && (
                         <Alert severity="warning" sx={{ mt: 1, }} >
                           Este restaurante todavía no tiene datos bancarios registrados.
                         </Alert>

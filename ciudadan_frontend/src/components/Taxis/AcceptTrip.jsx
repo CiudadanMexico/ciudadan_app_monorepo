@@ -1,8 +1,9 @@
 // src/components/Taxis/AcceptTrip.jsx
 import React, { useState, useEffect } from "react";
 
-export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
+export default function AcceptTrip({ selectedOffer, acceptOffer, rejectOffer, closeModal }) {
   const [vehicleData, setVehicleData] = useState(null);
+  const [driver, setDriver] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -11,7 +12,7 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
 
   // Obtener datos del conductor desde Strapi por email
   useEffect(() => {
-    if (!selectedOffer?.driver) return;
+    if (!selectedOffer?.driverEmail) return;
 
     const fetchDriverData = async () => {
       setLoading(true);
@@ -28,7 +29,24 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
           headers.Authorization = `Bearer ${strapiToken}`;
         }
 
-        const driverEmail = selectedOffer.driver.email;
+        // Obtener datos del conductor
+        const driverEmail = selectedOffer.driverEmail;
+        const url = `${strapiUrl}/api/drivers?filters[email][$eq]=${driverEmail}&populate=*`;
+
+        const response = await fetch(url, { headers });
+        if (!response.ok) {
+          throw new Error('No se pudieron cargar los datos del conductor');
+        }
+        const data = await response.json();
+        const drivers = data?.data || data || [];
+        const driverData = Array.isArray(drivers) ? drivers[0] : drivers;
+
+        if (!driverData) return null;
+
+        const driverAttributes = driverData?.attributes;
+        setDriver(driverAttributes);
+        console.log('[Conductor] datos del conductor cargados:', driverData);
+
         // Buscar vehículos asociados al conductor
         let vehiclesData = [];
         try {
@@ -51,13 +69,10 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
         setLoading(false);
       }
     };
-
     fetchDriverData();
-  }, [selectedOffer?.driver]);
+  }, [selectedOffer?.driverEmail]);
 
   // Extraer información del conductor
-  const driver = selectedOffer?.driver;
-  //const user = driverData?.user;
   const vehicles = vehicleData || [];
   const vehicle = vehicles[0]?.attributes || vehicles[0] || {};
 
@@ -130,11 +145,11 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
   }
   const currentVehicleSlide = vehicleSlides[vehiclePhotoIndex] || [];
 
-  const isTripFree = selectedOffer?.travel?.freeTrip;
+  const isTripFree = selectedOffer?.travel?.isTripFree;
 
   useEffect(() => {
     setVehiclePhotoIndex(0);
-  }, [selectedOffer?.driver]);
+  }, [selectedOffer?.driverEmail]);
 
   const goToPrevVehiclePhotos = () => {
     setVehiclePhotoIndex((prev) => {
@@ -414,31 +429,36 @@ export default function AcceptTrip({ selectedOffer, acceptOffer, closeModal }) {
           style={{
             display: "flex",
             gap: 8,
-            justifyContent: "flex-end",
-            marginTop: 12,
+            marginTop: 16
           }}
         >
           <button
-            onClick={closeModal}
+            onClick={rejectOffer}
+            disabled={loading}
             style={{
+              flex: 1,
               padding: "8px 12px",
               borderRadius: 8,
-              border: "1px solid #ccc",
-              background: "#fff",
-              cursor: "pointer",
+              border: "none",
+              background: loading ? "#ccc" : "#e31717",
+              fontWeight: 700,
+              color: "#fff",
+              cursor: loading ? "default" : "pointer",
             }}
           >
-            Cerrar
+            Rechazar
           </button>
 
           <button
             onClick={acceptOffer}
             disabled={loading}
             style={{
+              flex: 1,
               padding: "8px 12px",
               borderRadius: 8,
               border: "none",
-              background: loading ? "#ccc" : "#00c853",
+              background: loading ? "#ccc" : "#12aa12",
+              fontWeight: 700,
               color: "#fff",
               cursor: loading ? "default" : "pointer",
             }}

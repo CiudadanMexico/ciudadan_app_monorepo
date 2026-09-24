@@ -97,6 +97,26 @@
     },
     "fecha_verificado": {
       "type": "datetime"
+    },
+    "delivery_contact_name": {
+      "type": "string",
+      "required": true
+    },
+    "delivery_contact_phone": {
+      "type": "string",
+      "required": true
+    },
+    "delivery_notes": {
+      "type": "text"
+    },
+    "pickup_contact_name": {
+      "type": "string"
+    },
+    "pickup_contact_phone": {
+      "type": "string"
+    },
+    "pickup_notes": {
+      "type": "text"
     }
   }
 }

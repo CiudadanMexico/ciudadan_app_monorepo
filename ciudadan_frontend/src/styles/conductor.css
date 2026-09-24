@@ -1,4 +1,4 @@
-/* Asegura que los padres no recorten el flujo y que la página pueda crecer */
+/* Layout del conductor: mapa como fondo y capas encima */
 .creciente,
 .conductor-layout,
 .taxis-container,
@@ -9,7 +9,12 @@
   min-height: 0;
 }
 
-/* El mapa tendrá una altura real que permite que la página crezca y haga scroll natural */
+/* Asegurarse que los elementos encima del mapa tengan z-index mayor que el mapa */
+.conductor-layout>*:not(.taxis-map, .esperando-viaje) {
+  position: relative;
+  z-index: 1;
+}
+
 #map {
   width: 100%;
   /* Ajusta altura al gusto: 60vh para ocupar la mitad/mayor parte de la pantalla,
@@ -28,66 +33,16 @@
   height: auto;
 }
 
-/* Evita reglas globales que restrinjan flujo (busca y remueve si tienes estas) */
-/* html, body, #root { height: 100%; } */ /* <- si tienes esto, está OK, pero NO combines con height fija en .creciente */
+/* Ajusta el padding superior de la lista de viajes para que no se superponga con el mapa */
+.travel-list {
+  padding-top: 50px;
+}
 
-
-
-
-/* ================================
-   REGLAS SÓLO PARA EL MAPA DEL CONDUCTOR
-   Scope: .creciente > .conductor-layout
-   ================================ */
-
-/* Asegura que SOLO los contenedores dentro del layout del conductor
-   no recorten y permitan que la página haga scroll normal */
-.creciente > .conductor-layout {
+/* Mantener el contenido encima del mapa */
+.travel-list,
+.cards-overlay,
+.single-travel-container,
+.back-button, h3 {
   position: relative;
-  overflow: visible; /* permitir flujo natural */
-  height: auto;
-  min-height: 0;
-}
-
-/* Si tu markup tiene .taxis-map dentro del conductor-layout,
-   forzamos únicamente ese contenedor a comportarse bien */
-.creciente > .conductor-layout .taxis-map {
-  position: relative;
-  overflow: visible;
-  height: auto;
-}
-
-/* Target específico del #map dentro del conductor-layout:
-   Este es el que controla la visualización del mapa del conductor.
-   Ajusta la altura a lo que quieras ver por defecto (ej. 60vh). */
-.creciente > .conductor-layout .taxis-map #map,
-.creciente > .conductor-layout #map {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 60vh;      /* altura del mapa del conductor (ajústala) */
-  min-height: 320px; /* evita que se haga demasiado pequeño */
-  max-height: 90vh;
-  box-sizing: border-box;
-  overflow: visible;
-}
-
-/* Asegurar que cualquier overlay interno en conductor no recorte */
-.creciente > .conductor-layout .travel-list,
-.creciente > .conductor-layout .cards-overlay {
-  position: relative;
-  overflow: visible;
-}
-
-/* Limpieza: evitar que reglas globales anteriores sigan aplicando aquí.
-   Si ya tienes reglas globales con !important, intenta quitar esas
-   o comenta las globales y mantén sólo este bloque. */
-
-
-
-.creciente {
-      overflow: visible !important;
-}
-
-.element.style {
-      overflow: visible !important;
+  z-index: 1;
 }

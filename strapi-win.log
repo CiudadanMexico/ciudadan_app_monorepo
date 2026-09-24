@@ -1,0 +1,217 @@
+
+> ciudadan-backend@0.1.0 develop
+> strapi develop
+
+- Building build context
+
+[INFO] Including the following ENV variables as part of the JS bundle:
+    - ADMIN_PATH
+    - STRAPI_ADMIN_BACKEND_URL
+    - STRAPI_TELEMETRY_DISABLED
+✔ Building build context (1731ms)
+- Creating admin
+Browserslist: browsers data (caniuse-lite) is 16 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✔ Creating admin (177363ms)
+- Loading Strapi
+[2026-09-13 14:21:46.292] [33mwarn[39m: The strapi::cors middleware no longer supports the `enabled` option. Using it to conditionally enable CORS might cause an insecure default. To disable strapi::cors, remove it from the exported array in config/middleware.js
+[2026-09-13 14:21:54.647] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,favoritos,area_details,skills,agencia,free_trip
+✔ Loading Strapi (74215ms)
+- Generating types
+✔ Generating types (8778ms)
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Sun Sep 13 2026 14:22:50 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 83133 ms                                         [90m│[39m
+[90m│[39m Environment        [90m│[39m production                                       [90m│[39m
+[90m│[39m Process PID        [90m│[39m 124076                                           [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.19.2)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://0.0.0.0:33431/admin
+
+To access the server ⚡️, go to:
+http://0.0.0.0:33431
+
+[2026-09-13 14:25:21.408] [32mhttp[39m: GET /admin (142 ms) 200
+[2026-09-13 14:29:06.581] [32mhttp[39m: GET /admin (48 ms) 200
+[2026-09-13 14:31:28.727] [32mhttp[39m: GET /admin (83 ms) 200
+[2026-09-13 14:34:26.615] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (413 ms) 200
+[2026-09-13 14:34:26.840] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (200 ms) 200
+[2026-09-13 14:34:28.681] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (42 ms) 200
+[2026-09-13 14:34:28.850] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (162 ms) 200
+[2026-09-13 14:34:29.949] [32mhttp[39m: OPTIONS /api/users?filters[email][$eq]=elyizuz420%40gmail.com&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*&populate[agencia]=*&populate[areas]=* (8 ms) 204
+[2026-09-13 14:34:29.990] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (417 ms) 200
+[2026-09-13 14:34:30.023] [32mhttp[39m: GET /api/carritos?filters[usuario_email][$eq]=elyizuz420%40gmail.com&filters[estado][$eq]=activo&populate[productos][populate][producto][populate]=imagen_predeterminada,store (1141 ms) 200
+[2026-09-13 14:34:30.037] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (31 ms) 200
+[2026-09-13 14:34:30.175] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=elyizuz420%40gmail.com&pagination[limit]=100 (1276 ms) 200
+[2026-09-13 14:34:30.469] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420%40gmail.com&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*&populate[agencia]=*&populate[areas]=* (428 ms) 200
+[2026-09-13 14:34:30.695] [32mhttp[39m: GET /api/membresias?filters[usuarioemail][$eq]=elyizuz420@gmail.com&filters[activa][$eq]=true (178 ms) 200
+[2026-09-13 17:21:25.279] [32mhttp[39m: GET /admin (135 ms) 200
+[2026-09-13 17:29:21.006] [32mhttp[39m: GET /admin (16 ms) 200
+[2026-09-13 22:10:39.912] [32mhttp[39m: GET /admin/ (68 ms) 200
+[2026-09-13 22:10:40.027] [32mhttp[39m: GET /admin/runtime~main.6635ebc8.js (18 ms) 200
+[2026-09-13 22:10:40.040] [32mhttp[39m: GET /admin/main.d9c60d73.js (10 ms) 200
+[2026-09-13 22:10:43.344] [32mhttp[39m: GET /admin/project-type (13 ms) 200
+[2026-09-13 22:10:43.394] [32mhttp[39m: GET /admin/1972.e7395043.chunk.js (10 ms) 200
+[2026-09-13 22:10:43.463] [32mhttp[39m: GET /admin/7542.4a88dfec.chunk.js (10 ms) 200
+[2026-09-13 22:10:43.465] [32mhttp[39m: GET /admin/7410.ba1a02c2.chunk.js (9 ms) 200
+[2026-09-13 22:10:43.524] [32mhttp[39m: GET /admin/1047.0a98b82d.chunk.js (19 ms) 200
+[2026-09-13 22:10:43.554] [32mhttp[39m: GET /admin/9509.d8a93a45.chunk.js (38 ms) 200
+[2026-09-13 22:10:43.560] [32mhttp[39m: GET /admin/4306.9ffcc084.chunk.js (40 ms) 200
+[2026-09-13 22:10:43.561] [32mhttp[39m: GET /admin/3392.b73d883f.chunk.js (34 ms) 200
+[2026-09-13 22:10:43.608] [32mhttp[39m: GET /admin/4495.a1c904a5.chunk.js (67 ms) 200
+[2026-09-13 22:10:43.627] [32mhttp[39m: GET /admin/159.9ef501b5.chunk.js (71 ms) 200
+[2026-09-13 22:10:43.672] [32mhttp[39m: GET /admin/3065.2c859632.chunk.js (17 ms) 200
+[2026-09-13 22:10:43.677] [32mhttp[39m: GET /admin/import-export-entries-translation-en-json.1da96653.chunk.js (14 ms) 200
+[2026-09-13 22:10:44.049] [32mhttp[39m: GET /admin/init (70 ms) 200
+[2026-09-13 22:14:33.269] [32mhttp[39m: POST /admin/login (3307 ms) 400
+[2026-09-13 22:16:10.767] [32mhttp[39m: POST /admin/login (5 ms) 400
+[2026-09-13 22:16:18.715] [32mhttp[39m: POST /admin/login (6 ms) 400
+[2026-09-13 22:16:24.808] [32mhttp[39m: POST /admin/login (4 ms) 400
+[2026-09-13 22:16:28.830] [32mhttp[39m: POST /admin/login (6 ms) 400
+[2026-09-13 22:16:30.925] [32mhttp[39m: POST /admin/login (8 ms) 429
+[2026-09-13 22:17:29.726] [32mhttp[39m: POST /admin/login (8 ms) 429
+[2026-09-13 22:17:41.912] [32mhttp[39m: GET /admin (109 ms) 200
+[2026-09-13 22:17:42.065] [32mhttp[39m: GET /admin/main.d9c60d73.js (10 ms) 200
+[2026-09-13 22:17:42.066] [32mhttp[39m: GET /admin/runtime~main.6635ebc8.js (15 ms) 200
+[2026-09-13 22:17:44.608] [32mhttp[39m: GET /admin/project-type (12 ms) 200
+[2026-09-13 22:17:44.620] [32mhttp[39m: GET /favicon.ico (8 ms) 200
+[2026-09-13 22:17:45.135] [32mhttp[39m: GET /admin/1972.e7395043.chunk.js (61 ms) 200
+[2026-09-13 22:17:45.410] [32mhttp[39m: GET /admin/7542.4a88dfec.chunk.js (9 ms) 200
+[2026-09-13 22:17:45.411] [32mhttp[39m: GET /admin/7410.ba1a02c2.chunk.js (7 ms) 200
+[2026-09-13 22:17:45.443] [32mhttp[39m: GET /admin/1047.0a98b82d.chunk.js (8 ms) 200
+[2026-09-13 22:17:45.444] [32mhttp[39m: GET /admin/9509.d8a93a45.chunk.js (6 ms) 200
+[2026-09-13 22:17:45.472] [32mhttp[39m: GET /admin/4306.9ffcc084.chunk.js (8 ms) 200
+[2026-09-13 22:17:45.473] [32mhttp[39m: GET /admin/3392.b73d883f.chunk.js (5 ms) 200
+[2026-09-13 22:17:45.497] [32mhttp[39m: GET /admin/4495.a1c904a5.chunk.js (11 ms) 200
+[2026-09-13 22:17:45.558] [32mhttp[39m: GET /admin/3065.2c859632.chunk.js (34 ms) 200
+[2026-09-13 22:17:45.559] [32mhttp[39m: GET /admin/import-export-entries-translation-en-json.1da96653.chunk.js (17 ms) 200
+[2026-09-13 22:17:45.560] [32mhttp[39m: GET /admin/159.9ef501b5.chunk.js (8 ms) 200
+[2026-09-13 22:17:45.842] [32mhttp[39m: GET /admin/init (15 ms) 200
+[2026-09-13 22:18:05.196] [32mhttp[39m: POST /admin/login (3 ms) 429
+[2026-09-14 10:27:46.694] [32mhttp[39m: GET /admin/ (9 ms) 200
+[2026-09-14 10:27:48.012] [32mhttp[39m: GET /admin/project-type (4 ms) 200
+[2026-09-14 10:27:48.185] [32mhttp[39m: GET /admin/1972.e7395043.chunk.js (7 ms) 200
+[2026-09-14 10:27:48.233] [32mhttp[39m: GET /admin/7542.4a88dfec.chunk.js (5 ms) 200
+[2026-09-14 10:27:48.233] [32mhttp[39m: GET /admin/7410.ba1a02c2.chunk.js (3 ms) 200
+[2026-09-14 10:27:48.261] [32mhttp[39m: GET /admin/1047.0a98b82d.chunk.js (4 ms) 200
+[2026-09-14 10:27:48.270] [32mhttp[39m: GET /admin/9509.d8a93a45.chunk.js (4 ms) 200
+[2026-09-14 10:27:48.307] [32mhttp[39m: GET /admin/4306.9ffcc084.chunk.js (13 ms) 200
+[2026-09-14 10:27:48.308] [32mhttp[39m: GET /admin/3392.b73d883f.chunk.js (12 ms) 200
+[2026-09-14 10:27:48.311] [32mhttp[39m: GET /admin/4495.a1c904a5.chunk.js (12 ms) 200
+[2026-09-14 10:27:48.312] [32mhttp[39m: GET /admin/159.9ef501b5.chunk.js (11 ms) 200
+[2026-09-14 10:27:48.313] [32mhttp[39m: GET /admin/3065.2c859632.chunk.js (9 ms) 200
+[2026-09-14 10:27:48.343] [32mhttp[39m: GET /admin/import-export-entries-translation-en-json.1da96653.chunk.js (30 ms) 200
+[2026-09-14 10:27:48.484] [32mhttp[39m: GET /admin/init (14 ms) 200
+[2026-09-14 10:28:02.237] [32mhttp[39m: POST /admin/login (4 ms) 400
+[2026-09-14 10:53:49.707] [32mhttp[39m: POST /admin/login (229 ms) 200
+[2026-09-14 11:41:30.583] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\market\src\vendure-config.ts
+[2026-09-14 11:41:30.592] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\socket-service\chatbot.js
+[2026-09-14 11:41:30.779] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\socket-service\package-lock.json
+[2026-09-14 11:41:30.779] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\socket-service\server.js
+[2026-09-14 11:41:30.811] [32minfo[39m: File deleted: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\market\package-lock.json
+[2026-09-14 11:41:30.890] [32minfo[39m: File created: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\market\package-lock.json
+[2026-09-14 11:41:30.918] [32minfo[39m: File created: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\scripts\set-roles.js
+[2026-09-14 11:41:30.924] [32minfo[39m: File created: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\seed\site-settings.js
+[2026-09-14 11:41:30.952] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\src\api\site-setting\content-types\site-setting\schema.json
+[2026-09-14 11:41:30.953] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\socket-service\wiki\help\guia-usuario.md
+[2026-09-14 11:41:30.954] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\socket-service\wiki\help\indice.md
+[2026-09-14 11:41:30.954] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\yarn.lock
+- Loading Strapi
+[2026-09-14 11:42:28.206] [33mwarn[39m: The strapi::cors middleware no longer supports the `enabled` option. Using it to conditionally enable CORS might cause an insecure default. To disable strapi::cors, remove it from the exported array in config/middleware.js
+[2026-09-14 11:42:39.931] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,favoritos,area_details,skills,agencia,free_trip
+✔ Loading Strapi (85618ms)
+- Generating types
+✔ Generating types (9714ms)
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Mon Sep 14 2026 11:43:38 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 95579 ms                                         [90m│[39m
+[90m│[39m Environment        [90m│[39m production                                       [90m│[39m
+[90m│[39m Process PID        [90m│[39m 168056                                           [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.19.2)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://0.0.0.0:33431/admin
+
+To access the server ⚡️, go to:
+http://0.0.0.0:33431
+
+[2026-09-14 11:44:14.249] [32minfo[39m: File deleted: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\scripts\set-roles.js
+[2026-09-14 11:44:14.255] [32minfo[39m: File deleted: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\seed\site-settings.js
+[2026-09-14 11:44:14.641] [32minfo[39m: File deleted: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\socket-service\wiki\help\ayuda.md
+- Loading Strapi
+[2026-09-14 11:44:55.415] [33mwarn[39m: The strapi::cors middleware no longer supports the `enabled` option. Using it to conditionally enable CORS might cause an insecure default. To disable strapi::cors, remove it from the exported array in config/middleware.js
+[2026-09-14 11:45:02.441] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,favoritos,area_details,skills,agencia,free_trip
+✔ Loading Strapi (60107ms)
+- Generating types
+✔ Generating types (2902ms)
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Mon Sep 14 2026 11:45:43 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 63050 ms                                         [90m│[39m
+[90m│[39m Environment        [90m│[39m production                                       [90m│[39m
+[90m│[39m Process PID        [90m│[39m 176656                                           [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.19.2)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://0.0.0.0:33431/admin
+
+To access the server ⚡️, go to:
+http://0.0.0.0:33431
+
+[2026-09-14 11:47:27.414] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (340 ms) 200
+[2026-09-14 11:47:27.629] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (188 ms) 200
+[2026-09-14 11:47:29.778] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (113 ms) 200
+[2026-09-14 11:47:29.927] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=&pagination[limit]=100 (139 ms) 200
+[2026-09-14 11:47:47.641] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (49 ms) 200
+[2026-09-14 11:47:48.118] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (25 ms) 200
+[2026-09-14 11:47:50.216] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (23 ms) 200
+[2026-09-14 11:47:50.249] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420@gmail.com (22 ms) 200
+[2026-09-14 11:47:50.935] [32mhttp[39m: GET /api/carritos?filters[usuario_email][$eq]=elyizuz420%40gmail.com&filters[estado][$eq]=activo&populate[productos][populate][producto][populate]=imagen_predeterminada,store (325 ms) 200
+[2026-09-14 11:47:50.941] [32mhttp[39m: GET /api/notificaciones?populate=usuario&filters[usuario][email][$eq]=elyizuz420%40gmail.com&pagination[limit]=100 (312 ms) 200
+[2026-09-14 11:47:51.963] [32mhttp[39m: GET /admin (40 ms) 200
+[2026-09-14 11:47:52.532] [32mhttp[39m: OPTIONS /api/users?filters[email][$eq]=elyizuz420%40gmail.com&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*&populate[agencia]=*&populate[areas]=* (1 ms) 204
+[2026-09-14 11:47:52.737] [32mhttp[39m: GET /api/users?filters[email][$eq]=elyizuz420%40gmail.com&populate[role]=*&populate[roles]=*&populate[direcciones]=*&populate[club]=*&populate[agencia]=*&populate[areas]=* (130 ms) 200
+[2026-09-14 11:47:54.099] [32mhttp[39m: GET /api/membresias?filters[usuarioemail][$eq]=elyizuz420@gmail.com&filters[activa][$eq]=true (94 ms) 200
+[2026-09-14 12:15:15.856] [32mhttp[39m: POST /admin/login (1616 ms) 200
+[2026-09-14 12:15:15.900] [32mhttp[39m: GET /admin/1417.0256e278.chunk.js (10 ms) 200
+[2026-09-14 12:15:16.485] [32mhttp[39m: GET /admin/telemetry-properties (393 ms) 200
+[2026-09-14 12:15:16.744] [32mhttp[39m: GET /admin/users/me (589 ms) 200
+[2026-09-14 12:15:17.148] [32mhttp[39m: GET /admin/information (651 ms) 200
+[2026-09-14 12:15:17.695] [32mhttp[39m: GET /admin/users/me/permissions (1183 ms) 200
+[2026-09-14 12:15:17.708] [32mhttp[39m: GET /admin/project-settings (1187 ms) 200
+[2026-09-14 12:15:18.031] [32mhttp[39m: GET /i18n/locales (288 ms) 200
+[2026-09-14 12:15:18.090] [32mhttp[39m: GET /admin/3885.fa12200c.chunk.js (5 ms) 200
+[2026-09-14 12:15:18.492] [32mhttp[39m: GET /content-manager/components (284 ms) 200
+[2026-09-14 12:15:18.757] [32mhttp[39m: GET /content-manager/content-types (539 ms) 200
+[2026-09-14 12:15:22.535] [32mhttp[39m: GET /content-manager/init (172 ms) 200
+[2026-09-14 12:15:23.136] [32mhttp[39m: GET /content-manager/content-types-settings (576 ms) 200
+[2026-09-14 12:15:23.684] [32mhttp[39m: GET /content-manager/content-types/api::ad.ad/configuration (400 ms) 200
+[2026-09-14 12:15:24.303] [32mhttp[39m: GET /content-manager/collection-types/api::ad.ad?page=1&pageSize=10&sort=titulo:ASC (420 ms) 200

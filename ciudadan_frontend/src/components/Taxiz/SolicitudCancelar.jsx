@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, onClose, setShowCancelModal }) => {
+const SolicitudCancelar = ({ trip, userCoords, open, setOpen, isDriver, onStatusChange }) => {
     const [selectedReason, setSelectedReason] = useState(null);
 
     useEffect(() => {
@@ -9,28 +9,35 @@ const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, o
 
     if (!open) return null;
 
-    const title = '¿Por qué deseas finalizar el viaje antes del destino?';
     const reasons = isDriver
         ? ['Emergencia', 'Fallas mecánicas', 'Problema con el pasajero', 'Ruta bloqueada', 'Por seguridad', 'Acuerdo mutuo', 'Otro']
         : ['Emergencia', 'Deseo bajar antes', 'Cambio de planes', 'Problema con el conductor', 'Incomodidad', 'Por seguridad', 'Otro'];
 
     const handleSubmit = async () => {
-        if (typeof onStatusChange === 'function') onStatusChange(isDriver ? 'fin_solicitado_conductor' : 'fin_solicitado_pasajero');
+        if (typeof onStatusChange === 'function') onStatusChange('finalizado');
 
         const base = process.env.REACT_APP_SOCKET_URL || '';
         try {
             const payload = {
-                id: viajeId,
+                id: trip?.id,
                 reason: selectedReason,
+                userId: trip?.attributes?.pasajero?.data?.id,
+                userEmail: trip?.attributes?.pasajeromail,
+                driverId: trip?.attributes?.conductor?.data?.id,
+                driverEmail: trip?.attributes?.conductormail,
                 cancelledBy: isDriver ? 'driver' : 'user',
+                coords: userCoords || null,
             };
-            await fetch(`${base.replace(/\/$/, '')}/test/cancel-trip`, {
+            const response = await fetch(`${base.replace(/\/$/, '')}/test/cancel-trip`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload),
             });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
         } catch (e) {
             console.warn('[TripView] no se pudo cancelar el viaje', e);
         } finally {
@@ -61,7 +68,9 @@ const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, o
                 padding: 20,
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
             }}>
-                <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>{title}</div>
+                <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>
+                    ¿Por qué deseas finalizar el viaje antes del destino?
+                </div>
 
                 <div style={{ gap: 8, marginBottom: 18 }}>
                     {reasons.map((reason, index) => (
@@ -81,9 +90,7 @@ const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, o
                 <div style={{ display: 'flex', gap: 10 }}>
                     <button
                         type="button"
-                        onClick={() => {
-                            if (typeof onClose === 'function') onClose();
-                        }}
+                        onClick={() => { setOpen(false) }}
                         style={{
                             flex: 1,
                             padding: '12px 14px',
@@ -91,6 +98,7 @@ const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, o
                             border: '1px solid #ddd',
                             background: '#fff',
                             fontWeight: 600,
+                            cursor: 'pointer',
                         }}
                     >
                         Omitir
@@ -105,8 +113,10 @@ const SolicitudCancelar = ({ viajeId, open, setOpen, isDriver, onStatusChange, o
                             borderRadius: 10,
                             border: 'none',
                             background: '#2f6fed',
+                            opacity: selectedReason ? 1 : 0.5,
                             color: '#fff',
                             fontWeight: 700,
+                            cursor: selectedReason ? 'pointer' : 'not-allowed',
                         }}
                     >
                         Finalizar viaje

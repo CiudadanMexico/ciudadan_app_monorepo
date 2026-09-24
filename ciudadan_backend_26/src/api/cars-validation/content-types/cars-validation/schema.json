@@ -56,7 +56,8 @@
         "expired",
         "cancelled",
         "under_review",
-        "awaiting_resubmission"
+        "awaiting_resubmission",
+        "automatic_review"
       ],
       "default": "pending"
     },
@@ -116,6 +117,24 @@
       "relation": "oneToMany",
       "target": "api::cars-validation-event.cars-validation-event",
       "mappedBy": "validation"
+    },
+    "protocol_version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "reverification_of": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-validation.cars-validation"
+    },
+    "reverifications": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::cars-validation.cars-validation",
+      "mappedBy": "reverification_of"
+    },
+    "reverification_reason": {
+      "type": "text"
     }
   }
 }

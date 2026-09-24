@@ -1,0 +1,40 @@
+{
+  "kind": "singleType",
+  "collectionName": "skydropx_recharge_accounts",
+  "info": {
+    "singularName": "skydropx-recharge-account",
+    "pluralName": "skydropx-recharge-accounts",
+    "displayName": "Skydropx-recharge-account"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "bank": {
+      "type": "string",
+      "required": true
+    },
+    "clabe": {
+      "type": "string",
+      "required": true
+    },
+    "beneficiary": {
+      "type": "string",
+      "required": true
+    },
+    "rfc": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "instructions": {
+      "type": "text"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

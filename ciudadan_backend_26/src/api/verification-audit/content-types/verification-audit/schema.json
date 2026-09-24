@@ -1,0 +1,66 @@
+{
+  "kind": "collectionType",
+  "collectionName": "verification_audits",
+  "info": {
+    "singularName": "verification-audit",
+    "pluralName": "verification-audits",
+    "displayName": "Verification Audit",
+    "description": "Auditoría independiente de una validación presencial (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 6). El auditor nunca es el mismo usuario que el verificador del expediente."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "validation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-validation.cars-validation"
+    },
+    "auditor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "auditor_agency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agencia.agencia"
+    },
+    "audit_type": {
+      "type": "enumeration",
+      "enum": ["sample", "deep", "reverification_trigger"],
+      "required": true
+    },
+    "selection_reason": {
+      "type": "enumeration",
+      "enum": ["random", "risk", "complaint", "new_verifier", "anomaly", "critical_case", "escalation"],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "in_progress", "completed", "escalated"],
+      "default": "pending"
+    },
+    "result": {
+      "type": "enumeration",
+      "enum": ["conformity", "inconsistency", "insufficient", "evidence_fraud"]
+    },
+    "score": {
+      "type": "integer"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "started_at": {
+      "type": "datetime"
+    },
+    "completed_at": {
+      "type": "datetime"
+    },
+    "protocol_version": {
+      "type": "string",
+      "default": "1.0"
+    }
+  }
+}

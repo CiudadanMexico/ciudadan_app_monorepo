@@ -42,14 +42,20 @@ export default function RegistroRestaurante() {
   const [restaurant, setRestaurant] = useState(null);
   const [direccionData, setDireccionData] = useState({
     direccion: "",
-    calle: "",
-    numero: "",
-    colonia: "",
+    formatted_address: "",
     lat: null,
     lng: null,
     cp: "",
     ciudad: "",
-    estado: ""
+    estado: "",
+    pais: "",
+    paisCodigo: "",
+    estadoCodigo: "",
+    colonia: "",
+    calle: "",
+    numero: "",
+    referencia: "",
+    place_id: null,
   });
 
   const [beneficiaryName, setBeneficiaryName] = useState(user?.name ?? '');
@@ -60,6 +66,7 @@ export default function RegistroRestaurante() {
   const [modoDireccionManual, setModoDireccionManual] = useState(false);
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
   const [mapCenter, setMapCenter] = useState(null);
+  const [restaurantPhone, setRestaurantPhone] = useState("");
 
   const {
     createRestaurant,
@@ -108,15 +115,106 @@ export default function RegistroRestaurante() {
     debounce: 300
   });
 
+  // Función para construir dirección
+  const parseAddressComponents = (components = []) => {
+    const address = {
+      cp: "",
+      pais: "",
+      paisCodigo: "",
+      ciudad: "",
+      estado: "",
+      estadoCodigo: "",
+      colonia: "",
+      calle: "",
+      numero: "",
+    };
+    components.forEach((component) => {
+      const {
+        long_name = "",
+        short_name = "",
+        types = []
+      } = component;
+      // Obtener código postal
+      if (types.includes("postal_code"))
+        address.cp = long_name;
+
+      // Obtener país
+      if (types.includes("country")) {
+        address.pais = long_name;
+        address.paisCodigo = short_name;
+      }
+
+      // Obtener estado
+      if (types.includes("administrative_area_level_1")) {
+        address.estado = long_name;
+        address.estadoCodigo = short_name;
+      }
+
+      // Preferimos locality como ciudad. 
+      if (types.includes("locality") && !address.ciudad)
+        address.ciudad = long_name;
+
+      // Fallback para lugares donde no existe locality. 
+      if (types.includes("administrative_area_level_2") && !address.ciudad)
+        address.ciudad = long_name;
+
+      // Preferimos neighborhood como colonia. 
+      if (types.includes("neighborhood") && !address.colonia)
+        address.colonia = long_name;
+
+      // Fallback para direcciones que utilizan sublocality. 
+      if (types.includes("sublocality_level_1") && !address.colonia)
+        address.colonia = long_name;
+
+      // Obtener calle designada
+      // Prioridad street_address
+      if (types.includes("street_address") && !address.calle)
+        address.calle = long_name;
+
+      // fallback con route
+      if (types.includes("route") && !address.calle)
+        address.calle = long_name;
+
+      // Obtener número de calle
+      if (types.includes("street_number"))
+        address.numero = long_name;
+    });
+    return address;
+  };
+
+  // Función para validar dirección apta para envío
+  const validarDireccionEnvio = (direccion) => {
+    const camposRequeridos = [
+      "direccion",
+      "cp",
+      "ciudad",
+      "estado",
+    ];
+
+    return camposRequeridos.every((campo) =>
+      direccion[campo] !== null &&
+      direccion[campo] !== undefined &&
+      String(direccion[campo]).trim() !== ""
+    );
+  };
+
   const handleCheckAndCreate = async () => {
     if (!user?.email) return loginWithRedirect();
     setLoading(true);
     setError("");
     try {
+      if (!restaurantName.trim()) {
+        setError("El nombre es requerido");
+        return
+      }
+      if (!restaurantPhone.trim()) {
+        setError("Ingrese un número de teléfono");
+        return;
+      }
       const slug = slugify(restaurantName);
       const tiendas = await getRestaurantsBySlug(slug);
       if (tiendas.length) return setError("Ese nombre ya está registrado");
-      const nueva = await createRestaurant({ name: restaurantName, email: user.email, user_id: userData?.id });
+      const nueva = await createRestaurant({ name: restaurantName, email: user.email, user_id: userData?.id, telefono: restaurantPhone });
       setRestaurant(nueva.data);
       setActiveStep(1);
     } catch (err) {
@@ -127,45 +225,74 @@ export default function RegistroRestaurante() {
     }
   };
 
-  const handleSelect = async (address) => {
+  const handleSelect = async ({ description, place_id }) => {
     try {
-      setValue(address, false);
+      setValue(description, false);
       clearSuggestions();
 
-      const results = await getGeocode({ address });
+      let results = await getGeocode({ placeId: place_id });
+
       if (!results?.length) {
         setError("No fue posible obtener información de la dirección.");
         return;
       }
-      const first = results[0];
+
+      let first = results[0];
+      // Validar que exista el primer resultado de getGeocode
+      if (!first) {
+        console.warn("No se encontró información para la dirección");
+        setError("No se encontró información para la dirección");
+        return;
+      }
+
+      // Si address_components está vacío reintentar geocodificación solo con description
+      if (!first.address_components?.length) {
+        results = await getGeocode({ address: description });
+        first = results[0];
+        // Reintentar validación de existencia del primer resultado de getGeocode 
+        if (!first) {
+          console.warn("No se encontró información para la dirección");
+          setError("No se encontró información para la dirección, ingrese una dirección valida.");
+          return;
+        }
+      }
+
+      // Si nuevamente address_components está vacío mostrar formulario de corrección
+      if (first.address_components?.length === 0)
+        setModoDireccionManual(true);
+
       const { lat, lng } = getLatLng(first);
 
-      const components = first.address_components;
+      const parsed = parseAddressComponents(first.address_components);
 
-      const comp = { cp: "", ciudad: "", estado: "" };
-
-      components.forEach((c) => {
-        if (c.types.includes("postal_code")) comp.cp = c.long_name;
-        if (c.types.includes("administrative_area_level_1"))
-          comp.estado = c.long_name;
-        if (c.types.includes("locality") || c.types.includes("administrative_area_level_2"))
-          comp.ciudad = c.long_name;
-      });
-
-      setDireccionData({
-        direccion: first?.formatted_address ?? address,
+      const address = {
+        direccion: description,
+        formatted_address: first.formatted_address,
         lat,
         lng,
-        ...comp
-      });
+        ...parsed,
+        place_id,
+      };
+      console.log("Data dirección selected:", address);
+
+      setDireccionData(address);
 
       setMapCenter({
         lat,
         lng,
       });
 
-      setModoDireccionManual(false);
-      setError("");
+      // Comprobar datos faltantes de dirección
+      const camposEnvio = ["cp", "ciudad", "estado"];
+      const faltantes = camposEnvio.filter((campo) => !address[campo]?.trim());
+
+      if (faltantes.length > 0) {
+        setError("La dirección está incompleta. Completa los datos necesarios para realizar envíos.");
+        setModoDireccionManual(true);
+      } else {
+        setModoDireccionManual(false);
+        setError("");
+      }
     } catch (err) {
       console.error("Error en autocomplete:", err);
       setError("No fue posible obtener las coordenadas de la dirección.");
@@ -229,28 +356,53 @@ export default function RegistroRestaurante() {
   const handleSaveDireccion = async () => {
     const {
       direccion,
-      calle,
-      numero,
-      colonia,
       lat,
       lng,
       cp,
       ciudad,
       estado,
+      colonia,
+      paisCodigo,
+      pais,
+      formatted_address,
+      estadoCodigo,
+      calle,
+      numero,
+      place_id,
+      referencia
     } = direccionData;
 
-    const tieneCoordenadas = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
-
-    if (!tieneCoordenadas) {
-      setError("Debes establecer la ubicación en el mapa.");
+    // Validación básica
+    if (!direccion || !formatted_address) {
+      setError("Ingrese una dirección.");
       return;
     }
 
-    const formattedAddress = direccion || [calle, numero, colonia, ciudad, estado, cp,].filter(Boolean).join(", ");
-    if (!formattedAddress) {
-      setError("Debes proporcionar una dirección.");
+    // Validar ubicación geográfica
+    if (lat === null || lat === undefined || lng === null || lng === undefined) {
+      setError("No pudimos determinar la ubicación exacta de la dirección.");
       return;
     }
+
+    // Validación específica para envíos
+    if (!validarDireccionEnvio(direccionData)) {
+      const faltantes = [];
+      if (!cp) faltantes.push("código postal");
+      if (!ciudad) faltantes.push("ciudad");
+      if (!estado) faltantes.push("estado");
+
+      // setError("Completa la dirección, código postal, ciudad y estado para poder utilizarla en envíos.");
+      if (faltantes.length > 0)
+        setError(`La dirección está incompleta. Falta: ${faltantes.join(", ")}.`);
+
+      return;
+    }
+
+    // const tieneCoordenadas = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng));
+    // if (!tieneCoordenadas) {
+    //   setError("Debes establecer la ubicación en el mapa.");
+    //   return;
+    // }
 
     setLoading(true);
     setError("");
@@ -259,13 +411,15 @@ export default function RegistroRestaurante() {
       const { data } = await createDireccion({
         data: {
           direccion: {
-            formatted_address: formattedAddress,
+            formatted_address,
             street: calle || "",
             number: numero || "",
             neighborhood: colonia || "",
             city: ciudad || "",
             state: estado || "",
             postal_code: cp || "",
+            country: pais,
+            country_code: paisCodigo,
             lat: Number(lat),
             lng: Number(lng),
           },
@@ -276,9 +430,18 @@ export default function RegistroRestaurante() {
           cp,
           ciudad,
           estado,
+          estado_codigo: estadoCodigo,
+          colonia,
+          pais,
+          pais_codigo: paisCodigo,
+          observaciones: referencia,
           activa: true,
           user_email: user.email,
-          restaurant_id: restaurant.id
+          usuario_email: user.email,
+          restaurant_id: restaurant.id,
+          place_id,
+          numero,
+          route: calle
         }
       });
 
@@ -512,6 +675,13 @@ export default function RegistroRestaurante() {
             fullWidth
             disabled={loading}
           />
+          <TextField
+            label="Teléfono de contacto"
+            value={restaurantPhone}
+            onChange={(e) => setRestaurantPhone(e.target.value)}
+            fullWidth
+            disabled={loading}
+          />
           {error && <Typography color="error">{error}</Typography>}
           <Button onClick={handleCheckAndCreate} disabled={!restaurantName || loading} variant="contained" sx={{ mt: 2 }}>
             {loading ? <CircularProgress size={24} /> : "Siguiente"}
@@ -584,7 +754,7 @@ export default function RegistroRestaurante() {
             {ready && status === "OK" ? (
               <Box sx={{ maxHeight: 200, overflowY: "auto", bgcolor: "background.paper", mb: 2, borderRadius: 1, boxShadow: 1 }}>
                 {data.map(({ place_id, description }) => (
-                  <Box key={place_id} onClick={() => handleSelect(description)} sx={{ p: 1, cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}>
+                  <Box key={place_id} onClick={() => handleSelect({ description, place_id })} sx={{ p: 1, cursor: "pointer", "&:hover": { backgroundColor: "#f0f0f0" } }}>
                     <Typography>{description}</Typography>
                   </Box>
                 ))}
@@ -734,7 +904,9 @@ export default function RegistroRestaurante() {
             </Button>
 
           </Box>
-        ))}
+        )
+        )}
+
 
       {activeStep === 3 && (
         <Box mt={2}>

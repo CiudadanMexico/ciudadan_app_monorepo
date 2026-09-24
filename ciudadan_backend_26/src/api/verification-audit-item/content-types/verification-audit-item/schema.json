@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "verification_audit_items",
+  "info": {
+    "singularName": "verification-audit-item",
+    "pluralName": "verification-audit-items",
+    "displayName": "Verification Audit Item",
+    "description": "Punto individual revisado dentro de una auditoría (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 6, sección 25/26)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "audit": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::verification-audit.verification-audit"
+    },
+    "check_key": {
+      "type": "string",
+      "required": true
+    },
+    "result": {
+      "type": "enumeration",
+      "enum": ["pass", "fail", "uncertain", "not_applicable"],
+      "required": true
+    },
+    "evidence_reviewed": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::cars-evidence.cars-evidence"
+    },
+    "external_verifications_reviewed": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::external-verification.external-verification"
+    },
+    "note": {
+      "type": "text"
+    }
+  }
+}

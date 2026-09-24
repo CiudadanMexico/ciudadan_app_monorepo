@@ -50,7 +50,7 @@ export function useFoodRestaurants() {
     }
   };
 
-  const createRestaurant = async ({ name = '', email = '', user_id, }) => {
+  const createRestaurant = async ({ name = '', email = '', user_id, telefono = '' }) => {
     const slug = slugify(name);
     const slug_tmp = generateTempSlug();
 
@@ -65,7 +65,7 @@ export function useFoodRestaurants() {
       const res = await fetch(`${RESTAURANTS_URL}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ data: { nombre: name, slug: slug_tmp, email, users_permissions_user: user_id } })
+        body: JSON.stringify({ data: { nombre: name, slug: slug_tmp, email, users_permissions_user: user_id, telefono } })
       });
 
       if (!res.ok) {
