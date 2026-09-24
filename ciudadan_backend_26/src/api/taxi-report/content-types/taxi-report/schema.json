@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "taxi_reports",
+  "info": {
+    "singularName": "taxi-report",
+    "pluralName": "taxi-reports",
+    "displayName": "taxi-report",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "description": {
+      "type": "text"
+    },
+    "date_report": {
+      "type": "datetime"
+    },
+    "confirmed_by": {
+      "type": "enumeration",
+      "enum": [
+        "user",
+        "driver"
+      ]
+    },
+    "coordinates": {
+      "type": "json"
+    },
+    "completed_trip": {
+      "type": "decimal",
+      "max": 100,
+      "min": 0
+    },
+    "travel": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::viaje.viaje"
+    },
+    "passenger": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

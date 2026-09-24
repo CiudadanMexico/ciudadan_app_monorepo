@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "cars_validation_challenges",
+  "info": {
+    "singularName": "cars-validation-challenge",
+    "pluralName": "cars-validation-challenges",
+    "displayName": "Cars Validation Challenge",
+    "description": "Nonce/challenge de un solo uso por paso del protocolo de verificacion (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 1)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "validation": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::cars-validation.cars-validation"
+    },
+    "nonce_id": {
+      "type": "string",
+      "unique": true,
+      "required": true
+    },
+    "session_id": {
+      "type": "string",
+      "required": true
+    },
+    "step": {
+      "type": "string",
+      "required": true
+    },
+    "issued_at": {
+      "type": "datetime"
+    },
+    "expires_at": {
+      "type": "datetime"
+    },
+    "used_at": {
+      "type": "datetime"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["issued", "used", "expired", "revoked"],
+      "default": "issued"
+    }
+  }
+}

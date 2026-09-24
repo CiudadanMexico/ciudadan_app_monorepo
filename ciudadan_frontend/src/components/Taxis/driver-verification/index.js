@@ -9,3 +9,6 @@ export { default as OperativeChecklist } from './OperativeChecklist';
 export { default as ReviewerObservations } from './ReviewerObservations';
 export { default as ActivityTimeline } from './ActivityTimeline';
 export { default as FinalActions } from './FinalActions';
+export { default as LiveCaptureWizard } from './LiveCaptureWizard';
+export { default as ExternalVerificationDialog } from './ExternalVerificationDialog';
+export { default as RiskAssessmentPanel } from './RiskAssessmentPanel';

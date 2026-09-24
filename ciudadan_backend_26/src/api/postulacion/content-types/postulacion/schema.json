@@ -11,6 +11,15 @@
   },
   "pluginOptions": {},
   "attributes": {
+    "prelanzamiento_clave": {
+      "type": "string",
+      "unique": true,
+      "private": true
+    },
+    "prelanzamiento_datos": {
+      "type": "json",
+      "private": true
+    },
     "postulante": {
       "type": "relation",
       "relation": "oneToOne",

@@ -4,7 +4,8 @@
   "info": {
     "singularName": "food-restaurant",
     "pluralName": "food-restaurants",
-    "displayName": "Food Restaurants"
+    "displayName": "Food Restaurants",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -52,11 +53,12 @@
       ]
     },
     "imagen": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images"
-      ],
-      "type": "media",
-      "multiple": false
+      ]
     },
     "paso": {
       "type": "integer",
@@ -84,6 +86,9 @@
       "relation": "oneToMany",
       "target": "api::food-offer.food-offer",
       "mappedBy": "restaurant"
+    },
+    "telefono": {
+      "type": "string"
     }
   }
 }

@@ -38,7 +38,9 @@
         "vin",
         "interior",
         "trunk",
-        "video_360"
+        "video_360",
+        "official_query_capture",
+        "incident"
       ]
     },
     "file": {
@@ -94,13 +96,19 @@
       "enum": ["preregister", "reupload", "live_capture"],
       "default": "preregister"
     },
-    "sha256": {
+    "client_sha256": {
+      "type": "string"
+    },
+    "server_sha256": {
       "type": "string"
     },
     "perceptual_hash": {
       "type": "string"
     },
     "nonce": {
+      "type": "string"
+    },
+    "idempotency_key": {
       "type": "string"
     },
     "timestamp_client": {

@@ -13,6 +13,11 @@ const {
   syncValidationFromDriver,
 } = require("../services/validation-review");
 const { getResubmissionContextForDriver } = require("../services/resubmission-workflow");
+const {
+  issueChallenge,
+} = require("../../cars-validation-challenge/services/challenge-workflow");
+const { runRiskAssessment } = require("../services/risk-engine");
+const { createReverification } = require("../services/reverification-workflow");
 
 const getActorId = (ctx) => ctx.state.user?.id || ctx.request.body?.userId || null;
 
@@ -111,6 +116,56 @@ module.exports = createCoreController(
       }
     },
 
+    async runRiskAssessment(ctx) {
+      const { id } = ctx.params;
+      if (!id) return ctx.badRequest("id es requerido.");
+
+      try {
+        const assessment = await runRiskAssessment(strapi, { validationId: Number(id) });
+        return ctx.send({ data: assessment });
+      } catch (error) {
+        const status = error.status || 500;
+        if (status === 404) return ctx.notFound(error.message);
+        if (status === 400) return ctx.badRequest(error.message);
+        strapi.log.error("runRiskAssessment failed", error);
+        return ctx.internalServerError(
+          error.message || "No se pudo calcular el riesgo de la validación."
+        );
+      }
+    },
+
+    async createReverification(ctx) {
+      const { id } = ctx.params;
+      const { reason, preferredAgencyId, preferredVerifierId } = ctx.request.body || {};
+
+      if (!id) return ctx.badRequest("id es requerido.");
+
+      try {
+        const outcome = await createReverification(strapi, {
+          originalValidationId: Number(id),
+          reason,
+          preferredAgencyId,
+          preferredVerifierId,
+          actorId: getActorId(ctx),
+        });
+        return ctx.send({
+          data: outcome.reverification,
+          warnings: {
+            sameAgency: outcome.sameAgencyWarning,
+            sameVerifier: outcome.sameVerifierWarning,
+          },
+        });
+      } catch (error) {
+        const status = error.status || 500;
+        if (status === 404) return ctx.notFound(error.message);
+        if (status === 400) return ctx.badRequest(error.message);
+        strapi.log.error("createReverification failed", error);
+        return ctx.internalServerError(
+          error.message || "No se pudo crear la re-verificación."
+        );
+      }
+    },
+
     async updateObservations(ctx) {
       const { id } = ctx.params;
       const { observations } = ctx.request.body || {};
@@ -146,6 +201,7 @@ module.exports = createCoreController(
         return ctx.send({ data: updated });
       } catch (error) {
         if (error.status === 404) return ctx.notFound(error.message);
+        if (error.status === 400) return ctx.badRequest(error.message);
         strapi.log.error("updateChecklist failed", error);
         return ctx.internalServerError(error.message || "No se pudo actualizar el checklist.");
       }
@@ -175,6 +231,33 @@ module.exports = createCoreController(
         if (status === 400) return ctx.badRequest(error.message);
         strapi.log.error("complete validation failed", error);
         return ctx.internalServerError(error.message || "No se pudo completar la validación.");
+      }
+    },
+
+    // docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 1: challenge/nonce
+    // de un solo uso por paso, no reutilizable durante toda la sesión.
+    async issueChallenge(ctx) {
+      const { id } = ctx.params;
+      const { step, sessionId } = ctx.request.body || {};
+
+      if (!id) return ctx.badRequest("id es requerido.");
+      if (!step) return ctx.badRequest("step es requerido.");
+
+      try {
+        const challenge = await issueChallenge(strapi, {
+          validationId: Number(id),
+          step,
+          sessionId,
+        });
+        return ctx.send({ data: challenge });
+      } catch (error) {
+        const status = error.status || 500;
+        if (status === 404) return ctx.notFound(error.message);
+        if (status === 400) return ctx.badRequest(error.message);
+        strapi.log.error("issueChallenge failed", error);
+        return ctx.internalServerError(
+          error.message || "No se pudo emitir el challenge."
+        );
       }
     },
 

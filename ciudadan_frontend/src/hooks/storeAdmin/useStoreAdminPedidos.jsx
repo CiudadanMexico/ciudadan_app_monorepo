@@ -72,7 +72,6 @@ export const useStoreAdminPedidos = () => {
    * Actualiza el state local para remover el pedido (si cambió a enviado) y muestra snack.
    * @param {number} pedidoId
    * @param {{}} body
-   * @return {object}
    */
   const patchPedido = async (pedidoId, body = {}) => {
     setApiLoading(true);
@@ -101,19 +100,19 @@ export const useStoreAdminPedidos = () => {
     setApiLoading(true);
 
     try {
-      const response = await fetch(`${PAGOS_URL}/${pagoId}`,{
-        method:'PUT',
+      const response = await fetch(`${PAGOS_URL}/${pagoId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ data: body })
       });
       const json = await response.json();
       return json?.data;
     } catch (error) {
       console.error("Error al actualizar pago:", error);
       return null;
-    }finally{
+    } finally {
       setApiLoading(false);
     }
   };

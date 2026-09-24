@@ -1,0 +1,274 @@
+
+> ciudadan-app@0.1.0 start
+> craco start
+
+[32m✔[0m [33mConsole Ninja[0m extension is connected to [33mWebpack[0m, see [36mhttps://tinyurl.com/2vt8jxzw[0m
+(node:130776) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:130776) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+Starting the development server...
+
+Compiled successfully!
+
+You can now view ciudadan-app in the browser.
+
+  Local:            http://localhost:3001
+  On Your Network:  http://192.168.1.5:3001
+
+Note that the development build is not optimized.
+To create a production build, use npm run build.
+
+webpack compiled [1m[32msuccessfully[39m[22m
+No issues found.
+Compiled successfully!
+webpack compiled [1m[32msuccessfully[39m[22m
+Compiling...
+No issues found.
+Compiled with warnings.
+
+[eslint] 
+src\Pages\Cartera\Billetera.jsx
+  Line 56:51:  React Hook useEffect has a missing dependency: 'cargarCarteraYHistorial'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\Routes\index.jsx
+  Line 19:8:    'MarketRoute' is defined but never used          no-unused-vars
+  Line 24:8:    'GenRoute' is defined but never used             no-unused-vars
+  Line 47:8:    'WikiHome' is defined but never used             no-unused-vars
+  Line 63:8:    'NavBar' is defined but never used               no-unused-vars
+  Line 66:8:    'LmAi' is defined but never used                 no-unused-vars
+  Line 67:8:    'TTS' is defined but never used                  no-unused-vars
+  Line 68:8:    'TextToSpeech' is defined but never used         no-unused-vars
+  Line 114:8:   'ComunidadPage' is defined but never used        no-unused-vars
+  Line 130:8:   'RegistroTiendaPage' is defined but never used   no-unused-vars
+  Line 263:7:   'WikiLayout' is assigned a value but never used  no-unused-vars
+  Line 298:11:  'roleValues' is assigned a value but never used  no-unused-vars
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+[1m[33mWARNING[39m[22m in [1m[eslint] 
+src\Pages\Cartera\Billetera.jsx
+  Line 56:51:  React Hook useEffect has a missing dependency: 'cargarCarteraYHistorial'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\Routes\index.jsx
+  Line 19:8:    'MarketRoute' is defined but never used          no-unused-vars
+  Line 24:8:    'GenRoute' is defined but never used             no-unused-vars
+  Line 47:8:    'WikiHome' is defined but never used             no-unused-vars
+  Line 63:8:    'NavBar' is defined but never used               no-unused-vars
+  Line 66:8:    'LmAi' is defined but never used                 no-unused-vars
+  Line 67:8:    'TTS' is defined but never used                  no-unused-vars
+  Line 68:8:    'TextToSpeech' is defined but never used         no-unused-vars
+  Line 114:8:   'ComunidadPage' is defined but never used        no-unused-vars
+  Line 130:8:   'RegistroTiendaPage' is defined but never used   no-unused-vars
+  Line 263:7:   'WikiLayout' is assigned a value but never used  no-unused-vars
+  Line 298:11:  'roleValues' is assigned a value but never used  no-unused-vars
+
+[39m[22m
+
+webpack compiled with [1m[33m1 warning[39m[22m
+No issues found.
+Failed to compile.
+
+Error: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\DefaultPropsProvider\index.js'
+[1mLOG from webpack.FileSystemInfo[39m[22m
+<w> [1m[33mManaged item c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\system isn't a directory or doesn't contain a package.json (see snapshot.managedPaths option)[39m[22m
++ 17 hidden lines
+
+[1m[33mWARNING[39m[22m in [1m[eslint] 
+src\Pages\Cartera\Billetera.jsx
+  Line 56:51:  React Hook useEffect has a missing dependency: 'cargarCarteraYHistorial'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\Routes\index.jsx
+  Line 19:8:    'MarketRoute' is defined but never used          no-unused-vars
+  Line 24:8:    'GenRoute' is defined but never used             no-unused-vars
+  Line 47:8:    'WikiHome' is defined but never used             no-unused-vars
+  Line 63:8:    'NavBar' is defined but never used               no-unused-vars
+  Line 66:8:    'LmAi' is defined but never used                 no-unused-vars
+  Line 67:8:    'TTS' is defined but never used                  no-unused-vars
+  Line 68:8:    'TextToSpeech' is defined but never used         no-unused-vars
+  Line 114:8:   'ComunidadPage' is defined but never used        no-unused-vars
+  Line 130:8:   'RegistroTiendaPage' is defined but never used   no-unused-vars
+  Line 263:7:   'WikiLayout' is assigned a value but never used  no-unused-vars
+  Line 298:11:  'roleValues' is assigned a value but never used  no-unused-vars
+
+[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/DefaultPropsProvider/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\DefaultPropsProvider\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/Grid/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\Grid\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/InitColorSchemeScript/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\InitColorSchemeScript\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/RtlProvider/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\RtlProvider\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/colorManipulator/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\colorManipulator\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/createBreakpoints/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\createBreakpoints\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/createStyled/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\createStyled\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/createTheme/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\createTheme\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/cssVars/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\cssVars\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/spacing/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\spacing\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/styleFunctionSx/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\styleFunctionSx\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/style/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\style\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/useMediaQuery/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\useMediaQuery\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/useThemeProps/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\useThemeProps\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/system/esm/index.js[39m[22m [1m[32m1:0-70[39m[22m
+[1mModule [1m[31mnot found[39m[22m[1m: [1m[31mError[39m[22m[1m: Can't resolve '@mui/utils/formatMuiErrorMessage' in 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\system\esm'
+[1m[32mDid you mean 'index.js'?[39m[22m[1m
+[1m[31mBREAKING CHANGE[39m[22m[1m: The request '@mui/utils/formatMuiErrorMessage' [1m[31mfailed[39m[22m[1m to resolve only because it was resolved as fully specified
+(probably because the origin is strict EcmaScript Module, e. g. a module with javascript mimetype, a '*.mjs' file, or a '*.js' file where the package.json contains '"type": "module"').
+The extension in the request is mandatory for it to be fully specified.
+Add the extension to the request.[39m[22m
+
+webpack compiled with [1m[31m16 errors[39m[22m and [1m[33m1 warning[39m[22m
+Compiling...
+No issues found.
+Failed to compile.
+
+Error: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\DefaultPropsProvider\index.js'
+[1m[33mWARNING[39m[22m in [1m[eslint] 
+src\Pages\Cartera\Billetera.jsx
+  Line 56:51:  React Hook useEffect has a missing dependency: 'cargarCarteraYHistorial'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\Routes\index.jsx
+  Line 19:8:    'MarketRoute' is defined but never used          no-unused-vars
+  Line 24:8:    'GenRoute' is defined but never used             no-unused-vars
+  Line 47:8:    'WikiHome' is defined but never used             no-unused-vars
+  Line 63:8:    'NavBar' is defined but never used               no-unused-vars
+  Line 66:8:    'LmAi' is defined but never used                 no-unused-vars
+  Line 67:8:    'TTS' is defined but never used                  no-unused-vars
+  Line 68:8:    'TextToSpeech' is defined but never used         no-unused-vars
+  Line 114:8:   'ComunidadPage' is defined but never used        no-unused-vars
+  Line 130:8:   'RegistroTiendaPage' is defined but never used   no-unused-vars
+  Line 263:7:   'WikiLayout' is assigned a value but never used  no-unused-vars
+  Line 298:11:  'roleValues' is assigned a value but never used  no-unused-vars
+
+[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/DefaultPropsProvider/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\DefaultPropsProvider\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/Grid/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\Grid\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/InitColorSchemeScript/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\InitColorSchemeScript\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/RtlProvider/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\RtlProvider\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/colorManipulator/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\colorManipulator\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/createBreakpoints/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\createBreakpoints\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/createStyled/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\createStyled\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/createTheme/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\createTheme\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/cssVars/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\cssVars\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/spacing/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\spacing\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/styleFunctionSx/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\styleFunctionSx\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/style/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\style\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/useMediaQuery/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\useMediaQuery\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/material/node_modules/@mui/system/esm/useThemeProps/index.js[39m[22m
+[1mModule build [1m[31mfailed[39m[22m[1m (from ./node_modules/source-map-loader/dist/cjs.js):
+[1m[31mError[39m[22m[1m: ENOENT: no such file or directory, open 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\material\node_modules\@mui\system\esm\useThemeProps\index.js'[39m[22m
+
+[1m[31mERROR[39m[22m in [1m./node_modules/@mui/system/esm/index.js[39m[22m [1m[32m1:0-70[39m[22m
+[1mModule [1m[31mnot found[39m[22m[1m: [1m[31mError[39m[22m[1m: Can't resolve '@mui/utils/formatMuiErrorMessage' in 'c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\@mui\system\esm'
+[1m[32mDid you mean 'index.js'?[39m[22m[1m
+[1m[31mBREAKING CHANGE[39m[22m[1m: The request '@mui/utils/formatMuiErrorMessage' [1m[31mfailed[39m[22m[1m to resolve only because it was resolved as fully specified
+(probably because the origin is strict EcmaScript Module, e. g. a module with javascript mimetype, a '*.mjs' file, or a '*.js' file where the package.json contains '"type": "module"').
+The extension in the request is mandatory for it to be fully specified.
+Add the extension to the request.[39m[22m
+
+webpack compiled with [1m[31m16 errors[39m[22m and [1m[33m1 warning[39m[22m
+No issues found.
+node:internal/buffer:961
+    super(bufferOrLength, byteOffset, length);
+    ^
+
+RangeError: Array buffer allocation failed
+    at new ArrayBuffer (<anonymous>)
+    at new Uint8Array (<anonymous>)
+    at new FastBuffer (node:internal/buffer:961:5)
+    at createUnsafeBuffer (node:internal/buffer:1064:12)
+    at Function.allocUnsafeSlow (node:buffer:416:10)
+    at read (c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\webpack\lib\serialization\FileMiddleware.js:733:32)
+    at c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\webpack\lib\serialization\FileMiddleware.js:803:7
+    at c:\yii\ciudadan_app_monorepo\ciudadan_frontend\node_modules\graceful-fs\graceful-fs.js:362:16
+    at FSReqCallback.oncomplete (node:fs:188:23)
+
+Node.js v20.19.2

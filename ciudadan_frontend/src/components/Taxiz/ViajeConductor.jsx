@@ -1,6 +1,8 @@
 // src/components/Trips/ViajeConductor.jsx
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Rating } from '@mui/material';
+import { sendToWhatsApp } from '../../utils/sendToWhatsApp';
 
 // Este componente mantiene la UX/controles que ya diseñamos antes (botones, iniciar/terminar, centrar, tarjeta colapsable)
 // pero **usa** la lógica de mapas y markers del Conductor.js (esa lógica ya está en TripView).
@@ -8,33 +10,31 @@ const ViajeConductor = ({
   viaje,
   userData,
   driverData,
-  socket,
   strapiConfig,
   userCoords,
   routeInfo,
-  setUserCoords,
-  travelData,
-  consultedTravel,
-  handleTravelCardClick,
-  handleBackButtonClick,
-  handleCloseButtonClick,
-  handleAcceptTrip,
   mapRef,
   onStatusChange,
   onVerifyPIN,
   onCancel,
+  onSaveRating,
+  setStatusPayment,
   paymentAmount,
   setCashAmount,
-  setDriverPaymentState,
+  setLaboryAmount,
+  hasLabory,
+  saldoLabory,
   simulationEnabled,
   onToggleSimulation,
 }) => {
+  const rating = viaje?.attributes?.calificacionpasajero || null;
   const [expanded, setExpanded] = useState(true);
   const [status, setStatus] = useState(viaje?.attributes?.status || 'pending');
-  const [hasLabory, setHasLabory] = useState(false);
-  const [saldoLabory, setSaldoLabory] = useState(0);
-  //console.log('viaje', viaje);
-  //console.log('userData', userData);
+  const [selectedRating, setSelectedRating] = useState(rating);
+  const [canSave, setCanSave] = useState(false);
+  //const [hasLabory, setHasLabory] = useState(false);
+  //const [saldoLabory, setSaldoLabory] = useState(0);
+
   //const routeInfo = viaje?.attributes?.routeInfo || null;
   const { getAccessTokenSilently } = useAuth0();
 
@@ -53,12 +53,15 @@ const ViajeConductor = ({
     setStatus(viaje?.attributes?.status || 'pending');
   }, [viaje?.attributes?.status]);
 
+  useEffect(() => {
+    if (rating) setSelectedRating(rating);
+  }, [rating]);
+
   // eslint-disable-next-line no-unused-vars
   const formatDistance = (m) => (m ? `${(m / 1000).toFixed(2)} km` : '—');
   const formatDuration = (s) => (s ? `${Math.ceil(s / 60)} min` : '—');
+
   const userEmail = viaje?.attributes?.pasajeromail;
-  // eslint-disable-next-line no-unused-vars
-  const driverEmail = viaje?.attributes?.conductormail;
   const userId = viaje?.attributes?.pasajero?.data?.id;
   const driverId = viaje?.attributes?.conductor?.data?.id;
   const isTripFree = viaje?.attributes?.isTripFree || false;
@@ -66,16 +69,13 @@ const ViajeConductor = ({
   const terminarViaje = async () => {
     setStatus('finalizado');
     if (typeof onStatusChange === 'function') onStatusChange('finalizado');
-    /*try {
-      socket?.emit('trip-action', { viajeId: viaje?.id, action: 'finish', ts: new Date().toISOString() });
-    } catch (e) { }*/
   };
 
-  const cancelarViaje = async () => {
+  const interrumpirViaje = async () => {
     if (typeof onCancel === 'function') onCancel();
   };
 
-  const consultarSaldo = useCallback(async () => {
+  /*const consultarSaldo = useCallback(async () => {
     if (!strapiConfig?.baseUrl) return;
 
     try {
@@ -97,13 +97,13 @@ const ViajeConductor = ({
     } catch (err) {
       console.warn('[Pasajero] no se pudo consultar la cartera del usuario:', err);
     }
-  }, [getToken, strapiConfig?.baseUrl]);
+  }, [getToken, strapiConfig?.baseUrl]);*/
 
-  const loadLabory = useCallback(async () => {
+  /*const loadLabory = useCallback(async () => {
     if (!userEmail || !strapiConfig?.baseUrl) return;
 
     try {
-      const url = `${strapiConfig.baseUrl.replace(/\/$/, '')}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(userEmail)}&populate=*`;
+      const url = `${strapiConfig.baseUrl.replace(/\/$/, '')}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}&populate=*`;
       const headers = { 'Content-Type': 'application/json' };
       if (strapiConfig.token) {
         headers.Authorization = `Bearer ${strapiConfig.token}`;
@@ -128,9 +128,9 @@ const ViajeConductor = ({
 
   useEffect(() => {
     loadLabory();
-  }, [loadLabory]);
+  }, [loadLabory]);*/
 
-  const confirmPayment = async (amount) => {
+  /*const confirmPayment = async (amount) => {
     if (!strapiConfig?.baseUrl) return;
 
     try {
@@ -158,24 +158,24 @@ const ViajeConductor = ({
     } catch (err) {
       console.warn('[Pasajero] no se pudo confirmar el pago:', err);
     }
-  };
+  };*/
 
   const handlePaymentChoice = async (nextState) => {
-    setStatus(nextState);
-    if (typeof onStatusChange === 'function') onStatusChange(nextState);
+    setStatusPayment(nextState);
 
     if (hasLabory && saldoLabory > 0) {
       const amountLabory = saldoLabory >= (paymentAmount * 0.1)
         ? paymentAmount * 0.1 : saldoLabory;
       setCashAmount(paymentAmount - amountLabory);
-      await confirmPayment(amountLabory);
+      setLaboryAmount(amountLabory);
+      //await confirmPayment(amountLabory);
     } else {
       setCashAmount(paymentAmount);
     }
   };
 
   const confirmFreeTrip = async () => {
-    if (!userEmail || !strapiConfig?.baseUrl) return;
+    if (!strapiConfig?.baseUrl) return;
     setStatus('cerrado');
     if (typeof onStatusChange === 'function') onStatusChange('cerrado');
 
@@ -196,23 +196,44 @@ const ViajeConductor = ({
         }),
       });
 
-      await fetch(`${strapiConfig.baseUrl}/api/users/${userId}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          data: { free_trip: false }
-        }),
-      });
+      const response = await fetch(
+        `${strapiConfig.baseUrl}/api/configuraciones-usuarios?filters[email][$eq]=${userEmail}`,
+        { headers }
+      );
+      const findData = await response.json();
+      const existing = findData?.data?.[0];
+
+      await fetch(
+        `${strapiConfig.baseUrl}/api/configuraciones-usuarios/${existing.id}`,
+        {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            data: {
+              free_trip: 'utilizado',
+              en_viaje: false
+            }
+          }),
+        }
+      );
 
       await fetch(`${strapiConfig.baseUrl}/api/drivers/${driverId}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({
-          data: { free_trips: driverData?.free_trips - 1 }
+          data: {
+            free_trips: driverData?.free_trips - 1,
+            en_viaje: false
+          }
         }),
       });
     } catch (e) { console.warn('no pudo actualizar viaje', e); }
   }
+
+  const handleSubmit = () => {
+    if (typeof onSaveRating === 'function') onSaveRating(selectedRating || null);
+    setCanSave(false);
+  };
 
   const username = userData?.nombre_completo || userData?.username || 'Usuario';
   let userPhoto = null;
@@ -240,10 +261,16 @@ const ViajeConductor = ({
       overflow: 'hidden',
       overflowY: 'auto',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }} onClick={() => setExpanded(!expanded)}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid #eee', cursor: 'pointer' }}
+        onClick={() => setExpanded(!expanded)}
+      >
         <div style={{ flex: 1 }}>
           <strong>Viaje #{viaje?.id || '—'}</strong>
-          <div style={{ fontSize: 14, color: '#666' }}>{status} • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km` : '-'} • ETA: {formatDuration(routeInfo?.duration_s)}</div>
+          <div style={{ fontSize: 14, color: '#666' }}>
+            <strong style={{ color: '#151bc1' }}>{status} </strong>
+            • Distancia restante: {routeInfo ? `${routeInfo.toFixed(2)} km ` : '- '}
+            • ETA: {formatDuration(routeInfo?.duration_s)}
+          </div>
         </div>
         <div style={{ width: 48, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms' }}>▼</div>
@@ -278,7 +305,7 @@ const ViajeConductor = ({
               </div>
             </div>
 
-            {(status === 'en_curso' || status === 'iniciando' || status.includes('fin_solicitado')) && (
+            {(status === 'en_curso' || status === 'iniciando' || status === 'cerrado') && (
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <div><strong>Origen (tu taxi)</strong></div>
@@ -306,7 +333,11 @@ const ViajeConductor = ({
                           Pago máximo con
                           <strong> Labory</strong>: <strong style={{ color: '#151bc1' }}>${Number(paymentAmount * 0.1).toFixed(2)} MXN</strong>
                         </div>
-                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>Efectivo restante: <strong style={{ color: '#12aa12' }}>${Number(paymentAmount * 0.9).toFixed(2)} MXN</strong></div>
+                        <div style={{ fontSize: 14, color: '#444', paddingBottom: 8 }}>
+                          Efectivo restante: <strong style={{ color: '#12aa12' }}>
+                            ${Number(paymentAmount * 0.9).toFixed(2)} MXN
+                          </strong>
+                        </div>
                       </>
                     )}
                   </>
@@ -320,21 +351,9 @@ const ViajeConductor = ({
                 }
               </div>
             )}
-            {/*(status === 'partial' || status === 'unpaid') &&
-              <div style={{ flex: 1, display: 'flex', fontSize: 18, textAlign: 'center', fontWeight: 600, color: '#e02c2c', padding: 12 }}>
-                Al pasajero se le notificará que su pago no fue completado
-              </div>
-            */}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, paddingTop: 12 }}>
-            {status === 'iniciando' &&
-              <button onClick={onVerifyPIN}
-                disabled={routeInfo >= 0.15}
-                style={{ flex: 1, padding: 12, borderRadius: 8, background: '#fff200', border: 'none', fontWeight: '700', opacity: routeInfo > .15 && .5 }}
-              >
-                Pasajero a bordo
-              </button>}
+          <div style={{ display: 'flex', gap: 8, padding: 8 }}>
             {(status === 'en_curso' || status === 'iniciando') && <button onClick={() => {
               if (mapRef?.current && userCoords) { mapRef.current.setCenter(userCoords); mapRef.current.setZoom(16); }
             }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#fff', flex: 1 }}>
@@ -347,19 +366,59 @@ const ViajeConductor = ({
                 {simulationEnabled ? 'Detener simulación' : 'Simular recorrido'}
               </button>
             )*/}
-            {status === 'en_curso' &&
-              <button
-                onClick={routeInfo < 0.15 ? terminarViaje : cancelarViaje}
-                style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: routeInfo < 0.15 ? '#fb6216' : '#f80e0e', flex: 1, color: '#fff', cursor: 'pointer' }}>
-                {routeInfo < 0.15 ? 'Finalizar viaje' : 'Finalizar antes del destino'}
+            {status === 'iniciando' &&
+              <button onClick={onVerifyPIN}
+                disabled={routeInfo >= 0.15}
+                style={{
+                  flex: 1,
+                  padding: 12,
+                  borderRadius: 8,
+                  background: '#fff200',
+                  border: 'none',
+                  fontWeight: '700',
+                  opacity: routeInfo > .15 && .5,
+                  cursor: routeInfo > .15 ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Pasajero a bordo
               </button>
             }
-            {/*(status === 'paid' || status === 'partial' || status === 'unpaid') && (
-              <div style={{ color: '#666', fontSize: 13 }}>
-                El pasajero verá el monto a pagar y podrá confirmar el estado del pago.
-              </div>
-            )*/}
+            {(status === 'en_curso' && routeInfo < 0.15) &&
+              <button
+                onClick={terminarViaje}
+                style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  border: '1px solid #ddd',
+                  background: '#fb6216',
+                  flex: 1,
+                  color: '#fff',
+                  cursor: 'pointer'
+                }}
+              >
+                Finalizar viaje
+              </button>
+            }
           </div>
+          {(status === 'en_curso' && routeInfo >= 0.15) && (
+            <button
+              onClick={interrumpirViaje}
+              style={{
+                padding: 8,
+                borderRadius: 8,
+                background: 'none',
+                color: '#f80e0e',
+                textAlign: 'center',
+                textDecoration: 'underline',
+                border: 'none',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              Finalizar viaje antes del destino
+            </button>
+          )}
+
           {status === 'finalizado' && (
             !isTripFree ?
               <>
@@ -384,17 +443,82 @@ const ViajeConductor = ({
                 Confirmar viaje gratis
               </button>
           )}
-          {status === 'fin_solicitado_conductor' &&
-            <div>
-              <div style={{ color: '#333', textAlign: 'center', fontSize: 14, paddingBottom: 6, fontWeight: 600 }}>
-                Espere a que el pasajero acepte su solicitud. Si no acepta, puede marcar a los siguientes contactos.
+
+          {status === 'cerrado' && (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              background: '#ddd',
+              borderRadius: 8,
+              width: '75%',
+              gap: 16,
+              padding: 20,
+              margin: '12px auto'
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 700, textAlign: 'center' }}>
+                Tu valoración ayuda a mejorar la experiencia del viaje
               </div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                <button onClick={() => { }} style={{ borderRadius: 8, border: '1px solid #ddd', background: '#2ba80f', flex: 1, color: '#fff' }}>Contactar por WhatsApp</button>
-                <button onClick={() => { }} style={{ padding: 12, borderRadius: 8, border: '1px solid #ddd', background: '#f80e0e', flex: 1, color: '#fff' }}>MARCAR AL 911</button>
-              </div>
+              <Rating
+                name="simple-controlled"
+                value={selectedRating}
+                sx={{ fontSize: 40 }}
+                onChange={(e, newValue) => {
+                  setSelectedRating(newValue);
+                  setCanSave(true);
+                }}
+                size="large"
+              />
+              <button
+                type="button"
+                disabled={!canSave}
+                onClick={handleSubmit}
+                style={{
+                  padding: '12px 14px',
+                  width: '100%',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: '#2f6fed',
+                  opacity: !canSave && 0.5,
+                  color: '#fff',
+                  fontWeight: 700,
+                  cursor: canSave ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Guardar calificación
+              </button>
             </div>
-          }
+          )}
+
+          <div style={{ color: '#333', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>
+            En caso de emergencia, puede marcar a los siguientes contactos.
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+            <button onClick={sendToWhatsApp}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                background: '#2ba80f',
+                flex: 1,
+                color: '#fff',
+                cursor: 'pointer',
+              }}>
+              Contactar por WhatsApp
+            </button>
+            <button onClick={() => { }}
+              style={{
+                padding: 12,
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                background: '#f80e0e',
+                flex: 1,
+                color: '#fff',
+                cursor: 'pointer',
+              }}>
+              MARCAR AL 911
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -2,12 +2,16 @@ import { normalizeEntity, parseJsonSafe } from '../../utils/preRegisterForSteps/
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || '';
 
-const buildJsonOptions = (method, payload) => ({
-  method,
-  credentials: 'include',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(payload),
-});
+const buildJsonOptions = (method, payload, token) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return {
+    method,
+    credentials: 'include',
+    headers,
+    body: JSON.stringify(payload),
+  };
+};
 
 export const updateDriverDetails = async (id, payload) => {
   const url = `${STRAPI_URL}/api/drivers/${id}`;
@@ -61,6 +65,22 @@ export const completeValidation = async (validationId, { action, observations, u
     throw new Error(data?.error?.message || 'No se pudo completar la validación.');
   }
   return normalizeEntity(data?.data);
+};
+
+// docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 8: este endpoint está
+// protegido por la policy `is-verificador` (a diferencia de los endpoints
+// preexistentes en este archivo, que no se tocaron) — requiere el token de
+// Auth0 del verificador autenticado.
+export const runRiskAssessment = async (validationId, token) => {
+  const res = await fetch(
+    `${STRAPI_URL}/api/cars-validations/${validationId}/risk-assessment`,
+    buildJsonOptions('POST', {}, token)
+  );
+  const data = await parseJsonSafe(res);
+  if (!res.ok) {
+    throw new Error(data?.error?.message || 'No se pudo calcular el riesgo de la validación.');
+  }
+  return data?.data;
 };
 
 export const syncValidationFromDriver = async ({ driverId, userId, origin = 'reupload' }) => {

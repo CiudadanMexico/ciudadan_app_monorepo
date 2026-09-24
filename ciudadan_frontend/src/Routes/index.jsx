@@ -1,8 +1,8 @@
 // src/routes/Rutas.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import io from 'socket.io-client';
 import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { getSocket } from '../lib/socketClient.jsx';
 import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
@@ -13,8 +13,9 @@ import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
 import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
 import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
-import LiderVerificadorRegistroPage from '../Pages/Gana/LiderVerificadorRegistroPage.jsx';
+import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
+import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
@@ -25,8 +26,6 @@ import GenRoute from '../Pages/GenRoute.jsx';
 import OpWalletRoute from '../Pages/OpWalletRoute.jsx';
 import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
-import RegistroConductor from '../Pages/RegistroConductor.jsx';
-import PreRegistroConductor from '../Pages/PreRegistroConductor.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
 import MiMembresia from '../Pages/MiMembresia.jsx';
@@ -97,14 +96,16 @@ import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 
 // Taxis (pasajero / conductor / trip)
-import Pasajero from '../components/Taxiz/Pasajero.jsx';
-import Conductor from '../components/Taxiz/ConductorDebug.jsx';
+import Pasajero from '../components/Taxis/Pasajero.jsx';
+import Conductor from '../components/Taxis/Conductor.jsx';
 import TripView from '../components/Taxiz/TripView.jsx';
+import HistorialViajes from '../components/Taxis/HistorialViajes.jsx';
 
 //import QrScanner from '../components/Agencias/QrScanner.jsx';
 
 // Membresías extras
 import MembershipCheckout from '../components/Membresias/MembershipCheckout.jsx';
+import MercadoPagoRetorno from '../components/Membresias/MercadoPagoRetorno.jsx';
 import ProbarMembresia from '../components/Membresias/ProbarMembresia.jsx';
 import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 
@@ -113,6 +114,7 @@ import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
 import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
+import SocialSectionPage from '../Pages/Comunidad/SocialSectionPage.jsx';
 
 // Contenidos / Blog
 //import ContenidosPage from '../Pages/Blog/Contenidos.jsx';
@@ -147,6 +149,8 @@ import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
 import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
 import FoodCheckout from '../components/Food/FoodCheckout.jsx';
+import VerifyFreeTrip from '../components/Taxis/VerifyFreeTrip';
+import SaldoLogistico from '../Pages/MarketPlace/SaldoLogistico';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -273,20 +277,30 @@ const TripViewRoute = () => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const socketUrl = process.env.REACT_APP_SOCKET_URL;
-    if (!socketUrl) return undefined;
-
-    const client = io(socketUrl, {
-      transports: ['websocket', 'polling'],
-    });
+    const client = getSocket();
+    if (!client) return;
 
     setSocket(client);
+  }, []);
+
+  useEffect(() => {
+    if (!socket || !user?.email) return;
+
+    const register = () => {
+      socket.emit('register', { email: user.email });
+    };
+
+    if (socket.connected) {
+      register();
+      return undefined;
+    }
+
+    socket.on('connect', register);
 
     return () => {
-      client.disconnect();
-      setSocket(null);
+      socket.off('connect', register);
     };
-  }, []);
+  }, [socket, user?.email]);
 
   const strapiConfig = useMemo(() => ({
     baseUrl: process.env.REACT_APP_STRAPI_URL || '',
@@ -317,8 +331,24 @@ const TripViewRoute = () => {
   );
 };
 
-const Rutas = () => (
-  <Routes>
+const Rutas = () => {
+  const hostname = window.location.hostname;
+  const dominiosPrelanzamiento = [
+    "taxis.ciudadan.org",
+    "lideres.ciudadan.org",
+    "socios.ciudadan.org",
+  ];
+  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
+
+  if (isDomainPrelanzamiento) {
+    return <Prelanzamiento />;
+  }
+
+  return (
+    <Routes>
+      <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+
+    <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
     <Route
       path='/'
@@ -357,7 +387,7 @@ const Rutas = () => (
       element={<Notificacion />}
     />
 
-                {/* Gana / GanaRoute */}
+    {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
@@ -376,10 +406,10 @@ const Rutas = () => (
     />
     <Route
       path='/gana/lideresverificadores/registro'
-      element={<LiderVerificadorRegistroPage />}
+      element={<RedireccionPrelanzamiento tipo='lider' />}
     />
     {/* Taxis */}
-    
+
 
     {/* Taxis */}
     <Route
@@ -388,11 +418,11 @@ const Rutas = () => (
     />
     <Route
       path='/taxis/conductor/registro'
-      element={<RegistroConductor />}
+      element={<RedireccionPrelanzamiento tipo='conductor' />}
     />
     <Route
       path='/taxis/conductor/preregistro'
-      element={<PreRegistroConductor />}
+      element={<RedireccionPrelanzamiento tipo='conductor' />}
     />
     <Route
       path='/taxis/conductor/esperando'
@@ -411,8 +441,16 @@ const Rutas = () => (
       element={<Pasajero />}
     />
     <Route
+      path='/taxis/viajes/historial'
+      element={<HistorialViajes />}
+    />
+    <Route
       path='/taxis/viaje/:travelId'
       element={<TripViewRoute />}
+    />
+    <Route
+      path='/taxis/viaje-gratis'
+      element={<VerifyFreeTrip />}
     />
 
     <Route
@@ -449,7 +487,7 @@ const Rutas = () => (
       path='/comida/comprar/:slug'
       element={<ComprarFoodProduct />}
     />
-    <Route 
+    <Route
       path='/comida/ofertas'
       element={<ComidaOfertas />}
     />
@@ -502,6 +540,10 @@ const Rutas = () => (
       <Route
         path='configuracion'
         element={<ConfiguracionTienda />}
+      />
+      <Route 
+        path='saldo-logistico'
+        element={<SaldoLogistico />}
       />
     </Route>
     <Route
@@ -799,6 +841,10 @@ const Rutas = () => (
       element={<MembershipCheckout />}
     />
     <Route
+      path='/membresias/retorno'
+      element={<MercadoPagoRetorno />}
+    />
+    <Route
       path='/mi-membresia'
       element={<MiMembresia />}
     />
@@ -811,6 +857,66 @@ const Rutas = () => (
     <Route
       path='/comunidad'
       element={<ComunidadRoute />}
+    />
+    <Route
+      path='/comunidad/feed'
+      element={(
+        <SocialSectionPage
+          sectionKey='feed'
+          title='Feed'
+          description='Abre el feed social de Ciudadan.'
+          note='Esta pantalla queda conectada al nuevo Social Shell.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats/:conversationId'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='La conversación ocupa el espacio principal de Social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/contactos'
+      element={(
+        <SocialSectionPage
+          sectionKey='contactos'
+          title='Contactos'
+          description='Abre la agenda y los contactos integrados.'
+          note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/grupos'
+      element={(
+        <SocialSectionPage
+          sectionKey='grupos'
+          title='Grupos'
+          description='Pantalla provisional para grupos.'
+          note='Este espacio queda listo para conectar los grupos del ecosistema social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
     />
     <Route
       path='/comunidad/nuevo-anuncio-programado'

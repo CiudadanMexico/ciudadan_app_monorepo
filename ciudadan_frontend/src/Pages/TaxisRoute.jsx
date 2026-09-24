@@ -101,7 +101,7 @@ const TaxisRoute = () => {
   // 🔥 RENDER PRINCIPAL
   // ============================
   return (
-    <div style={{ width: '90%', height: '100vh', padding: '20px' }}>
+    <div style={{ width: '100%', height: '100vh', padding: '20px' }}>
       {/* Tabs SOLO si es conductor */}
       {isConductor && showTabs && !hideTabs && (
         <div

@@ -1,27 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
-const ConfirmarCancelar = ({ viajeId, status, open, setOpen, isDriver, onSubmit, onClose, strapiConfig }) => {
+const ConfirmarCancelar = ({ open, setOpen, isDriver, isCancelled }) => {
     // Mostrar componente durante 15 segundos
     useEffect(() => {
-        if (status?.includes('fin_solicitado')) {
+        if (isCancelled) {
             const timer = setTimeout(() => {
-                if (typeof onSubmit === 'function') onSubmit('finalizado');
                 setOpen(false);
             }, 15000);
             // Limpia el temporizador si el componente se desmonta antes
             return () => clearTimeout(timer);
         }
-    }, [status]);
+    }, [isCancelled]);
 
     if (!open) return null;
 
     const userType = isDriver ? 'pasajero' : 'conductor';
     const title = `El ${userType} desea finalizar el viaje antes del destino`;
-
-    const handleSubmit = async () => {
-        if (typeof onSubmit === 'function') onSubmit('finalizado');
-        setOpen(false);
-    };
 
     return (
         <div style={{
@@ -42,25 +36,31 @@ const ConfirmarCancelar = ({ viajeId, status, open, setOpen, isDriver, onSubmit,
                 padding: 20,
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
             }}>
-                <div style={{ fontSize: 16, marginBottom: 16 }}>{title}</div>
-
-                <div style={{ display: 'flex', gap: 10 }}>
-                    <button
-                        type="button"
-                        onClick={handleSubmit}
-                        style={{
-                            flex: 1,
-                            padding: '12px 14px',
-                            borderRadius: 10,
-                            border: 'none',
-                            background: '#2f6fed',
-                            color: '#fff',
-                            fontWeight: 700,
-                        }}
-                    >
-                        Aceptar
-                    </button>
+                <div style={{
+                    fontSize: 16,
+                    textAlign: 'center',
+                    marginBottom: 16,
+                    fontWeight: 700
+                }}>
+                    {title}
                 </div>
+
+                <button
+                    type="button"
+                    onClick={() => { setOpen(false); }}
+                    style={{
+                        width: '100%',
+                        padding: '12px 14px',
+                        borderRadius: 10,
+                        border: 'none',
+                        background: '#2f6fed',
+                        color: '#fff',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                    }}
+                >
+                    Aceptar
+                </button>
             </div>
         </div>
     );

@@ -25,6 +25,18 @@
     },
     "pago_labory": {
       "type": "boolean"
+    },
+    "free_trip": {
+      "type": "enumeration",
+      "enum": [
+        "pendiente",
+        "disponible",
+        "utilizado"
+      ],
+      "default": "pendiente"
+    },
+    "en_viaje": {
+      "type": "boolean"
     }
   }
 }

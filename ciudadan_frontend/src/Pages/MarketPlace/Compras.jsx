@@ -193,7 +193,7 @@ function useUserPedidos(user, isLoadingAuth) {
   };
 
   const getOrdenesComida = async (user_id) => {
-    const populateStr = "populate[restaurant]=true&populate[items][populate][product][populate][imagen_predeterminada]=true&populate[direccion_destino]=true&populate[direccion_origen]=true";
+    const populateStr = "populate[restaurant]=true&populate[items][populate][product][populate][imagen_predeterminada]=true&populate[items][populate][modifiers][populate][imagen]=true&populate[direccion_destino]=true&populate[direccion_origen]=true&populate[pago][populate][comprobante]=true";
     const sortStr = "sort[0]=fecha_creacion:desc"
     const response = await fetch(`${STRAPI_URL}/api/food-orders?filters[user][id][$eq]=${user_id}&${populateStr}&${sortStr}`);
     if (!response.ok) {
@@ -327,9 +327,11 @@ const Compras = () => {
    * @param {number} pedidoId 
    */
   const handleSeleccionarPedido = async (pedidoId) => {
+    console.log("handleSeleccionarPedido:", pedidoId);
     setPedidoSeleccionadoId(pedidoId);
     try {
       const pedidoById = await fetchPedidoById(pedidoId);
+      console.log("Pedido by id:", pedidoById);
       setPedidoSeleccionado(pedidoById);
       setOpenDialog(true);
 

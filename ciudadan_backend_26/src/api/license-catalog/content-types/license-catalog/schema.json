@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "license_catalogs",
+  "info": {
+    "singularName": "license-catalog",
+    "pluralName": "license-catalogs",
+    "displayName": "License Catalog",
+    "description": "Catálogo de verificación de licencias de conducir por entidad federativa (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 4). No hay API nacional única: 32 entidades, cada una con su propio método/portal."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "entidad_federativa": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "license_provider": {
+      "type": "string",
+      "required": true
+    },
+    "official_url": {
+      "type": "string"
+    },
+    "method": {
+      "type": "enumeration",
+      "enum": ["official_api", "official_web", "official_app"],
+      "default": "official_web"
+    },
+    "required_fields": {
+      "type": "json"
+    },
+    "verification_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "reference_type": {
+      "type": "string"
+    },
+    "evidence_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}
