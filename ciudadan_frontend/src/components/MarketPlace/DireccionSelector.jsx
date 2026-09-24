@@ -40,16 +40,20 @@ export default function DireccionSelector({ onConfirm }) {
   const [ingresarNueva, setIngresarNueva] = useState(false);
 
   const [form, setForm] = useState({
-    calle: "",
-    numero: "",
-    colonia: "",
-    ciudad: "",
-    estado: "",
-    cp: "",
-    referencia: "",
+    formatted_address: "",
     lat: null,
     lng: null,
-    formatted_address: "",
+    cp: "",
+    ciudad: "",
+    estado: "",
+    pais: "",
+    paisCodigo: "",
+    estadoCodigo: "",
+    colonia: "",
+    calle: "",
+    numero: "",
+    referencia: "",
+    place_id: null
   });
 
   // 🔴 SELECCIÓN ACTIVA (NUEVO)
@@ -58,6 +62,8 @@ export default function DireccionSelector({ onConfirm }) {
   const [modoDireccionManual, setModoDireccionManual] = useState(false);
   const [mapCenter, setMapCenter] = useState(null);
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
+  const [error, setError] = useState("");
+  const [mostrarFormularioDireccion, setMostrarFormularioDireccion] = useState(false);
 
   const {
     ready,
@@ -88,7 +94,7 @@ export default function DireccionSelector({ onConfirm }) {
       const res = await fetch(`${STRAPI}/api/direcciones?${params.toString()}`);
       if (!res.ok) return setDirecciones([]);
       const json = await res.json();
-      const mapped = (json?.data || []).map((d) => ({ id: d.id, ...d.attributes }));
+      const mapped = (json?.data ?? []).map((d) => ({ id: d.id, ...d.attributes }));
       setDirecciones(mapped);
     } catch (err) {
       console.error("fetchSaved:", err);
@@ -152,132 +158,245 @@ export default function DireccionSelector({ onConfirm }) {
     return res;
   };
 
-  // Normalizar una dirección proveniente de Strapi (o raw)
-  const normalizeDireccion = (raw) => {
-    const direccion = raw?.direccion || raw;
-    if (!direccion) return null;
+  // Función para construir dirección
+  const parseAddressComponents = (components = []) => {
+    const address = {
+      cp: "",
+      pais: "",
+      paisCodigo: "",
+      ciudad: "",
+      estado: "",
+      estadoCodigo: "",
+      colonia: "",
+      calle: "",
+      numero: "",
+    };
+    components.forEach((component) => {
+      const {
+        long_name = "",
+        short_name = "",
+        types = []
+      } = component;
 
-    // Si ya trae campos estructurados
-    if (direccion.street || direccion.number || direccion.neighborhood || direccion.city) {
-      return {
-        formatted_address: direccion.formatted_address || [direccion.street, direccion.number].filter(Boolean).join(" ") || "",
-        street: direccion.street || "",
-        number: direccion.number || "",
-        neighborhood: direccion.neighborhood || "",
-        city: direccion.city || raw?.ciudad || "",
-        state: direccion.state || raw?.estado || "",
-        postal_code: direccion.postal_code || raw?.cp || "",
-        lat: direccion.lat || raw?.coords?.lat || null,
-        lng: direccion.lng || raw?.coords?.lng || null,
-      };
-    }
+      // Obtener código postal
+      if (types.includes("postal_code"))
+        address.cp = long_name;
 
-    // Si viene solo formatted_address (cadena larga)
-    if (direccion.formatted_address || typeof direccion === "string") {
-      const formatted = direccion.formatted_address || direccion;
-      const parsed = parseFormattedAddress(formatted);
-      return {
-        formatted_address: formatted,
-        street: parsed.street || "",
-        number: parsed.number || "",
-        neighborhood: parsed.neighborhood || "",
-        city: parsed.city || raw?.ciudad || "",
-        state: parsed.state || raw?.estado || "",
-        postal_code: raw?.cp || "",
-        lat: raw?.coords?.lat || null,
-        lng: raw?.coords?.lng || null,
-      };
-    }
+      // Obtener país
+      if (types.includes("country")) {
+        address.pais = long_name;
+        address.paisCodigo = short_name;
+      }
 
-    return null;
+      // Obtener estado
+      if (types.includes("administrative_area_level_1")) {
+        address.estado = long_name;
+        address.estadoCodigo = short_name;
+      }
+
+      // Preferimos locality como ciudad. 
+      if (types.includes("locality") && !address.ciudad)
+        address.ciudad = long_name;
+
+      // Fallback para lugares donde no existe locality. 
+      if (types.includes("administrative_area_level_2") && !address.ciudad)
+        address.ciudad = long_name;
+
+      // Preferimos neighborhood como colonia. 
+      if (types.includes("neighborhood") && !address.colonia)
+        address.colonia = long_name;
+
+      // Fallback para direcciones que utilizan sublocality. 
+      if (types.includes("sublocality_level_1") && !address.colonia)
+        address.colonia = long_name;
+
+      // Obtener calle designada
+      // Prioridad street_address
+      if (types.includes("street_address") && !address.calle)
+        address.calle = long_name;
+
+      // fallback con route
+      if (types.includes("route") && !address.calle)
+        address.calle = long_name;
+
+      // Obtener número de calle
+      if (types.includes("street_number"))
+        address.numero = long_name;
+    });
+    return address;
+  };
+
+  // Función para validar dirección apta para envío
+  const validarDireccionEnvio = (direccion) => {
+    const camposRequeridos = [
+      "formatted_address",
+      "cp",
+      "ciudad",
+      "estado",
+    ];
+
+    return camposRequeridos.every((campo) =>
+      direccion[campo] !== null &&
+      direccion[campo] !== undefined &&
+      String(direccion[campo]).trim() !== ""
+    );
+  };
+
+  const getFormDataByAddress = (d) => {
+    const {
+      direccion,
+      coords,
+      cp,
+      ciudad,
+      estado,
+      estado_codigo,
+      colonia,
+      pais,
+      pais_codigo,
+      observaciones,
+      place_id,
+      route,
+      numero,
+    } = d;
+
+    let address = {
+      formatted_address: direccion?.formatted_address ?? [route, numero, ciudad].filter(Boolean).join(" "),
+      lat: direccion?.lat ?? coords?.lat,
+      lng: direccion?.lng ?? coords?.lng,
+      cp: direccion?.postal_code ?? cp,
+      ciudad: direccion?.city ?? ciudad,
+      estado: direccion?.state ?? estado,
+      pais: direccion?.country ?? pais,
+      paisCodigo: direccion?.country_code ?? pais_codigo,
+      estadoCodigo: direccion?.state_code ?? estado_codigo,
+      colonia: direccion?.neighborhood ?? colonia,
+      calle: direccion?.street ?? route,
+      numero: direccion?.number ?? numero,
+      referencia: observaciones,
+      place_id,
+    };
+    return address;
   };
 
   const applySaved = (d) => {
-    const norm = normalizeDireccion(d) || {};
     // 🔴 MARCAR SELECCIÓN (NUEVO)
     setSelectedId(d.id);
+    const address = getFormDataByAddress(d);
+    console.log("Address built to form:", address);
 
-    setForm((p) => ({
-      ...p,
-      calle: norm.street || "",
-      numero: norm.number || "",
-      colonia: norm.neighborhood || "",
-      ciudad: norm.city || "",
-      estado: norm.state || "",
-      cp: norm.postal_code || "",
-      lat: norm.lat || null,
-      lng: norm.lng || null,
-      formatted_address: norm.formatted_address || "",
-    }));
-    
+    setForm(address)
+
+    const {
+      coords,
+      activa,
+      user_email,
+      usuario_email,
+      predeterminada,
+    } = d;
+
     setMapCenter({
-      lat: norm.lat,
-      lng: norm.lng,
+      lat: address?.lat ?? coords.lat,
+      lng: address?.lng ?? coords.lng,
     });
 
     const payload = {
-      id: d.id || null,
+      id: d?.id ?? null,
       direccion: {
-        formatted_address: norm.formatted_address,
-        street: norm.street,
-        number: norm.number,
-        neighborhood: norm.neighborhood,
-        city: norm.city,
-        state: norm.state,
-        postal_code: norm.postal_code,
-        lat: norm.lat,
-        lng: norm.lng,
+        formatted_address: address.formatted_address,
+        street: address.calle,
+        number: address.numero,
+        neighborhood: address.colonia,
+        city: address.ciudad,
+        state: address.estado,
+        postal_code: address.cp,
+        lat: address.lat,
+        lng: address.lng,
+        country: address.pais,
+        country_code: address.paisCodigo,
+        state_code: address.estadoCodigo,
       },
-      coords: { lat: norm.lat, lng: norm.lng },
-      cp: norm.postal_code,
-      ciudad: norm.city,
-      estado: norm.state,
-      observaciones: d.observaciones || "",
-      activa: d.activa ?? true,
-      predeterminada: d.predeterminada ?? false,
+      coords: { lat: address.lat, lng: address.lng },
+      cp: address.cp,
+      ciudad: address.ciudad,
+      estado: address.estado,
+      observaciones: address.referencia || "",
+      activa: activa ?? true,
+      predeterminada: predeterminada ?? false,
+      usuario_email,
+      user_email,
     };
 
     onConfirm && onConfirm(payload);
   };
 
-  const handleSelectSuggestion = async (description) => {
+  const handleSelectSuggestion = async ({ description, place_id }) => {
     try {
       setValue(description, false);
       clearSuggestions();
 
-      const results = await getGeocode({ address: description });
+      let results = await getGeocode({ placeId: place_id });
 
-      if (!results || results.length === 0) return;
+      if (!results || results.length === 0) {
+        setError("No se encontró información para la dirección")
+        return
+      };
 
-      const first = results[0];
+      let first = results[0];
 
-      const parsed = parseFormattedAddress(first.formatted_address || description);
+      // Validar que exista el primer resultado de getGeocode
+      if (!first) {
+        console.warn("No se encontró información para la dirección");
+        setError("No se encontró información para la dirección");
+        return;
+      }
+
+      // Si address_components está vacío reintentar geocodificación solo con description
+      if (!first.address_components?.length) {
+        results = await getGeocode({ address: description });
+        first = results[0];
+        // Reintentar validación de existencia del primer resultado de getGeocode 
+        if (!first) {
+          console.warn("No se encontró información para la dirección");
+          setError("No se encontró información para la dirección, ingrese una dirección valida.");
+          return;
+        }
+      }
+
+      // Si nuevamente address_components está vacío mostrar formulario de corrección
+      if (first.address_components?.length === 0)
+        setModoDireccionManual(true);
 
       const { lat, lng } = getLatLng(first);
 
-      setForm((p) => {
-        const aux = {
-          ...p,
-          calle: parsed.street,
-          numero: parsed.number,
-          colonia: parsed.neighborhood,
-          ciudad: parsed.city,
-          estado: parsed.state,
-          cp: parsed.postal_code || "",
-          lat,
-          lng,
-          formatted_address: first.formatted_address || description,
-        };
-        console.log("Data form:", aux);
-        return aux
-      });
+      const parsed = parseAddressComponents(first.address_components);
+
+      const address = {
+        formatted_address: first.formatted_address,
+        lat,
+        lng,
+        ...parsed,
+        place_id,
+      };
+      console.log("Data dirección selected:", address);
+
+      setForm(address);
 
       setMapCenter({
         lat,
         lng,
       });
 
-      setModoDireccionManual(false);
+      // Comprobar datos faltantes de dirección
+      const camposEnvio = ["cp", "ciudad", "estado"];
+      const faltantes = camposEnvio.filter((campo) => !address[campo]?.trim());
+
+      if (faltantes.length > 0) {
+        setError("La dirección está incompleta. Completa los datos necesarios para realizar envíos.");
+        setModoDireccionManual(true);
+      } else {
+        setModoDireccionManual(false);
+        setError("");
+      }
     } catch (err) {
       console.error("handleSelectSuggestion:", err);
     }
@@ -285,7 +404,50 @@ export default function DireccionSelector({ onConfirm }) {
 
   const handleCreateAddress = async (e) => {
     e.preventDefault();
+
+    const {
+      formatted_address,
+      lat,
+      lng,
+      cp,
+      ciudad,
+      estado,
+      estadoCodigo,
+      pais,
+      paisCodigo,
+      colonia,
+      calle,
+      numero,
+      referencia,
+      place_id
+    } = form;
+
+    if (!formatted_address) {
+      setError("Ingrese una dirección.");
+      return;
+    }
+
+    if (lat === null || lat === undefined || lng === null || lng === undefined) {
+      setError("No se pudo determinar la ubicación exacta de la dirección.");
+      return;
+    }
+
+    if (!validarDireccionEnvio(form)) {
+      const faltantes = [];
+      if (!cp) faltantes.push("código postal");
+      if (!ciudad) faltantes.push("ciudad");
+      if (!estado) faltantes.push("estado");
+
+      if (faltantes.length > 0)
+        setError(`La dirección está incompleta. Falta: ${faltantes.join(", ")}.`);
+
+      return;
+    }
+
+
     setCreating(true);
+    setError("");
+
     try {
       if (!user?.email) throw new Error("Usuario no autenticado");
 
@@ -311,23 +473,34 @@ export default function DireccionSelector({ onConfirm }) {
       const payload = {
         data: {
           direccion: {
-            formatted_address: form.formatted_address || [form.calle, form.numero].filter(Boolean).join(" "),
-            street: form.calle,
-            number: form.numero,
-            neighborhood: form.colonia,
-            city: form.ciudad,
-            state: form.estado,
-            postal_code: form.cp,
-            lat: form.lat,
-            lng: form.lng,
+            formatted_address: formatted_address || [calle, numero].filter(Boolean).join(" "),
+            street: calle,
+            number: numero,
+            neighborhood: colonia,
+            city: ciudad,
+            state: estado,
+            postal_code: cp,
+            lat: lat,
+            lng: lng,
+            country: pais,
+            country_code: paisCodigo,
+            state_code: estadoCodigo,
           },
-          coords: { lat: form.lat, lng: form.lng },
-          cp: form.cp,
-          ciudad: form.ciudad,
-          estado: form.estado,
-          observaciones: form.referencia,
-          usuario_email: user.email,
+          coords: { lat, lng },
+          cp: cp,
+          ciudad: ciudad,
+          estado: estado,
+          estado_codigo: estadoCodigo,
+          colonia,
+          pais,
+          pais_codigo: paisCodigo || "MX",
+          observaciones: referencia,
           activa: true,
+          user_email: user.email,
+          usuario_email: user.email,
+          place_id,
+          route: calle,
+          numero,
           predeterminada,
         },
       };
@@ -350,25 +523,82 @@ export default function DireccionSelector({ onConfirm }) {
   };
 
   const handleUseWithoutSaving = () => {
+    const {
+      direccion,
+      lat,
+      lng,
+      cp,
+      ciudad,
+      estado,
+      colonia,
+      paisCodigo,
+      pais,
+      formatted_address,
+      estadoCodigo,
+      calle,
+      numero,
+      place_id,
+      referencia
+    } = form;
+
+    // Validación básica
+    if (!formatted_address || !direccion) {
+      setError("Ingrese una dirección.");
+      return;
+    }
+
+    // Validar ubicación geográfica
+    if (lat === null || lat === undefined || lng === null || lng === undefined) {
+      setError("No pudimos determinar la ubicación exacta de la dirección.");
+      return;
+    }
+
+    // Validación específica para envíos
+    if (!validarDireccionEnvio(form)) {
+      const faltantes = [];
+      if (!cp) faltantes.push("código postal");
+      if (!ciudad) faltantes.push("ciudad");
+      if (!estado) faltantes.push("estado");
+
+      if (faltantes.length > 0)
+        setError(`La dirección está incompleta. Falta: ${faltantes.join(", ")}.`);
+
+      return;
+    }
+
     const dirObj = {
       id: null,
       direccion: {
-        formatted_address: form.formatted_address || [form.calle, form.numero, form.colonia, form.ciudad, form.estado].filter(Boolean).join(", "),
-        street: form.calle,
-        number: form.numero,
-        neighborhood: form.colonia,
-        city: form.ciudad,
-        state: form.estado,
-        postal_code: form.cp,
-        lat: form.lat,
-        lng: form.lng,
+        formatted_address: formatted_address || [calle, numero, colonia, ciudad, estado].filter(Boolean).join(", "),
+        street: calle,
+        number: numero,
+        neighborhood: colonia || "",
+        city: ciudad || "",
+        state: estado || "",
+        postal_code: cp || "",
+        country: pais,
+        country_code: paisCodigo,
+        lat: Number(lat),
+        lng: Number(lng),
       },
-      coords: { lat: form.lat, lng: form.lng },
-      cp: form.cp,
-      ciudad: form.ciudad,
-      estado: form.estado,
-      observaciones: form.referencia,
+      coords: {
+        lat: Number(lat),
+        lng: Number(lng),
+      },
+      cp,
+      ciudad,
+      estado,
+      estado_codigo: estadoCodigo,
+      colonia,
+      pais,
+      pais_codigo: paisCodigo,
+      observaciones: referencia,
       activa: true,
+      user_email: user.email,
+      usuario_email: user.email,
+      place_id,
+      route: calle,
+      numero,
       predeterminada,
     };
 
@@ -433,16 +663,20 @@ export default function DireccionSelector({ onConfirm }) {
     setValue("");
 
     setForm({
-      calle: "",
-      numero: "",
-      colonia: "",
-      ciudad: "",
-      estado: "",
-      cp: "",
-      referencia: "",
+      formatted_address: "",
       lat: null,
       lng: null,
-      formatted_address: "",
+      cp: "",
+      ciudad: "",
+      estado: "",
+      pais: "",
+      paisCodigo: "",
+      estadoCodigo: "",
+      colonia: "",
+      calle: "",
+      numero: "",
+      referencia: "",
+      place_id: null
     });
 
     obtenerUbicacionInicial();
@@ -462,7 +696,7 @@ export default function DireccionSelector({ onConfirm }) {
             ) : (
               <Stack spacing={1}>
                 {direcciones.map((d) => {
-                  const norm = normalizeDireccion(d) || {};
+                  const norm = d?.direccion ?? {};
                   const selected = selectedId === d.id;
 
                   return (
@@ -501,18 +735,10 @@ export default function DireccionSelector({ onConfirm }) {
                             size="small"
                             variant="outlined"
                             onClick={() => {
-                              const norm2 = normalizeDireccion(d) || {};
+                              const auxAddressForm = getFormDataByAddress(d);
                               setForm((p) => ({
                                 ...p,
-                                calle: norm2.street || "",
-                                numero: norm2.number || "",
-                                colonia: norm2.neighborhood || "",
-                                ciudad: norm2.city || "",
-                                estado: norm2.state || "",
-                                cp: norm2.postal_code || "",
-                                lat: norm2.lat || null,
-                                lng: norm2.lng || null,
-                                formatted_address: norm2.formatted_address || "",
+                                ...auxAddressForm,
                               }));
                             }}
                           >
@@ -548,12 +774,12 @@ export default function DireccionSelector({ onConfirm }) {
                 fullWidth
               />
 
-              {status === "OK" && (
+              {ready && status === "OK" && data.length > 0 && (
                 <Box sx={{ maxHeight: 180, overflowY: "auto" }}>
                   {data.map((s) => (
                     <Card key={s.place_id} variant="outlined" sx={{ mb: 1 }}>
                       <CardContent sx={{ p: 1 }}>
-                        <Button fullWidth onClick={() => handleSelectSuggestion(s.description)}>
+                        <Button fullWidth onClick={() => handleSelectSuggestion(s)}>
                           {s.description}
                         </Button>
                       </CardContent>

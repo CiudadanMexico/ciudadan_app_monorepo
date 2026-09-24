@@ -111,8 +111,7 @@ const usePedidosRestaurante = ({ restauranteId, token, autoLoad = true, refreshI
     if (!pedidoActualizado?.id) {
       return;
     }
-    setPedidos(prev => prev.map(pedido => pedido.id === pedidoActualizado.id ? pedidoActualizado : pedido));
-    setPedidoSeleccionado(pedidoActualizado);
+    setPedidoSeleccionado((prev) => ({ id: prev?.id ?? pedidoActualizado?.id, attributes: { ...prev?.attributes, ...pedidoActualizado?.attributes } }));
   }, []);
 
 
@@ -211,18 +210,14 @@ const usePedidosRestaurante = ({ restauranteId, token, autoLoad = true, refreshI
 
     intervalRef.current =
       setInterval(() => {
-        obtenerPedidos({
-          mostrarLoading: false
-        });
+        obtenerPedidos({ mostrarLoading: false });
 
       }, refreshInterval);
 
     return () => {
 
       if (intervalRef.current) {
-        clearInterval(
-          intervalRef.current
-        );
+        clearInterval(intervalRef.current);
       }
 
     };

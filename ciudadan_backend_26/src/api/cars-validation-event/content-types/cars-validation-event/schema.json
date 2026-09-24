@@ -45,7 +45,16 @@
         "checklist_updated",
         "agenda_synced",
         "validation_status_changed",
-        "resubmission_requested"
+        "resubmission_requested",
+        "external_verification_registered",
+        "audit_created",
+        "audit_completed",
+        "audit_escalated",
+        "reverification_created",
+        "challenge_issued",
+        "evidence_uploaded",
+        "evidence_validated",
+        "risk_calculated"
       ]
     },
     "payload": {

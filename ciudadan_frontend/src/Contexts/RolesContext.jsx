@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useRef, useCallb
 import { useAuth0 } from '@auth0/auth0-react';
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
+const audience = process.env.REACT_APP_AUTH0_AUDIENCE ?? 'https://api.ciudadan.org';
+const scope = process.env.REACT_APP_AUTH0_SCOPES ?? "openid profile email offline_access";
 
 const RolesContext = createContext();
 export const useRoles = () => useContext(RolesContext);
@@ -26,11 +28,20 @@ export const RolesProvider = ({ children }) => {
   // Helper para obtener el token Auth0 con audience correcta
   const getToken = useCallback(async () => {
     try {
-      return await getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.ciudadan.org' },
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience,
+          scope,
+        },
       });
+      console.log("-".repeat(20));
+      console.log("Access token auth0: ", token);
+      console.log("-".repeat(20));
+      return token;
     } catch (e) {
+      console.log("-".repeat(20));
       console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
+      console.log("-".repeat(20));
       return null;
     }
   }, [getAccessTokenSilently]);
@@ -181,8 +192,8 @@ export const RolesProvider = ({ children }) => {
           const combined = primary
             ? [primary, ...extraArr]
             : extraArr.length
-            ? extraArr
-            : ['usuario'];
+              ? extraArr
+              : ['usuario'];
 
           // 2) Obtener membresias activas para el user by email
           const membUrl = `${STRAPI_URL}/api/membresias?filters[usuarioemail][$eq]=${email}&filters[activa][$eq]=true`;
@@ -320,8 +331,8 @@ export const RolesProvider = ({ children }) => {
     const combined = primary
       ? [primary, ...extraArr]
       : extraArr.length
-      ? extraArr
-      : ['usuario'];
+        ? extraArr
+        : ['usuario'];
     const normalizedUserData = { id: usrId, ...attrs };
 
     if (mountedRef.current) {
@@ -405,7 +416,7 @@ export const RolesProvider = ({ children }) => {
       // Update optimisticamente local state y cache
       const newUserData = { ...userData, roles: { ...userData.roles, extra: newExtra } };
       const newRolesList = (prev => {
-        const primary = prev[0] && !['editor','admin','root'].includes(prev[0]) ? prev[0] : null;
+        const primary = prev[0] && !['editor', 'admin', 'root'].includes(prev[0]) ? prev[0] : null;
         return primary ? [primary, ...newExtra] : (newExtra.length ? newExtra : ['usuario']);
       })(roles);
 

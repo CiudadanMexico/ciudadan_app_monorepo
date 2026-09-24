@@ -26,7 +26,7 @@ const { getAuth0Email } = require('../utils/auth0-verify');
  * generales), tal como pide la spec.
  */
 module.exports = async (ctx, config, { strapi }) => {
-  const authHeader = ctx.request.headers.authorization || '';
+  const authHeader = ctx.request.header.authorization || '';
   if (!authHeader.startsWith('Bearer ')) return true;
 
   const token = authHeader.slice(7);

@@ -19,7 +19,7 @@ const FreeTripConductor = ({ open, setOpen, freeTrips }) => {
                     </DialogContentText>
                 }
                 <DialogContentText id="alert-dialog-description">
-                    Te quedan {freeTrips} viajes gratis por realizar
+                    Te queda(n) {freeTrips} viaje(s) gratis por realizar
                 </DialogContentText>
             </DialogContent>
             <DialogActions>

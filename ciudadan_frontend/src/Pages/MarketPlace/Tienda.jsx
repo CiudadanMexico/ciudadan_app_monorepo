@@ -9,6 +9,7 @@ import MisProductos from './MisProductos';
 import PedidosPendientes from './PedidosPendientes';
 import PedidosEntregados from './PedidosEntregados';
 import PagosTienda from './PagosTienda';
+import SaldoLogistico from './SaldoLogistico';
 import ConfiguracionTienda from './ConfiguracionTienda';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -39,6 +40,7 @@ const Tienda = () => {
     { label: 'Agregar producto', path: 'agregar-producto' },
     { label: 'Preguntas', path: 'preguntas-producto' },
     { label: 'Pagos', path: 'pagos' },
+    { label: 'Saldo logístico', path: 'saldo-logistico' },
     { label: 'Configuración', path: 'configuracion' }
   ];
 
@@ -49,7 +51,8 @@ const Tienda = () => {
     else if (path.includes('/entregados')) setTabIndex(1);
     else if (path.includes('/preguntas')) setTabIndex(4);
     else if (path.includes('/pagos')) setTabIndex(5);
-    else if (path.includes('/configuracion')) setTabIndex(6);
+    else if (path.includes('/saldo-logistico')) setTabIndex(6);
+    else if (path.includes('/configuracion')) setTabIndex(7);
     else setTabIndex(0);
   }, [location.pathname]);
 
@@ -225,7 +228,8 @@ const Tienda = () => {
           {tabIndex === 3 && <AgregarProducto />}
           {tabIndex === 4 && <PreguntasProductos  storeId={storeData?.id}/>}
           {tabIndex === 5 && <PagosTienda storeId={storeData?.id} />}
-          {tabIndex === 6 && <ConfiguracionTienda />}
+          {tabIndex === 6 && <SaldoLogistico />}
+          {tabIndex === 7 && <ConfiguracionTienda />}
         </Box>
       </Box>
     </Box>

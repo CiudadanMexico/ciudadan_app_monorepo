@@ -54,7 +54,7 @@ export default function Comunidad() {
           borderRadius: "20px",
           boxShadow: "0 0 40px rgba(0,0,0,0.4)",
           backdropFilter: "blur(5px)",
-          mt: { xs: 8, md: "64px" }, // 🔧 antes era más alto — ahora 5-6px de separación real
+          mt: { xs: 8, md: "64px" },
         }}
       >
         {/* ✨ Título */}
@@ -108,7 +108,7 @@ export default function Comunidad() {
           Incorpórate como socio de la red, aporta proyectos, encuentra colaboración y mucho más.
         </Typography>
 
-        {/* 🔘 Botón principal */}
+        {/*Botón principal */}
         <motion.div whileHover={{ scale: 1.05 }}>
           <Button
             variant="contained"

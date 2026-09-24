@@ -29,6 +29,7 @@ const ConductorRender = ({
   handleBackButtonClick,
   handleCloseButtonClick,
   handleAcceptTrip,
+  handleRejectTrip,
   handlePasajero,
   handleConductor,
   ElapsedTimer,
@@ -37,11 +38,14 @@ const ConductorRender = ({
   // props opcionales que si existen los actualizamos para mantener sync con padre
   setTravelData, // optional: función para actualizar travelData desde el padre
   setRejected, // optional: función para exponer lista de rechazados al padre
+  setIsWaiting
 }) => {
   // socket ref para emitir propuesta cuando corresponda
   const socketRef = useRef(null);
   const { user } = useAuth0();
   const navigate = useNavigate();
+
+  //console.log('[ConductorRender] driver:', driver);
 
   // Estado local para rechazados (array de ids normalizados como string)
   const [rejectedIds, setRejectedIds] = useState(() => {
@@ -210,8 +214,8 @@ const ConductorRender = ({
     // Obtener emails únicos de conductores
     const uniqueEmails = new Set();
     travelData.forEach((travel) => {
-      if (travel?.userEmail) {
-        uniqueEmails.add(travel.userEmail);
+      if (travel?.driverEmail) {
+        uniqueEmails.add(travel.driverEmail);
       }
     });
 
@@ -231,16 +235,17 @@ const ConductorRender = ({
 
   // Verificar si el viaje es gratis
   useEffect(() => {
-    travelData.forEach((t, idx) => {
-      const driverEmail = t?.userEmail;
+    travelData.forEach((t) => {
+      const driverEmail = t?.driverEmail;
       const userEmail = t?.userData?.email;
-      const userFreeTrip = t?.freeTrip;
-      console.log(`[ConductorRender] free trip user ${userEmail}:`, userFreeTrip);
 
-      const driverFreeTrip = driver?.free_trips > 0;
-      console.log(`[ConductorRender] free trip driver ${driverEmail}:`, driverFreeTrip)
+      const userHasFreeTrip = t?.freeTrip;
+      console.log(`[ConductorRender] free trip user ${userEmail}:`, userHasFreeTrip);
 
-      if ((userFreeTrip || !driverFreeTrip) && (!userFreeTrip || driverFreeTrip)) setFreeTrip(true);
+      const driverHasFreeTrip = driver?.free_trips > 0;
+      console.log(`[ConductorRender] free trip driver ${driverEmail}:`, driverHasFreeTrip)
+
+      if ((userHasFreeTrip || !driverHasFreeTrip) && (!userHasFreeTrip || driverHasFreeTrip)) setFreeTrip(true);
     });
   }, [travelData, driver?.free_trips])
 
@@ -309,7 +314,7 @@ const ConductorRender = ({
           // nada que hacer
           return;
         }
-
+        handleRejectTrip(id); // delegar al padre si existe
         // marcar rechazado y persistir
         addRejectedId(id);
         console.log('[ConductorRender] viaje marcado como rechazado id=', id);
@@ -317,7 +322,7 @@ const ConductorRender = ({
         console.warn('[ConductorRender] error en handleReject:', e);
       }
     },
-    [addRejectedId, normalizeTravelId]
+    [addRejectedId, handleRejectTrip, normalizeTravelId]
   );
 
   useEffect(() => {
@@ -342,6 +347,9 @@ const ConductorRender = ({
 
       socketRef.current.on('connect', () => {
         console.log('[ConductorRender][socket] conectado id=', socketRef.current.id);
+        if (user?.email) {
+          socketRef.current.emit('register', { email: user.email });
+        }
       });
 
       socketRef.current.on('connect_error', (err) => {
@@ -365,107 +373,7 @@ const ConductorRender = ({
             return;
           }
 
-          // Preparar variables para Strapi
-          const STRAPI_URL = (process.env.REACT_APP_STRAPI_URL || '').replace(/\/$/, '');
-          const STRAPI_TOKEN = process.env.REACT_APP_STRAPI_TOKEN || null;
-
-          if (!STRAPI_URL) {
-            console.warn('[ConductorRender] REACT_APP_STRAPI_URL no configurada. No se actualizará Strapi, navegando igual.');
-            // navegar aún si no se pudo actualizar
-            navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
-            return;
-          }
-
-          // Buscar el registro de viaje por travelid en Strapi
-          // endpoint: GET /api/viajes?filters[travelid][$eq]=<travelId>
-          const headers = { 'Content-Type': 'application/json' };
-          if (STRAPI_TOKEN) headers['Authorization'] = `Bearer ${STRAPI_TOKEN}`;
-
-          let viajeStrapi = null;
-          try {
-            const qUrl = `${STRAPI_URL}/api/viajes?filters[travelid][$eq]=${encodeURIComponent(travelId)}&pagination[pageSize]=1`;
-            console.log('[ConductorRender] buscando viaje en Strapi ->', qUrl);
-            const resp = await fetch(qUrl, { headers });
-            if (!resp.ok) {
-              const txt = await resp.text().catch(() => null);
-              console.warn('[ConductorRender] GET viaje en Strapi no ok:', resp.status, txt);
-            } else {
-              const j = await resp.json().catch(() => null);
-              if (j && j.data && Array.isArray(j.data) && j.data.length > 0) {
-                viajeStrapi = j.data[0]; // objeto Strapi { id, attributes }
-                console.log('[ConductorRender] viajeStrapi encontrado:', viajeStrapi);
-              } else {
-                console.warn('[ConductorRender] no se encontró viaje con travelid en Strapi:', travelId);
-              }
-            }
-          } catch (err) {
-            console.warn('[ConductorRender] error buscando viaje en Strapi:', err);
-          }
-
-          // Buscar usuario en Strapi por email (user.email de auth0)
-          let strapiUserId = null;
-          try {
-            if (user && user.email) {
-              const usersUrl = `${STRAPI_URL}/api/users?filters[email][$eq]=${user.email}&pagination[pageSize]=1`;
-              console.log('[ConductorRender] buscando usuario en Strapi por email ->', usersUrl);
-              const respU = await fetch(usersUrl, { headers });
-              //console.log('[ConductorRender] respuesta GET users en Strapi:', respU);
-              if (!respU.ok) {
-                const txt = await respU.text().catch(() => null);
-                console.warn('[ConductorRender] GET users en Strapi no ok:', respU.status, txt);
-              } else {
-                const ju = await respU.json().catch(() => null);
-                console.log('[ConductorRender] respuesta JSON de GET users en Strapi:', ju.data);
-                if (ju || ju.data || Array.isArray(ju.data) || ju.data.length > 0) {
-                  strapiUserId = ju[0].id;
-                  console.log('[ConductorRender] strapiUserId obtenido:', strapiUserId);
-                } else {
-                  console.warn('[ConductorRender] no se encontró usuario Strapi con email:', user.email);
-                }
-              }
-            } else {
-              console.warn('[ConductorRender] Auth0 user.email no disponible:', user);
-            }
-          } catch (err) {
-            console.warn('[ConductorRender] error buscando usuario en Strapi:', err);
-          }
-
-          // Si encontramos el registro de viaje en Strapi, lo actualizamos
-          if (viajeStrapi && viajeStrapi.id) {
-            try {
-              const patchUrl = `${STRAPI_URL}/api/viajes/${viajeStrapi.id}`;
-              const body = {
-                data: {
-                  conductormail: user?.email ?? null,
-                },
-              };
-              // si obtuvimos userId de Strapi, relacionamos conductor
-              if (strapiUserId) {
-                body.data.conductor = strapiUserId;
-              }
-
-              console.log('[ConductorRender] PATCH viaje Strapi ->', patchUrl, body);
-              const respPatch = await fetch(patchUrl, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify(body),
-              });
-
-              if (!respPatch.ok) {
-                const txt = await respPatch.text().catch(() => null);
-                console.warn('[ConductorRender] PATCH viaje en Strapi no ok:', respPatch.status, txt);
-              } else {
-                const jp = await respPatch.json().catch(() => null);
-                console.log('[ConductorRender] viaje actualizado en Strapi:', jp);
-              }
-            } catch (err) {
-              console.warn('[ConductorRender] error actualizando viaje en Strapi:', err);
-            }
-          } else {
-            console.warn('[ConductorRender] salto actualización Strapi porque no se encontró viajeStrapi.id');
-          }
-
-          // Finalmente navegar a la página del viaje
+          // Navegar a la página del viaje
           try {
             navigate(`/taxis/viaje/${travelId}`, { state: { isDriver: true } });
           } catch (navErr) {
@@ -658,20 +566,18 @@ const ConductorRender = ({
       )}
 
       {isWaiting ? (
-        <div>
-          <EsperandoViaje
-            handlePasajero={() => {
-              console.log('taxi debug: EsperandoViaje -> handlePasajero invoked');
-              if (typeof handlePasajero === 'function') handlePasajero();
-            }}
-            handleConductor={() => {
-              console.log('taxi debug: EsperandoViaje -> handleConductor invoked');
-              if (typeof handleConductor === 'function') handleConductor();
-            }}
-            rol="conductor"
-            newTravel={Array.isArray(travelData) && travelData.length > 0 ? travelData[0] : null}
-          />
-        </div>
+        <EsperandoViaje
+          handlePasajero={() => {
+            console.log('taxi debug: EsperandoViaje -> handlePasajero invoked');
+            if (typeof handlePasajero === 'function') handlePasajero();
+          }}
+          handleConductor={() => {
+            console.log('taxi debug: EsperandoViaje -> handleConductor invoked');
+            if (typeof handleConductor === 'function') handleConductor();
+          }}
+          rol="conductor"
+          newTravel={Array.isArray(travelData) && travelData.length > 0 ? travelData[0] : null}
+        />
       ) : (
         <div className="travel-list">
           {consultedTravel === null ? (
@@ -722,27 +628,9 @@ const ConductorRender = ({
           Te quedan {driver?.free_trips} viajes gratis por realizar
         </h3>
       )}
-      {/* MAPA (estilos inline para conductor — evita cortar y permite scroll normal) */}
-      <div
-        className="taxis-map"
-        style={{
-          width: '100%',
-          height: '60vh',    // ajusta a 50vh / 70vh o a '450px' según prefieras
-          minHeight: 320,    // evita ser demasiado pequeño
-          maxHeight: '95vh',
-          boxSizing: 'border-box',
-          position: 'relative',
-          overflow: 'visible'
-        }}
-      >
-        <div
-          id="map"
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'block'
-          }}
-        />
+      {/* MAPA DEL CONDUCTOR: ocupa toda la vista y deja el resto de elementos encima */}
+      <div className="taxis-map">
+        <div id="map" style={{ width: '100%', height: '100%' }} />
       </div>
 
 
@@ -759,17 +647,19 @@ const ConductorRender = ({
           rol="pasajero"
         />
       ) : (
-        <RolConductor
-          handlePasajero={() => {
-            console.log('taxi debug: RolConductor -> handlePasajero');
-            if (typeof handlePasajero === 'function') handlePasajero();
-          }}
-          handleConductor={() => {
-            console.log('taxi debug: RolConductor -> handleConductor');
-            if (typeof handleConductor === 'function') handleConductor();
-          }}
-          rol="conductor"
-        />
+        <div className='ocultar-module' style={{ display: 'flex', justifyContent: 'flex-end', marginRight: 60 }}>
+          <RolConductor
+            handlePasajero={() => {
+              console.log('taxi debug: RolConductor -> handlePasajero');
+              if (typeof handlePasajero === 'function') handlePasajero();
+            }}
+            handleConductor={() => {
+              console.log('taxi debug: RolConductor -> handleConductor');
+              if (typeof handleConductor === 'function') handleConductor();
+            }}
+            rol="conductor"
+          />
+        </div>
       )}
     </ConductorContainer>
   );

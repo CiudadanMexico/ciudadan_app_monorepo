@@ -25,14 +25,14 @@ export function useStores() {
     return data.data;
   };
 
-  const createStore = async ({ name, email, status = "pending" }) => {
+  const createStore = async ({ name, email, userId, status = "pending" }) => {
     const slugified = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
     const existingStores = await getStoreBySlug(slugified);
-    
+
     if (existingStores.length > 0) {
       throw new Error("Ya existe una tienda con ese nombre");
     }
@@ -40,7 +40,15 @@ export function useStores() {
     const res = await fetch(`${STRAPI_URL}/api/stores`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ data: { name: slugified, slug: slugified, email, status } })
+      body: JSON.stringify({
+        data: {
+          name: slugified,
+          slug: slugified,
+          users_permissions_user: userId,
+          email,
+          status,
+        }
+      })
     });
 
     if (!res.ok) {

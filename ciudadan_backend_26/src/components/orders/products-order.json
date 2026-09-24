@@ -2,7 +2,8 @@
   "collectionName": "components_orders_products_orders",
   "info": {
     "displayName": "products_order",
-    "icon": "shoppingCart"
+    "icon": "shoppingCart",
+    "description": ""
   },
   "options": {},
   "attributes": {
@@ -28,16 +29,7 @@
     "subtotal": {
       "type": "decimal"
     },
-    "envio": {
-      "type": "decimal"
-    },
-    "subtotal_volumetrico": {
-      "type": "decimal"
-    },
     "total": {
-      "type": "decimal"
-    },
-    "comision_plataforma": {
       "type": "decimal"
     },
     "calificado": {
@@ -51,6 +43,20 @@
     },
     "status": {
       "type": "string"
+    },
+    "nombre_variante": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "json"
+    },
+    "variant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-product-variant.food-product-variant"
+    },
+    "modifiers": {
+      "type": "json"
     }
   }
 }

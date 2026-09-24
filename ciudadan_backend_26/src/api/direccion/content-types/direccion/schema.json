@@ -61,6 +61,27 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::food-restaurant.food-restaurant"
+    },
+    "pais": {
+      "type": "string"
+    },
+    "pais_codigo": {
+      "type": "string"
+    },
+    "estado_codigo": {
+      "type": "string"
+    },
+    "colonia": {
+      "type": "string"
+    },
+    "route": {
+      "type": "string"
+    },
+    "numero": {
+      "type": "string"
+    },
+    "place_id": {
+      "type": "string"
     }
   }
 }

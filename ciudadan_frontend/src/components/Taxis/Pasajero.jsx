@@ -42,16 +42,42 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const { user } = useAuth0();
   const navigate = useNavigate();
 
-  const [fromAddress, setFromAddress] = useState('');
-  const [toAddress, setToAddress] = useState('');
+  const [fromAddress, setFromAddress] = useState(() => {
+    const raw = localStorage.getItem('from_address');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
+  const [toAddress, setToAddress] = useState(() => {
+    const raw = localStorage.getItem('to_address');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
 
-  const [fromCoordinates, setFromCoordinates] = useState(null);
-  const [toCoordinates, setToCoordinates] = useState(null);
+  const [fromCoordinates, setFromCoordinates] = useState(() => {
+    const raw = localStorage.getItem('from_coords');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
+  const [toCoordinates, setToCoordinates] = useState(() => {
+    const raw = localStorage.getItem('to_coords');
+    if (!raw) return null;
+    return JSON.parse(raw);
+  });
 
   const [fromMarkerPosition, setFromMarkerPosition] = useState(null);
   const [toMarkerPosition, setToMarkerPosition] = useState(null);
 
-  const [loadingSearch, setLoadingSearch] = useState(false);
+  const [loadingSearch, setLoadingSearch] = useState(() => {
+    try {
+      const raw = localStorage.getItem('cancelar');
+      if (!raw) return false;
+      return JSON.parse(raw);
+    } catch (e) {
+      console.warn('[Pasajero] error leyendo estado de búsqueda desde localStorage:', e);
+      return false;
+    }
+  });
+
   const [error, setError] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [sheetState, setSheetState] = useState('collapsed');
@@ -62,6 +88,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [passenger, setPassenger] = useState(null);
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   const [paymentLabory, setPaymentLabory] = useState(false);
+  const [freeTrip, setFreeTrip] = useState(null);
+  const [isTraveling, setIsTraveling] = useState(false);
   const [debtsLoading, setDebtsLoading] = useState(false);
   const [debtsError, setDebtsError] = useState(null);
   const [debts, setDebts] = useState([]);
@@ -89,6 +117,18 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const [offers, setOffers] = useState([]); // [{ id, coordinates, price, timestamp }]
   const offersRef = useRef([]); // same objects + { marker, infoWindow }
   const pendingOffersRef = useRef([]); // offers received before map is ready
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cancelar', JSON.stringify(loadingSearch));
+      localStorage.setItem('from_address', JSON.stringify(fromAddress));
+      localStorage.setItem('to_address', JSON.stringify(toAddress));
+      localStorage.setItem('from_coords', JSON.stringify(fromCoordinates));
+      localStorage.setItem('to_coords', JSON.stringify(toCoordinates));
+    } catch (e) {
+      console.warn('[Pasajero] error guardando estado de búsqueda en localStorage:', e);
+    }
+  }, [loadingSearch, fromAddress, toAddress, fromCoordinates, toCoordinates]);
 
   // Selected offer for modal
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -153,7 +193,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     if (!user?.email || !strapiUrl) return;
 
     try {
-      const url = `${strapiUrl}/api/users?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const url = `${strapiUrl}/api/users?filters[email][$eq]=${user.email}&populate=*`;
       const headers = { 'Content-Type': 'application/json' };
       if (strapiToken) {
         headers.Authorization = `Bearer ${strapiToken}`;
@@ -161,7 +201,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const response = await fetch(url, { headers });
       if (!response.ok) {
-        throw new Error('No se pudieron cargar las preferencias');
+        throw new Error('No se pudo cargar el usuario');
       }
       const data = await response.json();
 
@@ -169,10 +209,10 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       if (!userData) {
         throw new Error("No se encontró usuario");
       }
-      console.log('[Pasajero] datos del usuario cargados:', userData);
+      //console.log('[Pasajero] datos del usuario cargados:', userData);
       setPassenger(userData);
     } catch (err) {
-      console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
+      console.warn('[Pasajero] no se pudo cargar el usuario:', err);
     }
   }, [strapiToken, strapiUrl, user?.email]);
 
@@ -180,7 +220,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     if (!user?.email || !strapiUrl) return;
 
     try {
-      const url = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const url = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${user.email}&populate=*`;
       const headers = { 'Content-Type': 'application/json' };
       if (strapiToken) {
         headers.Authorization = `Bearer ${strapiToken}`;
@@ -193,9 +233,14 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
       const userData = await response.json();
       const savedSettings = userData?.data?.[0]?.attributes?.configuraciones || {};
-      const paymentLabory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      const payLabory = userData?.data?.[0]?.attributes?.pago_labory || false;
+      const freeTripStatus = userData?.data?.[0]?.attributes?.free_trip || false;
+      const enViaje = userData?.data?.[0]?.attributes?.en_viaje || false;
+
       setPreferences(normalizePreferences(savedSettings));
-      setPaymentLabory(paymentLabory);
+      setPaymentLabory(payLabory);
+      setFreeTrip(freeTripStatus);
+      setIsTraveling(enViaje);
     } catch (err) {
       console.warn('[Pasajero] no se pudieron cargar preferencias del usuario:', err);
       setPreferences(DEFAULT_PREFERENCES);
@@ -203,13 +248,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   }, [normalizePreferences, strapiToken, strapiUrl, user?.email]);
 
   useEffect(() => {
-    getUserData();
-    loadUserPreferences();
-  }, [getUserData, loadUserPreferences]);
-
-  useEffect(() => {
-    if (passenger?.free_trip) setFreeTripModalOpen(true);
-  }, [passenger?.free_trip]);
+    if (freeTrip === 'disponible') setFreeTripModalOpen(true);
+  }, [freeTrip]);
 
   // Cargar adeudos del pasajero
   useEffect(() => {
@@ -219,10 +259,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       setDebtsError(null);
       try {
         // Preferir variable de entorno STRAPI si existe, sino usar localhost:33032
-        //const base = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
-        const url = `${strapiUrl.replace(/\/$/, '')}/api/taxi-debts?filters[pasajero_email][$eq]=${encodeURIComponent(
-          user.email,
-        )}&filters[pagado][$eq]=false&populate=*`;
+        const url = `${strapiUrl.replace(/\/$/, '')}/api/taxi-debts?filters[pasajero_email][$eq]=${user.email
+          }&filters[pagado][$eq]=false&populate=*`;
 
         const resp = await fetch(url, {
           headers: {
@@ -245,12 +283,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     fetchDebts();
   }, [user?.email]);
 
-  const handlePreferenceFieldChange = (field, value) => {
-    setPreferences((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handlePaymentLaboryChange = (field, value) => {
-    setPaymentLabory(value);
+  const handleOpenRecentTrips = () => {
+    navigate('/taxis/viajes/historial', { state: { role: 'pasajero' } });
   };
 
   const saveUserPreferences = async () => {
@@ -264,7 +298,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         headers.Authorization = `Bearer ${strapiToken}`;
       }
 
-      const findUrl = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${encodeURIComponent(user.email)}&populate=*`;
+      const findUrl = `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${user.email}&populate=*`;
       const findResponse = await fetch(findUrl, { headers });
       const findData = await findResponse.json();
       const existing = findData?.data?.[0];
@@ -372,7 +406,22 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       }
 
       try {
-        const { coordinates, price, id, driver, travel, driverRating } = offer;
+        const {
+          id,
+          coordinates,
+          price,
+          travelId,
+          driverId,
+          driverEmail,
+          travel,
+          driverRating
+        } = offer;
+
+        // Evitar duplicados: si ya existe un marker con este id, no crear otro
+        if (offersRef.current.some((o) => o.id === id)) {
+          return;
+        }
+
         const position = new window.google.maps.LatLng(
           coordinates.lat,
           coordinates.lng,
@@ -438,7 +487,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
         // Listener en marker: al click abrir modal y seleccionar oferta
         const markerClickListener = marker.addListener('click', () => {
-          setSelectedOffer({ id, coordinates, price, driver, travel, driverRating });
+          setSelectedOffer(
+            { id, travelId, coordinates, price, driverId, driverEmail, travel, driverRating }
+          );
           setIsModalOpen(true);
         });
 
@@ -453,7 +504,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               elem.style.cursor = 'pointer';
               if (!elem._hasClick) {
                 elem.addEventListener('click', () => {
-                  setSelectedOffer({ id, coordinates, price, driver, travel, driverRating });
+                  setSelectedOffer(
+                    { id, travelId, coordinates, price, driverId, driverEmail, travel, driverRating }
+                  );
                   setIsModalOpen(true);
                 });
                 elem._hasClick = true;
@@ -469,12 +522,6 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           infoWindow,
           _listeners: { markerClickListener, domReadyListener },
         });
-
-        // actualizar state (solo metadatos, sin los objetos google para evitar serialización)
-        setOffers((prev) => [
-          ...prev,
-          { id, coordinates, price, driver, travel, driverRating, timestamp: offer.timestamp },
-        ]);
       } catch (e) {
         console.warn('[Pasajero] error creando marker para oferta', e);
       }
@@ -482,13 +529,96 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     [mapRef],
   );
 
-  // Procesar ofertas pendientes cuando el mapa esté listo
+  const removeAllOfferMarkers = useCallback(() => {
+    if (offersRef.current.length === 0) {
+      setOffers([]);
+      return;
+    }
+
+    offersRef.current.forEach((offer) => {
+      try {
+        if (offer.infoWindow) offer.infoWindow.close();
+        if (offer.marker) offer.marker.setMap(null);
+      } catch (e) {
+        console.warn('[Pasajero] error removiendo marker de oferta:', e);
+      }
+    });
+
+    offersRef.current = [];
+    setOffers([]);
+  }, []);
+
+  const getTravelOffers = useCallback(async () => {
+    if (!strapiUrl || !user?.email) {
+      removeAllOfferMarkers();
+      setOffers([]);
+      return;
+    }
+
+    try {
+      removeAllOfferMarkers();
+      pendingOffersRef.current = [];
+
+      const url = `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas?filters[user_email][$eq]=${user.email}&populate=*`;
+
+      const res = await fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(strapiToken ? { Authorization: `Bearer ${strapiToken}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error cargando ofertas (${res.status})`);
+      }
+
+      const json = await res.json();
+      const offersData = Array.isArray(json?.data) ? json.data : [];
+
+      const normalizedOffers = offersData.reduce((acc, offer) => {
+        const normalizedOffer = {
+          id: offer.id,
+          travelId: offer.attributes?.viaje?.data?.attributes?.travelid,
+          travel: offer.attributes?.viaje?.data?.attributes,
+          coordinates: offer.attributes?.coordenadas,
+          price: offer.attributes?.precio_sugerido,
+          driverId: offer.attributes?.conductor?.data?.id,
+          driverEmail: offer.attributes?.driver_email,
+          driverRating: offer.attributes?.calif_conductor,
+          timestamp: offer.attributes?.createdAt || new Date().toISOString(),
+        };
+
+        if (!acc.some((item) => item.id === normalizedOffer.id)) {
+          acc.push(normalizedOffer);
+        }
+
+        return acc;
+      }, []);
+
+      setOffers(normalizedOffers);
+
+      normalizedOffers.forEach((offer) => {
+        createMarkerForOffer(offer);
+      });
+    } catch (err) {
+      console.warn('[TripView] Error cargando ofertas de viaje:', err);
+      setOffers([]);
+    }
+  }, [createMarkerForOffer, removeAllOfferMarkers, strapiToken, strapiUrl, user?.email]);
+
   useEffect(() => {
+    getUserData();
+    loadUserPreferences();
+    getTravelOffers();
+  }, [getUserData, loadUserPreferences, getTravelOffers]);
+
+  // Procesar ofertas pendientes cuando el mapa esté listo
+  /*useEffect(() => {
     if (!googleMapsLoaded) return;
     if (pendingOffersRef.current.length === 0) return;
     pendingOffersRef.current.forEach((of) => createMarkerForOffer(of));
     pendingOffersRef.current = [];
-  }, [googleMapsLoaded, createMarkerForOffer]);
+  }, [googleMapsLoaded, createMarkerForOffer]);*/
 
   useEffect(() => {
     console.log(
@@ -507,6 +637,9 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           'url=',
           process.env.REACT_APP_SOCKET_URL,
         );
+        if (user?.email) {
+          socketRef.current.emit('register', { email: user.email });
+        }
       });
 
       socketRef.current.on('connect_error', (err) => {
@@ -566,20 +699,24 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         console.log('[Socket] trip-ack recibido:', ack);
       });
 
+      socketRef.current.on('offer-accepted', async (payload) => {
+        console.log('[Pasajero] offersRef:', offersRef.current, payload);
+        const idx = offersRef.current.findIndex((o) => o.driver?.email === payload?.driver);
+        if (idx !== -1) {
+          const o = offersRef.current[idx];
+          if (o.infoWindow) o.infoWindow.close();
+          if (o.marker) o.marker.setMap(null);
+          offersRef.current.splice(idx, 1);
+          setOffers((prev) => prev.filter((p) => p.driver?.email !== payload?.driver));
+        }
+        await getTravelOffers();
+      });
+
       // NUEVO: escucha del evento de oferta de viaje
-      socketRef.current.on('ofertaviaje', (payload) => {
-        // payload esperado: { coordinates: { lat, lng }, price: 123, ... }
-        console.log(
-          '[Socket] ofertaviaje recibido:',
-          safeStringify(payload, 2000),
-        );
+      socketRef.current.on('ofertaviaje', async (payload) => {
         try {
           const coordinates =
             payload.coordinates || payload.coords || payload.location || null;
-          const price = payload.precio || payload.price || null;
-          const travel = payload.travel || payload.rawTravel || null;
-          const driverRating = payload.userRating || null;
-          const driver = payload.driver || null;
           if (
             !coordinates ||
             typeof coordinates.lat !== 'number' ||
@@ -591,22 +728,8 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             );
             return;
           }
-          const id = payload.meta.travelId;
-
-          const offer = {
-            id,
-            driver,
-            travel,
-            coordinates: {
-              lat: Number(coordinates.lat),
-              lng: Number(coordinates.lng),
-            },
-            price,
-            driverRating,
-            timestamp: new Date().toISOString(),
-            raw: payload,
-          };
-          createMarkerForOffer(offer);
+          //const id = payload.meta.travelId;
+          await getTravelOffers();
         } catch (e) {
           console.warn('[ofertaviaje] error procesando payload', e);
         }
@@ -628,6 +751,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           socketRef.current.off('disconnect');
           socketRef.current.off('trip-ack');
           socketRef.current.off('ofertaviaje');
+          socketRef.current.off('offer-accepted');
           socketRef.current.disconnect();
           socketRef.current = null;
         }
@@ -891,6 +1015,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
               userId,
               userData: passenger || null,
               settings,
+              freeTrip: Boolean(freeTrip === 'disponible'),
               originCoordinates: payload.originCoordinates,
               destinationCoordinates: payload.destinationCoordinates,
               originAdress: payload.originAddress,
@@ -931,15 +1056,29 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
   // Aceptar oferta: ahora llama al backend /api/aceptar-viaje y navega a /taxis/viaje/:travelId
   const acceptOffer = async () => {
-    console.log('aceptando oferta');
-    // construir backend base igual que en buscarTaxistas
-    const backendBase =
-      process.env.REACT_APP_SOCKET_URL || 'http://localhost:3033';
+    setLoadingSearch(false);
+    setFromAddress(null);
+    setToAddress(null);
+    setFromCoordinates(null);
+    setToCoordinates(null);
 
     if (!selectedOffer) {
       console.warn('[acceptOffer] no hay oferta seleccionada');
       return;
     }
+
+    if (socketRef.current) {
+      socketRef.current.emit('offer-accepted',
+        {
+          user: user?.email,
+          driver: selectedOffer.driverEmail,
+        }
+      );
+    }
+
+    // construir backend base igual que en buscarTaxistas
+    const backendBase =
+      process.env.REACT_APP_SOCKET_URL || 'http://localhost:3033';
 
     // Evitar reentradas
     try {
@@ -951,7 +1090,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         // procedemos con el comportamiento antiguo (cerrar modal y remover marker)
         try {
           const idx = offersRef.current.findIndex(
-            (o) => o.id === selectedOffer?.id,
+            (o) => o.id === selectedOffer?.id
           );
           if (idx !== -1) {
             const o = offersRef.current[idx];
@@ -960,12 +1099,49 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             offersRef.current.splice(idx, 1);
             setOffers((prev) => prev.filter((p) => p.id !== selectedOffer.id));
           }
+          console.log('[Pasajero] removiendo marcadores');
+          removeAllOfferMarkers();
         } catch (e) {
           console.warn('[acceptOffer] error removiendo marcador', e);
         } finally {
           setSelectedOffer(null);
           setIsModalOpen(false);
         }
+      }
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (strapiToken) {
+          headers.Authorization = `Bearer ${strapiToken}`;
+        }
+        const response = await fetch(
+          `${strapiUrl}/api/configuraciones-usuarios?filters[email][$eq]=${user?.email}`,
+          { headers }
+        );
+        const findData = await response.json();
+        const existing = findData?.data?.[0];
+
+        await fetch(
+          `${strapiUrl}/api/configuraciones-usuarios/${existing.id}`,
+          {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({
+              data: { en_viaje: true }
+            }),
+          }
+        );
+
+        await fetch(`${strapiUrl}/api/drivers/${selectedOffer.driverId}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            data: { en_viaje: true }
+          }),
+        });
+      } catch (err) {
+        console.error('[acceptOffer] error en fetch aceptar-viaje:', err);
+        setError(err.message || 'Error actualizando estado de pasajero');
         return;
       }
 
@@ -974,14 +1150,14 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       // Payload: llenamos los campos que solicitaste en Strapi
       const body = {
         userEmail: user?.email ?? null,
-        driverEmail: selectedOffer.driver.email ?? null,
+        driverEmail: selectedOffer.driverEmail ?? null,
         origencoords: fromCoordinates ?? null,
         destinocoords: toCoordinates ?? null,
         conductorcoords: selectedOffer.coordinates ?? null,
         origendireccion: { label: fromAddress ?? '' },
         destinodireccion: { label: toAddress ?? '' },
         solicitado: new Date().toISOString(),
-        travelid: selectedOffer.id ?? undefined,
+        travelid: selectedOffer.travelId ?? undefined,
         observaciones: selectedOffer.raw?.meta?.note ?? '',
         costo:
           typeof selectedOffer.price === 'number'
@@ -1026,32 +1202,13 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             ? String(respJson.created.id)
             : null;
 
-      // comportamiento antiguo: remover marcador y cerrar modal
-      try {
-        const idx = offersRef.current.findIndex(
-          (o) => o.id === selectedOffer?.id,
-        );
-        if (idx !== -1) {
-          const o = offersRef.current[idx];
-          if (o.infoWindow) o.infoWindow.close();
-          if (o.marker) o.marker.setMap(null);
-          offersRef.current.splice(idx, 1);
-          setOffers((prev) => prev.filter((p) => p.id !== selectedOffer.id));
-        }
-      } catch (e) {
-        console.warn('[acceptOffer] error removiendo marcador', e);
-      } finally {
-        setSelectedOffer(null);
-        setIsModalOpen(false);
-      }
-
       // navegar a la ruta del viaje usando travelId retornado por tu endpoint
       if (travelIdReturned) {
         navigate(`/taxis/viaje/${travelIdReturned}`, { state: { isDriver: false } });
         console.log('[acceptOffer] navegando a /taxis/viaje/' + travelIdReturned);
       } else {
         // fallback: si no retornaron travelId, intenta con selectedOffer.id
-        navigate(`/taxis/viaje/${selectedOffer.id}`, { state: { isDriver: false } });
+        navigate(`/taxis/viaje/${selectedOffer.travelId}`, { state: { isDriver: false } });
       }
     } catch (e) {
       console.error('[acceptOffer] error general:', e);
@@ -1059,9 +1216,51 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
     }
   };
 
-  const cancelarBusqueda = () => {
+  const rejectOffer = async () => {
+    if (!selectedOffer) return;
+    console.log('[rejectOffer] rechazando oferta id=', selectedOffer);
+
+    try {
+      const idx = offersRef.current.findIndex((o) => o.id === selectedOffer?.id);
+      if (idx !== -1) {
+        const o = offersRef.current[idx];
+        if (o.infoWindow) o.infoWindow.close();
+        if (o.marker) o.marker.setMap(null);
+        offersRef.current.splice(idx, 1);
+        setOffers((prev) => prev.filter((p) => p.id !== selectedOffer.id));
+      }
+
+      if (socketRef.current) {
+        socketRef.current.emit('offer-rejected', {
+          user: user?.email,
+          driver: selectedOffer.driverEmail,
+          travelId: selectedOffer.id,
+        });
+      }
+    } catch (e) {
+      console.error('[rejectOffer] error:', e);
+    } finally {
+      setSelectedOffer(null);
+      setIsModalOpen(false);
+    }
+  };
+
+  const cancelarBusqueda = async () => {
+    console.log('[Pasajero] cancelando búsqueda de taxistas');
+    if (socketRef.current) {
+      socketRef.current.emit('cancel-search', user?.email);
+    }
+    removeAllOfferMarkers();
     setLoadingSearch(false);
   };
+
+  const disabledSearch =
+    loadingSearch ||
+    isTraveling ||
+    !fromAddress ||
+    !toAddress ||
+    !fromCoordinates ||
+    !toCoordinates;
 
   // Si hay adeudos no pagados, mostrar advertencia y evitar render normal
   if (!debtsLoading && Array.isArray(debts) && debts.length > 0) {
@@ -1087,6 +1286,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             <input
               id='from-input'
               type='text'
+              disabled={isTraveling}
               placeholder='Origen (tu ubicación por defecto)'
               value={fromAddress}
               onChange={(e) => setFromAddress(e.target.value)}
@@ -1096,6 +1296,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
           <div className='swap-wrap'>
             <button
+              disabled={disabledSearch}
               title='Intercambiar origen/destino'
               onClick={swapOriginDestination}
               className='swap-button'
@@ -1109,6 +1310,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
             <input
               id='to-input'
               type='text'
+              disabled={isTraveling}
               placeholder='Destino'
               value={toAddress}
               onChange={(e) => setToAddress(e.target.value)}
@@ -1120,33 +1322,35 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         <div className='controls-row'>
           <button
             onClick={buscarTaxistas}
-            disabled={loadingSearch}
+            disabled={disabledSearch}
             className='buscar-taxistas formulario-pasajero pasajero-buscar'
             style={{
-              flex: 1,
+              flex: 2,
               padding: '12px 16px',
               backgroundColor: '#ff4081',
               color: 'white',
               border: 'none',
-              borderRadius: 8,
-              cursor: loadingSearch ? 'default' : 'pointer',
+              borderRadius: 8
             }}
           >
-            {loadingSearch ? 'Buscando taxistas...' : 'Buscar Conductores'}
+            {loadingSearch ? 'Buscando taxistas...' : 'Buscar conductores'}
           </button>
           {!loadingSearch && (
-            <Button
-              variant='outlined'
+            <button
+              disabled={isTraveling}
               onClick={() => setPreferencesModalOpen(true)}
-              sx={{
-                minWidth: 140,
-                borderColor: '#1d3be2',
-                color: '#1d3be2',
-                ml: 1,
+              className='preferencias-button formulario-pasajero pasajero-buscar'
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                backgroundColor: '#38cb64',
+                color: 'white',
+                border: 'none',
+                borderRadius: 8
               }}
             >
-              Preferencias
-            </Button>
+              Preferencias de viaje
+            </button>
           )}
           {loadingSearch && (
             <button
@@ -1175,7 +1379,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           </button>
         </div>
 
-        {passenger?.free_trip && (
+        {freeTrip === 'disponible' && (
           <h3 style={{ textAlign: 'center', color: '#16b32b', paddingBottom: 6 }}>
             ¡Tienes un viaje gratis disponible! ¡Pide uno ahora!
           </h3>
@@ -1204,13 +1408,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         />
 
         <div
-          className='taxis-map formulario-pasajero'
-          style={{
-            width: '100%',
-            height: '60vh',
-            borderRadius: 8,
-            overflow: 'hidden',
-          }}
+          className='taxis-map'
         >
           <div
             id='map'
@@ -1223,6 +1421,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
           <AcceptTrip
             selectedOffer={selectedOffer}
             acceptOffer={acceptOffer}
+            rejectOffer={rejectOffer}
             closeModal={closeModal}
           />
         )}
@@ -1236,6 +1435,27 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
       >
         {getSheetContent()}
       </BottomSheet>
+
+      <Button
+        variant='contained'
+        onClick={handleOpenRecentTrips}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 160,
+          zIndex: 2000,
+          borderRadius: '999px',
+          backgroundColor: '#fff200',
+          color: '#111',
+          boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+          textTransform: 'none',
+          fontWeight: 700,
+          px: 2,
+          py: 1,
+        }}
+      >
+        Mis viajes
+      </Button>
     </>
   );
 };

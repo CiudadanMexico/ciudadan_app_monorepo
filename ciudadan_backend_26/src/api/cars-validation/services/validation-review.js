@@ -13,6 +13,8 @@ const {
 } = require("./agenda-sync");
 const { enterResubmissionMode } = require("./resubmission-workflow");
 const { getRelationId, DRIVER_MEDIA_POPULATE } = require("./helpers");
+const { mergeAndValidateChecklist } = require("./checklist-schema");
+const { computeRiskAssessment } = require("./risk-engine");
 const {
   ACTIVE_VALIDATION_STATUSES,
   UI_TO_REVIEW_STATUS,
@@ -48,6 +50,20 @@ const updateEvidenceReview = async (
   if (!evidence) {
     const error = new Error("Evidencia no encontrada.");
     error.status = 404;
+    throw error;
+  }
+
+  // docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 8 (sección 39): "no
+  // permitir editar evidencia aprobada" — una vez cerrado el expediente,
+  // ningún review_status puede cambiar. El frontend ya deshabilitaba estos
+  // botones cuando `validation.status === 'completed'`, pero eso era solo
+  // UI; esto lo hace imposible también llamando al API directamente.
+  const parentValidationStatus = evidence.validation?.status;
+  if (parentValidationStatus === "completed") {
+    const error = new Error(
+      "La validación ya está cerrada — no se puede editar la evidencia."
+    );
+    error.status = 400;
     throw error;
   }
 
@@ -184,11 +200,16 @@ const updateValidationChecklist = async (
     throw error;
   }
 
+  const mergedChecklist = mergeAndValidateChecklist(
+    validation.checklist,
+    checklist
+  );
+
   const updated = await strapi.entityService.update(
     "api::cars-validation.cars-validation",
     validationId,
     {
-      data: { checklist: checklist || {} },
+      data: { checklist: mergedChecklist },
     }
   );
 
@@ -196,7 +217,7 @@ const updateValidationChecklist = async (
     validationId,
     actorId,
     action: "checklist_updated",
-    payload: { checklist: checklist || {} },
+    payload: { checklist: mergedChecklist },
   });
 
   return updated;
@@ -230,7 +251,10 @@ const completeValidation = async (
     throw error;
   }
 
-  const mapped = mapCompleteAction(action, validation.evidences || []);
+  const riskAssessment =
+    action === "approve" ? await computeRiskAssessment(strapi, { validationId }) : null;
+
+  const mapped = mapCompleteAction(action, validation.evidences || [], riskAssessment);
 
   if (mapped.markResubEvidenceIds?.length) {
     for (const evidenceId of mapped.markResubEvidenceIds) {
@@ -286,6 +310,10 @@ const completeValidation = async (
     closed_at: mapped.validationStatus === "completed" ? new Date() : null,
     reviewer: reviewerId || getRelationId(validation.reviewer) || null,
   };
+
+  if (riskAssessment) {
+    validationUpdate.risk_score = riskAssessment.score;
+  }
 
   if (typeof observations === "string") {
     validationUpdate.observations = observations;

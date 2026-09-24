@@ -10,7 +10,7 @@ import { RolesProvider } from './Contexts/RolesContext';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
-import { CartProvider }  from './Contexts/CartContext';
+import { CartProvider } from './Contexts/CartContext';
 import NavBar from './components/NavBar/NavBar.jsx';
 import Rutas from './Routes/index.jsx';
 import Asistente from './components/Asistente/Asistente';
@@ -22,9 +22,10 @@ import AuthGate from './components/AuthGate.jsx';
 import { Capacitor } from '@capacitor/core';
 import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
 
-const domain    = process.env.REACT_APP_AUTH0_DOMAIN;
-const clientId  = process.env.REACT_APP_AUTH0_CLIENT_ID;
-const audience  = process.env.REACT_APP_AUTH0_AUDIENCE;
+const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
+const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+const scope = process.env.REACT_APP_AUTH0_SCOPES ?? "openid profile email offline_access";
 
 // ==============================
 // APP WRAPPER
@@ -33,11 +34,20 @@ const AppWrapper = () => {
   const { isLoading } = useAuth0();
   const location = useLocation();
 
+  const hostname = window.location.hostname;
+  const dominiosPrelanzamiento = [
+    "taxis.ciudadan.org",
+    "lideres.ciudadan.org",
+    "socios.ciudadan.org",
+  ];
+  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
+
   if (isLoading) {
     return <PreLoader />;
   }
 
   const isWikiRoute = location.pathname.startsWith('/wiki');
+  const isPrelanzamiento = location.pathname.replace(/\/$/, '') === '/prelanzamiento' || isDomainPrelanzamiento;
 
   const sectionMap = {
     productos: 'market',
@@ -51,6 +61,16 @@ const AppWrapper = () => {
   const pathSection = location.pathname.split('/').filter(Boolean)[0];
   const siteSection = sectionMap[pathSection] ?? pathSection ?? '';
 
+  if (isDomainPrelanzamiento) {
+    // Si viene por subdominio, forzamos la vista de Prelanzamiento
+    // pero mantenemos el wrapper para consistencia de Providers si fuera necesario
+    return <Rutas />; 
+    // Nota: Rutas ya maneja la lógica de <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+    // pero para que el subdominio muestre Prelanzamiento sin que el usuario escriba /prelanzamiento,
+    // necesitamos que Rutas sepa que debe renderizar Prelanzamiento.
+    // Para evitar cambiar Rutas, podemos envolver el renderizado.
+  }
+
   return (
     <Box
       id="ciudadan-app"
@@ -59,24 +79,19 @@ const AppWrapper = () => {
         flexDirection: "column",
         width: "100%",
         minHeight: "100dvh",
-        // clip (no hidden): recorta sin crear scroll container, para no romper position:sticky
         overflowX: "clip",
       }}
     >
-      {!isWikiRoute && <NavBar siteSection={siteSection} />}
+      {!isWikiRoute && !isPrelanzamiento && <NavBar siteSection={siteSection} />}
 
       <Box sx={{ flex: 1 }}>
         <Rutas />
-        <AuthGate>
+        {!isPrelanzamiento && <AuthGate>
           <Asistente />
-        </AuthGate>
+        </AuthGate>}
       </Box>
 
-      {/* Separador vertical global: reserva el espacio de la barra amarilla fija
-          inferior (.bottom-bar, 72px según lo que la app misma asume en
-          split-action-button) para que no tape el final del contenido en
-          ninguna página. En /wiki la barra no existe, así que no se inserta. */}
-      {!isWikiRoute && (
+      {!isWikiRoute && !isPrelanzamiento && (
         <Box
           aria-hidden="true"
           sx={{
@@ -113,7 +128,8 @@ const Auth0ProviderWithNavigate = ({ children }) => {
       clientId={clientId}
       authorizationParams={{
         audience,
-        scope: 'openid profile email offline_access',
+        scope,
+        redirect_uri:redirectUri,
       }}
       redirectUri={redirectUri}
       cacheLocation="localstorage"

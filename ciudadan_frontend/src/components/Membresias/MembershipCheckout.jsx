@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
 import Ingresa from '../Usuarios/Ingresa';
+import MercadoPagoBoton from './MercadoPagoBoton';
 
 import {
   Box,
@@ -19,6 +20,8 @@ import {
   Alert,
   CircularProgress,
   Stack,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 
 import { useRoles } from '../../Contexts/RolesContext';
@@ -72,6 +75,8 @@ export default function MembershipCheckout({
   const [expMonth, setExpMonth] = useState("");
   const [expYear, setExpYear] = useState("");
   const [cvv, setCvv] = useState("");
+
+  const [pasarela, setPasarela] = useState("mercadopago");
 
   // ---------- Carga OpenPay (igual) ----------
   useEffect(() => {
@@ -371,8 +376,11 @@ export default function MembershipCheckout({
     </Card>
   );
 
+  const ordenParaMP = order ?? plan?.order ?? plan?.id ?? null;
+  const openpayDisponible = Boolean(planidx);
+
   if (!isAuthenticated || !user) return <Ingresa />;
-  if (!planidx ) return <NoPlan />;
+  if (!planidx && !ordenParaMP) return <NoPlan />;
   //if (isActivaMembresia ) return <NoPlan />;
 
   return (
@@ -429,7 +437,9 @@ export default function MembershipCheckout({
 
               <Box sx={{ mt: 3, color: "text.secondary" }}>
                 <Typography variant="caption">
-                  Pago seguro con OpenPay. No almacenamos datos sensibles en nuestros servidores.
+                  {pasarela === "mercadopago"
+                    ? "Pago seguro con Mercado Pago. Los datos de tu tarjeta nunca pasan por nuestros servidores."
+                    : "Pago seguro con OpenPay. No almacenamos datos sensibles en nuestros servidores."}
                 </Typography>
               </Box>
             </CardContent>
@@ -443,7 +453,41 @@ export default function MembershipCheckout({
         <Grid item xs={12} md={7}>
           <Card elevation={3}>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>Datos de la tarjeta</Typography>
+              <Typography variant="h6" sx={{ mb: 2 }}>Elige cómo pagar</Typography>
+
+              <ToggleButtonGroup
+                exclusive
+                fullWidth
+                value={pasarela}
+                onChange={(e, valor) => { if (valor) setPasarela(valor); }}
+                sx={{ mb: 3 }}
+              >
+                <ToggleButton value="mercadopago" sx={{ textTransform: "none", fontWeight: 700 }}>
+                  Mercado Pago
+                </ToggleButton>
+                <ToggleButton
+                  value="openpay"
+                  disabled={!openpayDisponible}
+                  sx={{ textTransform: "none", fontWeight: 700 }}
+                >
+                  Tarjeta (OpenPay)
+                </ToggleButton>
+              </ToggleButtonGroup>
+
+              <Divider sx={{ mb: 3 }} />
+
+              {pasarela === "mercadopago" && (
+                <MercadoPagoBoton
+                  order={ordenParaMP}
+                  subtypeKey={subtype?.openpayid ?? null}
+                  email={usuarioEmail}
+                  precioMostrado={displayedPrice()}
+                />
+              )}
+
+              {pasarela === "openpay" && (
+              <>
+              <Typography variant="subtitle1" sx={{ mb: 2 }}>Datos de la tarjeta</Typography>
 
               <form onSubmit={createTokenAndSubscribe}>
                 <Grid container spacing={2}>
@@ -541,6 +585,8 @@ export default function MembershipCheckout({
 
                 </Grid>
               </form>
+              </>
+              )}
             </CardContent>
           </Card>
 

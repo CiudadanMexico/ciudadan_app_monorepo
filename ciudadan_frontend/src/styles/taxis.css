@@ -31,12 +31,18 @@ html, body {
 
 /* Contenedor principal */
 .taxis-container {
-  padding: 18px;
-  padding-top: calc(var(--header-height) + 2px);
-  max-width: var(--max-width);
-  margin: 0 auto;
+  position: relative;
   width: 100%;
-  margin-top: -42px; /* escritorio */
+  min-height: 100vh;
+  max-width: none;
+  margin: 0;
+  padding-top: 40px;
+  overflow: hidden;
+}
+
+.taxis-container > *:not(.taxis-map) {
+  position: relative;
+  z-index: 1;
 }
 
 /* Ocultar título secundario si no se usa */
@@ -47,7 +53,10 @@ html, body {
   display: flex;
   gap: var(--gap);
   align-items: center;
-  margin-bottom: 10px;
+  margin: 0 auto 10px;
+  padding: 18px 18px 0;
+  width: calc(100% - 36px);
+  box-sizing: border-box;
   position: relative;
 }
 
@@ -109,9 +118,11 @@ html, body {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 12px;
+  margin: 0 auto 12px;
+  width: calc(100% - 36px);
+  box-sizing: border-box;
 }
-.buscar-taxistas {
+.buscar-taxistas, .preferencias-button, .cancelar-busqueda {
   flex: 1 1 auto;
   background: var(--accent);
   color: #fff;
@@ -124,7 +135,11 @@ html, body {
   box-shadow: var(--surface-shadow);
   transition: transform .12s ease, box-shadow .12s ease, opacity .12s;
 }
-.buscar-taxistas[disabled] { opacity: 0.7; cursor: not-allowed; }
+.buscar-taxistas[disabled], .preferencias-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .center-button {
   flex: 0 0 48px;
   height: 48px;
@@ -140,15 +155,17 @@ html, body {
 
 /* Mapa */
 .taxis-map {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 60vh;
-  min-height: 300px;
-  border-radius: 12px;
+  height: 100%;
+  min-height: 100vh;
+  border-radius: 0;
   overflow: hidden;
   background: linear-gradient(180deg, #f6f7f9, #fff);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-  margin-bottom: 16px;
-  position: relative;
+  box-shadow: none;
+  margin: 0;
+  z-index: 0;
 }
 .taxis-map > #map { width: 100%; height: 100%; display: block; }
 
@@ -226,7 +243,7 @@ html, body {
 .esperando-viaje {
   position: fixed;
   max-height: 120px;
-  right: 20px;
+  right: 80px;
   bottom: 20px;
   z-index: 9999;
   width: 320px;
@@ -238,7 +255,7 @@ html, body {
 
 /* Responsive: tablet */
 @media (max-width: 900px) {
-  .taxis-container { padding: 14px; margin-top: 0; }
+  .taxis-container { padding-top: 60px; margin-top: 0 }
   .travel-price { min-width: 110px; }
   .price-amount { font-size: 18px; }
 }
@@ -255,13 +272,10 @@ html, body {
 
 /* Responsive: mobile — inputs ocupan TODO el ancho disponible y mapa se superpone */
 @media (max-width: 600px) {
-    .taxis-map{
-        top: 78px; 
-    }
-  .taxis-container { padding-left: 12px; padding-right: 12px; margin-top: 0; position: relative; }
+  .taxis-container { padding-top: 60px; margin-top: 0; position: relative; }
 
   /* Inputs */
-  .inputs-row.improved-row { flex-direction: column; gap: 8px; align-items: stretch; z-index: 80; padding-top:6px; padding-bottom:6px; width:80%; margin-left:10%; }
+  .inputs-row.improved-row { flex-direction: column; gap: 8px; align-items: stretch; z-index: 80; padding-top: 6px; padding-bottom: 6px; width: calc(100% - 24px); margin: 0 auto 8px; }
   .input-wrap { width: 100%; }
 
   /* Swap: absolute, alineado con borde izquierdo del input */
@@ -273,33 +287,34 @@ html, body {
     flex: 0 0 auto;
   }
   .swap-button { 
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  font-size: 16px;
-  background: var(--glass);
-  border: 2px solid rgba(0,0,0,0.06);
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(52, 206, 14, 0.603);
-  transition: transform .12s ease, box-shadow .12s ease;
-  margin-left: -10%;
-   }
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 16px;
+    background: var(--glass);
+    border: 2px solid rgba(0,0,0,0.06);
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(52, 206, 14, 0.603);
+    transition: transform .12s ease, box-shadow .12s ease;
+    margin-left: -10%;
+  }
 
   /* Controls */
   .controls-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; position:relative; z-index:78; flex-direction:column; }
-  .buscar-taxistas { width:100%; flex:none; padding:10px 14px; order:2; }
+  .buscar-taxistas, .preferencias-button, .cancelar-busqueda { width:100%; flex:none; padding:10px 14px; order:2; }
   .center-button { order:1; margin-bottom:6px; width:48px; height:48px; position:absolute; right:14px; top: calc(var(--header-height) + 8px); z-index:92; }
 
-  /* Mapa: superposición y expansión a la izquierda */
+  /* Mapa: ocupa toda la vista y deja que los controles se apoyen sobre él */
   .taxis-map {
-    height: 50vh;
-    min-height: 220px;
-    margin-top: -90px;
-    margin-left: -14px;
-    width: calc(100% + 28px);
-    border-radius: 10px;
-    z-index: 10;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    border-radius: 0;
+    margin: 0;
+    z-index: 0;
+    box-shadow: none;
   }
   .taxis-map > #map { width:100%; height:100%; }
 
@@ -313,6 +328,7 @@ html, body {
 
   /* Vista de viaje usuario y conductor */
   .trip-view { flex-direction: column; }
+  .ocultar-module { padding-top: 55px; }
 
   /* Cartel "Esperando viajes...": a 320px+right:80px no entra en un phone */
   .esperando-viaje { width: calc(100% - 24px); right: 12px; left: 12px; }

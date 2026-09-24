@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Box, Typography, Button, Paper, Divider, Fade, Slide, Stepper, Step, StepLabel
@@ -14,6 +14,8 @@ import Paso1 from '../../components/MarketPlace/AgregarProducto/Paso1'
 import Paso2 from '../../components/MarketPlace/AgregarProducto/Paso2'
 import Paso3 from '../../components/MarketPlace/AgregarProducto/Paso3'
 import Paso4 from '../../components/MarketPlace/AgregarProducto/Paso4'
+import { useRoles } from '../../Contexts/RolesContext';
+import { fetchConsignmentNotes, fetchPackagings } from '../../services/skydropxService';
 
 //función para crear el slug
 /* const slugify = (str) =>
@@ -23,6 +25,7 @@ import Paso4 from '../../components/MarketPlace/AgregarProducto/Paso4'
 const AgregarProducto = () => {
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
   const { user, isAuthenticated } = useAuth0();
+  const { userData } = useRoles();
   const [categorias, setCategorias] = useState([]);
   const [storeId, setStoreId] = useState(null);
   const [storeCP, setStoreCP] = useState(null);
@@ -41,8 +44,24 @@ const AgregarProducto = () => {
     categoria: '',
     stockEnabled: false,
     stock: '',
+
+    alto: '',
+    ancho: '',
+    largo: '',
+    peso: '',
+
+    consignment_note: '',
+    package_type: '',
   });
 
+  const [consignmentNotes, setConsignmentNotes] = useState([]);
+  const [packagings, setPackagings] = useState([]);
+  const [consignmentFilters, setConsignmentFilters] = useState({ consignment_note: '', description: '' });
+  const [packagingsFilters, setPackagingsFilters] = useState('');
+  const [loadingConsignments, setLoadingConsignments] = useState(false);
+  const [loadingPackagings, setLoadingPackagings] = useState(false);
+  const [consignmentSearch, setConsignmentSearch] = useState('');
+  const [packagingSearch, setPackagingSearch] = useState('');
   const {
     activeStep,
     formSubmitted,
@@ -61,6 +80,65 @@ const AgregarProducto = () => {
   });
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      const value = consignmentSearch.trim();
+
+      // Si el usuario escribió únicamente números, buscamos por número de Carta Porte.
+      const isCode = /^\d+$/.test(value);
+
+      setConsignmentFilters({
+        consignment_note: isCode ? value : '',
+        description: isCode ? '' : value,
+      });
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [consignmentSearch]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const value = packagingSearch.trim();
+
+      setPackagingsFilters(value);
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [packagingSearch]);
+
+  const handleGetConsignments = useCallback(async () => {
+    try {
+      setLoadingConsignments(true);
+      const response = await fetchConsignmentNotes({
+        consignment_note: consignmentFilters.consignment_note,
+        description: consignmentFilters.description
+      });
+      const { data } = response;
+      setConsignmentNotes(data ?? []);
+    } catch (error) {
+      console.error("Error al obtener Cartas porte:", error);
+      setConsignmentNotes([]);
+    } finally {
+      setLoadingConsignments(false);
+    }
+  }, [consignmentFilters]);
+
+  const handleGetPackagings = useCallback(async () => {
+    try {
+      setLoadingPackagings(true);
+      const response = await fetchPackagings({
+        name: packagingsFilters
+      });
+      const { data } = response;
+      setPackagings(data ?? []);
+    } catch (error) {
+      console.error("Error al obtener tipos de empaque:", error);
+      setPackagings([]);
+    } finally {
+      setLoadingPackagings(false);
+    }
+  }, [packagingsFilters]);
+
+  useEffect(() => {
     const fetchCategorias = async () => {
       try {
         const res = await axios.get(`${STRAPI_URL}/api/store-categories`);
@@ -71,6 +149,14 @@ const AgregarProducto = () => {
     };
     fetchCategorias();
   }, []);
+
+  useEffect(() => {
+    handleGetConsignments();
+  }, [handleGetConsignments]);
+
+  useEffect(() => {
+    handleGetPackagings();
+  }, [handleGetPackagings]);
 
   useEffect(() => {
     const fetchStoreId = async () => {
@@ -143,8 +229,19 @@ const AgregarProducto = () => {
       });
 
       setFormData({
-        nombre: '', descripcion: '', precio: '', marca: '',
-        categoria: '', stockEnabled: false, stock: ''
+        nombre: '',
+        descripcion: '',
+        precio: '',
+        marca: '',
+        categoria: '',
+        stockEnabled: false,
+        stock: '',
+        alto: '',
+        ancho: '',
+        largo: '',
+        peso: '',
+        consignment_note: '',
+        package_type: '',
       });
       setImagenes([]);
       setPreviewImages([]);
@@ -162,13 +259,28 @@ const AgregarProducto = () => {
   };
 
   const handleClearForm = () => {
-    setFormData({ nombre: '', descripcion: '', precio: '', marca: '', categoria: '', stockEnabled: false, stock: '' });
+    setFormData({
+      nombre: '',
+      descripcion: '',
+      precio: '',
+      marca: '',
+      categoria: '',
+      stockEnabled: false,
+      stock: '',
+      alto: '',
+      ancho: '',
+      largo: '',
+      peso: '',
+      consignment_note: '',
+      package_type: '',
+    });
     eliminarImagenPredeterminada();
     eliminarImagen();
     setEnviando(false);
     initializeStep();
     setGuardado(false);
   };
+
   if (!isAuthenticated) return <p className="mensaje-sesion">Debes iniciar sesión para agregar productos.</p>;
   if (guardado) return <Fade in><p className="mensaje-exito">✅ Producto guardado con éxito.</p></Fade>;
   if (!storeId) return <p className="mensaje-sesion">No se encontró ninguna tienda asociada</p>;
@@ -182,7 +294,7 @@ const AgregarProducto = () => {
       <Divider sx={{ mb: 2 }} />
 
       <Stepper activeStep={activeStep} alternativeLabel>
-        {['Datos Generales', 'Medidas', 'Imagen Principal', 'Galería', 'Finalizar'].map((label) => (
+        {['Datos Generales', 'Información', 'Imagen Principal', 'Galería', 'Finalizar'].map((label) => (
           <Step key={label}>
             <StepLabel>{label}</StepLabel>
           </Step>
@@ -207,13 +319,19 @@ const AgregarProducto = () => {
               </>
             )}
 
-            {/* Paso 2: Medidas */}
+            {/* Paso 2: Información */}
             {activeStep === 1 && (
               <>
                 <Paso2
                   formData={formData}
                   handleChange={handleChange}
                   formSubmitted={formSubmitted}
+                  consignmentNotes={consignmentNotes}
+                  packagings={packagings}
+                  setConsignmentSearch={setConsignmentSearch}
+                  setPackagingSearch={setPackagingSearch}
+                  loadingConsignments={loadingConsignments}
+                  loadingPackagings={loadingPackagings}
                 />
               </>
             )}

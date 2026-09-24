@@ -280,6 +280,9 @@
     "free_trips": {
       "type": "integer",
       "default": 5
+    },
+    "en_viaje": {
+      "type": "boolean"
     }
   }
 }
