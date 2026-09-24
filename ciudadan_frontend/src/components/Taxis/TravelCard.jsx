@@ -245,8 +245,8 @@ const TravelCard = ({ travel = {}, driver, index, onClick, onClose, handleReject
         overflowY: 'auto'
       }}
     >
-      <div className='travel-card' style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div className='travel-card-info' style={{ display: 'flex', justifyContent: 'space-between', flex: 1, margin: 8, maxWidth: 800, gap: 12 }}>
+      <div className='travel-card' style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className='travel-card-info' style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', flex: '1 1 240px', margin: 8, maxWidth: 800, gap: 12 }}>
           <div className='travel-card-profile' >
             {userPhoto ? (
               <img

@@ -313,6 +313,9 @@ html, body {
 
   /* Vista de viaje usuario y conductor */
   .trip-view { flex-direction: column; }
+
+  /* Cartel "Esperando viajes...": a 320px+right:80px no entra en un phone */
+  .esperando-viaje { width: calc(100% - 24px); right: 12px; left: 12px; }
 }
 
 /* Utilidades pequeñas */
