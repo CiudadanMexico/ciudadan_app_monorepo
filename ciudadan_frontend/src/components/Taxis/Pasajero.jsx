@@ -43,23 +43,23 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
   const navigate = useNavigate();
 
   const [fromAddress, setFromAddress] = useState(() => {
-    const raw = localStorage.getItem('from_address');
+    const raw = sessionStorage.getItem('from_address');
     if (!raw) return null;
     return JSON.parse(raw);
   });
   const [toAddress, setToAddress] = useState(() => {
-    const raw = localStorage.getItem('to_address');
+    const raw = sessionStorage.getItem('to_address');
     if (!raw) return null;
     return JSON.parse(raw);
   });
 
   const [fromCoordinates, setFromCoordinates] = useState(() => {
-    const raw = localStorage.getItem('from_coords');
+    const raw = sessionStorage.getItem('from_coords');
     if (!raw) return null;
     return JSON.parse(raw);
   });
   const [toCoordinates, setToCoordinates] = useState(() => {
-    const raw = localStorage.getItem('to_coords');
+    const raw = sessionStorage.getItem('to_coords');
     if (!raw) return null;
     return JSON.parse(raw);
   });
@@ -69,11 +69,11 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
   const [loadingSearch, setLoadingSearch] = useState(() => {
     try {
-      const raw = localStorage.getItem('cancelar');
+      const raw = sessionStorage.getItem('cancelar');
       if (!raw) return false;
       return JSON.parse(raw);
     } catch (e) {
-      console.warn('[Pasajero] error leyendo estado de búsqueda desde localStorage:', e);
+      console.warn('[Pasajero] error leyendo estado de búsqueda desde sessionStorage:', e);
       return false;
     }
   });
@@ -120,13 +120,13 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('cancelar', JSON.stringify(loadingSearch));
-      localStorage.setItem('from_address', JSON.stringify(fromAddress));
-      localStorage.setItem('to_address', JSON.stringify(toAddress));
-      localStorage.setItem('from_coords', JSON.stringify(fromCoordinates));
-      localStorage.setItem('to_coords', JSON.stringify(toCoordinates));
+      sessionStorage.setItem('cancelar', JSON.stringify(loadingSearch));
+      sessionStorage.setItem('from_address', JSON.stringify(fromAddress));
+      sessionStorage.setItem('to_address', JSON.stringify(toAddress));
+      sessionStorage.setItem('from_coords', JSON.stringify(fromCoordinates));
+      sessionStorage.setItem('to_coords', JSON.stringify(toCoordinates));
     } catch (e) {
-      console.warn('[Pasajero] error guardando estado de búsqueda en localStorage:', e);
+      console.warn('[Pasajero] error guardando estado de búsqueda en sessionStorage:', e);
     }
   }, [loadingSearch, fromAddress, toAddress, fromCoordinates, toCoordinates]);
 
@@ -1442,7 +1442,7 @@ const Pasajero = ({ onFoundDrivers = () => { } }) => {
         sx={{
           position: 'fixed',
           right: 24,
-          bottom: 160,
+          bottom: 190,
           zIndex: 2000,
           borderRadius: '999px',
           backgroundColor: '#fff200',
