@@ -1,0 +1,46 @@
+# Docker Compose para DESARROLLO LOCAL (backend + frontend con hot-reload).
+# No refleja el despliegue real de producción (ver ciudadan_backend_26/.github/workflows/deploy.yml,
+# que despliega por SSH + systemd en el VPS, sin Docker).
+#
+# Usa las credenciales reales de ciudadan_backend_26/.env y ciudadan_frontend/.env
+# (no versionados). Si no existen, crealos antes de levantar.
+#
+# Uso:
+#   docker compose up --build
+#   Backend (Strapi):  http://localhost:33032
+#   Frontend (CRA):    http://localhost:3001
+
+services:
+  strapi:
+    build:
+      context: ./ciudadan_backend_26
+      dockerfile: Dockerfile.dev
+    container_name: ciudadan-backend-dev
+    env_file:
+      - ./ciudadan_backend_26/.env
+    ports:
+      - "33032:33032"
+    volumes:
+      - ./ciudadan_backend_26:/app
+      - backend_node_modules:/app/node_modules
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./ciudadan_frontend
+      dockerfile: Dockerfile.dev
+    container_name: ciudadan-frontend-dev
+    env_file:
+      - ./ciudadan_frontend/.env
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./ciudadan_frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - strapi
+    restart: unless-stopped
+
+volumes:
+  backend_node_modules:
+  frontend_node_modules:
