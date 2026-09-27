@@ -454,7 +454,7 @@ const Rutas = () => {
       />
 
       <Route
-        path='/herramientas/agencia/conductores'
+        path='/herramientas/conductores'
         element={<ConductoresAgencia />}
       />
       <Route

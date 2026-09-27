@@ -39,7 +39,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
-const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || "";
+const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || '';
 
 const neonGreen = "#00c853";
 const accentBlue = "#2563eb";
@@ -391,7 +391,7 @@ const fetchStrapiUserByEmail = async (email) => {
 
 const PreregistroConductor2 = () => {
   const { userData, fetchRolesYMembresia } = useRoles();
-  const { user: auth0User } = useAuth0();
+  const { user: auth0User, getAccessTokenSilently } = useAuth0();
 
   const [strapiUser, setStrapiUser] = useState(null);
   const userEmail = userData?.email || auth0User?.email || "";
@@ -661,6 +661,9 @@ const PreregistroConductor2 = () => {
     setLoadingSubmit(true);
 
     try {
+      const accessToken = await getAccessTokenSilently({
+        authorizationParams: { audience: "https://api.ciudadan.org" },
+      });
       const existingIds = buildExistingIds();
 
       const newUploads = {
@@ -699,7 +702,10 @@ const PreregistroConductor2 = () => {
       const userRes = await fetch(`${STRAPI_URL}/api/users/${strapiUser.id}`, {
         method: "PUT",
         credentials: "include",
-        headers,
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ data: userPayload }),
       });
 
