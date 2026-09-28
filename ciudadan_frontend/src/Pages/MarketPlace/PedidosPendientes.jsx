@@ -27,6 +27,9 @@ import BlockIcon from '@mui/icons-material/Block';
 import DoneIcon from '@mui/icons-material/Done';
 import UndoIcon from '@mui/icons-material/Undo';
 import PendingIcon from '@mui/icons-material/Pending';
+import { useLogisticsBalance } from '../../hooks/useLogisticsBalance';
+import { useNavigate, useNavigation } from 'react-router-dom';
+import { esperarGuiaEnvio } from '../../services/skydropxService';
 
 // Configuración de estados con iconos (puedes ajustar)
 // Usado para mostrar un Chip similar a PedidosEntregados
@@ -44,9 +47,9 @@ const statusPedidoConfigUi = {
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
 const PedidosPendientes = ({ store }) => {
-  // Auth & datos
-  const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
   const { cargando, apiLoading, snack, setSnack, patchPedido, getPedidosPendientes, patchPago } = useStoreAdminPedidos();
+  const navigate = useNavigate();
+  const { getMyBalance } = useLogisticsBalance();
 
   // Estados para modales y acciones
   const [pedidos, setPedidos] = useState([]);
@@ -54,7 +57,7 @@ const PedidosPendientes = ({ store }) => {
   const [selectedPagoPedido, setSelectedPagoPedido] = useState(null);
   const [openPagoModal, setOpenPagoModal] = useState(false);
   const [openGuiaModal, setOpenGuiaModal] = useState(false);
-  const [guiaDraft, setGuiaDraft] = useState({ proveedor: '', guia: '' });
+  const [balanceData, setBalanceData] = useState(null);
   const conAutenticacion = false;
 
   // Abrir modal de pago
@@ -90,6 +93,7 @@ const PedidosPendientes = ({ store }) => {
       await patchPago(selectedPagoPedido?.attributes?.pago_id?.data?.id, { status: 'verificado', fecha_aprobado: now });
     }
     handleClosePago();
+    handleGetPedidos(store?.id);
   };
 
   // Rechazar pago: marcar metadata.payment_rejected
@@ -105,13 +109,11 @@ const PedidosPendientes = ({ store }) => {
     };
     await patchPedido(selectedPagoPedido.id, payload);
     handleClosePago();
+    handleGetPedidos(store?.id);
   };
 
-  // Abrir modal de guía (se edita o se crea)
+  // Abrir modal de generación de envío
   const handleOpenGuia = (pedido) => {
-    const guiaActual = pedido.attributes.guia || '';
-    const proveedorActual = pedido.attributes.proveedor || '';
-    setGuiaDraft({ proveedor: proveedorActual, guia: guiaActual });
     setSelectedPagoPedido(pedido);
     setOpenGuiaModal(true);
   };
@@ -119,29 +121,26 @@ const PedidosPendientes = ({ store }) => {
   const handleCloseGuia = () => {
     setOpenGuiaModal(false);
     setSelectedPagoPedido(null);
-    setGuiaDraft({ proveedor: '', guia: '' });
   };
 
-  // Generar mock de guía si el usuario no provee una
-  const generateMockGuia = () => {
-    const ts = Date.now();
-    return `G-${guiaDraft.proveedor?.slice(0, 3).toUpperCase() || 'XX'}-${ts}`;
-  };
+  // Callback cuando el envío fue creado en Skydropx:
+  // hace polling corto hasta obtener tracking y etiqueta.
+  const handleShipmentCreated = async (resultado) => {
+    const shipmentId = resultado?.shipment?.id;
 
-  // Guardar guía (no cambia status por diseño)
-  const handleGenerateAndSaveGuia = async () => {
-    if (!selectedPagoPedido) return;
-    const guiaToSave = guiaDraft.guia?.trim() || generateMockGuia();
-    const payload = {
-      guia: guiaToSave,
-      proveedor: guiaDraft.proveedor || null,
-      metadata: {
-        ...(selectedPagoPedido.attributes.metadata || {}),
-        guia_generated_at: new Date().toISOString(),
-      },
-    };
-    await patchPedido(selectedPagoPedido.id, payload);
-    handleCloseGuia();
+    setSnack({ open: true, message: 'Envío creado en Skydropx. Generando guía...' });
+
+    if (shipmentId) {
+      const shipment = await esperarGuiaEnvio(shipmentId);
+
+      if (shipment?.tracking_number) {
+        setSnack({ open: true, message: `Guía generada: ${shipment.tracking_number}` });
+      } else {
+        setSnack({ open: true, message: 'El envío sigue en proceso. La guía aparecerá en breve.' });
+      }
+    }
+
+    handleGetPedidos(store?.id);
   };
 
   const handlePrintGuia = (pedido) => {
@@ -264,9 +263,9 @@ const PedidosPendientes = ({ store }) => {
               <Grid item xs={6} sm={3} md={2}>
                 <Typography variant="body2"><strong>Total:</strong> ${totalFormatted}</Typography>
               </Grid>
-              <Grid item xs={6} sm={3} md={3}>
+              {/* <Grid item xs={6} sm={3} md={3}>
                 <Typography variant="body2"><strong>Envío:</strong> ${envio ? Number(envio).toFixed(2) : '-'}</Typography>
-              </Grid>
+              </Grid> */}
             </Grid>
           </CardContent>
         </Card>
@@ -280,9 +279,29 @@ const PedidosPendientes = ({ store }) => {
     setPagination(meta?.pagination);
   };
 
+  const handleRechargeCredits = () => {
+    const storeSlug = store?.attributes?.slug ?? store?.slug ?? null;
+    if (!storeSlug) return;
+    navigate(`/market/store/${storeSlug}/saldo-logistico`);
+  };
+
+  const cargarBalance = useCallback(async () => {
+    try {
+      const balanceData = await getMyBalance();
+      setBalanceData(balanceData);
+    } catch (error) {
+      console.error("Error al cargar saldo logístico:", error);
+    }
+  }, [getMyBalance]);
+
   useEffect(() => {
-    handleGetPedidos(store?.id);
-  }, [store?.id]);;
+    cargarBalance();
+  }, [cargarBalance]);
+
+  useEffect(() => {
+    if (store?.id)
+      handleGetPedidos(store?.id);
+  }, [store?.id]);
 
   // Separar pedidos por estado para la UI (mantenemos tu comparación exacta)
   const pedidosEnCamino = [];
@@ -296,16 +315,21 @@ const PedidosPendientes = ({ store }) => {
     );
   }
 
+  if (!store) {
+    return (
+      <Box display="flex" justifyContent="center" m={3}>
+        <Typography color="text.secondary">No tienes una tienda asociada o no hay pedidos para mostrar.</Typography>
+      </Box>
+    )
+  }
+
+  const saldoDisponible = balanceData?.balance?.availableBalance ?? 0;
   // Render principal
   return (
     <Box width="100%" p={0} m={0}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Pedidos pendientes
       </Typography>
-
-      {!store && (
-        <Typography color="text.secondary">No tienes una tienda asociada o no hay pedidos para mostrar.</Typography>
-      )}
 
       {/* Pedidos con status 'enviar' (requieren checar pago) */}
       {pedidos.length === 0 ? (
@@ -320,9 +344,9 @@ const PedidosPendientes = ({ store }) => {
           <Box key={id} mb={4}>
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
               <Box display="flex" alignItems="center" gap={1}>
+                <Typography variant="h5" fontWeight="bold">Pedido #{id}</Typography>
                 {/* Chip con estado similar a PedidosEntregados */}
                 {cfg && <Chip icon={cfg.icon} label={cfg.label} color={cfg.color} size="small" />}
-                <Typography variant="h5" fontWeight="bold">Pedido #{id}</Typography>
               </Box>
 
               <Box>
@@ -335,6 +359,62 @@ const PedidosPendientes = ({ store }) => {
             <Typography variant="subtitle2" color="text.secondary" mb={1}>
               Creado: {attributes.timestamp_creacion ? new Date(attributes.timestamp_creacion).toLocaleString() : '—'}
             </Typography>
+
+            <Box display="flex" alignItems="center" gap={3}>
+              <Typography variant="body2"><strong>Productos:</strong> ${attributes?.monto_subtotal ? Number(attributes?.monto_subtotal).toFixed(2) : '-'}</Typography>
+              <Typography variant="body2"><strong>Envío:</strong> ${attributes?.monto_envio ? Number(attributes?.monto_envio).toFixed(2) : '-'}</Typography>
+              <Typography variant="body2"><strong>Total:</strong> ${attributes?.monto_total ? Number(attributes?.monto_total).toFixed(2) : '-'}</Typography>
+            </Box>
+
+            {/* Vista de seguimiento del envío */}
+            {(attributes.skydropx_shipment_id || attributes.skydropx_tracking_number) && (
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  gap: 2,
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={1}>
+                  <LocalShippingIcon color="action" fontSize="small" />
+                  <Typography variant="body2" fontWeight={600}>
+                    {attributes.proveedor ?? attributes.skydropx_rate?.provider_display_name ?? 'Paquetería'}
+                  </Typography>
+                </Box>
+
+                {attributes.skydropx_tracking_number && (
+                  <Typography variant="body2">
+                    <strong>Guía:</strong> {attributes.skydropx_tracking_number}
+                  </Typography>
+                )}
+
+                {attributes.skydropx_status && (
+                  <Chip
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                    label={`Estado envío: ${attributes.skydropx_status}`}
+                  />
+                )}
+
+                {attributes.skydropx_label_url && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    startIcon={<PrintIcon />}
+                    onClick={() => window.open(attributes.skydropx_label_url, '_blank', 'noopener,noreferrer')}
+                  >
+                    Ver etiqueta
+                  </Button>
+                )}
+              </Box>
+            )}
 
             {/* Items renderizados con el estilo de PedidosEntregados */}
             {itemList.length === 0 ? (
@@ -357,7 +437,7 @@ const PedidosPendientes = ({ store }) => {
                 </Button>
               )}
 
-              {attributes.status === "pendiente_envio" && (
+              {attributes.status === "pendiente_envio" && saldoDisponible > (attributes?.monto_envio ?? 0) && (
                 <Button
                   variant="contained"
                   disabled={apiLoading}
@@ -367,19 +447,44 @@ const PedidosPendientes = ({ store }) => {
                   Generar envío
                 </Button>
               )}
+              {
+                attributes.status === "pendiente_envio" && saldoDisponible < (attributes?.monto_envio ?? 0) && (
+                  <Box>
+                    <Typography color='text.secondary'>Créditos insuficientes para envío</Typography>
+                    <Button
+                      variant="contained"
+                      disabled={apiLoading}
+                      startIcon={<LocalShippingIcon />}
+                      onClick={handleRechargeCredits}
+                    >
+                      Recargar
+                    </Button>
+                  </Box>
+                )
+              }
               {attributes.skydropx_tracking_number && (
                 <>
                   <Button
                     variant="outlined"
                     startIcon={<PrintIcon />}
-                  // onClick={() => handleAbrirGuia(attributes.skydropx_label_url)}
+                    disabled={!attributes.skydropx_label_url}
+                    onClick={() => window.open(attributes.skydropx_label_url, '_blank', 'noopener,noreferrer')}
                   >
                     Imprimir guía
                   </Button>
 
-                  <Typography variant="caption" display="block">
-                    Rastreo: {attributes.skydropx_tracking_number}
-                  </Typography>
+                  <Box>
+                    <Typography variant="caption" display="block">
+                      Rastreo: {attributes.skydropx_tracking_number}
+                    </Typography>
+                    {attributes.skydropx_status && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={`Skydropx: ${attributes.skydropx_status}`}
+                      />
+                    )}
+                  </Box>
                 </>
               )}
               {/* {!guiaExiste ? (
@@ -467,14 +572,12 @@ const PedidosPendientes = ({ store }) => {
         apiLoading={apiLoading}
       />
 
-      {/* Modal: Generar guía (maqueta) */}
+      {/* Modal: Generar envío en Skydropx */}
       <GenerarGuia
         openGuiaModal={openGuiaModal}
         handleCloseGuia={handleCloseGuia}
-        handleGenerateAndSaveGuia={handleGenerateAndSaveGuia}
-        guiaDraft={guiaDraft}
-        setGuiaDraft={setGuiaDraft}
-        apiLoading={apiLoading}
+        selectedPagoPedido={selectedPagoPedido}
+        onShipmentCreated={handleShipmentCreated}
       />
 
       <Snackbar

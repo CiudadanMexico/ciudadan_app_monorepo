@@ -81,3 +81,59 @@ export const fetchPackagings = async ({ code, name }) => {
   const response_data = await response.json().catch(() => null);
   return response_data;
 };
+
+export const fetchOfficePoints = async (rateId, direction = 'delivery') => {
+  const params = new URLSearchParams();
+  params.append('rate_id', String(rateId));
+  params.append('direction', direction);
+
+  const response = await fetch(`${API_URL}/api/skydropx/office-points?${params.toString()}`);
+  const response_data = await response.json().catch(() => null);
+  return response_data;
+};
+
+export const crearEnvio = async (payload) => {
+  const response = await fetch(`${API_URL}/api/skydropx/shipment`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible crear el envío');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+export const obtenerEnvio = async (shipmentId) => {
+  const response = await fetch(`${API_URL}/api/skydropx/shipment/${encodeURIComponent(shipmentId)}`);
+  const response_data = await response.json().catch(() => null);
+  return response_data;
+};
+
+/**
+ * Consulta el envío hasta que Skydropx genere el tracking y la etiqueta (la creación responde 202 sin esos datos).
+ */
+export const esperarGuiaEnvio = async (shipmentId, options = {}) => {
+  const maxIntentos = options?.maxIntentos ?? 6;
+  const esperaMs = options?.esperaMs ?? 3000;
+
+  for (let intento = 0; intento < maxIntentos; intento++) {
+    const response = await obtenerEnvio(shipmentId);
+    const shipment = response?.shipment;
+
+    if (shipment?.tracking_number || shipment?.label_url) {
+      return shipment;
+    }
+
+    await sleep(esperaMs);
+  }
+
+  return null;
+};

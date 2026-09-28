@@ -549,6 +549,7 @@ export default function FinalizarCompra() {
               tipo: "tienda",
               timestamp_creacion: new Date().toISOString(),
               monto_envio: envio,
+              monto_subtotal: subtotal,
               monto_total: subtotal + envio,
               status: "pendiente_pago",
               carrito_id: carritoCreatedId,
