@@ -122,6 +122,35 @@ module.exports = createCoreService('api::notificacion.notificacion', ({ strapi }
 
   textToBlocks,
 
+  /**
+   * DTO público: sólo los campos que el frontend necesita.
+   *
+   * Se construye a mano (en vez de `sanitizeOutput`) porque:
+   *  - el resto de controllers custom del repo tampoco lo usa,
+   *  - no expone columnas internas (user_email, created_by_id, ...),
+   *  - y es la MISMA forma que se emite por socket, así el frontend necesita un
+   *    único normalizador.
+   */
+  toPublicNotification(entity) {
+    if (!entity) return null;
+
+    return {
+      id: entity.id,
+      titulo: entity.titulo ?? null,
+      cuerpo: entity.cuerpo ?? null,
+      tipo: entity.tipo ?? null,
+      link: entity.link ?? null,
+      icono: entity.icono ?? null,
+      imagen: entity.imagen ?? null,
+      leida: Boolean(entity.leida),
+      status: entity.status ?? null,
+      meta: entity.meta ?? null,
+      timestamp: entity.timestamp ?? null,
+      createdAt: entity.createdAt ?? entity.created_at ?? null,
+      updatedAt: entity.updatedAt ?? entity.updated_at ?? null,
+    };
+  },
+
   /** Busca el destinatario en Strapi por email. Devuelve null si no existe. */
   async resolveUserByEmail(email) {
     const normalized = normalizeEmail(email);
