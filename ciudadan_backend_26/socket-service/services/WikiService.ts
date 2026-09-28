@@ -10,6 +10,7 @@ import {
 import { DocumentEntity } from '../entities/DocumentEntity';
 import { MarkdownParser } from '../routes/utils/MarkdownParser';
 import { WikiSectionResponseDTO } from '../dto/WikiDTO';
+import { resolveWikiDiskPath } from '../config/WikiPaths';
 
 export class WikiService {
     constructor(private readonly documentRepository: IDocumentRepository) {}
@@ -82,7 +83,7 @@ export class WikiService {
 
         // 1. (Opcional) Crear directorios físicos y escribir el archivo en disco (FS)
         if (writeToDisk) {
-            const fullDiskPath = path.resolve(process.cwd(), filePath);
+            const fullDiskPath = resolveWikiDiskPath(normalizedFilePath);
             const folderPath = path.dirname(fullDiskPath);
 
             // Si la subcarpeta no existe en disco, se crea
@@ -158,8 +159,8 @@ export class WikiService {
         // 1. Intentamos buscar el documento en la base de datos
         let doc = await this.documentRepository.findByPath(normalizedPath);
 
-        // 2. Ruta absoluta en el disco del servidor
-        const fullDiskPath = path.resolve(process.cwd(), normalizedPath);
+        // 2. Ruta absoluta en el disco del servidor (fuera del proyecto, vía WIKI_ROOT_PATH)
+        const fullDiskPath = resolveWikiDiskPath(normalizedPath);
 
         // 3. FALLBACK: Si no está registrado en BD pero sí existe físicamente en disco, creamos un DTO virtual
         if (!doc) {

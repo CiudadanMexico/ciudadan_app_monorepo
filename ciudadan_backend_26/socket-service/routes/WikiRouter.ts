@@ -102,8 +102,8 @@ router.post('/save/:section', validateSection, async (req: Request, res: Respons
 
         if (!fileContent || fileContent.endsWith('.md')) {
             const fs = require('fs');
-            const path = require('path');
-            const absolutePath = path.resolve(process.cwd(), fullPath);
+            const { resolveWikiDiskPath } = require('../config/WikiPaths');
+            const absolutePath = resolveWikiDiskPath(fullPath);
 
             if (fs.existsSync(absolutePath)) {
                 fileContent = fs.readFileSync(absolutePath, 'utf-8');
