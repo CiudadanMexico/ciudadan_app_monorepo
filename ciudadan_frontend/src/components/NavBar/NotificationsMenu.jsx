@@ -48,39 +48,22 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
     };
   }, []);
 
-  // Context
-  const ctx = useNotifications() || {};
-  const notificaciones = ctx.notificaciones ?? ctx.notifications ?? [];
-  const loading = ctx.loading ?? false;
-  const refreshFn =
-    ctx.refreshNotificaciones ??
-    ctx.refreshNotifications ??
-    ctx.fetchNotifications ??
-    ctx.fetchNotificaciones ??
-    ctx.refresh;
-  const markAsReadFn = ctx.markAsRead ?? ctx.markRead ?? null;
+  // Context (API única §3): los datos llegan ya normalizados (§12), así que no
+  // hay que estar resolviendo mensaje/cuerpo/title/titulo en cada render.
+  const {
+    notifications = [],
+    loading = false,
+    refresh,
+    markAsRead,
+    markAllAsRead,
+    unreadCount = 0,
+  } = useNotifications() || {};
 
   // position state for the panel
   const [pos, setPos] = useState({ left: null, top: 80, width: 360, origin: "top right" });
 
   // controlar si mostramos también las leídas (por defecto false -> solo no leídas)
   const [showRead, setShowRead] = useState(false);
-
-  const extractPlainText = (value) => {
-    if (!value) return "";
-    if (typeof value === "string") return value;
-    if (Array.isArray(value)) {
-      return value
-        .map((block) =>
-          block?.children?.map((child) => child?.text || "").join("")
-        )
-        .join(" ");
-    }
-    if (typeof value === "object" && value.children) {
-      return value.children.map((child) => child?.text || "").join("");
-    }
-    return "";
-  };
 
   // calculate and set position relative to containerRef
   const computePosition = () => {
@@ -153,13 +136,13 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
       window.removeEventListener("scroll", onScroll);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, containerRef, notificaciones.length, showRead]);
+  }, [isOpen, containerRef, notifications.length, showRead]);
 
   // open effect: refresh on open
   const prevOpenRef = useRef(false);
   useEffect(() => {
     if (!prevOpenRef.current && isOpen) {
-      if (typeof refreshFn === "function") refreshFn().catch(() => {});
+      if (typeof refresh === "function") refresh().catch(() => {});
       // small delay to allow focus
       setTimeout(() => {
         if (menuRef.current) {
@@ -169,7 +152,7 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
       }, 120);
     }
     prevOpenRef.current = isOpen;
-  }, [isOpen, refreshFn]);
+  }, [isOpen, refresh]);
 
   // helpers for link & reading
   const buildLink = (rawLink) => {
@@ -182,14 +165,11 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
   const handleClickNotification = (notif) => {
     if (!notif) return;
     const id = notif.id;
-    const attrs = notif?.attributes ?? notif;
-    const isRead = attrs?.leida === true || attrs?.read === true || attrs?.leida === "true";
-    const rawLink = attrs?.link ?? attrs?.url ?? attrs?.href ?? null;
-    const finalLink = buildLink(rawLink);
+    const finalLink = buildLink(notif.link);
 
-    if (!isRead && typeof markAsReadFn === "function") {
-      // fire-and-forget
-      markAsReadFn(id).catch((e) => console.error("markAsRead error:", e));
+    // marcar como leída antes de navegar (el context hace la parte optimista)
+    if (!notif.read && typeof markAsRead === "function") {
+      markAsRead(id).catch((e) => console.error("markAsRead error:", e));
     }
 
     if (finalLink) {
@@ -199,40 +179,25 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
         navigate(finalLink);
       }
     } else {
-      // 👇 fallback elegante: detalle de notificación
+      // fallback elegante: pantalla individual de la notificación
       navigate(`/notificacion/${id}`);
     }
 
     if (typeof onClose === "function") onClose();
+  };
 
-    };
-
-  // mark all
+  // mark all (endpoint masivo del backend, §20)
   const handleMarkAll = async () => {
-    const unreadIds = (Array.isArray(notificaciones) ? notificaciones : [])
-      .filter((n) => {
-        const a = n?.attributes ?? n;
-        return !(a?.leida === true || a?.read === true || a?.leida === "true");
-      })
-      .map((n) => n.id);
-    if (unreadIds.length === 0) return;
-    if (typeof markAsReadFn === "function") {
-      try {
-        await markAsReadFn(unreadIds);
-      } catch (e) {
-        console.error("markAll error", e);
-      }
-    } else if (typeof refreshFn === "function") {
-      await refreshFn();
+    if (!unreadCount) return;
+    try {
+      await markAllAsRead();
+    } catch (e) {
+      console.error("markAll error", e);
     }
   };
 
-  // NUEVO: lista filtrada según showRead
-  const filteredNotifications = (Array.isArray(notificaciones) ? notificaciones : []).filter((n) => {
-    if (showRead) return true;
-    const a = n?.attributes ?? n;
-    return !(a?.leida === true || a?.read === true || a?.leida === "true");
-  });
+  // lista filtrada según showRead (todo llega normalizado: `read` es booleano)
+  const filteredNotifications = notifications.filter((n) => showRead || !n.read);
 
   // Mostrar TODAS las notificaciones filtradas (sin cortar a 5)
   const previewNotifications = filteredNotifications;
@@ -270,13 +235,7 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
             {/* header */}
             <Box px={2} py={1} display="flex" alignItems="center" justifyContent="space-between" gap={1}>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <Badge
-                  color="primary"
-                  badgeContent={(Array.isArray(notificaciones) ? notificaciones : []).filter((n) => {
-                    const a = n?.attributes ?? n;
-                    return !(a?.leida === true || a?.read === true || a?.leida === "true");
-                  }).length}
-                >
+                <Badge color="primary" badgeContent={unreadCount}>
                   <Avatar src={notificationIcon} alt="notifs" sx={{ width: 36, height: 36 }} />
                 </Badge>
                 <Box>
@@ -333,27 +292,18 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
                     <ListItemText primary={<Typography> Cargando notificaciones... </Typography>} />
                     <CircularProgress size={18} />
                   </ListItemButton>
-                ) : (!Array.isArray(notificaciones) || notificaciones.length === 0) ? (
+                ) : notifications.length === 0 ? (
                   <Box p={3} textAlign="center">
                     <NotificationsOffIcon sx={{ fontSize: 40, color: "text.secondary", mb: 1 }} />
                     <Typography variant="body2" color="text.secondary">Ninguna notificación</Typography>
                   </Box>
                 ) : (
-                  // ahora mostramos todas las notificaciones filtradas (no solo 5)
+                  // todas las notificaciones filtradas, ya normalizadas (§12)
                   previewNotifications.map((notif) => {
-                    const id = notif.id;
-                    const attrs = notif.attributes ?? notif;
-                    const isRead = attrs?.leida === true || attrs?.read === true || attrs?.leida === "true";
-                    const rawLink = attrs?.link ?? attrs?.url ?? attrs?.href ?? null;
-                    const title =
-                      attrs?.titulo ||
-                      attrs?.title ||
-                      (typeof attrs?.mensaje === "string" ? attrs.mensaje.slice(0, 120) : null) ||
-                      extractPlainText(attrs?.cuerpo) ||
-                      "Notificación";
-                    const dateText = attrs?.timestamp
-                      ? new Date(attrs.timestamp).toLocaleString()
-                      : new Date(attrs.createdAt ?? attrs.created_at ?? Date.now()).toLocaleString();
+                    const { id, title, message, read: isRead } = notif;
+                    const dateText = notif.createdAt
+                      ? new Date(notif.createdAt).toLocaleString()
+                      : new Date().toLocaleString();
 
                     return (
                       <React.Fragment key={id}>
@@ -400,21 +350,25 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
                                 </Typography>
                               </Box>
                             }
-                            secondary={attrs?.mensaje && (
-                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                {extractPlainText(attrs?.mensaje || attrs?.cuerpo).slice(0, 220)}
-                              </Typography>
-                            )}
+                            // FIX (§18): antes sólo se pintaba si existía
+                            // `mensaje`, así que `cuerpo` nunca aparecía.
+                            secondary={
+                              message ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                  {message.slice(0, 220)}
+                                </Typography>
+                              ) : null
+                            }
                           />
 
-                          {rawLink && (
+                          {notif.link && (
                             <IconButton
                               edge="end"
                               size="small"
                               aria-label="abrir"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const final = buildLink(rawLink);
+                                const final = buildLink(notif.link);
                                 if (final) {
                                   if (/^https?:\/\//i.test(final)) {
                                     window.location.href = final;
