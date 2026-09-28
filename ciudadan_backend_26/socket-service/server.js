@@ -77,6 +77,41 @@ const headers = {
   ...(strapiToken ? { Authorization: `Bearer ${strapiToken}` } : {})
 }
 
+// ---------------------------------------------------------------------------
+// Identidad del socket (notificaciones privadas)
+// ---------------------------------------------------------------------------
+// El email del room NO se toma "en confianza" del cliente: se resuelve con el
+// token de Auth0 reutilizando la verificación que ya existe en Strapi
+// (policy global::is-authenticated-auth0 -> GET /api/notificaciones/me).
+// Así NO se inventa un sistema de autenticación paralelo ni se añaden librerías
+// JWT a socket-service (no tiene jwks-rsa ni jsonwebtoken; ver package.json).
+//
+// Deuda técnica: si el token no se puede validar, el registro legacy SÓLO se
+// permite con SOCKET_ALLOW_LEGACY_REGISTER=true (explícito, p.ej. en desarrollo).
+// Por defecto el cliente queda fuera de cualquier room.
+const SOCKET_ALLOW_LEGACY_REGISTER = process.env.SOCKET_ALLOW_LEGACY_REGISTER === "true";
+
+const resolveIdentityFromToken = async (token) => {
+  if (!token || !strapiUrl) return null;
+  try {
+    const res = await axios.get(
+      `${strapiUrl.replace(/\/$/, "")}/api/notificaciones/me`,
+      {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        timeout: 5000,
+      }
+    );
+    const email = res && res.data && res.data.data && res.data.data.email;
+    return email ? String(email) : null;
+  } catch (err) {
+    console.warn(
+      "identity: token no verificado por Strapi:",
+      (err.response && err.response.status) || err.message
+    );
+    return null;
+  }
+};
+
 let openpayRoute;
 try {
   openpayRoute = require("./routes/openpay");
@@ -133,13 +168,36 @@ try {
 io.on("connection", (socket) => {
   console.log("✅ Cliente conectado a WebSocket:", socket.id);
 
-  socket.on('register', (data) => {
+  // Registro del usuario en SU room de notificaciones privadas.
+  // Fuente de verdad: el email que Strapi valida con el token de Auth0.
+  socket.on('register', async (data) => {
     try {
-      console.log(data);
-      const email = (data && data.email) ? String(data.email) : null;
-      if (email) {
-        socket.join(email);
-        console.debug(`Socket ${socket.id} se unió a room: ${email}`);
+      const token =
+        (data && data.token) ||
+        (socket.handshake && socket.handshake.auth && socket.handshake.auth.token) ||
+        null;
+
+      if (token) {
+        const verified = await resolveIdentityFromToken(token);
+        if (verified) {
+          socket.join(verified);
+          console.debug(`Socket ${socket.id} unido al room (token verificado): ${verified}`);
+          return;
+        }
+        // El token llegó pero no se pudo validar: NO se acepta el email reclamado.
+        console.warn(`Socket ${socket.id}: token no verificado -> se ignora identidad reclamada`);
+        if (!SOCKET_ALLOW_LEGACY_REGISTER) return;
+      }
+
+      if (!SOCKET_ALLOW_LEGACY_REGISTER) {
+        console.warn(`Socket ${socket.id}: registro legacy deshabilitado (se requiere token)`);
+        return;
+      }
+
+      const claimed = data && data.email ? String(data.email).trim() : null;
+      if (claimed) {
+        socket.join(claimed);
+        console.warn(`Socket ${socket.id} unido al room (LEGACY sin verificar): ${claimed}`);
       }
     } catch (err) {
       console.error('Error en register:', err);
