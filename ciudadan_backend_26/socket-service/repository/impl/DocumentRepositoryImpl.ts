@@ -51,7 +51,16 @@ export class DocumentRepositoryImpl implements IDocumentRepository {
         const localNodeId = selfNode ? selfNode.node_id : 'local-node';
 
         const pathParts = doc.path.split('/');
-        const wikiId = doc.wiki_id || pathParts[1] || 'main';
+        // El slug de la wiki es el segmento posterior al prefijo 'wiki/' (p. ej. wiki/main/x.md -> main).
+        // Si el slug no existe en la tabla wikis (archivos sueltos en la raiz, prefijos raros),
+        // se usa 'main' para no violar la FOREIGN KEY hacia wikis(wiki_id).
+        const slugCandidate = doc.wiki_id || (pathParts[1] && pathParts[0]?.toLowerCase() === 'wiki' ? pathParts[1] : 'main');
+        const wikiExists = this.db.prepare('SELECT wiki_id FROM wikis WHERE wiki_id = ? OR slug = ? LIMIT 1').get(slugCandidate, slugCandidate) as { wiki_id: string } | undefined;
+        const wikiId = wikiExists ? wikiExists.wiki_id : 'main';
+
+        // Asegurar que el nodo local exista para no violar la FK hacia nodes(node_id)
+        const nodeExists = this.db.prepare('SELECT node_id FROM nodes WHERE node_id = ? LIMIT 1').get(localNodeId) as { node_id: string } | undefined;
+        const safeNodeId = nodeExists ? nodeExists.node_id : (this.db.prepare('SELECT node_id FROM nodes LIMIT 1').get() as { node_id: string } | undefined)?.node_id || 'local-node';
 
         const stmt = this.db.prepare(`
             INSERT INTO documents (document_id, wiki_id, node_id, path, title, content_hash, origin_node, authority_node)
@@ -66,12 +75,12 @@ export class DocumentRepositoryImpl implements IDocumentRepository {
         stmt.run(
             doc.document_id,
             wikiId,
-            localNodeId,
+            safeNodeId,
             doc.path,
             doc.title,
             doc.content_hash,
-            localNodeId,
-            localNodeId
+            safeNodeId,
+            safeNodeId
         );
     }
 

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button, Typography, Box } from '@mui/material';
 import io from 'socket.io-client';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BottomSheet from '../BottomSheet.jsx';
 import ConductorRender from './ConductorRender.jsx'; // tu render (el UI que pegaste)
@@ -24,10 +25,11 @@ const Conductor = ({
   setShiftToPasajero,
 }) => {
   const { user, isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
   const [driver, setDriver] = useState(null);
   const [isWaiting, setIsWaiting] = useState(true);
   const [travelData, setTravelData] = useState([]);
-  const [userId, setUserId] = useState(null);
+  const [driverEmail, setDriverEmail] = useState(null);
   const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
   const [consultedTravel, setConsultedTravel] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
@@ -84,7 +86,6 @@ const Conductor = ({
   };
 
   const getSheetContent = () => {
-    console.log('getSheetContent: consultedTravel', consultedTravel, 'travelData', travelData);
     if (consultedTravel !== null && travelData[consultedTravel]) {
       const travel = travelData[consultedTravel];
       return (
@@ -136,7 +137,7 @@ const Conductor = ({
     } else {
       return (
         <>
-          <Typography variant='h6'>Esperando solicitudes</Typography>
+          <Typography variant='h6'>Esperando solicitudes...</Typography>
           <Typography>
             Estás en línea. Aparecerán aquí los viajes cercanos.
           </Typography>
@@ -164,13 +165,11 @@ const Conductor = ({
       }
       const data = await response.json();
       const drivers = data?.data || data || [];
-      const driver = Array.isArray(drivers) ? drivers[0] : drivers;
+      const driverData = Array.isArray(drivers) ? drivers[0] : drivers;
 
-      if (!driver) return null;
-
-      const driverAttributes = driver?.attributes || driver;
-      console.log('[Conductor] datos del conductor cargados:', driverAttributes);
-      setDriver(driverAttributes);
+      if (!driverData) return null;
+      //console.log('[Conductor] datos del conductor cargados:', driverData);
+      setDriver(driverData);
     } catch (err) {
       console.warn('[Conductor] no se pudieron cargar los datos del conductor:', err);
     }
@@ -288,12 +287,12 @@ const Conductor = ({
   }, [mapRef.current, googleMapsLoaded]);
 
   /* --------------------------
-     Obtener userId desde Strapi (si usas autenticación)
+     Obtener driverEmail desde Strapi (si usas autenticación)
      Aquí intento buscar por email en /api/users. Ajusta si tu API responde distinto.
      -------------------------- */
   useEffect(() => {
     if (isAuthenticated && user?.email) {
-      setUserId(user.email); // ← AQUÍ queda tu driverId real
+      setDriverEmail(user.email); // ← AQUÍ queda tu driverId real
       console.log('taxi debug: driverId asignado ->', user.email);
     }
   }, [isAuthenticated, user]);
@@ -316,8 +315,8 @@ const Conductor = ({
 
       socket.on('connect', () => {
         console.log('Conductor socket conectado', socket.id);
-        if (userId) {
-          socket.emit('register-driver', { driverId: userId });
+        if (driverEmail) {
+          socket.emit('register', { email: driverEmail });
         }
       });
 
@@ -326,18 +325,23 @@ const Conductor = ({
         try {
           console.log('trip-request recibido:', data);
           if (!data) return;
-          // criterio: si viene driverId y coincide, o viene broadcast/nearby o candidateDrivers incluye userId
+
+          if (driver?.en_viaje) {
+            console.log('trip-request el conductor está ocupado en un viaje');            
+            return;
+          }
+          // criterio: si viene driverId y coincide, o viene broadcast/nearby o candidateDrivers incluye driverEmail
           const addressed =
             data.driverId ||
-            userId ||
-            data.driverId.toString() === userId.toString();
+            driverEmail ||
+            data.driverId.toString() === driverEmail.toString();
           console.log('userCoords', userCoords);
           console.log('trip-request addressed:', addressed);
           const broadcast = data.broadcast === true || data.target === 'nearby';
           const included =
             Array.isArray(data.candidateDrivers) ||
-            userId ||
-            data.candidateDrivers.map(String).includes(String(userId));
+            driverEmail ||
+            data.candidateDrivers.map(String).includes(String(driverEmail));
 
           const driverCoords =
             userCoords && userCoords.lat && userCoords.lng
@@ -358,13 +362,10 @@ const Conductor = ({
 
           if (shouldShowRequest) {
             // añadir al arreglo de viajes
-            console.log('[Conductor] trip-request dirigido a este conductor, agregando a travelData');
             setTravelData((prev) => {
-              const next = [...prev, userId ? { ...data, userEmail: userId } : data];
+              const next = [...prev, driverEmail ? { ...data, driverEmail } : data];
               return next;
             });
-            console.log('[Conductor] trip-request agregado a travelData, total:', travelData.length + 1);
-            console.log('[Conductor] conductores:', travelData);
             setIsWaiting(false);
 
             // Añadir marcador del origen al mapa (si vienen coords)
@@ -402,6 +403,85 @@ const Conductor = ({
         }
       });
 
+      socket.on('offer-accepted', (payload) => {
+        console.log('offer-accepted recibido (conductor):', payload);
+
+        setTravelData((prev) => {
+          const next = prev.filter(
+            (travel) =>
+              String(travel.userEmail).toLowerCase() !==
+              String(payload.user).toLowerCase(),
+          );
+          console.log('[Conductor] viajes restantes tras offer-accepted:', next.length);
+          setIsWaiting(next.length === 0);
+          return next;
+        });
+        setConsultedTravel(null);
+
+        // Los marcadores de origen no están asociados a una tarjeta individual.
+        markersRef.current.forEach((marker) => {
+          try {
+            marker.setMap(null);
+          } catch (e) {
+            // noop
+          }
+        });
+        markersRef.current = [];
+      });
+
+      socket.on('cancel-search', (payload) => {
+        console.log('cancel-search recibido (conductor):', payload);
+
+        setTravelData((prev) => {
+          const next = prev.filter(
+            (travel) =>
+              String(travel.userEmail).toLowerCase() !==
+              String(payload).toLowerCase(),
+          );
+          console.log('[Conductor] viajes restantes tras cancel-search:', next.length);
+          setIsWaiting(next.length === 0);
+          return next;
+        });
+        setConsultedTravel(null);
+
+        // Los marcadores de origen no están asociados a una tarjeta individual.
+        markersRef.current.forEach((marker) => {
+          try {
+            marker.setMap(null);
+          } catch (e) {
+            // noop
+          }
+        });
+        markersRef.current = [];
+      });
+
+      socket.on('offer-rejected', (payload) => {
+        console.log('offer-rejected recibido (conductor):', payload);
+
+        setTravelData((prev) => {
+          const next = prev.filter(
+            (travel) =>
+              String(travel.userEmail).toLowerCase() !==
+              String(payload.user).toLowerCase() ||
+              String(travel.driverEmail).toLowerCase() !==
+              String(payload.driver).toLowerCase(),
+          );
+          console.log('[Conductor] viajes restantes tras offer-rejected:', next.length);
+          setIsWaiting(next.length === 0);
+          return next;
+        });
+        setConsultedTravel(null);
+
+        markersRef.current.forEach((marker) => {
+          try {
+            marker.setMap(null);
+          } catch (e) {
+            // noop
+          }
+        });
+        markersRef.current = [];
+      });
+
       // Listener opcional cuando pasajero obtiene conductores
       socket.on('drivers-found', (payload) => {
         // normalmente interesa al pasajero, pero lo dejo por debug
@@ -424,6 +504,8 @@ const Conductor = ({
       try {
         if (socketRef.current) {
           socketRef.current.off('trip-request');
+          socketRef.current.off('offer-rejected');
+          socketRef.current.off('cancel-search');
           socketRef.current.off('drivers-found');
           socketRef.current.disconnect();
           socketRef.current = null;
@@ -433,7 +515,7 @@ const Conductor = ({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, userCoords]); // reconectará si cambia userId
+  }, [driverEmail, userCoords]); // reconectará si cambia driverEmail
 
   /* --------------------------
      Limpiar marcadores cuando se desmonta o cuando se vacía travelData
@@ -731,8 +813,6 @@ const Conductor = ({
   };
 
   const handleReject = (index) => {
-    alert('iniciando !!');
-
     // quitar la card / viaje del estado
     setTravelData((prev) => {
       const next = prev.filter((_, i) => i !== index);
@@ -770,7 +850,7 @@ const Conductor = ({
     try {
       if (socketRef.current && socketRef.current.connected) {
         socketRef.current.emit('oferta', {
-          driverId: userId,
+          driverId: driverEmail,
           travelId: travel.id || travel.travelId,
           originAddress: travel.originAdress,
           destinationAddress: travel.destinationAdress,
@@ -787,7 +867,7 @@ const Conductor = ({
         // fallback HTTP (si tu backend dispone)
         try {
           await axios.post(`${process.env.REACT_APP_STRAPI_URL}/api/ofertas`, {
-            driverId: userId,
+            driverId: driverEmail,
             travelId: travel.id || travel.travelId,
           });
           setTravelData((prev) =>
@@ -812,6 +892,10 @@ const Conductor = ({
     setShowTabs(false);
     setActiveTab('conductor');
     setShiftToPasajero(true);
+  };
+
+  const handleOpenRecentTrips = () => {
+    navigate('/taxis/viajes/historial', { state: { role: 'conductor' } });
   };
 
   const ElapsedTimer = ({ startTime }) => {
@@ -845,18 +929,20 @@ const Conductor = ({
         userCoords={userCoords}
         setUserCoords={setUserCoords}
         travelData={travelData}
+        setTravelData={setTravelData}
         consultedTravel={consultedTravel}
         driver={driver}
         handleTravelCardClick={handleTravelCardClick}
         handleBackButtonClick={handleBackButtonClick}
         handleCloseButtonClick={handleCloseButtonClick}
-        handleReject={handleReject}
+        handleRejectTrip={handleReject}
         handleAcceptTrip={handleAcceptTrip}
         handlePasajero={handlePasajero}
         handleConductor={handleConductor}
         ElapsedTimer={ElapsedTimer}
         showTabs={showTabs}
         hideTabs={hideTabs}
+        setIsWaiting={setIsWaiting}
       />
       <BottomSheet
         initialState='collapsed'
@@ -872,6 +958,27 @@ const Conductor = ({
         setOpen={setFreeTripModalOpen}
         freeTrips={driver?.free_trips}
       />
+
+      <Button
+        variant='contained'
+        onClick={handleOpenRecentTrips}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 160,
+          zIndex: 2000,
+          borderRadius: '999px',
+          backgroundColor: '#fff200',
+          color: '#111',
+          boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+          textTransform: 'none',
+          fontWeight: 700,
+          px: 2,
+          py: 1,
+        }}
+      >
+        Mis viajes (conductor)
+      </Button>
     </>
   );
 };

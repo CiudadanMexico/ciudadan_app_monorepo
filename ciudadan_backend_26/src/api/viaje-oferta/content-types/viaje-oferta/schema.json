@@ -1,0 +1,48 @@
+{
+  "kind": "collectionType",
+  "collectionName": "viaje_ofertas",
+  "info": {
+    "singularName": "viaje-oferta",
+    "pluralName": "viaje-ofertas",
+    "displayName": "viaje_oferta",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "pasajero": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "conductor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver.driver"
+    },
+    "driver_email": {
+      "type": "email"
+    },
+    "user_email": {
+      "type": "email"
+    },
+    "precio_sugerido": {
+      "type": "decimal"
+    },
+    "coordenadas": {
+      "type": "json"
+    },
+    "viaje": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::viaje.viaje"
+    },
+    "calif_conductor": {
+      "type": "decimal",
+      "max": 5,
+      "min": 0
+    }
+  }
+}

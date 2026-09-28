@@ -10,13 +10,13 @@ const CiudadanBadge = () => {
       {/* SVG Circular para probar la posición */}
       <svg className="ciudadan-svg" id="ciudadan-svg" viewBox="0 0 220 220">
         <defs>
-          <path id="circle-path" d="M 110,10 A 100,100 0 1,1 109.9,10" />
+          <path id="ciudadan-circle-path" d="M 110,10 A 100,100 0 0,1 110,210" />
         </defs>
 
         {/* Agrupamos el texto para animarlo */}
         <g className="ciudadan-text-group">
           <text className="ciudadan-text">
-            <textPath href="#circle-path" startOffset="50%" textAnchor="middle">
+            <textPath href="#ciudadan-circle-path" startOffset="50%" textAnchor="middle">
               C I U D A D A N *ORG
             </textPath>
           </text>

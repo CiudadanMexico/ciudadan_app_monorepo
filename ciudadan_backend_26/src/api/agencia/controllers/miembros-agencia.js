@@ -31,7 +31,22 @@ module.exports = {
 
     ctx.body = {
       ok: true,
-      agencia: { id: caller.agencia.id, nombre: caller.agencia.nombre },
+      agencia: {
+        id: caller.agencia.id,
+        nombre: caller.agencia.nombre,
+        // docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md: reputación de
+        // agencia, de solo lectura — la calcula/actualiza el módulo de
+        // Taxis a partir de eventos de auditoría, nunca el frontend.
+        reputacion: {
+          total_verifications: caller.agencia.total_verifications || 0,
+          total_audited: caller.agencia.total_audited || 0,
+          conforming: caller.agencia.conforming || 0,
+          inconsistencies: caller.agencia.inconsistencies || 0,
+          critical_findings: caller.agencia.critical_findings || 0,
+          reverifications: caller.agencia.reverifications || 0,
+          trust_score: caller.agencia.trust_score || 0,
+        },
+      },
       data: miembros.map((u) => ({
         id: u.id,
         email: u.email,

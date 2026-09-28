@@ -43,8 +43,10 @@ import TareasEspecializadas, { EmptyState } from './../../components/Cowork/Tare
 import EventosGrid from './../Eventos/EventosGrid.jsx';
 import HerramientrasGrid from './../../components/Cowork/HerramientrasGrid.jsx';
 import ConductoresAgencia from './../../components/Cowork/ConductoresAgencia.jsx';
+import Auditorias from './../../components/Cowork/Auditorias.jsx';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useSearchParams } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
@@ -83,7 +85,7 @@ const MAX_ARCHIVOS_RESOLVER = 10;
 // nombre elimina esa clase de bug de raíz.
 const getTabFromSearchParams = (searchParams) => {
   const tabParam = searchParams.get('tab');
-  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores'].includes(tabParam)) {
+  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores', 'auditorias'].includes(tabParam)) {
     return tabParam;
   }
   return null;
@@ -169,11 +171,14 @@ const SubTabs = styled((props) => (
 });
 
 const CooWork = () => {
-  const { userData, isAdmin, isSocio, isVerificador } = useRoles();
+  const { userData, isAdmin, isSocio, isVerificador, isAuditor } = useRoles();
   const tienePermisoCRUD = isAdmin() || isSocio();
   // chat.md: verificador (sin admin/socio) NO ve "Herramientas" ni el resto
   // del tab Socio — solo le aparece "Verificar Conductores", nada más.
   const soloVerificador = isVerificador() && !tienePermisoCRUD;
+  // docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md: auditor es un rol
+  // independiente del verificador — mismo patrón de acceso reducido.
+  const soloAuditor = isAuditor() && !tienePermisoCRUD && !soloVerificador;
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState(() => {
     return getTabFromSearchParams(searchParams) || (tienePermisoCRUD ? 'socio' : 'generales');
@@ -519,6 +524,9 @@ const CooWork = () => {
             {soloVerificador && (
               <StyledTab value="conductores" icon={<DirectionsCarIcon />} label="Verificar Conductores" />
             )}
+            {soloAuditor && (
+              <StyledTab value="auditorias" icon={<FactCheckIcon />} label="Auditorías" />
+            )}
             {/* "Mis Tareas": antes el único lugar para entregar una tarea ya
                 tomada (con archivos/enlaces/notas) vivía dentro del tab
                 Socio -> sub-tab Tareas, inalcanzable para cualquier usuario
@@ -657,6 +665,17 @@ const CooWork = () => {
             transition={{ duration: 0.4 }}
           >
             <ConductoresAgencia />
+          </motion.div>
+        )}
+
+        {tab === 'auditorias' && soloAuditor && (
+          <motion.div
+            key="auditorias"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Auditorias />
           </motion.div>
         )}
 

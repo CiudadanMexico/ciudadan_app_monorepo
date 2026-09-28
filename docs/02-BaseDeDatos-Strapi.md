@@ -137,6 +137,21 @@
 - `wallet_address`: string
 - `tipo`: enum[local|federal] default=local
 - `socios`: relation(oneToMany) → plugin::users-permissions.user mappedBy agencia
+- `total_verifications`: integer default=0 — total de verificaciones de conductor (alimentado por Taxis)
+- `total_audited`: integer default=0 — cuántas de esas fueron auditadas
+- `conforming`: integer default=0 — auditorías conformes
+- `inconsistencies`: integer default=0 — auditorías con inconsistencias
+- `critical_findings`: integer default=0 — hallazgos críticos
+- `reverifications`: integer default=0 — casos que requirieron re-verificación física
+- `trust_score`: decimal default=0 — score de reputación calculado (nunca editable desde frontend)
+- `trust_algorithm_version`: string — versión del algoritmo que calculó `trust_score`
+
+> Campos de reputación agregados por docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md
+> (Fase 3). Solo lectura desde la API pública de CoWork — los escribe el módulo
+> de Taxis al completar una auditoría (contrato de integración pendiente, ver
+> Fase 5 de ese documento). Quedan en `null` hasta la primera escritura; los
+> endpoints de CoWork que los leen (`GET /api/agencias/mi-agencia/socios`) hacen
+> fallback a `0`.
 
 ### `api::my-agency.my-agency` — Agencia del usuario — **SINGLE TYPE** (ver single types)
 

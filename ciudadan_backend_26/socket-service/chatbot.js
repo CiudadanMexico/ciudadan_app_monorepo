@@ -65,8 +65,9 @@ async function attachChatbot(app, opts = {}) {
     process.env.CHATBOT_WEBHOOK_PATH ||
     '/webhook';
 
-  const APP_PORT = Number(
   const CHATBOT_WEBHOOK_PORT = Number(process.env.CHATBOT_WEBHOOK_PORT || 33334);
+
+  const APP_PORT = Number(
     opts.appPort ||
     process.env.PORT ||
     33032

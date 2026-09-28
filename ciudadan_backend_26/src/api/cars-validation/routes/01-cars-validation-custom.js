@@ -74,5 +74,32 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'POST',
+      path: '/cars-validations/:id/challenges',
+      handler: 'cars-validation.issueChallenge',
+      config: {
+        policies: ['global::is-verificador'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/cars-validations/:id/risk-assessment',
+      handler: 'cars-validation.runRiskAssessment',
+      config: {
+        policies: ['global::is-verificador'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'POST',
+      path: '/cars-validations/:id/reverification',
+      handler: 'cars-validation.createReverification',
+      config: {
+        policies: ['global::is-verificador'],
+        middlewares: [],
+      },
+    },
   ],
 };

@@ -1,0 +1,74 @@
+
+> ciudadan-backend@0.1.0 develop
+> strapi develop
+
+- Building build context
+
+[INFO] Including the following ENV variables as part of the JS bundle:
+    - ADMIN_PATH
+    - STRAPI_ADMIN_BACKEND_URL
+    - STRAPI_TELEMETRY_DISABLED
+✔ Building build context (990ms)
+- Creating admin
+Browserslist: browsers data (caniuse-lite) is 16 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✔ Creating admin (110209ms)
+- Loading Strapi
+[2026-09-13 14:06:46.801] [33mwarn[39m: The strapi::cors middleware no longer supports the `enabled` option. Using it to conditionally enable CORS might cause an insecure default. To disable strapi::cors, remove it from the exported array in config/middleware.js
+[2026-09-13 14:06:54.174] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,favoritos,area_details,skills,agencia,free_trip
+✔ Loading Strapi (71225ms)
+- Generating types
+✔ Generating types (10667ms)
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Sun Sep 13 2026 14:07:50 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 82078 ms                                         [90m│[39m
+[90m│[39m Environment        [90m│[39m production                                       [90m│[39m
+[90m│[39m Process PID        [90m│[39m 121964                                           [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.19.2)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://0.0.0.0:33431/admin
+
+To access the server ⚡️, go to:
+http://0.0.0.0:33431
+
+[2026-09-13 14:08:49.763] [32mhttp[39m: GET /admin (130 ms) 200
+[2026-09-13 14:10:43.585] [32minfo[39m: File changed: c:\yii\ciudadan_app_monorepo\ciudadan_backend_26\strapi-win.log
+- Loading Strapi
+[2026-09-13 14:11:15.211] [33mwarn[39m: The strapi::cors middleware no longer supports the `enabled` option. Using it to conditionally enable CORS might cause an insecure default. To disable strapi::cors, remove it from the exported array in config/middleware.js
+[2026-09-13 14:11:22.799] [33mwarn[39m: Users-permissions registration has defaulted to accepting the following additional user fields during registration: roles,prueba,id_stripe,fecha_registro,membresia_vigente,tipo_membresia,fecha_nacimiento,fecha_membresia,telefono,cp,ine_frente,ine_tras,foto_credencial,nombre_completo,fecha_fin_membresia_actual,stripeCustomerId,stripeSubscriptionId,stripePriceId,subscriptionStatus,direcciones,demandaamparo,escritolibrecofepris,files,esperandocofepris,observaciones,settings,profile,profilepic,esperandoamparo,tipoamparo,amparostatus,isclub,haveclub,ciudad,openpayid,openpaykey,rfc,curp,foliocofepris,club,clubid,isJardinero,membresiatipo,proximacosecha,curado,secado,registrolegal,promocode,cursos,registrado,verificado,status_legal,bitacora,fechaingresoplantas,plantas,areas,favoritos,area_details,skills,agencia,free_trip
+✔ Loading Strapi (62675ms)
+- Generating types
+✔ Generating types (7156ms)
+
+ Project information
+
+[90m┌────────────────────[39m[90m┬──────────────────────────────────────────────────┐[39m
+[90m│[39m Time               [90m│[39m Sun Sep 13 2026 14:12:13 GMT-0600 (hora estánda… [90m│[39m
+[90m│[39m Launched in        [90m│[39m 70090 ms                                         [90m│[39m
+[90m│[39m Environment        [90m│[39m production                                       [90m│[39m
+[90m│[39m Process PID        [90m│[39m 119100                                           [90m│[39m
+[90m│[39m Version            [90m│[39m 4.25.9 (node v20.19.2)                           [90m│[39m
+[90m│[39m Edition            [90m│[39m Community                                        [90m│[39m
+[90m│[39m Database           [90m│[39m sqlite                                           [90m│[39m
+[90m└────────────────────[39m[90m┴──────────────────────────────────────────────────┘[39m
+
+ Actions available
+
+Welcome back!
+To manage your project 🚀, go to the administration panel at:
+http://0.0.0.0:33431/admin
+
+To access the server ⚡️, go to:
+http://0.0.0.0:33431
+
