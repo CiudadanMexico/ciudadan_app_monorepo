@@ -153,15 +153,17 @@ root.render(
         <AuthProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
             <RolesProvider>
-              <NotificationsProvider>
-                <CartProvider>
-                  <FoodCartProvider>
-                    <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+              {/* SnackbarProvider FUERA de NotificationsProvider: éste necesita
+                  consumir useSnackbar() para implementar la API de toast. */}
+              <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                <NotificationsProvider>
+                  <CartProvider>
+                    <FoodCartProvider>
                       <AppWrapper />
-                    </SnackbarProvider>
-                  </FoodCartProvider>
-                </CartProvider>
-              </NotificationsProvider>
+                    </FoodCartProvider>
+                  </CartProvider>
+                </NotificationsProvider>
+              </SnackbarProvider>
             </RolesProvider>
           </LocalizationProvider>
         </AuthProvider>

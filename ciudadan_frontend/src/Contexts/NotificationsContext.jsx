@@ -1,310 +1,313 @@
 // src/Contexts/NotificationsContext.jsx
+//
+// FACHADA ÚNICA de notificaciones para toda la app de Ciudadan.
+//
+// API pública:
+//   const {
+//     notifications, unreadCount, loading, error,
+//     toast, send,
+//     refresh, fetchById, markAsRead, markAllAsRead,
+//   } = useNotifications();
+//
+// - toast.*(msg) -> aviso efímero local para el usuario actual (notistack por
+//                   dentro; los componentes NO deben importar useSnackbar para esto)
+// - send({...})  -> notificación PERSISTENTE: la guarda el backend y la emite
+//                   por socket SÓLO al destinatario
+//
+// Un único socket.io de notificaciones vive en este archivo: no abras otro
+// (el hook duplicado src/hooks/useNotificationsSocket.jsx se eliminó porque
+// ningún componente lo usaba — §6).
+//
+// Los componentes no necesitan saber Strapi, Socket.IO ni notistack.
+
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useState,
-  useRef,
-  useCallback,
   useMemo,
-} from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import axios from "axios";
-import { io } from "socket.io-client";
-//import { USE_AUTH } from "../config/apiConfig";
+  useRef,
+  useState,
+} from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useSnackbar } from 'notistack';
+import { io } from 'socket.io-client';
 
-const NotificationsContext = createContext();
+import { normalizeNotification, normalizeNotifications } from '../utils/normalizeNotification';
+import {
+  countUnread,
+  markNotificationReadInList,
+  upsertNotification,
+  validateSendPayload,
+} from '../utils/notifications.helpers';
+import {
+  fetchNotifications,
+  fetchNotificationById,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+  sendNotification,
+} from '../services/notifications';
+
+const NotificationsContext = createContext(null);
+
 export const useNotifications = () => useContext(NotificationsContext);
+
+const SOCKET_URL = (process.env.REACT_APP_SOCKET_URL || '').replace(/\/$/, '');
+const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
 
 export const NotificationsProvider = ({ children }) => {
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const [notificaciones, setNotificaciones] = useState([]); // lista real (items)
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Baseline: número mínimo garantizado (no decrece por fetch)
-  const [baselineUnread, setBaselineUnread] = useState(0);
-  // Incrementos optimistas (solo aumentan hasta que fetch confirme)
-  const optimisticRef = useRef(0);
-
-  const pendingRefreshRef = useRef(false);
+  // Refs para poder leer estado/fn dentro de callbacks sin rearmar el socket.
+  const notificationsRef = useRef(notifications);
+  notificationsRef.current = notifications;
+  const enqueueRef = useRef(enqueueSnackbar);
+  enqueueRef.current = enqueueSnackbar;
   const socketRef = useRef(null);
-  
-  const USE_AUTH = false;
-  const STRAPI = (process.env.REACT_APP_STRAPI_URL || "").replace(/\/$/, "");
-  const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || STRAPI || "";
 
-  // helper: calcular unread dentro de una lista
-  const computeUnreadFromItems = (items) => {
-    if (!Array.isArray(items)) return 0;
-    return items.filter((n) => {
-      const attrs = n?.attributes ?? {};
-      return !(attrs.leida === true || attrs.read === true || attrs.leida === "true");
-    }).length;
-  };
-
-  // Construir headers teniendo en cuenta USE_AUTH
-  const buildHeaders = useCallback(async () => {
-    const headers = { "Content-Type": "application/json" };
-    if (!USE_AUTH) return headers;
+  // --- token de Auth0 ------------------------------------------------------
+  const getToken = useCallback(async () => {
+    if (!isAuthenticated) return null;
     try {
-      if (typeof getAccessTokenSilently === "function") {
-        const token = await getAccessTokenSilently();
-        if (token) headers.Authorization = `Bearer ${token}`;
-      }
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+      return token || null;
     } catch (err) {
-      console.debug("NotificationsContext: no se obtuvo token (buildHeaders)", err);
+      console.debug('NotificationsContext: sin token Auth0', err?.message || err);
+      return null;
     }
-    return headers;
-  }, [getAccessTokenSilently]);
+  }, [getAccessTokenSilently, isAuthenticated]);
 
-  // Fetch de notificaciones (robusto: no reduce baseline)
-  const fetchNotificaciones = useCallback(async () => {
-    // Si USE_AUTH exige autenticación y no está autenticado -> limpiar y salir
-    if (USE_AUTH && !isAuthenticated) {
-      setNotificaciones((prev) => prev || []);
-      setLoading(false);
-      return;
-    }
+  // --- toast API (§5) ------------------------------------------------------
+  const toast = useMemo(() => {
+    const emit = (variant) => (message, options = {}) =>
+      enqueueSnackbar(message, { variant, ...options });
 
+    return {
+      success: emit('success'),
+      error: emit('error'),
+      warning: emit('warning'),
+      info: emit('info'),
+      default: emit('default'),
+    };
+  }, [enqueueSnackbar]);
+
+  // --- refresh (GET /api/notificaciones/mine) ------------------------------
+  const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const headers = await buildHeaders();
-      // solicitamos por email (igual que tenías)
-      const url = `${STRAPI}/api/notificaciones?populate=usuario&filters[usuario][email][$eq]=${encodeURIComponent(
-        user?.email ?? ""
-      )}&pagination[limit]=100`;
-      const res = await axios.get(url, { headers });
-
-      const items = res.data?.data ?? [];
-
-      // Si server responde items > 0 -> reemplazamos la lista para mantener datos completos
-      // Si responde vacío -> NO sobrescribimos la lista local (para evitar "desaparición")
-      if (Array.isArray(items) && items.length > 0) {
-        setNotificaciones(items);
-      } else {
-        // no reemplazamos con vacío; mantenemos lo que teníamos
-        setNotificaciones((prev) => (Array.isArray(prev) ? prev : []));
-      }
-
-      // calculamos unread desde server items (si items vacíos -> 0)
-      const serverUnread = computeUnreadFromItems(items);
-      // baseline solo sube, nunca baja por fetch
-      setBaselineUnread((prev) => Math.max(prev || 0, serverUnread || 0));
+      const token = await getToken();
+      const res = await fetchNotifications(token);
+      // El servidor es la verdad: reemplazamos la lista completa.
+      const items = normalizeNotifications(res?.data ?? []);
+      setNotifications(items);
+      return items;
     } catch (err) {
-      console.error("NotificationsContext.fetchNotificaciones error:", err);
+      console.error('NotificationsContext.refresh error', err);
+      // En error NO borramos lo que ya tenemos en memoria.
       setError(err?.message || String(err));
-      // No limpiamos notificaciones en caso de error: mantenemos estado local
+      return null;
     } finally {
       setLoading(false);
     }
-  }, [STRAPI, user, isAuthenticated, buildHeaders]);
+  }, [getToken]);
 
-  // pushNotification: inserta optimista y dispara refresh agrupado
-  const pushNotification = useCallback(
-    (payload) => {
-      const normalized = {
-        id: payload?.id ?? `notif_${Date.now()}`,
-        attributes: {
-          titulo: payload?.title ?? payload?.titulo ?? "Notificación",
-          mensaje:
-            payload?.message ?? payload?.body ?? JSON.stringify(payload).slice(0, 500),
-          leida: false,
-          createdAt: payload?.createdAt ?? new Date().toISOString(),
-        },
-        payload,
-      };
+  // --- fetchById (§16): local primero, luego backend ------------------------
+  const fetchById = useCallback(
+    async (id) => {
+      if (id === null || id === undefined || id === '') return null;
 
-      // inserción optimista (no removemos prev)
-      setNotificaciones((prev) => {
-        // Evitamos duplicados por id
-        const exists = Array.isArray(prev) && prev.some((p) => p.id === normalized.id);
-        if (exists) return prev;
-        return [normalized, ...(Array.isArray(prev) ? prev : [])];
-      });
-
-      // incrementa optimista
-      optimisticRef.current = optimisticRef.current + 1;
-
-      // actualiza baseline visible mínimamente (para que el UI suba inmediatamente)
-      setBaselineUnread((prev) => (prev || 0) + 1);
-
-      // Debounced refresh: agrupa múltiples notifs en 800ms
-      if (!pendingRefreshRef.current) {
-        pendingRefreshRef.current = true;
-        setTimeout(async () => {
-          pendingRefreshRef.current = false;
-          try {
-            await fetchNotificaciones();
-            // una vez fetch termine, reseteamos optimista porque server confirma
-            optimisticRef.current = 0;
-          } catch (e) {
-            // si falló el fetch, mantenemos optimista (no lo reducimos)
-            console.warn("NotificationsContext: fetch after push failed:", e);
-          }
-        }, 800);
-      }
-    },
-    [fetchNotificaciones]
-  );
-
-  // markAsRead: llamado desde UI para marcar notifs como leídas
-  // ids: array o single id
-  const markAsRead = useCallback(
-    async (ids) => {
-      const idArray = Array.isArray(ids) ? ids : [ids];
-      if (idArray.length === 0) return;
+      const local = notificationsRef.current.find((n) => String(n?.id) === String(id));
+      if (local) return local;
 
       try {
-        const headers = await buildHeaders();
-        // Intentamos actualizar en backend (uno a uno o en batch según tu API)
-        // Aquí hacemos peticiones individuales por compatibilidad
-        await Promise.all(
-          idArray.map((id) =>
-            axios.put(
-              `${STRAPI}/api/notificaciones/${id}`,
-              { data: { leida: true } },
-              { headers }
-            )
-          )
-        );
+        const token = await getToken();
+        const res = await fetchNotificationById(id, token);
+        const notification = normalizeNotification(res?.data);
 
-        // Actualizamos localmente: marcamos como leida y reducimos baseline
-        setNotificaciones((prev) =>
-          (prev || []).map((n) =>
-            idArray.includes(n.id) ? { ...n, attributes: { ...n.attributes, leida: true } } : n
-          )
-        );
-
-        // Reducimos baseline en la cantidad marcada (no permitir negative)
-        setBaselineUnread((prev) => Math.max(0, (prev || 0) - idArray.length));
+        if (notification) {
+          setNotifications((prev) => upsertNotification(prev, notification));
+        }
+        return notification || null;
       } catch (err) {
-        console.error("NotificationsContext.markAsRead error:", err);
-        // no forzamos cambios locales si falla; podrías marcar local y revertir si falla
+        console.error('NotificationsContext.fetchById error', err);
+        return null;
       }
     },
-    [STRAPI, buildHeaders]
+    [getToken]
   );
 
-  // socket centralizado (si hay URL)
+  // --- send (§10/§21): persiste en backend y emite por socket ---------------
+  const send = useCallback(
+    async (payload = {}) => {
+      const clean = validateSendPayload(payload);
+
+      const token = await getToken();
+      const res = await sendNotification(clean, token);
+
+      const created = normalizeNotification(res?.data);
+      if (created) {
+        // Ya viene del backend: la insertamos en el estado (sin refresh extra).
+        setNotifications((prev) => upsertNotification(prev, created));
+      }
+
+      return created;
+    },
+    [getToken]
+  );
+
+  // --- markAsRead (§19): optimista -> request -> resincroniza si falla ------
+  const markAsRead = useCallback(
+    async (idOrIds, read = true) => {
+      const ids = (Array.isArray(idOrIds) ? idOrIds : [idOrIds]).filter(
+        (id) => id !== null && id !== undefined && id !== ''
+      );
+      if (ids.length === 0) return;
+
+      // 1) cambio visual inmediato (optimista)
+      setNotifications((prev) =>
+        ids.reduce((acc, id) => markNotificationReadInList(acc, id, read), prev)
+      );
+
+      try {
+        const token = await getToken();
+        await Promise.all(ids.map((id) => markNotificationAsRead(id, token, read)));
+      } catch (err) {
+        console.error('NotificationsContext.markAsRead error', err);
+        // El backend no confirmó -> volvemos a la verdad del servidor.
+        await refresh();
+      }
+    },
+    [getToken, refresh]
+  );
+
+  const markAsUnread = useCallback((id) => markAsRead(id, false), [markAsRead]);
+
+  // --- markAllAsRead (§20): endpoint masivo del backend --------------------
+  const markAllAsRead = useCallback(async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
+    try {
+      const token = await getToken();
+      await markAllNotificationsAsRead(token);
+    } catch (err) {
+      console.error('NotificationsContext.markAllAsRead error', err);
+      await refresh();
+    }
+  }, [getToken, refresh]);
+
+  // --- socket ÚNICO (§6, §7, §15) ------------------------------------------
   useEffect(() => {
     if (!SOCKET_URL) {
-      console.debug("NotificationsContext: no SOCKET_URL configurado, no se inicializa socket.");
-      return;
+      console.debug('NotificationsContext: sin SOCKET_URL, no se conecta el socket');
+      return undefined;
     }
+    if (!isAuthenticated) return undefined;
 
-    // Si USE_AUTH requiere auth y no estamos autenticados, no conectamos
-    if (USE_AUTH && !isAuthenticated) {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-      return;
-    }
+    const socket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
+      timeout: 4000,
+      // Token fresco en cada (re)conexión: el backend lo valida contra Auth0 y
+      // decide el room con eso (el cliente no manda "en confianza" quién es).
+      auth: (cb) => {
+        getToken().then((token) => cb({ token }));
+      },
+    });
+    socketRef.current = socket;
 
-    let mounted = true;
+    const handleConnect = async () => {
+      const token = await getToken();
+      // Nos registramos en "nuestro" room en CADA conexión (incluye reconexiones).
+      socket.emit('register', { token, email: user?.email || null });
+    };
 
-    (async () => {
-      try {
-        const token =
-          USE_AUTH && typeof getAccessTokenSilently === "function"
-            ? await (async () => {
-                try {
-                  return await getAccessTokenSilently();
-                } catch {
-                  return null;
-                }
-              })()
-            : null;
+    const handleNotification = (raw) => {
+      const notification = normalizeNotification(raw);
+      if (!notification) return;
 
-        const opts = {
-          transports: ["websocket"],
-          reconnection: true,
-          reconnectionAttempts: 3,       // no reintentar infinitamente
-          reconnectionDelay: 2000,
-          reconnectionDelayMax: 5000,
-          timeout: 4000,
-        };
-        if (token) opts.auth = { token };
+      // 1) normaliza  2) upsert por id (sin duplicar)  3) el contador se
+      // recalcula solo desde la lista  4) toast.
+      setNotifications((prev) => upsertNotification(prev, notification));
 
-        // desconectar previo
-        if (socketRef.current) {
-          socketRef.current.disconnect();
-          socketRef.current = null;
-        }
+      enqueueRef.current(
+        notification.title || notification.message || 'Nueva notificación',
+        { variant: 'info' }
+      );
+      // Sin refresh(): ya llegó completa y además evita requests innecesarios (§15).
+    };
 
-        const socket = io(SOCKET_URL, opts);
-        socketRef.current = socket;
-
-        socket.on("connect", () =>
-          console.debug("NotificationsContext socket conectado", socket.id)
-        );
-        socket.on("connect_error", (err) =>
-          console.debug("NotificationsContext socket connect_error (socket no disponible):", err?.message || err)
-        );
-        socket.on("disconnect", () =>
-          console.debug("NotificationsContext socket desconectado")
-        );
-        socket.io.on("reconnect_failed", () =>
-          console.debug("NotificationsContext socket: reintentos agotados, se desconecta silenciosamente")
-        );
-
-        socket.on("notification", (data) => {
-          if (!mounted) return;
-          console.debug("NotificationsContext socket notification:", data);
-          pushNotification(data);
-        });
-      } catch (err) {
-        console.error("NotificationsContext socket init error:", err);
-      }
-    })();
+    socket.on('connect', handleConnect);
+    socket.on('notification', handleNotification);
 
     return () => {
-      mounted = false;
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      // Cleanup explícito: sin listeners ni sockets duplicados (§6, Caso 7).
+      socket.off('connect', handleConnect);
+      socket.off('notification', handleNotification);
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, [SOCKET_URL, isAuthenticated, getAccessTokenSilently, pushNotification]);
+  }, [SOCKET_URL, isAuthenticated, getToken, user?.email]);
 
-  // fetch inicial cuando cambia auth/user
+  // --- carga inicial --------------------------------------------------------
   useEffect(() => {
-    // Si USE_AUTH y no authenticated -> limpia
-    if (USE_AUTH && !isAuthenticated) {
-      setNotificaciones([]);
-      setBaselineUnread(0);
+    if (!isAuthenticated) {
+      setNotifications([]);
       setLoading(false);
       return;
     }
-    fetchNotificaciones();
-  }, [isAuthenticated, user, fetchNotificaciones]);
+    refresh();
+  }, [isAuthenticated, refresh]);
 
-  // displayed unread: max(baseline, unreadFromList) + optimistic
-  const unreadFromList = useMemo(() => computeUnreadFromItems(notificaciones), [notificaciones]);
-  const displayedUnread =
-    Math.max(baselineUnread || 0, unreadFromList || 0) + (optimisticRef.current || 0);
+  // La fuente de verdad de "no leídas" es la propia lista (§13): sin
+  // baselineUnread / optimisticRef / unreadFromList.
+  const unreadCount = useMemo(() => countUnread(notifications), [notifications]);
 
-  const value = {
-    notificaciones,
-    loading,
-    error,
-    // números
-    baselineUnread,
-    unreadFromList,
-    unreadCount: displayedUnread, // valor listo para UI
-    // acciones
-    refreshNotificaciones: fetchNotificaciones,
-    markAsRead,
-    pushNotification,
-  };
+  const value = useMemo(
+    () => ({
+      notifications,
+      unreadCount,
+      loading,
+      error,
 
-  return (
-    <NotificationsContext.Provider value={value}>
-      {children}
-    </NotificationsContext.Provider>
+      toast,
+      send,
+
+      refresh,
+      fetchById,
+      markAsRead,
+      markAsUnread,
+      markAllAsRead,
+
+      // legacy alias - migrate gradually (§23)
+      notificaciones: notifications,
+      refreshNotificaciones: refresh,
+      fetchNotificationById: fetchById,
+    }),
+    [
+      notifications,
+      unreadCount,
+      loading,
+      error,
+      toast,
+      send,
+      refresh,
+      fetchById,
+      markAsRead,
+      markAsUnread,
+      markAllAsRead,
+    ]
   );
+
+  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;
 };
