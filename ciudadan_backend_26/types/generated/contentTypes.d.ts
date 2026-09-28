@@ -4413,6 +4413,7 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
     skydropx_rate: Attribute.JSON;
     delivery_contact_information: Attribute.JSON;
     pickup_contact_information: Attribute.JSON;
+    monto_subtotal: Attribute.Decimal & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

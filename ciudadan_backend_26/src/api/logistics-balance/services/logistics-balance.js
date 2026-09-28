@@ -1,7 +1,6 @@
 'use strict';
 
 // logistics-balance service
-// @ts-ignore
 const { createCoreService } = require("@strapi/strapi").factories;
 
 const BALANCE_UID = "api::logistics-balance.logistics-balance";
@@ -16,7 +15,6 @@ function parseAmount(value, fieldName = "amount") {
 
   if (!Number.isFinite(amount)) {
     const error = new Error(`${fieldName} debe ser un número válido`);
-    // @ts-ignore
     error.status = 400;
     throw error;
   }
@@ -32,7 +30,7 @@ function parsePositiveAmount(value, fieldName = "amount") {
 
   if (amount <= 0) {
     const error = new Error(`${fieldName} debe ser mayor que cero`);
-    // @ts-ignore
+    
     error.status = 400;
     throw error;
   }
@@ -82,7 +80,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   async getBalance(storeId, options = {}) {
     if (!storeId) {
       const error = new Error("storeId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -151,14 +149,14 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   }) {
     if (!storeId) {
       const error = new Error("storeId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
 
     if (!orderId) {
       const error = new Error("orderId es requerido para reservar saldo");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -167,7 +165,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
     if (!idempotencyKey) {
       const error = new Error("idempotencyKey es requerido para reservar saldo");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -218,7 +216,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
         // Si fue cancelada anteriormente, permitimos una nueva operación únicamente si el caller proporciona otra idempotencyKey.
         const error = new Error(`Ya existe una transacción con idempotencyKey ${idempotencyKey} en estado ${existingTransaction.status}`);
 
-        // @ts-ignore
+        
         error.status = 409;
 
         throw error;
@@ -263,7 +261,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
       if (balance.status !== "active") {
         const error = new Error("El saldo de logística de la tienda está bloqueado");
 
-        // @ts-ignore
+        
         error.status = 409;
 
         throw error;
@@ -297,7 +295,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
       if (updatedRows !== 1) {
         const error = new Error("Saldo de logística insuficiente");
 
-        // @ts-ignore
+        
         error.status = 400;
         throw error;
       }
@@ -377,14 +375,14 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   async commitShipmentCharge({ transactionId, shipmentId, externalReference = null, metadata = null, }) {
     if (!transactionId) {
       const error = new Error("transactionId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
 
     if (!shipmentId) {
       const error = new Error("shipmentId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -403,7 +401,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (!transaction) {
         const error = new Error("Transacción de logística no encontrada");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
@@ -424,7 +422,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (transaction.status !== "pending") {
         const error = new Error(`La transacción no puede confirmarse porque está en estado ${transaction.status}`);
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -447,7 +445,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (!balance) {
         const error = new Error("No se encontró el balance de logística");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
@@ -456,7 +454,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (reservedBefore < amount) {
         const error = new Error("El saldo reservado es menor al importe de la transacción");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -477,7 +475,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (updatedRows !== 1) {
         const error = new Error("No fue posible liberar el saldo reservado");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -534,7 +532,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   async releaseShipmentReservation({ transactionId, reason = "No fue posible crear el envío en Skydropx", metadata = null, }) {
     if (!transactionId) {
       const error = new Error("transactionId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -551,7 +549,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (!transaction) {
         const error = new Error("Transacción de logística no encontrada");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
@@ -573,14 +571,14 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
       // Si ya fue consumida, no podemos liberarla.
       if (transaction.status === "completed") {
         const error = new Error("La reserva ya fue consumida y no puede liberarse");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
 
       if (transaction.status !== "pending") {
         const error = new Error(`La transacción no puede liberarse porque está en estado ${transaction.status}`);
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -602,7 +600,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (!balance) {
         const error = new Error("No se encontró el balance de logística");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
@@ -624,7 +622,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (updatedRows !== 1) {
         const error = new Error("No fue posible liberar el saldo reservado");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -668,6 +666,169 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   },
 
   // =========================================================
+  // REFUND SHIPMENT CHARGE
+  // =========================================================
+
+  /**
+   * Reembolsa el cargo de un envío cuando Skydropx reporta el shipment como cancelado o devuelto.
+   *
+   * - Busca la transacción shipment_charge completada por shipmentId.
+   * - Crea una transacción tipo refund.
+   * - Regresa el importe al saldo disponible.
+   * - Marca la transacción original como reversed.
+   *
+   * Idempotente: si ya existe un refund para ese shipment, no hace nada.
+   */
+  async refundShipmentCharge({ shipmentId, reason = "Envío cancelado o devuelto", metadata = null, }) {
+    if (!shipmentId) {
+      const error = new Error("shipmentId es requerido");
+      
+      error.status = 400;
+      throw error;
+    }
+
+    const trx = await strapi.db.connection.transaction();
+
+    try {
+      // -----------------------------------------------------
+      // Idempotencia: ¿ya existe un refund para este shipment?
+      // -----------------------------------------------------
+      const existingRefund = await strapi.db
+        .query(TRANSACTION_UID)
+        .findOne({
+          where: {
+            type: "refund",
+            shipment: String(shipmentId),
+          },
+          transacting: trx,
+        });
+
+      if (existingRefund) {
+        await trx.commit();
+
+        return {
+          success: true,
+          alreadyRefunded: true,
+          transaction: existingRefund,
+        };
+      }
+
+      // -----------------------------------------------------
+      // Buscar el cargo original
+      // -----------------------------------------------------
+      const charge = await strapi.db
+        .query(TRANSACTION_UID)
+        .findOne({
+          where: {
+            type: "shipment_charge",
+            shipment: String(shipmentId),
+            status: "completed",
+          },
+          transacting: trx,
+        });
+
+      if (!charge) {
+        // No hay cargo completado (quizá nunca se confirmó).
+        // No es un error fatal: simplemente no hay nada que reembolsar.
+        await trx.commit();
+
+        return {
+          success: true,
+          alreadyRefunded: false,
+          nothingToRefund: true,
+        };
+      }
+
+      const amount = parsePositiveAmount(charge.amount, "charge.amount");
+
+      const storeId = charge.store?.id ?? charge.store;
+
+      const balance = await strapi.db
+        .query(BALANCE_UID)
+        .findOne({
+          where: { store: storeId },
+          transacting: trx,
+        });
+
+      if (!balance) {
+        const error = new Error("No se encontró el balance de logística");
+        
+        error.status = 404;
+        throw error;
+      }
+
+      // -----------------------------------------------------
+      // 1. Regresar el importe al saldo disponible
+      // -----------------------------------------------------
+      await trx(BALANCE_TABLE)
+        .where({ id: balance.id })
+        .update({
+          available_balance: trx.raw("available_balance + ?", [amount]),
+          last_transaction_at: new Date(),
+        });
+
+      // -----------------------------------------------------
+      // 2. Crear transacción de reembolso
+      // -----------------------------------------------------
+      const refundTransaction = await strapi.db
+        .query(TRANSACTION_UID)
+        .create({
+          data: {
+            store: storeId,
+            type: "refund",
+            amount,
+            status: "completed",
+            balanceBefore: Number(balance.availableBalance ?? 0),
+            balanceAfter: Number(balance.availableBalance ?? 0) + amount,
+            shipment: String(shipmentId),
+            externalReference: charge.externalReference ?? String(shipmentId),
+            transactionReference: generateTransactionReference("refund"),
+            description: `Reembolso de envío ${shipmentId}: ${reason}`,
+            metadata: {
+              ...(metadata ?? {}),
+              original_transaction_id: charge.id,
+              reason,
+            },
+            completedAt: new Date(),
+          },
+          transacting: trx,
+        });
+
+      // -----------------------------------------------------
+      // 3. Marcar el cargo original como reversed
+      // -----------------------------------------------------
+      await strapi.db
+        .query(TRANSACTION_UID)
+        .update({
+          where: { id: charge.id },
+          data: {
+            status: "reversed",
+            metadata: {
+              ...(charge.metadata ?? {}),
+              refunded_at: new Date().toISOString(),
+              refund_transaction_id: refundTransaction.id,
+              refund_reason: reason,
+            },
+          },
+          transacting: trx,
+        });
+
+      await trx.commit();
+
+      return {
+        success: true,
+        alreadyRefunded: false,
+        transaction: refundTransaction,
+        amount,
+      };
+
+    } catch (error) {
+      await trx.rollback();
+      throw error;
+    }
+  },
+
+  // =========================================================
   // CREATE DEPOSIT
   // =========================================================
 
@@ -693,7 +854,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   }) {
     if (!storeId) {
       const error = new Error("storeId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -790,7 +951,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   }) {
     if (!transactionId) {
       const error = new Error("transactionId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -813,14 +974,14 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (!transaction) {
         const error = new Error("Transacción de depósito no encontrada");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
 
       if (transaction.type !== "deposit") {
         const error = new Error("La transacción no es un depósito");
-        // @ts-ignore
+        
         error.status = 400;
         throw error;
       }
@@ -837,7 +998,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (transaction.status !== "pending") {
         const error = new Error(`El depósito no puede aprobarse porque está en estado ${transaction.status}`);
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -848,7 +1009,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if(!storeId){
         const error = new Error("Tienda no localizada.");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
@@ -885,7 +1046,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (balance.status !== "active") {
         const error = new Error("El saldo de logística está bloqueado");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -908,7 +1069,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (updatedRows !== 1) {
         const error = new Error("No fue posible agregar el depósito al saldo");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -974,7 +1135,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   }) {
     if (!transactionId) {
       const error = new Error("transactionId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -993,14 +1154,14 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (!transaction) {
         const error = new Error("Transacción no encontrada");
-        // @ts-ignore
+        
         error.status = 404;
         throw error;
       }
 
       if (transaction.type !== "deposit") {
         const error = new Error("La transacción no es un depósito");
-        // @ts-ignore
+        
         error.status = 400;
         throw error;
       }
@@ -1017,7 +1178,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (transaction.status !== "pending") {
         const error = new Error(`El depósito no puede rechazarse porque está en estado ${transaction.status}`);
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -1083,7 +1244,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
   }) {
     if (!storeId) {
       const error = new Error("storeId es requerido");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -1092,14 +1253,14 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
     if (adjustmentAmount === 0) {
       const error = new Error("El ajuste no puede ser cero");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
 
     if (!description || !String(description).trim()) {
       const error = new Error("La descripción es obligatoria para realizar un ajuste");
-      // @ts-ignore
+      
       error.status = 400;
       throw error;
     }
@@ -1163,7 +1324,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (balance.status !== "active") {
         const error = new Error("El saldo de logística está bloqueado");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }
@@ -1178,7 +1339,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (availableAfter < 0) {
         const error = new Error("El ajuste produciría un saldo disponible negativo");
-        // @ts-ignore
+        
         error.status = 400;
         throw error;
       }
@@ -1208,7 +1369,7 @@ module.exports = createCoreService(BALANCE_UID, ({ strapi }) => ({
 
       if (updatedRows !== 1) {
         const error = new Error("No fue posible aplicar el ajuste al saldo");
-        // @ts-ignore
+        
         error.status = 409;
         throw error;
       }

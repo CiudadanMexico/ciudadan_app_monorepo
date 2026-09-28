@@ -164,6 +164,10 @@
     },
     "pickup_contact_information": {
       "type": "json"
+    },
+    "monto_subtotal": {
+      "type": "decimal",
+      "default": 0
     }
   }
 }
