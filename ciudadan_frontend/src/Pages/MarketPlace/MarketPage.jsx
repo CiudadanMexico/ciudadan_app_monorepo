@@ -18,11 +18,10 @@ import {
   Grid,
   Container,
   Typography,
-  TextField,
-  useMediaQuery,
-  useTheme,
-  Pagination,
+  IconButton,
   Skeleton,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
@@ -59,6 +58,7 @@ export default function MarketPage() {
   // Filter states
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [storeTypeFilter, setStoreTypeFilter] = useState('all');
   const [advancedFilters, setAdvancedFilters] = useState({ applied: false, priceRange: [0, 100], selectedBrand: '', selectedStore: '' });
   const [enableClearSearch, setEnableClearSearch] = useState(false);
 
@@ -118,49 +118,61 @@ export default function MarketPage() {
 
   const handleGetProducts = async (page = 1, perPage = 10, categoryFetch = '', searchFetch = '', advancedFilters = { applied: false, priceRange: [0, 100], selectedBrand: '', selectedStore: '' }) => {
     try {
-      const requestParams = {
-        'pagination[page]': page,
-        'pagination[pageSize]': perPage,
-      }
-      if (categoryFetch)
+      let requestParams = {};
+
+      if (categoryFetch) {
         requestParams['filters[store_category][slug][$eq]'] = categoryFetch;
+      }
 
       if (searchFetch) {
-        requestParams['filters[$or][0][nombre][$containsi]'] = searchFetch;
-        requestParams['filters[$or][1][descripcion][$containsi]'] = searchFetch;
+        requestParams['filters[$or][0][descripcion][$containsi]'] = searchFetch;
+        requestParams['filters[$or][1][nombre][$containsi]'] = searchFetch;
+        requestParams['filters[$or][2][marca][$containsi]'] = searchFetch;
       }
 
-      const { applied, priceRange: [firstPriceRange, secondPriceRange], selectedBrand, selectedStore } = advancedFilters;
-      if (applied) {
-        if (firstPriceRange !== 0) {
-          requestParams['filters[precio][$gte]'] = firstPriceRange;
+      if (advancedFilters.applied) {
+        if (advancedFilters.priceRange[0] !== 0) {
+          requestParams['filters[precio][$gte]'] = advancedFilters.priceRange[0];
         }
-        if (secondPriceRange !== 100) {
-          requestParams['filters[precio][$lte]'] = secondPriceRange;
+        if (advancedFilters.priceRange[1] !== 100) {
+          requestParams['filters[precio][$lte]'] = advancedFilters.priceRange[1];
         }
-        if (selectedBrand) {
-          requestParams['filters[marca][$eq]'] = selectedBrand;
+        if (advancedFilters.selectedBrand) {
+          requestParams['filters[marca][$containsi]'] = advancedFilters.selectedBrand;
         }
-        if (selectedStore) {
-          requestParams['filters[store][name][$eq]'] = selectedStore;
+        if (advancedFilters.selectedStore) {
+          requestParams['filters[store][slug][$eq]'] = advancedFilters.selectedStore;
         }
+      }
+
+      if (storeTypeFilter === 'official') {
+        requestParams['filters[store][isOfficial][$eq]'] = true;
+      } else if (storeTypeFilter === 'unofficial') {
+        requestParams['filters[store][isOfficial][$eq]'] = false;
       }
 
       const responseProducts = await getProducts(requestParams, () => console.log("<- Success fetch products ->"));
-      const { data, meta } = responseProducts;
-      if (isNewSearchRef.current) {
-        setProducts(data ?? []);
-        isNewSearchRef.current = false;
+      
+      if (responseProducts?.data) {
+        const items = responseProducts.data;
+        const meta = responseProducts.meta || {};
+        
+        const enriched = await Promise.all(items.map(async (p) => {
+          const enrichedData = await enrichProduct(p);
+          return { ...p, ...enrichedData };
+        }));
+        
+        setProducts(enriched);
+        setHasMore(items.length === meta?.pagination?.pageSize);
       } else {
-        setProducts(prev => [...prev, ...(data ?? [])]);
+        setProducts([]);
+        setHasMore(false);
       }
-      setHasMore(meta?.pagination?.page < meta.pagination.pageCount);
-      (data ?? []).forEach((product) => enrichProduct(product));
     } catch (error) {
       console.error("Error on handleGetProducts:", error);
+      setErrorProductos("Hubo un error al cargar los productos.");
     } finally {
-      requestingNextPage.current = false;
-      setLoadingProducts(prev => prev ? false : prev);
+      setLoadingProducts(false);
     }
   };
 
@@ -196,7 +208,7 @@ export default function MarketPage() {
     setHasMore(true);
     isNewSearchRef.current = true;
     setPagina(v => v !== 1 ? 1 : v);
-  }, [search, selectedCategory, filtersKey]);
+  }, [search, selectedCategory, filtersKey, storeTypeFilter]);
   // Cargar productos
   useEffect(() => {
     if (!ubicacion?.codigoPostal) {
@@ -209,7 +221,7 @@ export default function MarketPage() {
     setErrorProductos(null);
 
     handleGetProducts(pagina, porPagina, selectedCategory, search, advancedFilters);
-  }, [ubicacion?.codigoPostal, pagina, porPagina, search, selectedCategory, filtersKey]);
+  }, [ubicacion?.codigoPostal, pagina, porPagina, search, selectedCategory, filtersKey, storeTypeFilter]);
 
   useEffect(() => {
     if (observerRef.current) {
@@ -296,6 +308,20 @@ export default function MarketPage() {
             initializeClearSearch={() => setEnableClearSearch(false)}
           />
         </Box>
+      </Box>
+
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs 
+          value={storeTypeFilter} 
+          onChange={(e, newValue) => setStoreTypeFilter(newValue)} 
+          variant="fullWidth"
+          textColor="primary"
+          indicatorColor="primary"
+        >
+          <Tab label="Todos" value="all" />
+          <Tab label="Tiendas oficiales" value="official" />
+          <Tab label="Tiendas no oficiales" value="unofficial" />
+        </Tabs>
       </Box>
 
       {

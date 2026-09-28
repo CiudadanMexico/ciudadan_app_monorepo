@@ -5652,6 +5652,13 @@ export interface ApiStoreStore extends Schema.CollectionType {
       'oneToMany',
       'api::logistics-transaction.logistics-transaction'
     >;
+    isOfficial: Attribute.Boolean &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
