@@ -992,6 +992,7 @@ const Rutas = () => {
     />
   </Routes>
 );
+};
 
 export default Rutas;
 

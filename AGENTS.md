@@ -1,5 +1,67 @@
 # AGENTS.md — Ciudadan Platform
 
+## ⚠️ ENTORNO EXCLUSIVO DEL AGENT 01
+
+Este workspace pertenece exclusivamente al **Agent 01** (`D:\CiudadanMX\agents\agent-01`). Reglas obligatorias:
+
+1. Trabajar **únicamente** en la rama `agent/01`.
+2. **No cambiar** a `main`.
+3. **No cambiar** a branches de Agent 02 (p. ej. `agent/02`).
+4. **No acceder ni modificar** el workspace de Agent 02 (`D:\CiudadanMX\agents\agent-02`).
+5. **No ejecutar** `git reset --hard` sin autorización explícita del usuario.
+6. **Revisar `git diff`** antes de cada commit.
+7. **Ejecutar las pruebas correspondientes** antes de finalizar cada tarea.
+8. **Mantener los cambios** relacionados únicamente con la tarea solicitada.
+9. **No modificar configuraciones del entorno principal** (`D:\CiudadanMX\ciudadan_app_monorepo`, XAMPP, MariaDB `ciudadan`, ni los stacks de otros agentes).
+
+### Infraestructura de este agente (React + Strapi + SQLite)
+
+| Servicio | URL en el host | Dentro del contenedor |
+|---|---|---|
+| React (dev) | http://localhost:3011 | puerto 3000 |
+| Strapi (admin/API) | http://localhost:33411 | puerto 1337 |
+
+- Compose: `D:\CiudadanMX\agents\agent-01\docker-compose.yml` (solo `strapi` + `frontend`).
+- Base de datos: **SQLite exclusiva** de este agente, en el volumen Docker `ciudadan_agent01_strapi_data` (archivo `/app/.tmp/data.db` del contenedor). **Prohibido** usar MariaDB/MySQL, `127.0.0.1:3307` o tocar XAMPP.
+- Uploads: volumen exclusivo `ciudadan_agent01_uploads`.
+- El frontend debe apuntar siempre a `REACT_APP_STRAPI_URL=http://localhost:33411` (`ciudadan_frontend/.env`).
+- El código de este workspace está montado en los contenedores (hot reload). Los `node_modules` viven en volúmenes Docker propios: si se cambia `package.json`, reinstalar con `docker compose exec strapi npm install` (o `... exec frontend npm install`); nunca sobrescribir los del host.
+- **No levantar** Vendure, Socket, Middleware ni PostgreSQL.
+- Comandos (desde `D:\CiudadanMX\agents\agent-01`): `docker compose up -d` (iniciar), `docker compose down` (detener), `docker compose logs -f` (logs), `docker compose ps` (estado).
+
+### Cómo actualizar este entorno desde `main` (git pull)
+
+Para incorporar los últimos cambios de la rama `main` del repositorio remoto (GitHub) **sin salir de `agent/01`**:
+
+```bash
+# 1) Confirmar la rama actual (PROHIBIDO hacer checkout a main)
+git branch --show-current          # debe imprimir: agent/01
+
+# 2) Guardar el trabajo en curso ANTES de actualizar (obligatorio)
+git status
+git add -A
+git commit -m "wip: cambios del agente 01"     # alternativa: git stash
+
+# 3) Traer main e integrarla en agent/01 (merge sobre la propia rama)
+git fetch origin
+git merge origin/main             # equivale a: git pull origin main
+
+# 4) Si hay conflictos, resolver y cerrar el merge:
+#    - AGENTS.md: conservar SIEMPRE la sección "ENTORNO EXCLUSIVO DEL AGENT 01"
+#    - src/Routes/index.jsx: verificar que el cierre `};` de `const Rutas` siga presente
+git add <archivos-resueltos>
+git commit
+
+# 5) SOLO si cambió package.json / package-lock.json, reinstalar DENTRO del contenedor:
+docker compose exec strapi npm install      # ejecutar desde D:\CiudadanMX\agents\agent-01
+docker compose exec frontend npm install
+```
+
+Notas importantes:
+- El código está montado por bind mount: tras el merge, Strapi (`develop`) y React (`craco start`) **recargan solos**. Usa `docker compose restart` solo si cambiaron dependencias, Dockerfiles o `.env`.
+- La base SQLite (`ciudadan_agent01_strapi_data`) y los uploads **NO se ven afectados** por `git pull`.
+- Prohibido en esta operación: `git checkout main`, `git reset --hard`, rebase sin autorización, y cualquier cambio en `D:\CiudadanMX\ciudadan_app_monorepo` o en el entorno de Agent 02.
+
 Monorepo (plain git, no workspace tooling) for **Ciudadan**, a Spanish-language civic/community platform. Two subprojects, each with its own `package.json` and `.env`:
 
 - `ciudadan_backend_26/` — Strapi 4.25.9 headless CMS + REST/GraphQL API (Node 18)
