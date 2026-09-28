@@ -179,3 +179,33 @@ export const getTareasByTodo = (todoId, token = null) => {
     'No se pudieron cargar los usuarios ya asignados'
   );
 };
+
+// ── Cartera / TodoToken ─────────────────────────────────────────────────────
+// Tareas PUBLICADAS por el socio autenticado dentro de SU agencia, para la
+// pantalla "Mis tareas publicadas" (/coowork/mi-agencia/tareas).
+// El backend (/api/todos/mi-agencia) resuelve usuario, agencia y rol
+// server-side: aquí NO se envía ningún id como fuente de autoridad.
+// Respuesta: { ok, reason, meta: { agencia, rolPublicador, tieneAgencia, total }, data: [] }
+// `reason` = 'sin-agencia' | 'sin-rol-socio' cuando el usuario no puede administrar TodoToken.
+export const getMisTodosPublicados = (token = null) =>
+  fetchJson(
+    `${STRAPI_URL}/api/todos/mi-agencia`,
+    authHeaders(token),
+    'No se pudieron cargar tus tareas publicadas'
+  );
+
+// ── Cartera / Skill-Token ───────────────────────────────────────────────────
+// Habilidades (skills) asociadas al usuario, por email. Se usa la misma vía que
+// RolesContext (find de users + populate) porque el proyecto devuelve los
+// usuarios en formato plano (array), no como { data: { attributes } }.
+// Devuelve el array crudo de usuarios para que el componente normalice la
+// relación `skills` con tolerancia a ambas formas.
+export const getUserSkills = (email, token = null) => {
+  if (!email) return Promise.resolve([]);
+  return fetchJson(
+    `${STRAPI_URL}/api/users?filters[email][$eq]=${encodeURIComponent(email)}&populate[skills]=*&pagination[limit]=1`,
+    authHeaders(token),
+    'No se pudieron cargar tus habilidades'
+  );
+};
+
