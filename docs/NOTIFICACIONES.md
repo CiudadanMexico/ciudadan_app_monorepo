@@ -426,6 +426,11 @@ bash /home/ubuntu/runners/start-sessions.sh
 
 ### Manual en el navegador (los 7 casos)
 
+> **Estado: ✅ verificado el 2026-09-28** por pruebas manuales del equipo sobre
+> esta misma rama: toast, `send`, persistencia tras recarga, marcado individual
+> y masivo con el contador, carga directa en `/notificacion/:id` y
+> reconexiones sin duplicados → **todo OK**.
+
 1. Abre `https://frontend-adrianperez2.ciudadan.org/notificationtester` (inicia sesión).
 2. Botón **toast** → aviso arriba a la derecha, **no persiste**.
 3. Botón **send(...)** → toast de éxito, **sube el contador**, llega un toast con
@@ -447,7 +452,7 @@ bash /home/ubuntu/runners/start-sessions.sh
 node /tmp/test-notifica-route.js      # contrato /notifica, io simulado → 9/9
 node /tmp/test-notif-e2e.js           # A recibe, B NO (Caso 2)        → 7/7
 node /tmp/test-notif-seguridad.js     # token inválido no entra al room → 2/2
-node /tmp/test-notif-http.js "<ACCESS_TOKEN_AUTH0>"   # Casos 1/3/4/5 (pendiente)
+node /tmp/test-notif-http.js "<ACCESS_TOKEN_AUTH0>"   # Casos 1/3/4/5 (opcional, para regresión)
 ```
 
 > Los scripts viven en `/tmp` de la máquina de dev (fuera del repo); se
@@ -490,10 +495,10 @@ node /tmp/test-notif-http.js "<ACCESS_TOKEN_AUTH0>"   # Casos 1/3/4/5 (pendiente
 <a name="deuda"></a>
 ## 13. Deuda técnica conocida
 
-1. **Verificación del room con un token válido pendiente.** La identidad se
-   valida contra Strapi/Auth0 y está probada con token falso (403 y el cliente
-   **no** entra al room), pero falta correr `test-notif-http.js` con un token
-   real (Casos 1/3/4/5).
+1. **La verificación con token real ya se hizo** (2026-09-28, en navegador):
+   el cliente registra su room con el token de Auth0 y los Casos 1/3/4/5
+   funcionan. Falta **automatizarla**: `test-notif-http.js` no corre en CI
+   (vive en `/tmp` de la máquina de dev) — sirve para regresión.
 2. **`send()` no restringe quién puede notificar a quién**: cualquier usuario
    autenticado puede enviar a cualquier email. Falta autorización por dominio
    (p. ej. sólo agencias/admin pueden invitar).
