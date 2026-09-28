@@ -4425,9 +4425,10 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   attributes: {
     cuerpo: Attribute.Blocks;
     user_email: Attribute.String;
+    titulo: Attribute.String;
     usuario: Attribute.Relation<
       'api::notificacion.notificacion',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     timestamp: Attribute.DateTime;
@@ -4437,6 +4438,7 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
     link: Attribute.String;
     imagen: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     icono: Attribute.String;
+    meta: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
