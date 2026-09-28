@@ -94,6 +94,10 @@ import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
 import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
+import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
+import Identidad from '../Pages/Identidad.jsx';
+import Votaciones from '../Pages/Votaciones.jsx';
+import Objetos from '../Pages/Objetos.jsx';
 
 // Taxis (pasajero / conductor / trip)
 import Pasajero from '../components/Taxis/Pasajero.jsx';
@@ -618,56 +622,75 @@ const Rutas = () => {
         element={<PreRegistroConductor2 />}
       />
 
-      {/* Academia / Coowork */}
-      <Route
-        path='/academia'
-        element={<Rompecabezas />}
-      />
-      <Route
-        path='/academias'
-        element={<Academia />}
-      />
-      <Route
-        path='/academia/taxis'
-        element={<Academia />}
-      />
-      <Route
-        path='/coowork'
-        element={<Coowork />}
-      />
-      {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
-      <Route
-        path='/coowork/socio'
-        element={<Coowork />}
-      />
-      <Route
-        path='/asignar-tarea'
-        element={<AsignarTareaPage />}
-      />
-      <Route
-        path='/herramientas/mi-agencia'
-        element={<Agencia />}
-      />
-      <Route
-        path='/herramientas/calificar-tarea'
-        element={<CalificarTarea />}
-      />
-      <Route
-        path='/herramientas/corregir-tarea'
-        element={<CorregirTarea />}
-      />
-      <Route
-        path='/herramientas/gestionar-tareas'
-        element={<GestionTareas />}
-      />
-      <Route
-        path='/herramientas/resolver-apelaciones'
-        element={<ResolverApelaciones />}
-      />
-      <Route
-        path='/herramientas/agregar-tarea'
-        element={<AgregarTarea />}
-      />
+    {/* Academia / Coowork */}
+    <Route
+      path='/academia'
+      element={<Rompecabezas />}
+    />
+    <Route
+      path='/academias'
+      element={<Academia />}
+    />
+    <Route
+      path='/academia/taxis'
+      element={<Academia />}
+    />
+    <Route
+      path='/coowork'
+      element={<Coowork />}
+    />
+    {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
+    <Route
+      path='/coowork/socio'
+      element={<Coowork />}
+    />
+    {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
+    <Route
+      path='/coowork/mi-agencia/tareas'
+      element={<MiAgenciaTareas />}
+    />
+
+    {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
+    <Route
+      path='/identidad'
+      element={<Identidad />}
+    />
+    <Route
+      path='/votaciones'
+      element={<Votaciones />}
+    />
+    <Route
+      path='/objetos'
+      element={<Objetos />}
+    />
+    <Route
+      path='/asignar-tarea'
+      element={<AsignarTareaPage />}
+    />
+    <Route
+      path='/herramientas/mi-agencia'
+      element={<Agencia />}
+    />
+    <Route
+      path='/herramientas/calificar-tarea'
+      element={<CalificarTarea />}
+    />
+    <Route
+      path='/herramientas/corregir-tarea'
+      element={<CorregirTarea />}
+    />
+    <Route
+      path='/herramientas/gestionar-tareas'
+      element={<GestionTareas />}
+    />
+    <Route
+      path='/herramientas/resolver-apelaciones'
+      element={<ResolverApelaciones />}
+    />
+    <Route
+      path='/herramientas/agregar-tarea'
+      element={<AgregarTarea />}
+    />
 
       <Route
         path='/herramientas/asignar-tarea'
@@ -986,13 +1009,13 @@ const Rutas = () => {
         element={<MarketPlace />}
       />
 
-      <Route
-        path='/testoken'
-        element={<TestToken />}
-      />
-    </Routes>
-  )
-}
+    <Route
+      path='/testoken'
+      element={<TestToken />}
+    />
+  </Routes>
+  );
+};
 
 
 export default Rutas;

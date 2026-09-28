@@ -6194,7 +6194,7 @@ export interface ApiVerificationAuditItemVerificationAuditItem
       'manyToMany',
       'api::cars-evidence.cars-evidence'
     >;
-    external_verifications_reviewed: Attribute.Relation<
+    ext_verif_reviewed: Attribute.Relation<
       'api::verification-audit-item.verification-audit-item',
       'manyToMany',
       'api::external-verification.external-verification'

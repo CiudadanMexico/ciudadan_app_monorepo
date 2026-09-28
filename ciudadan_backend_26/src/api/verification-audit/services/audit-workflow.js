@@ -128,7 +128,7 @@ const submitAuditItem = async (
       check_key: checkKey,
       result,
       evidence_reviewed: evidenceIds || [],
-      external_verifications_reviewed: externalVerificationIds || [],
+      ext_verif_reviewed: externalVerificationIds || [],
       note: note || null,
     },
   });
