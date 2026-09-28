@@ -31,7 +31,7 @@
       "relation": "manyToMany",
       "target": "api::cars-evidence.cars-evidence"
     },
-    "external_verifications_reviewed": {
+    "ext_verif_reviewed": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "api::external-verification.external-verification"

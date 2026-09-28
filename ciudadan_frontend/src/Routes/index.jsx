@@ -94,6 +94,10 @@ import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
 import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
+import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
+import Identidad from '../Pages/Identidad.jsx';
+import Votaciones from '../Pages/Votaciones.jsx';
+import Objetos from '../Pages/Objetos.jsx';
 
 // Taxis (pasajero / conductor / trip)
 import Pasajero from '../components/Taxis/Pasajero.jsx';
@@ -640,6 +644,25 @@ const Rutas = () => {
       path='/coowork/socio'
       element={<Coowork />}
     />
+    {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
+    <Route
+      path='/coowork/mi-agencia/tareas'
+      element={<MiAgenciaTareas />}
+    />
+
+    {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
+    <Route
+      path='/identidad'
+      element={<Identidad />}
+    />
+    <Route
+      path='/votaciones'
+      element={<Votaciones />}
+    />
+    <Route
+      path='/objetos'
+      element={<Objetos />}
+    />
     <Route
       path='/asignar-tarea'
       element={<AsignarTareaPage />}
@@ -991,7 +1014,8 @@ const Rutas = () => {
       element={<TestToken />}
     />
   </Routes>
-);
+  );
+};
 
 export default Rutas;
 
