@@ -114,7 +114,10 @@ export default function SocioEstatalForm({
 
   const estadosResidencia = ESTADOS.map((value) => ({
     value,
+    // El backend rechaza CDMX y Estado de México como residencia de un socio estatal
+    // (ya están asignados), así que se marcan como no seleccionables.
     label: ASIGNADOS.includes(value) ? `${value} — asignado` : value,
+    disabled: ASIGNADOS.includes(value),
   }));
 
   async function submit(event) {
