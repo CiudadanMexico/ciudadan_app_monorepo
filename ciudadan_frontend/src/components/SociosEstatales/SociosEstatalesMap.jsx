@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -38,6 +39,7 @@ export default function SociosEstatalesMap({
   mapConfig = defaultSociosConfig,
 }) {
   const [selectedId, setSelectedId] = useState(normalizeRegionId(initialSelectedRegion));
+  const navigate = useNavigate();
 
   const dataMap = useMemo(() => {
     const map = {};
@@ -96,8 +98,13 @@ export default function SociosEstatalesMap({
     }
 
     const handleClick = () => {
+      const slug = activeMeta.slug;
+      // Por defecto se navega a la vista del estado; si el consumidor del
+      // componente entrega onCtaClick, se delega la decisión a él.
       if (onCtaClick) {
-        onCtaClick(activeMeta.slug, status, activeData);
+        onCtaClick(slug, status, activeData);
+      } else {
+        navigate(`/socios-estatales/${slug}`);
       }
     };
 

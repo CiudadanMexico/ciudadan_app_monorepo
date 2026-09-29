@@ -1,8 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import SociosEstatalesMap from './SociosEstatalesMap';
 import mxMeta from '../../data/geo/mx/states.meta.json';
 import sociosData from '../../data/maps/socios-estatales.json';
+
+
+const renderWithRouter = (ui) =>
+  render(<MemoryRouter>{ui}</MemoryRouter>);
 
 /**
  * Tests del wrapper de negocio Socios Estatales:
@@ -10,14 +15,14 @@ import sociosData from '../../data/maps/socios-estatales.json';
  */
 describe('SociosEstatalesMap — Wrapper de negocio', () => {
   it('renderiza el mapa con las 32 entidades y la ficha de CDMX por defecto', () => {
-    const { container } = render(<SociosEstatalesMap />);
+    const { container } = renderWithRouter(<SociosEstatalesMap />);
     expect(container.querySelectorAll('.geo-region').length).toBe(32);
     // CDMX viene seleccionada por defecto
     expect(screen.getAllByText('Ciudad de México').length).toBeGreaterThan(0);
   });
 
   it('el selector ofrece las 32 entidades federativas', async () => {
-    render(<SociosEstatalesMap />);
+    renderWithRouter(<SociosEstatalesMap />);
     const input = screen.getByPlaceholderText(/Escribe o selecciona un estado/i);
     fireEvent.mouseDown(input);
     const options = await screen.findAllByRole('option');
@@ -26,7 +31,7 @@ describe('SociosEstatalesMap — Wrapper de negocio', () => {
 
   it('seleccionar Tlaxcala (entidad pequena) desde el selector actualiza la ficha igual que el mapa', async () => {
     const onSelect = jest.fn();
-    const { container } = render(<SociosEstatalesMap onStateSelect={onSelect} />);
+    const { container } = renderWithRouter(<SociosEstatalesMap onStateSelect={onSelect} />);
 
     const input = screen.getByPlaceholderText(/Escribe o selecciona un estado/i);
     fireEvent.mouseDown(input);
@@ -43,7 +48,7 @@ describe('SociosEstatalesMap — Wrapper de negocio', () => {
 
   it('seleccionar Colima desde el selector actualiza la ficha (accesibilidad en entidades minimas)', async () => {
     const onSelect = jest.fn();
-    const { container } = render(<SociosEstatalesMap onStateSelect={onSelect} />);
+    const { container } = renderWithRouter(<SociosEstatalesMap onStateSelect={onSelect} />);
 
     const input = screen.getByPlaceholderText(/Escribe o selecciona un estado/i);
     fireEvent.mouseDown(input);
@@ -58,7 +63,7 @@ describe('SociosEstatalesMap — Wrapper de negocio', () => {
   });
 
   it('la ficha no muestra campos desconocidos: nunca NaN, $null ni 0 conductores falsos', () => {
-    const { container } = render(<SociosEstatalesMap />);
+    const { container } = renderWithRouter(<SociosEstatalesMap />);
     const texto = container.textContent;
     expect(texto).not.toMatch(/NaN/);
     expect(texto).not.toMatch(/\$null/);
@@ -68,19 +73,19 @@ describe('SociosEstatalesMap — Wrapper de negocio', () => {
   });
 
   it('muestra los campos conocidos de la ficha: participacion 5% y hasta 12 MSI', () => {
-    render(<SociosEstatalesMap />);
+    renderWithRouter(<SociosEstatalesMap />);
     const texto = document.body.textContent;
     expect(texto).toMatch(/5% de las membres/);
     expect(texto).toMatch(/Hasta 12 meses sin intereses/);
   });
 
   it('la CTA cambia segun el estatus de la entidad (assigned -> Otras formas de participar)', () => {
-    render(<SociosEstatalesMap initialSelectedRegion="MX-CMX" />);
+    renderWithRouter(<SociosEstatalesMap initialSelectedRegion="MX-CMX" />);
     expect(screen.getByRole('button', { name: /Otras formas de participar/i })).toBeInTheDocument();
   });
 
   it('la CTA de una entidad disponible ofrece Ver estado', () => {
-    render(<SociosEstatalesMap initialSelectedRegion="MX-OAX" />);
+    renderWithRouter(<SociosEstatalesMap initialSelectedRegion="MX-OAX" />);
     expect(screen.getByRole('button', { name: /Ver estado/i })).toBeInTheDocument();
   });
 

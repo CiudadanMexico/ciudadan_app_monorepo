@@ -29,6 +29,8 @@ import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
 import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
+import SociosEstatalesPage from '../Pages/SociosEstatales/SociosEstatalesPage.jsx';
+import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx';
 
 import MiMembresia from '../Pages/MiMembresia.jsx';
 import MarketPlace from '../Pages/MarketPlace/MarketPlace.jsx';
@@ -851,6 +853,16 @@ const Rutas = () => {
     <Route
       path='/membresias'
       element={<Membresias />}
+    />
+
+    {/* Socios Estatales */}
+    <Route
+      path='/socios-estatales'
+      element={<SociosEstatalesPage />}
+    />
+    <Route
+      path='/socios-estatales/:estado'
+      element={<SocioEstatalEstado />}
     />
 
     <Route

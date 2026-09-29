@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import GeoNetworkMap from './GeoNetworkMap';
 import SociosEstatalesMap from '../SociosEstatales/SociosEstatalesMap';
 import mxGeometry from '../../data/geo/mx/states.geo.json';
@@ -209,7 +210,9 @@ describe('GeoNetworkMap — Suite de pruebas completas', () => {
   it('13. el selector móvil (Autocomplete) permite seleccionar cualquier entidad', () => {
     const onSelect = jest.fn();
     render(
-      <SociosEstatalesMap onStateSelect={onSelect} />
+      <MemoryRouter initialEntries={['/dev']}>
+        <SociosEstatalesMap onStateSelect={onSelect} />
+      </MemoryRouter>
     );
     const input = screen.getByPlaceholderText(/Escribe o selecciona un estado/i);
     expect(input).toBeInTheDocument();
