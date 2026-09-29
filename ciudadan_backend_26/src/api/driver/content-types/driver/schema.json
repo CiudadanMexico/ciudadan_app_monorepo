@@ -283,6 +283,23 @@
     },
     "en_viaje": {
       "type": "boolean"
+    },
+    "promo_eligible": {
+      "type": "boolean",
+      "default": false,
+      "comment": "Elegibilidad para la tarifa promocional de membresía"
+    },
+    "promo_source": {
+      "type": "string",
+      "comment": "De dónde viene la promoción (ej. prelaunch_download). No asumir una sola fuente"
+    },
+    "promo_granted_at": {
+      "type": "datetime",
+      "comment": "Momento en que se otorgó la elegibilidad (no es el inicio de cobro)"
+    },
+    "promo_expires_at": {
+      "type": "datetime",
+      "comment": "Opcional. NO se calcula al descargar la app: los meses promocionales corren desde el inicio de la membresía real"
     }
   }
 }

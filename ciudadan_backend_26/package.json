@@ -9,6 +9,8 @@
     "build": "strapi build",
     "strapi": "strapi",
     "deploy": "strapi deploy",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "sync:apk": "node scripts/sync-apk.js",
     "postinstall": "patch-package"
   },
   "dependencies": {

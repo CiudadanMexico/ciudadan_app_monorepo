@@ -2994,6 +2994,10 @@ export interface ApiDriverDriver extends Schema.CollectionType {
     >;
     free_trips: Attribute.Integer & Attribute.DefaultTo<5>;
     en_viaje: Attribute.Boolean;
+    promo_eligible: Attribute.Boolean & Attribute.DefaultTo<false>;
+    promo_source: Attribute.String;
+    promo_granted_at: Attribute.DateTime;
+    promo_expires_at: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3005,6 +3009,71 @@ export interface ApiDriverDriver extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::driver.driver',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDriverLaunchLeadDriverLaunchLead
+  extends Schema.CollectionType {
+  collectionName: 'driver_launch_leads';
+  info: {
+    singularName: 'driver-launch-lead';
+    pluralName: 'driver-launch-leads';
+    displayName: 'Driver Launch Lead';
+    description: 'Leads de la landing de descarga/prelanzamiento de conductores (promo + aviso de lanzamiento por Brevo)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    email: Attribute.Email & Attribute.Required & Attribute.Unique;
+    wants_launch_email: Attribute.Boolean & Attribute.DefaultTo<false>;
+    download_requested_at: Attribute.DateTime;
+    downloaded_at: Attribute.DateTime;
+    promo_claimed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    promo_source: Attribute.String;
+    claim_token: Attribute.String & Attribute.Private & Attribute.Unique;
+    email_consent: Attribute.Boolean & Attribute.DefaultTo<false>;
+    email_consent_at: Attribute.DateTime;
+    privacy_version: Attribute.String;
+    utm_source: Attribute.String;
+    utm_medium: Attribute.String;
+    utm_campaign: Attribute.String;
+    utm_content: Attribute.String;
+    referrer: Attribute.Text;
+    launch_email_status: Attribute.Enumeration<
+      ['pending', 'sending', 'sent', 'failed']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    launch_email_attempts: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    launch_email_sent_at: Attribute.DateTime;
+    brevo_message_id: Attribute.String;
+    launch_email_last_error: Attribute.Text;
+    linked_driver: Attribute.Relation<
+      'api::driver-launch-lead.driver-launch-lead',
+      'oneToOne',
+      'api::driver.driver'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::driver-launch-lead.driver-launch-lead',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::driver-launch-lead.driver-launch-lead',
       'oneToOne',
       'admin::user'
     > &
@@ -3042,6 +3111,53 @@ export interface ApiDriverLocationDriverLocation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::driver-location.driver-location',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDriverMembershipConfigDriverMembershipConfig
+  extends Schema.SingleType {
+  collectionName: 'driver_membership_configs';
+  info: {
+    singularName: 'driver-membership-config';
+    pluralName: 'driver-membership-configs';
+    displayName: 'Driver Membership Config';
+    description: 'Configuraci\u00F3n de la membres\u00EDa de CONDUCTOR (precios, promoci\u00F3n y fecha de lanzamiento). No reutilizar la colecci\u00F3n `membresia`.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    regular_monthly_price: Attribute.Decimal & Attribute.DefaultTo<500>;
+    promotional_monthly_price: Attribute.Decimal & Attribute.DefaultTo<300>;
+    currency: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    promotion_duration_months: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Attribute.DefaultTo<12>;
+    promotion_active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    promotion_claim_deadline: Attribute.DateTime;
+    launch_at: Attribute.DateTime;
+    launch_title: Attribute.String &
+      Attribute.DefaultTo<'Gran lanzamiento Ciudadan'>;
+    apk_version: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::driver-membership-config.driver-membership-config',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::driver-membership-config.driver-membership-config',
       'oneToOne',
       'admin::user'
     > &
@@ -6473,7 +6589,9 @@ declare module '@strapi/types' {
       'api::curso.curso': ApiCursoCurso;
       'api::direccion.direccion': ApiDireccionDireccion;
       'api::driver.driver': ApiDriverDriver;
+      'api::driver-launch-lead.driver-launch-lead': ApiDriverLaunchLeadDriverLaunchLead;
       'api::driver-location.driver-location': ApiDriverLocationDriverLocation;
+      'api::driver-membership-config.driver-membership-config': ApiDriverMembershipConfigDriverMembershipConfig;
       'api::driver-verifier-candidacy.driver-verifier-candidacy': ApiDriverVerifierCandidacyDriverVerifierCandidacy;
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
