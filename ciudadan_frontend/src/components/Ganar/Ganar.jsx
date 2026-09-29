@@ -52,7 +52,7 @@ const Ganar = () => {
       imagen: academicas,
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen',
-      url: '/coowork/especializadas'
+      url: '/coowork?tab=especializadas'
     },
     { 
       titulo: '🏫 Becas:', 
@@ -72,7 +72,7 @@ const Ganar = () => {
       imagen: contenidos,
       monedas: [mxn],
       claseimagen: 'opcion-imagen-ensanchada',
-      url: '/coowork/especializadas/contenidos'
+      url: '/coowork/especializadas/multimedia'
     },
     { 
       titulo: '❓ Tareas Generales:', 
@@ -82,7 +82,7 @@ const Ganar = () => {
       imagen: generales,
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen',
-      url: '/coowork/generales'
+      url: '/coowork?tab=generales'
     },
     { 
       titulo: '♻ Reciclando:', 
@@ -92,7 +92,7 @@ const Ganar = () => {
       imagen: reciclando,
       monedas: [labory],
       claseimagen: 'opcion-imagen',
-      url: '/proximamente'
+      url: '/gana/reciclando'
     },
     { 
       titulo: '📢 Refiriendo:', 
@@ -102,7 +102,7 @@ const Ganar = () => {
       imagen: refiriendo,
       monedas: [mxn],
       claseimagen: 'opcion-imagen',
-      url: '/gana/referidos'
+      url: '/referir'
     },
     { 
       titulo: '👨‍🏫 Enseñando:', 
@@ -112,7 +112,7 @@ const Ganar = () => {
       imagen: ensenando,
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen-ensanchada',
-      url: '/coowork/concejo'
+      url: '/coowork/profesores'
     },
     { 
       titulo: '🚘 Conduciendo:', 
@@ -122,7 +122,7 @@ const Ganar = () => {
       boton: '🚘 Comenzar a Conducir !!',
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen-ensanchada-redondeada',
-      url: '/taxis/conductor/preregistro#'
+      url: '/taxis/conductor/preregistro'
     },
     { 
       titulo: '💡 Abriendo tu Agencia Digital i.A. Instantánea', 
