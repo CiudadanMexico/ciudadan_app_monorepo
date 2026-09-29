@@ -28,6 +28,8 @@ import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
+import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
+
 import MiMembresia from '../Pages/MiMembresia.jsx';
 import MarketPlace from '../Pages/MarketPlace/MarketPlace.jsx';
 import ProductosPage from '../Pages/MarketPlace/ProductosPage.jsx';
@@ -1008,6 +1010,16 @@ const Rutas = () => {
       path='/market'
       element={<MarketPlace />}
     />
+
+    {/* Demo / QA interno de GeoNetworkMap — habilitado SOLO en desarrollo
+        (en el build de producción la ruta no existe, igual que otros
+        probadores internos del repo). No está en el menú público. */}
+    {process.env.NODE_ENV !== 'production' && (
+      <Route
+        path='/dev/geo-network-map'
+        element={<GeoNetworkMapDemo />}
+      />
+    )}
 
     <Route
       path='/testoken'

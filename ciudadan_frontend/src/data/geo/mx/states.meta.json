@@ -1,0 +1,756 @@
+{
+  "country": "MX",
+  "level": 1,
+  "type": "state",
+  "parentId": "MX",
+  "canvas": {
+    "width": 1000.0,
+    "height": 620.0,
+    "padding": 26.0
+  },
+  "labelFont": 13.0,
+  "source": {
+    "name": "INEGI · Marco Geoestadístico, diciembre de 2025",
+    "catalog": "https://gaia.inegi.org.mx/wscatgeo/v2/mgee/",
+    "vector": "https://gaia.inegi.org.mx/wscatgeo/v2/geo/mgee/",
+    "note": "cve_ent = Clave de Área Geoestadística Estatal oficial; regionId = ISO 3166-2:MX; labelOffset en unidades de viewBox."
+  },
+  "regions": [
+    {
+      "regionId": "MX-AGU",
+      "code": "MX-AGU",
+      "inegiCode": "01",
+      "name": "Aguascalientes",
+      "shortName": "Aguascalientes",
+      "abbreviation": "Ags.",
+      "slug": "aguascalientes",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -102.3624,
+        22.0064
+      ],
+      "isSmall": true,
+      "labelText": "Ags.",
+      "labelOffset": [
+        -40,
+        -109
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-BCN",
+      "code": "MX-BCN",
+      "inegiCode": "02",
+      "name": "Baja California",
+      "shortName": "Baja California",
+      "abbreviation": "BC",
+      "slug": "baja-california",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -115.1104,
+        30.5843
+      ],
+      "isSmall": false,
+      "labelText": "Baja California",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-BCS",
+      "code": "MX-BCS",
+      "inegiCode": "03",
+      "name": "Baja California Sur",
+      "shortName": "Baja California Sur",
+      "abbreviation": "BCS",
+      "slug": "baja-california-sur",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -112.0599,
+        25.9356
+      ],
+      "isSmall": false,
+      "labelText": "Baja California Sur",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-CAM",
+      "code": "MX-CAM",
+      "inegiCode": "04",
+      "name": "Campeche",
+      "shortName": "Campeche",
+      "abbreviation": "Camp.",
+      "slug": "campeche",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -90.3606,
+        18.8402
+      ],
+      "isSmall": false,
+      "labelText": "Campeche",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-COA",
+      "code": "MX-COA",
+      "inegiCode": "05",
+      "name": "Coahuila de Zaragoza",
+      "shortName": "Coahuila",
+      "abbreviation": "Coah.",
+      "slug": "coahuila",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -102.044,
+        27.2954
+      ],
+      "isSmall": false,
+      "labelText": "Coahuila",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-COL",
+      "code": "MX-COL",
+      "inegiCode": "06",
+      "name": "Colima",
+      "shortName": "Colima",
+      "abbreviation": "Col.",
+      "slug": "colima",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -103.9134,
+        19.1409
+      ],
+      "isSmall": true,
+      "labelText": "Col.",
+      "labelOffset": [
+        -5,
+        1
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-CHP",
+      "code": "MX-CHP",
+      "inegiCode": "07",
+      "name": "Chiapas",
+      "shortName": "Chiapas",
+      "abbreviation": "Chis.",
+      "slug": "chiapas",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -92.4735,
+        16.485
+      ],
+      "isSmall": false,
+      "labelText": "Chiapas",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-CHH",
+      "code": "MX-CHH",
+      "inegiCode": "08",
+      "name": "Chihuahua",
+      "shortName": "Chihuahua",
+      "abbreviation": "Chih.",
+      "slug": "chihuahua",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -106.4688,
+        28.8085
+      ],
+      "isSmall": false,
+      "labelText": "Chihuahua",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-CMX",
+      "code": "MX-CMX",
+      "inegiCode": "09",
+      "name": "Ciudad de México",
+      "shortName": "Ciudad de México",
+      "abbreviation": "CDMX",
+      "slug": "ciudad-de-mexico",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -99.1388,
+        19.2777
+      ],
+      "isSmall": true,
+      "labelText": "CDMX",
+      "labelOffset": [
+        126,
+        -63
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-DUR",
+      "code": "MX-DUR",
+      "inegiCode": "10",
+      "name": "Durango",
+      "shortName": "Durango",
+      "abbreviation": "Dgo.",
+      "slug": "durango",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -104.9137,
+        24.9236
+      ],
+      "isSmall": false,
+      "labelText": "Durango",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-GUA",
+      "code": "MX-GUA",
+      "inegiCode": "11",
+      "name": "Guanajuato",
+      "shortName": "Guanajuato",
+      "abbreviation": "Gto.",
+      "slug": "guanajuato",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -101.0124,
+        20.9056
+      ],
+      "isSmall": false,
+      "labelText": "Guanajuato",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-GRO",
+      "code": "MX-GRO",
+      "inegiCode": "12",
+      "name": "Guerrero",
+      "shortName": "Guerrero",
+      "abbreviation": "Gro.",
+      "slug": "guerrero",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -99.9224,
+        17.6675
+      ],
+      "isSmall": false,
+      "labelText": "Guerrero",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-HID",
+      "code": "MX-HID",
+      "inegiCode": "13",
+      "name": "Hidalgo",
+      "shortName": "Hidalgo",
+      "abbreviation": "Hgo.",
+      "slug": "hidalgo",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -98.8872,
+        20.4796
+      ],
+      "isSmall": false,
+      "labelText": "Hidalgo",
+      "labelOffset": [
+        -72,
+        -32
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-JAL",
+      "code": "MX-JAL",
+      "inegiCode": "14",
+      "name": "Jalisco",
+      "shortName": "Jalisco",
+      "abbreviation": "Jal.",
+      "slug": "jalisco",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -103.6135,
+        20.5806
+      ],
+      "isSmall": false,
+      "labelText": "Jalisco",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-MEX",
+      "code": "MX-MEX",
+      "inegiCode": "15",
+      "name": "México",
+      "shortName": "Estado de México",
+      "abbreviation": "Méx.",
+      "slug": "mexico",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -99.6451,
+        19.3559
+      ],
+      "isSmall": false,
+      "labelText": "Estado de México",
+      "labelOffset": [
+        -30,
+        -18
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-MIC",
+      "code": "MX-MIC",
+      "inegiCode": "16",
+      "name": "Michoacán de Ocampo",
+      "shortName": "Michoacán",
+      "abbreviation": "Mich.",
+      "slug": "michoacan",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -101.8784,
+        19.2069
+      ],
+      "isSmall": false,
+      "labelText": "Michoacán",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-MOR",
+      "code": "MX-MOR",
+      "inegiCode": "17",
+      "name": "Morelos",
+      "shortName": "Morelos",
+      "abbreviation": "Mor.",
+      "slug": "morelos",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -99.0751,
+        18.7426
+      ],
+      "isSmall": true,
+      "labelText": "Mor.",
+      "labelOffset": [
+        -4,
+        9
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-NAY",
+      "code": "MX-NAY",
+      "inegiCode": "18",
+      "name": "Nayarit",
+      "shortName": "Nayarit",
+      "abbreviation": "Nay.",
+      "slug": "nayarit",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -104.8414,
+        21.8039
+      ],
+      "isSmall": false,
+      "labelText": "Nayarit",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-NLE",
+      "code": "MX-NLE",
+      "inegiCode": "19",
+      "name": "Nuevo León",
+      "shortName": "Nuevo León",
+      "abbreviation": "NL",
+      "slug": "nuevo-leon",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -99.969,
+        25.5729
+      ],
+      "isSmall": false,
+      "labelText": "Nuevo León",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-OAX",
+      "code": "MX-OAX",
+      "inegiCode": "20",
+      "name": "Oaxaca",
+      "shortName": "Oaxaca",
+      "abbreviation": "Oax.",
+      "slug": "oaxaca",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -96.4301,
+        16.9612
+      ],
+      "isSmall": false,
+      "labelText": "Oaxaca",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-PUE",
+      "code": "MX-PUE",
+      "inegiCode": "21",
+      "name": "Puebla",
+      "shortName": "Puebla",
+      "abbreviation": "Pue.",
+      "slug": "puebla",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -97.9006,
+        19.006
+      ],
+      "isSmall": false,
+      "labelText": "Puebla",
+      "labelOffset": [
+        24,
+        -32
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-QUE",
+      "code": "MX-QUE",
+      "inegiCode": "22",
+      "name": "Querétaro",
+      "shortName": "Querétaro",
+      "abbreviation": "Qro.",
+      "slug": "queretaro",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -99.8459,
+        20.8548
+      ],
+      "isSmall": true,
+      "labelText": "Qro.",
+      "labelOffset": [
+        -60,
+        -94
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-ROO",
+      "code": "MX-ROO",
+      "inegiCode": "23",
+      "name": "Quintana Roo",
+      "shortName": "Quintana Roo",
+      "abbreviation": "Q.R.",
+      "slug": "quintana-roo",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -88.1266,
+        19.5907
+      ],
+      "isSmall": false,
+      "labelText": "Quintana Roo",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-SLP",
+      "code": "MX-SLP",
+      "inegiCode": "24",
+      "name": "San Luis Potosí",
+      "shortName": "San Luis Potosí",
+      "abbreviation": "SLP",
+      "slug": "san-luis-potosi",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -100.4161,
+        22.5854
+      ],
+      "isSmall": false,
+      "labelText": "San Luis Potosí",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-SIN",
+      "code": "MX-SIN",
+      "inegiCode": "25",
+      "name": "Sinaloa",
+      "shortName": "Sinaloa",
+      "abbreviation": "Sin.",
+      "slug": "sinaloa",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -107.5093,
+        25.0006
+      ],
+      "isSmall": false,
+      "labelText": "Sinaloa",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-SON",
+      "code": "MX-SON",
+      "inegiCode": "26",
+      "name": "Sonora",
+      "shortName": "Sonora",
+      "abbreviation": "Son.",
+      "slug": "sonora",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -110.8002,
+        29.6954
+      ],
+      "isSmall": false,
+      "labelText": "Sonora",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-TAB",
+      "code": "MX-TAB",
+      "inegiCode": "27",
+      "name": "Tabasco",
+      "shortName": "Tabasco",
+      "abbreviation": "Tab.",
+      "slug": "tabasco",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -92.5943,
+        17.9377
+      ],
+      "isSmall": false,
+      "labelText": "Tabasco",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-TAM",
+      "code": "MX-TAM",
+      "inegiCode": "28",
+      "name": "Tamaulipas",
+      "shortName": "Tamaulipas",
+      "abbreviation": "Tamps.",
+      "slug": "tamaulipas",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -98.6399,
+        24.2909
+      ],
+      "isSmall": false,
+      "labelText": "Tamaulipas",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-TLA",
+      "code": "MX-TLA",
+      "inegiCode": "29",
+      "name": "Tlaxcala",
+      "shortName": "Tlaxcala",
+      "abbreviation": "Tlax.",
+      "slug": "tlaxcala",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -98.168,
+        19.4282
+      ],
+      "isSmall": true,
+      "labelText": "Tlax.",
+      "labelOffset": [
+        45,
+        -39
+      ],
+      "labelCallout": true
+    },
+    {
+      "regionId": "MX-VER",
+      "code": "MX-VER",
+      "inegiCode": "30",
+      "name": "Veracruz de Ignacio de la Llave",
+      "shortName": "Veracruz",
+      "abbreviation": "Ver.",
+      "slug": "veracruz",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -96.4184,
+        19.3937
+      ],
+      "isSmall": false,
+      "labelText": "Veracruz",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-YUC",
+      "code": "MX-YUC",
+      "inegiCode": "31",
+      "name": "Yucatán",
+      "shortName": "Yucatán",
+      "abbreviation": "Yuc.",
+      "slug": "yucatan",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -88.9214,
+        20.747
+      ],
+      "isSmall": false,
+      "labelText": "Yucatán",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    },
+    {
+      "regionId": "MX-ZAC",
+      "code": "MX-ZAC",
+      "inegiCode": "32",
+      "name": "Zacatecas",
+      "shortName": "Zacatecas",
+      "abbreviation": "Zac.",
+      "slug": "zacatecas",
+      "parentId": "MX",
+      "type": "state",
+      "level": 1,
+      "centroid": [
+        -102.6603,
+        23.2891
+      ],
+      "isSmall": false,
+      "labelText": "Zacatecas",
+      "labelOffset": [
+        0,
+        0
+      ],
+      "labelCallout": false
+    }
+  ]
+}
