@@ -5,6 +5,7 @@ import Buscador from '../../components/MarketPlace/Buscador.jsx';
 import ProductoCard from '../../components/MarketPlace/ProductoCard.jsx';
 import CategoriasSlider from '../../components/MarketPlace/CategoriasSlider.jsx';
 import PreCargador from '../../components/PreCargador.jsx';
+import Pestanas from '../../components/Pestanas.jsx';
 import IconButton from '@mui/material/IconButton'; // o agrégalo al import de @mui/material que ya tienes
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -19,8 +20,6 @@ import {
   Container,
   Typography,
   Skeleton,
-  Tabs,
-  Tab,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -59,7 +58,18 @@ export default function MarketPage() {
   // Filter states
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [storeTypeFilter, setStoreTypeFilter] = useState('all');
+  // Filtro de tipo de tienda derivado de la ruta (Pestanas es controlado por rutas)
+  const marketBasePath = location.pathname.startsWith('/marketplaces') ? '/marketplaces' : '/market';
+  const storeTypeFilter = location.pathname.includes('tiendas-no-oficiales')
+    ? 'unofficial'
+    : location.pathname.includes('tiendas-oficiales')
+      ? 'official'
+      : 'all';
+  const marketTabs = [
+    { label: 'Todos', path: '' },
+    { label: 'Tiendas oficiales', path: 'tiendas-oficiales' },
+    { label: 'Tiendas no oficiales', path: 'tiendas-no-oficiales' },
+  ];
   const [advancedFilters, setAdvancedFilters] = useState({ applied: false, priceRange: [0, 100], selectedBrand: '', selectedStore: '' });
   const [enableClearSearch, setEnableClearSearch] = useState(false);
 
@@ -311,18 +321,12 @@ export default function MarketPage() {
         </Box>
       </Box>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs 
-          value={storeTypeFilter} 
-          onChange={(e, newValue) => setStoreTypeFilter(newValue)} 
-          variant="fullWidth"
-          textColor="primary"
-          indicatorColor="primary"
-        >
-          <Tab label="Todos" value="all" />
-          <Tab label="Tiendas oficiales" value="official" />
-          <Tab label="Tiendas no oficiales" value="unofficial" />
-        </Tabs>
+      {/* mt: 2.5 compensa el `top: -20px` de .pestanas-bar para que no solape el Buscador */}
+      <Box sx={{ mt: 3, mb: 1 }}>
+        <Pestanas
+          tabs={marketTabs}
+          basePath={marketBasePath}
+        />
       </Box>
 
       {

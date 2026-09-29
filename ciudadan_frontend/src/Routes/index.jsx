@@ -510,6 +510,22 @@ const Rutas = () => {
       element={<MarketPage />}
     />
     <Route
+      path='/market/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
       path='/market/producto/:slug'
       element={<Producto />}
     />
