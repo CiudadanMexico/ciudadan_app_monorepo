@@ -15,6 +15,7 @@ import NavBar from './components/NavBar/NavBar.jsx';
 import Rutas from './Routes/index.jsx';
 import Asistente from './components/Asistente/Asistente';
 import { SnackbarProvider } from 'notistack';
+import { NOTIF_TOAST_COMPONENTS } from './components/common/NotifToast.jsx';
 import { NotificationsProvider } from './Contexts/NotificationsContext';
 import './styles/index.css';
 
@@ -154,8 +155,15 @@ root.render(
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
             <RolesProvider>
               {/* SnackbarProvider FUERA de NotificationsProvider: éste necesita
-                  consumir useSnackbar() para implementar la API de toast. */}
-              <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                  consumir useSnackbar() para implementar la API de toast.
+                  `Components` SOLO define las variantes `notif-*` que usa
+                  useNotifications() -> look de marca (morado + verde neón). Las
+                  variantes por defecto (useSnackbar legacy) siguen igual. */}
+              <SnackbarProvider
+                maxSnack={3}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                Components={NOTIF_TOAST_COMPONENTS}
+              >
                 <NotificationsProvider>
                   <CartProvider>
                     <FoodCartProvider>

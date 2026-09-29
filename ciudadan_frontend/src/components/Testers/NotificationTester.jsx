@@ -8,6 +8,12 @@ import { useNotifications } from "../../Contexts/NotificationsContext";
  * Prueba EXACTAMENTE la misma API pública que usarán los componentes (§25):
  *   const { toast, send } = useNotifications();
  * No usa endpoints especiales.
+ *
+ * OJO con el doble toast: aquí `send()` se manda a `user.email`, o sea a la
+ * MISMA pestaña que está escuchando el socket. El contexto ya reconoce ese eco
+ * (meta.clientOrigin) y NO lo vuelve a anunciar, así que se ve UN solo toast:
+ * el de "enviada y persistida". Para ver también el toast de LLEGADA (variante
+ * notif-info) abre una segunda pestaña con otro usuario, o cambia el `to`.
  */
 const NotificationTester = () => {
   const { user } = useAuth0();

@@ -39,7 +39,13 @@ import {
   markNotificationReadInList,
   upsertNotification,
   validateSendPayload,
+  withSelfOrigin,
+  getTabId,
+  rememberSelfSent,
+  pruneSelfSent,
+  shouldAnnounce,
 } from '../utils/notifications.helpers';
+import { NOTIF_VARIANTS } from '../components/common/NotifToast.jsx';
 import {
   fetchNotifications,
   fetchNotificationById,
@@ -55,6 +61,12 @@ export const useNotifications = () => useContext(NotificationsContext);
 const SOCKET_URL = (process.env.REACT_APP_SOCKET_URL || '').replace(/\/$/, '');
 const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
 
+// Id de ESTA pestaña. Se guarda en `meta` de las notificaciones que crea un
+// send() nuestro: como el backend persiste `meta` y emite por socket exactamente
+// la misma forma que devuelve en el POST, el eco se reconoce de forma
+// determinista y no se anuncia dos veces (§15).
+const TAB_ID = getTabId();
+
 export const NotificationsProvider = ({ children }) => {
   const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const { enqueueSnackbar } = useSnackbar();
@@ -69,6 +81,11 @@ export const NotificationsProvider = ({ children }) => {
   const enqueueRef = useRef(enqueueSnackbar);
   enqueueRef.current = enqueueSnackbar;
   const socketRef = useRef(null);
+
+  // Eco de nuestros propios send(): `pendingSendRef` cuenta los envíos en vuelo
+  // y `selfSentRef` recuerda los ids ya creados (Map id -> timestamp).
+  const pendingSendRef = useRef(0);
+  const selfSentRef = useRef(new Map());
 
   // --- token de Auth0 ------------------------------------------------------
   const getToken = useCallback(async () => {
@@ -90,11 +107,11 @@ export const NotificationsProvider = ({ children }) => {
       enqueueSnackbar(message, { variant, ...options });
 
     return {
-      success: emit('success'),
-      error: emit('error'),
-      warning: emit('warning'),
-      info: emit('info'),
-      default: emit('default'),
+      success: emit(NOTIF_VARIANTS.success),
+      error: emit(NOTIF_VARIANTS.error),
+      warning: emit(NOTIF_VARIANTS.warning),
+      info: emit(NOTIF_VARIANTS.info),
+      default: emit(NOTIF_VARIANTS.default),
     };
   }, [enqueueSnackbar]);
 
@@ -147,18 +164,28 @@ export const NotificationsProvider = ({ children }) => {
   // --- send (§10/§21): persiste en backend y emite por socket ---------------
   const send = useCallback(
     async (payload = {}) => {
-      const clean = validateSendPayload(payload);
+      // Marcamos el origen (meta.clientOrigin) para reconocer el eco del socket.
+      const clean = withSelfOrigin(validateSendPayload(payload), TAB_ID);
 
-      const token = await getToken();
-      const res = await sendNotification(clean, token);
+      // El backend emite por socket ANTES de responder al POST, así que el eco
+      // puede llegar antes o después de esta promesa: cubrimos las dos ventanas.
+      pendingSendRef.current += 1;
+      try {
+        const token = await getToken();
+        const res = await sendNotification(clean, token);
 
-      const created = normalizeNotification(res?.data);
-      if (created) {
-        // Ya viene del backend: la insertamos en el estado (sin refresh extra).
-        setNotifications((prev) => upsertNotification(prev, created));
+        const created = normalizeNotification(res?.data);
+        if (created) {
+          rememberSelfSent(selfSentRef.current, created.id);
+          pruneSelfSent(selfSentRef.current);
+          // Ya viene del backend: la insertamos en el estado (sin refresh extra).
+          setNotifications((prev) => upsertNotification(prev, created));
+        }
+
+        return created;
+      } finally {
+        pendingSendRef.current = Math.max(0, pendingSendRef.current - 1);
       }
-
-      return created;
     },
     [getToken]
   );
@@ -236,14 +263,27 @@ export const NotificationsProvider = ({ children }) => {
       const notification = normalizeNotification(raw);
       if (!notification) return;
 
-      // 1) normaliza  2) upsert por id (sin duplicar)  3) el contador se
-      // recalcula solo desde la lista  4) toast.
+      // 1) normaliza  2) decide si toca toast (ANTES del upsert: "ya la tenía"
+      // se evalúa sobre la lista previa)  3) upsert por id (sin duplicar)
+      // 4) el contador se recalcula solo desde la lista.
+      const announce = shouldAnnounce({
+        notification,
+        tabId: TAB_ID,
+        list: notificationsRef.current,
+        pendingSend: pendingSendRef.current,
+        selfSent: selfSentRef.current,
+      });
+
       setNotifications((prev) => upsertNotification(prev, notification));
 
-      enqueueRef.current(
-        notification.title || notification.message || 'Nueva notificación',
-        { variant: 'info' }
-      );
+      // UNA notificación = UN toast: si esta pestaña la creó con send() o ya la
+      // teníamos, el eco del socket actualiza la campana pero NO vuelve a sonar.
+      if (announce) {
+        enqueueRef.current(
+          notification.title || notification.message || 'Nueva notificación',
+          { variant: NOTIF_VARIANTS.info }
+        );
+      }
       // Sin refresh(): ya llegó completa y además evita requests innecesarios (§15).
     };
 

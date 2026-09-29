@@ -22,6 +22,7 @@
 12. [Convenciones / qué NO hacer](#no-hacer)
 13. [Deuda técnica conocida](#deuda)
 14. [Troubleshooting](#troubleshooting)
+15. [Un toast por notificación (y su look de marca)](#un-toast)
 
 ---
 
@@ -127,6 +128,22 @@ toast.default("Aviso genérico");
 // con options (se pasan a notistack)
 toast.success("Guardado", { autoHideDuration: 6000, persist: true });
 ```
+
+**Pinta de marca.** Esos toast salen en morado `#8A5CF5` con contorno verde neón
+`#00ff88` (la pareja de la barra de comunidad y del botón *Usar Labory*): son
+variantes custom de notistack — `notif-success`, `notif-error`, `notif-warning`,
+`notif-info`, `notif-default` — dibujadas por
+`src/components/common/NotifToast.jsx` y registradas en el prop `Components`
+del `SnackbarProvider` de `src/index.js`. Lo único que cambia entre variantes es
+el icono; el fondo y el contorno son siempre los mismos.
+
+Ese look aplica **sólo** a `useNotifications()`. El `useSnackbar()` legacy del
+resto de la app sigue con las variantes por defecto de notistack (`success`,
+`error`, …) y su estilo gris, a propósito: el reskin está acotado al módulo de
+notificaciones. No uses las claves `notif-*` fuera de este módulo ni pintes un
+`createTheme` global para esto.
+
+> El toast de **llegada** por socket usa `notif-info`; ver §15.
 
 ### 4.2 Enviar una notificación persistente
 
@@ -382,7 +399,9 @@ sin tocar el contrato.
 |---|---|
 | `src/Contexts/NotificationsContext.jsx` | **la fachada**: estado, socket, `toast`, `send`, `refresh`, `fetchById`, `markAsRead`, `markAllAsRead` |
 | `src/utils/normalizeNotification.js` | normalizador único (Strapi / socket / legado → `{id,title,message,…}`) |
-| `src/utils/notifications.helpers.js` | `upsertNotification`, `countUnread`, `validateSendPayload` |
+| `src/utils/notifications.helpers.js` | `upsertNotification`, `countUnread`, `validateSendPayload`, `shouldAnnounce`, `withSelfOrigin`, `getTabId` (§15) |
+| `src/utils/notifications.helpers.test.js` | tests de deduplicación de toast (`npm test`) |
+| `src/components/common/NotifToast.jsx` | la tarjeta del toast de marca + `NOTIF_VARIANTS` / `NOTIF_TOAST_COMPONENTS` (§15) |
 | `src/services/notifications.js` | HTTP puro con `fetchJson` (sin estado React) |
 | `src/components/NavBar/NotificationsIcon.jsx` | campana + contador |
 | `src/components/NavBar/NotificationsMenu.jsx` | desplegable de la campana |
@@ -489,6 +508,16 @@ node /tmp/test-notif-http.js "<ACCESS_TOKEN_AUTH0>"   # Casos 1/3/4/5 (opcional,
     llega completa; sólo pide de nuevo si de verdad no la tienes.
 12. **No guardes estado en el servicio** (`src/services/notifications.js`): ahí
     sólo vive HTTP. El estado es cosa del contexto.
+13. **No anuncies el eco de tu propio `send()`** (§15): el socket devuelve la
+   notificación que acabas de crear. El filtro vive en `shouldAnnounce()`; si
+   necesitas otro caso, amplíalo ahí y cúbrecelo con un test en
+   `notifications.helpers.test.js` — no metas `if`s sueltos en el listener.
+14. **No quites `meta.clientOrigin`** del payload de `send()`: es la señal
+   determinista que distingue "esto lo hice yo" de "me lo mandaron". Sin ella
+   el dedupe depende de temporizadores.
+15. **No cambies el estilo del `SnackbarProvider` global** para lo de las
+   notificaciones: el reskin va por variante (`Components` + `notif-*`), así
+   los ~15 `useSnackbar()` legacy no se ven afectados.
 
 ---
 
@@ -531,6 +560,85 @@ node /tmp/test-notif-http.js "<ACCESS_TOKEN_AUTH0>"   # Casos 1/3/4/5 (opcional,
 | Creada pero no aparece en el listado | quedó como borrador (`draftAndPublish`) | el backend fija `publishedAt` al crear — no lo quites |
 | El backend se tumba con un token viejo | `throw` dentro de un `.catch()` | ya corregido en `src/utils/auth0-verify.js`; no reintroducirlo |
 | El dev server muere con `npm run build` | OOM en ≤6 GB | no los ejecutes a la vez; relanza con `tmux new-session -d -s ciudadan-frontend 'bash /home/ubuntu/runners/run-frontend.sh'` |
+
+---
+
+<a name="un-toast"></a>
+## 15. Un toast por notificación (y su look de marca)
+
+**Regla: una notificación se anuncia UNA vez.** El bug que cubre esta sección:
+el emisor recibía **dos** toast por el mismo evento — uno al confirmar la acción
+(`toast.success("... enviada")`) y otro cuando el socket le devolvía la
+notificación que él mismo acababa de crear. El caso más visible era
+`/notificationtester`, que se autoenvía: la pestaña es emisora *y* receptora.
+
+### 15.1 Quién decide
+
+El listener del socket ya no anuncia a ciegas: pregunta primero
+(`src/Contexts/NotificationsContext.jsx`).
+
+```js
+const announce = shouldAnnounce({
+  notification,                         // ya normalizada
+  tabId: TAB_ID,                        // id de ESTA pestaña
+  list: notificationsRef.current,       // lista ANTES del upsert
+  pendingSend: pendingSendRef.current,  // send() en vuelo
+  selfSent: selfSentRef.current,        // Map id -> timestamp
+});
+
+setNotifications((prev) => upsertNotification(prev, notification)); // siempre
+if (announce) enqueueRef.current(title, { variant: NOTIF_VARIANTS.info }); // a veces
+```
+
+La campana y el contador **siempre** se actualizan; lo único que se filtra es el
+toast. La lógica es pura y está en
+`src/utils/notifications.helpers.js → shouldAnnounce()`, con 18 tests en
+`notifications.helpers.test.js`.
+
+### 15.2 Las cuatro señales (de más a menos precisa)
+
+| # | Señal | De dónde sale | Resultado |
+|---|---|---|---|
+| 1 | `notification.meta.clientOrigin === TAB_ID` | `send()` añade `withSelfOrigin(payload)`; el backend guarda `meta` y emite por socket **la misma forma** que devuelve en el `POST` | no anunciar (determinista) |
+| 2 | `pendingSend > 0` | `send()` incrementa el contador antes del `fetch` | no anunciar (el eco llega antes que la respuesta) |
+| 3 | el `id` está en `selfSentRef` y no caducó (15 s) | `send()` anota el id al recibir la respuesta | no anunciar (el eco llega después) |
+| 4 | el `id` ya estaba en la lista | `upsertNotification` | no anunciar (reentrega / reconnect) |
+
+Si ninguna aplica → es de otra persona o de otra pestaña → **sí** se anuncia.
+
+`TAB_ID` (`getTabId()`) vive en `sessionStorage`: es único **por pestaña**, no
+por usuario. Así, si te envías a ti mismo desde otra pestaña, esa otra pestaña
+sí ve el toast. La señal 1 es la determinista; 2-4 son la red de seguridad si algún día el backend dejara de reenviar `meta`.
+
+### 15.3 Consecuencia para `send()`
+
+`send()` **no** muestra ningún toast por sí mismo: persiste, hace `upsert` y
+devuelve la notificación creada. Quien llama decide su mensaje de feedback
+("tarea calificada", "guardado"…), sabiendo que el eco no va a duplicarlo. En
+`NotificationTester` queda el `toast.success("Notificación enviada y
+persistida")` como único toast de la operación.
+
+### 15.4 Cómo comprobarlo
+
+| Escenario | Toasts esperados |
+|---|---|
+| `/notificationtester` → *Enviar* (autoenvío) | **1** — "Notificación enviada y persistida"; la campana sube |
+| Misma prueba con otra pestaña abierta (otro usuario, o `to` distinto) | 1 en cada pestaña; la receptora con el `notif-info` |
+| `toast.success(...)` desde cualquier página | 1, con la pinta de marca (§4.1) |
+| Recargar con notificaciones nuevas en el servidor | **0** (la carga inicial no anuncia) |
+
+### 15.5 El look de marca
+
+`NotifToast.jsx` pinta la tarjeta (fondo `linear-gradient(#8A5CF5 → #6A3FCB)`,
+borde 1 px `#00ff88`, halo `0 0 12px rgba(0,255,128,.35)`, texto `#e6ffe6`,
+`Space Grotesk`) y elige el icono por variante: `CheckCircle` (success),
+`ErrorOutline` (error), `WarningAmber` (warning), `NotificationsActive`
+(llegada/info), `NotificationsNone` (default). Error y warning **no** cambian el
+fondo — solo el icono — para no inventar una paleta aparte para el módulo.
+
+notistack 3 renderiza el componente de `Components[variant]` como hijo directo
+de su `Snackbar` y le pasa el snack entero (`message`, `variant`, `className`,
+`style`…), por eso `NotifToast` acepta y reenvía `className`/`style`.
 
 ---
 
