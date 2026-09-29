@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   Box,
@@ -13,6 +13,7 @@ import {
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 
 import SociosEstatalesMap from '../../components/SociosEstatales/SociosEstatalesMap';
+import SocioEstatalForm from '../../components/SociosEstatales/SocioEstatalForm';
 import mxMeta from '../../data/geo/mx/states.meta.json';
 import sociosData from '../../data/maps/socios-estatales.json';
 import mapConfig from '../../data/maps/socios-estatales.map.json';
@@ -22,35 +23,14 @@ import { getStatusLabel, geoTokens } from '../../components/GeoNetworkMap/geoThe
 /**
  * SocioEstatalEstado — Vista de detalle de un Socio Estatal (/socios-estatales/:estado).
  */
-function getCtaInfo(status) {
-  if (status === 'assigned') {
-    return {
-      label: 'Otras formas de participar',
-      variant: 'outlined',
-      color: '#2ee6c8',
-      message: 'Este estado ya tiene Socio Estatal confirmado. Pronto habilitaremos más formas de participar en tu estado.',
-    };
-  }
-  if (status === 'processing') {
-    return {
-      label: 'Ver proceso',
-      variant: 'contained',
-      color: '#f5c842',
-      message: 'La postulación ya está en proceso de revisión. Te contactaremos con los siguientes pasos.',
-    };
-  }
-  return {
-    label: 'Postularme como Socio Estatal',
-    variant: 'contained',
-    color: '#19d79c',
-    message: '¡Gracias por tu interés! El formulario de postulación estará disponible próximamente. Mientras tanto puedes escribirnos para más información.',
-  };
-}
+
 
 export default function SocioEstatalEstado() {
   const { estado } = useParams();
   const navigate = useNavigate();
   const [snackbar, setSnackbar] = useState(null);
+  // Los hooks deben declararse SIEMPRE antes de cualquier return temprano.
+  const formRef = useRef(null);
 
   const region = (mxMeta?.regions || []).find(
     (r) => (r.slug || '').toLowerCase() === String(estado || '').toLowerCase()
@@ -92,10 +72,22 @@ export default function SocioEstatalEstado() {
   const regionId = normalizeRegionId(region.regionId);
   const data = sociosData.find((d) => normalizeRegionId(d.regionId) === regionId) || {};
   const statusToken = geoTokens[data.status] || geoTokens.available;
-  const cta = getCtaInfo(data.status);
 
-  const handleCta = () => {
-    setSnackbar(cta.message);
+  const scrollAlFormulario = () => {
+    // Optional call: jsdom y algunos navegadores antiguos no implementan scrollIntoView.
+    formRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleCta = (slug) => {
+    if (data.status === 'available') {
+      scrollAlFormulario();
+    } else {
+      setSnackbar(
+        data.status === 'processing'
+          ? 'La postulación ya está en proceso de revisión. Te contactaremos con los siguientes pasos.'
+          : 'Este estado ya tiene Socio Estatal confirmado. Pronto habilitaremos más formas de participar en tu estado.'
+      );
+    }
   };
 
   return (
@@ -152,6 +144,37 @@ export default function SocioEstatalEstado() {
           mapConfig={mapConfig}
           onCtaClick={handleCta}
         />
+
+        {/* Sección de postulación (formulario real si el estado está disponible) */}
+        {data.status === 'available' ? (
+          <Box ref={formRef} sx={{ mt: 4, scrollMarginTop: 90 }}>
+            <SocioEstatalForm
+              estadoSolicitado={region.shortName || region.name}
+              regionId={regionId}
+              status={data.status}
+              estadoNombre={region.name}
+            />
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              mt: 4,
+              p: { xs: 2.5, sm: 3 },
+              borderRadius: 3,
+              bgcolor: 'rgba(11, 29, 23, 0.75)',
+              border: '1px solid rgba(245, 200, 66, 0.30)',
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#ffffff', mb: 1 }}>
+              {data.status === 'processing' ? 'Postulación en revisión' : 'Estado asignado'}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#a2c4b9', lineHeight: 1.6 }}>
+              {data.status === 'processing'
+                ? `La postulación para ${region.shortName || region.name} está en proceso de revisión por el equipo. Si postulaste recientemente, recibirás noticias por WhatsApp.`
+                : `${region.shortName || region.name} ya cuenta con Socio Estatal confirmado. Pronto habilitaremos otras formas de participar en tu estado.`}
+            </Typography>
+          </Box>
+        )}
 
         {/* Snackbar informativo del CTA */}
         <Snackbar

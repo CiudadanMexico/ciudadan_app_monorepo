@@ -36,16 +36,33 @@ describe('Vistas de Socios Estatales', () => {
     expect(container.querySelectorAll('.geo-region').length).toBe(32);
   });
 
-  it('el CTA de la vista de detalle muestra el mensaje del siguiente paso', () => {
-    render(
+  it('el CTA de la vista de detalle lleva al formulario real de postulación', () => {
+    const { container } = render(
       <MemoryRouter initialEntries={['/socios-estatales/oaxaca']}>
         <Routes>
           <Route path='/socios-estatales/:estado' element={<SocioEstatalEstado />} />
         </Routes>
       </MemoryRouter>
     );
+    // El estado Oaxaca esta "available": se muestra el formulario real
+    expect(screen.getByText(/Postúlate como Socio Estatal de Oaxaca/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Nombre completo/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Enviar postulación/i })).toBeInTheDocument();
+    // El CTA del mapa hace scroll al formulario (no abre un aviso de "próximamente")
     fireEvent.click(screen.getByRole('button', { name: /Ver estado/i }));
-    expect(screen.getByText(/formulario de postulación/i)).toBeInTheDocument();
+    expect(container.querySelector('form')).toBeInTheDocument();
+  });
+
+  it('un estado asignado NO muestra formulario sino el aviso de otras formas', () => {
+    render(
+      <MemoryRouter initialEntries={['/socios-estatales/ciudad-de-mexico']}>
+        <Routes>
+          <Route path='/socios-estatales/:estado' element={<SocioEstatalEstado />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(screen.queryByLabelText(/Nombre completo/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/ya cuenta con Socio Estatal confirmado/i)).toBeInTheDocument();
   });
 
   it('clic en "Ver estado" en el mapa navega a la vista de detalle del estado', () => {
