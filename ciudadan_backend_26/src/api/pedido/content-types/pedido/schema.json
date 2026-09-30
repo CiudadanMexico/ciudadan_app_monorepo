@@ -168,6 +168,18 @@
     "monto_subtotal": {
       "type": "decimal",
       "default": 0
+    },
+    "shipping_quote": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::shipping-quote.shipping-quote",
+      "inversedBy": "pedido"
+    },
+    "shipment": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::shipment.shipment",
+      "inversedBy": "pedido"
     }
   }
 }

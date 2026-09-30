@@ -1,0 +1,89 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shipments",
+  "info": {
+    "singularName": "shipment",
+    "pluralName": "shipments",
+    "displayName": "Shipment",
+    "description": "Envío real generado para un pedido. Puede tener N ShipmentPackages."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "pedido": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pedido.pedido",
+      "mappedBy": "shipment"
+    },
+    "shipping_quote": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::shipping-quote.shipping-quote"
+    },
+    "provider": {
+      "type": "string",
+      "default": "skydropx"
+    },
+    "provider_shipment_id": {
+      "type": "string"
+    },
+    "master_tracking_number": {
+      "type": "string"
+    },
+    "carrier_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "processing",
+        "ready",
+        "picked_up",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+        "returned",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "currency_code": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "office_pickup": {
+      "type": "boolean",
+      "default": false
+    },
+    "office_delivery": {
+      "type": "boolean",
+      "default": false
+    },
+    "office_pickup_point_id": {
+      "type": "string"
+    },
+    "office_delivery_point_id": {
+      "type": "string"
+    },
+    "packages": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::shipment-package.shipment-package",
+      "mappedBy": "shipment"
+    },
+    "raw_response": {
+      "type": "json"
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}
