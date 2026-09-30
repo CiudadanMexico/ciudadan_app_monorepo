@@ -17,7 +17,14 @@ export const getDriverDetails = async (id) => {
 
 export const getValidationReviewBundle = async (validationId) => {
   const url = `${STRAPI_URL}/api/cars-validations/${validationId}/review-bundle`;
-  const res = await fetch(url, { credentials: 'include' });
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  if (STRAPI_TOKEN) {
+    headers.Authorization = `Bearer ${STRAPI_TOKEN}`;
+  }
+
+  const res = await fetch(url, { headers, credentials: 'include' });
   const data = await parseJsonSafe(res);
 
   if (!res.ok) {

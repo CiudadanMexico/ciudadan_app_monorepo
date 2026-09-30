@@ -1,0 +1,14 @@
+# Imagen de desarrollo — usa `strapi develop` (autoReload) en vez de build+start.
+# La imagen de producción vive en ./Dockerfile (build + start, sin hot-reload).
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+
+COPY . .
+
+EXPOSE 1337
+
+CMD ["npm", "run", "develop"]
