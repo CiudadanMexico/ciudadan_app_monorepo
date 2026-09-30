@@ -13,12 +13,14 @@ import {
   IconButton,
   Snackbar,
   Chip,
+  Stack,
 } from '@mui/material';
 import productoImg from '../../assets/placeholders/producto.png';
 import { useAuth0 } from '@auth0/auth0-react';
 import { printGuia } from '../../utils/storeAdmin/printGuia.js';
 import { useStoreAdminPedidos } from '../../hooks/storeAdmin/useStoreAdminPedidos';
 import GenerarGuia from '../../components/MarketPlace/GenerarGuia.jsx';
+import PrepararEnvio from '../../components/MarketPlace/PrepararEnvio.jsx';
 import ChecarPagoTienda from '../../components/MarketPlace/ChecarPagoTienda.jsx';
 import PrintIcon from '@mui/icons-material/Print';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
@@ -57,6 +59,7 @@ const PedidosPendientes = ({ store }) => {
   const [selectedPagoPedido, setSelectedPagoPedido] = useState(null);
   const [openPagoModal, setOpenPagoModal] = useState(false);
   const [openGuiaModal, setOpenGuiaModal] = useState(false);
+  const [openPrepararModal, setOpenPrepararModal] = useState(false);
   const [balanceData, setBalanceData] = useState(null);
   const conAutenticacion = false;
 
@@ -121,6 +124,23 @@ const PedidosPendientes = ({ store }) => {
   const handleCloseGuia = () => {
     setOpenGuiaModal(false);
     setSelectedPagoPedido(null);
+  };
+
+  // Abrir modal de preparación de envío (paquetes físicos reales)
+  const handleOpenPreparar = (pedido) => {
+    setSelectedPagoPedido(pedido);
+    setOpenPrepararModal(true);
+  };
+
+  const handleClosePreparar = () => {
+    setOpenPrepararModal(false);
+    setSelectedPagoPedido(null);
+  };
+
+  // Callback cuando el vendedor terminó de preparar los paquetes
+  const handleEnvioPreparado = () => {
+    setSnack({ open: true, message: 'Envío preparado: paquetes registrados.' });
+    handleGetPedidos(store?.id);
   };
 
   // Callback cuando el envío fue creado en Skydropx:
@@ -416,6 +436,33 @@ const PedidosPendientes = ({ store }) => {
               </Box>
             )}
 
+            {/* Envío preparado: paquetes físicos registrados por el vendedor */}
+            {attributes.shipment?.data && (
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 1.5,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                }}
+              >
+                <Typography variant="body2" fontWeight={600} mb={0.5}>
+                  Envío preparado ({attributes.shipment.data.attributes?.packages?.data?.length ?? 0} paquete(s))
+                </Typography>
+                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                  {(attributes.shipment.data.attributes?.packages?.data ?? []).map((pkg) => (
+                    <Chip
+                      key={pkg.id}
+                      size="small"
+                      variant="outlined"
+                      label={`#${pkg.attributes?.package_number}: ${pkg.attributes?.length}×${pkg.attributes?.width}×${pkg.attributes?.height} cm, ${pkg.attributes?.weight} kg`}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
             {/* Items renderizados con el estilo de PedidosEntregados */}
             {itemList.length === 0 ? (
               <Typography color="text.secondary">No hay artículos en este pedido.</Typography>
@@ -437,6 +484,17 @@ const PedidosPendientes = ({ store }) => {
                 </Button>
               )}
 
+              {attributes.status === "pendiente_envio" && !attributes.shipment?.data && (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  disabled={apiLoading}
+                  startIcon={<LocalShippingIcon />}
+                  onClick={() => handleOpenPreparar({ id, attributes })}
+                >
+                  Preparar envío
+                </Button>
+              )}
               {attributes.status === "pendiente_envio" && saldoDisponible > (attributes?.monto_envio ?? 0) && (
                 <Button
                   variant="contained"
@@ -578,6 +636,14 @@ const PedidosPendientes = ({ store }) => {
         handleCloseGuia={handleCloseGuia}
         selectedPagoPedido={selectedPagoPedido}
         onShipmentCreated={handleShipmentCreated}
+      />
+
+      {/* Modal: Preparar envío (paquetes físicos reales) */}
+      <PrepararEnvio
+        open={openPrepararModal}
+        handleClose={handleClosePreparar}
+        selectedPagoPedido={selectedPagoPedido}
+        onEnvioPreparado={handleEnvioPreparado}
       />
 
       <Snackbar

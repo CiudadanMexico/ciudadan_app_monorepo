@@ -32,7 +32,7 @@ export const useStoreAdminPedidos = () => {
     if (!store_id) return DEFAULT_RESPONSE;
     setCargando(true);
     try {
-      const populateStr = "populate[item][populate][producto][populate]=imagen_predeterminada&populate[pago_id][populate][comprobante]=*";
+      const populateStr = "populate[item][populate][producto][populate]=imagen_predeterminada&populate[pago_id][populate][comprobante]=*&populate[shipment][populate][packages][populate][items]=*";
       const filtersStr = `filters[store][id][$eq]=${store_id}&filters[finalizado][$eq]=false`;
       const sortStr = 'sort=status';
       const response = await fetch(`${PEDIDOS_URL}?${filtersStr}&${populateStr}&${sortStr}`);

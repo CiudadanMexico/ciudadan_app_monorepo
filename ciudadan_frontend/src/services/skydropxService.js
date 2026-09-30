@@ -118,6 +118,57 @@ export const obtenerEnvio = async (shipmentId) => {
 };
 
 /**
+ * Congela en backend el snapshot de la tarifa seleccionada por el comprador.
+ * POST /api/pedidos/:id/shipping-quote
+ */
+export const guardarTarifaSeleccionada = async (pedidoId, { quotationId, rate, estimatedParcels, rawResponse }) => {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/shipping-quote`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      quotation_id: quotationId,
+      rate,
+      estimated_parcels: estimatedParcels,
+      raw_response: rawResponse,
+    })
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible guardar la tarifa seleccionada');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
+ * El vendedor prepara los paquetes físicos reales del envío.
+ * POST /api/pedidos/:id/preparar-envio
+ */
+export const prepararEnvio = async (pedidoId, payload) => {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/preparar-envio`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible preparar el envío');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
  * Consulta el envío hasta que Skydropx genere el tracking y la etiqueta (la creación responde 202 sin esos datos).
  */
 export const esperarGuiaEnvio = async (shipmentId, options = {}) => {

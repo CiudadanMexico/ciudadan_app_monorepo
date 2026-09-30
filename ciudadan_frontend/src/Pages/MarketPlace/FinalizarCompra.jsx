@@ -16,7 +16,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
-import { crearCotizacionEnvio, esperarCotizacionCompleta } from "../../services/skydropxService";
+import { crearCotizacionEnvio, esperarCotizacionCompleta, guardarTarifaSeleccionada } from "../../services/skydropxService";
 import { useRoles } from "../../Contexts/RolesContext";
 import EnvioPorTienda from "../../components/MarketPlace/EnvioPorTienda";
 import { Stack } from "@mui/system";
@@ -319,6 +319,9 @@ export default function FinalizarCompra() {
               rates: quotation?.rates ?? [],
               raw: quotation?.raw ?? quotation ?? {},
               direccion_origen_id,
+              // Parcels ESTIMADOS usados para cotizar (heurística desde
+              // dimensiones del producto). NO son los paquetes físicos reales.
+              estimatedParcels: response?.context?.parcels ?? [],
             },
           ];
         })
@@ -590,6 +593,38 @@ export default function FinalizarCompra() {
           console.log("handleCrearPedidos- respuesta pedido creado (raw):", created);
 
           const createdData = created?.data ?? null;
+
+          // Congelar snapshot de la tarifa seleccionada (ShippingQuote).
+          // No bloquea el flujo: los campos legacy del pedido ya llevan la tarifa.
+          if (createdData?.id) {
+            try {
+              await guardarTarifaSeleccionada(createdData.id, {
+                quotationId: cotizacionTienda?.quotationId,
+                rate: tarifasSeleccionadas[storeKey]?.rate,
+                estimatedParcels: cotizacionTienda?.estimatedParcels ?? [],
+              });
+            } catch (quoteErr) {
+              console.error("handleCrearPedidos - no se pudo guardar ShippingQuote del pedido", createdData.id, quoteErr);
+            }
+          }
+
+
+          // Congelar snapshot de la tarifa seleccionada (ShippingQuote).
+          // No bloquea el flujo: los campos legacy del pedido ya llevan la tarifa.
+          const pedidoCreadoId = createdData?.id ?? null;
+          if (pedidoCreadoId) {
+            try {
+              await guardarTarifaSeleccionada(pedidoCreadoId, {
+                quotationId: cotizacionTienda?.quotationId,
+                rate: tarifasSeleccionadas[storeKey]?.rate,
+                estimatedParcels: cotizacionTienda?.estimatedParcels,
+                rawResponse: cotizacionTienda?.raw,
+              });
+            } catch (quoteErr) {
+              console.error("handleCrearPedidos - no se pudo guardar ShippingQuote del pedido", pedidoCreadoId, quoteErr);
+            }
+          }
+
           let attributes = createdData?.attributes ?? {};
           attributes = normalizeAttributesStore(attributes, storeGroup.store);
 
