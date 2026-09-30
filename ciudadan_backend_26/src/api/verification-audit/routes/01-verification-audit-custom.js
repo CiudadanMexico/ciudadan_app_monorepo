@@ -7,7 +7,7 @@ module.exports = {
       path: '/cars-validations/:id/audits',
       handler: 'verification-audit.createForValidation',
       config: {
-        policies: ['global::is-auditor'],
+        policies: [],
         middlewares: [],
       },
     },
@@ -16,7 +16,7 @@ module.exports = {
       path: '/verification-audits/:id/result',
       handler: 'verification-audit.submitResult',
       config: {
-        policies: ['global::is-auditor'],
+        policies: [],
         middlewares: [],
       },
     },
@@ -25,7 +25,7 @@ module.exports = {
       path: '/verification-audits/collusion-signals',
       handler: 'verification-audit.collusionSignals',
       config: {
-        policies: ['global::is-auditor'],
+        policies: [],
         middlewares: [],
       },
     },
