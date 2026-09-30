@@ -25,7 +25,7 @@ import paises from "../assets/paises.json";
 import PasajeroTermsModal from "../components/Taxiz/PasajeroTermsModal.jsx";
 import { useAuth0 } from "@auth0/auth0-react";
 
-const RegistroPasajero = ({ onRegister = () => {} }) => {
+const RegistroPasajero = ({ onRegister = () => { } }) => {
   const { isAuthenticated, loginWithRedirect, user, getAccessTokenSilently } =
     useAuth0();
   const isMobile = useMediaQuery("(max-width:600px)");
@@ -173,18 +173,13 @@ const RegistroPasajero = ({ onRegister = () => {} }) => {
         "Content-Type": "application/json",
       };
 
-      //const strapiJwt = localStorage.getItem("strapi_jwt");
-      const strapiJwt = process.env.REACT_APP_STRAPI_TOKEN || '';
-      if (strapiJwt) headers["Authorization"] = `Bearer ${strapiJwt}`;
-      else {
-        try {
-          const accessToken = await getAccessTokenSilently({
-            authorizationParams: { audience: "" },
-          });
-          if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-        } catch (err) {
-          console.error("Error obteniendo token de Auth0:", err);
-        }
+      try {
+        const accessToken = await getAccessTokenSilently({
+          authorizationParams: { audience: "https://api.ciudadan.org" },
+        });
+        if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+      } catch (err) {
+        console.error("Error obteniendo token de Auth0:", err);
       }
 
       // 1) Buscar por email
