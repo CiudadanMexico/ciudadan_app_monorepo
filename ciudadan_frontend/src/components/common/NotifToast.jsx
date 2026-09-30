@@ -11,7 +11,7 @@
 //
 // notistack renderiza este componente como hijo directo de su Snackbar y le
 // pasa el snack entero (`message`, `variant`, `className`, `style`, `data`...).
-import React from 'react';
+import React, { forwardRef } from 'react';
 import Box from '@mui/material/Box';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -48,12 +48,25 @@ export { ICON_BY_VARIANT };
  * NotifToast — la tarjeta. El fondo morado y el contorno verde neón son siempre
  * los mismos; lo único que cambia por variante es el icono, para que un error
  * se distinga sin perder el lenguaje visual del sitio.
+ *
+ * `forwardRef` NO es decorativo: notistack envuelve el snack en su
+ * TransitionComponent (`Slide` por defecto), que hace
+ * `cloneElement(children, { ref })` y después lee `nodeRef.current` para medir y
+ * animar la entrada. Un componente que no reenvía el ref deja ese ref en `null`
+ * y `Transition` lanza en pleno mount
+ * "notistack - Custom snackbar is not refForwarding" (pantalla de runtime error
+ * de CRA). Lo cubre el test de integración con el SnackbarProvider real en
+ * NotifToast.test.jsx — renderizar este componente suelto NO lo detecta.
  */
-export function NotifToast({ message, variant, className, style }) {
+export const NotifToast = forwardRef(function NotifToast(
+  { message, variant, className, style },
+  ref
+) {
   const Icon = ICON_BY_VARIANT[variant] || ICON_BY_VARIANT[NOTIF_VARIANTS.default];
 
   return (
     <Box
+      ref={ref}
       role="alert"
       className={className}
       style={style}
@@ -90,7 +103,7 @@ export function NotifToast({ message, variant, className, style }) {
       </Box>
     </Box>
   );
-}
+});
 
 /** Mapeo listo para el prop `Components` del SnackbarProvider. */
 export const NOTIF_TOAST_COMPONENTS = Object.values(NOTIF_VARIANTS).reduce(

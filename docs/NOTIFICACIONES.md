@@ -518,6 +518,11 @@ node /tmp/test-notif-http.js "<ACCESS_TOKEN_AUTH0>"   # Casos 1/3/4/5 (opcional,
 15. **No cambies el estilo del `SnackbarProvider` global** para lo de las
    notificaciones: el reskin va por variante (`Components` + `notif-*`), así
    los ~15 `useSnackbar()` legacy no se ven afectados.
+16. **Todo componente de `Components` de notistack lleva `forwardRef`** (§15.5):
+    el `Transition` de notistack 3 inyecta un `ref` al snack y lee
+    `nodeRef.current` para animar la entrada. Con una función plana el ref nunca
+    se resuelve y lanza *notistack - Custom snackbar is not refForwarding* en el
+    mount, tumbando la app entera.
 
 ---
 
@@ -639,6 +644,27 @@ fondo — solo el icono — para no inventar una paleta aparte para el módulo.
 notistack 3 renderiza el componente de `Components[variant]` como hijo directo
 de su `Snackbar` y le pasa el snack entero (`message`, `variant`, `className`,
 `style`…), por eso `NotifToast` acepta y reenvía `className`/`style`.
+
+**`forwardRef` no es opcional.** Entre el `Snackbar` y el componente se interpone
+el `TransitionComponent` (`Slide` por defecto), que hace
+`cloneElement(children, { ref, style })` y acto seguido lee `nodeRef.current`
+para medir y animar la entrada. Si el snack es una función plana React no puede
+inyectarle el ref, ese `current` queda en `null` y `Transition` lanza en pleno
+mount:
+
+```
+notistack - Custom snackbar is not refForwarding
+```
+
+CRA lo traduce en la pantalla roja de *Uncaught runtime errors* (con `StrictMode`
+aparece duplicado en la traza, pero el fallo es uno solo). De ahí que `NotifToast`
+sea `forwardRef` y enganche el ref al `Box` raíz: el ref tiene que acabar en un
+nodo DOM, no en otra componente.
+
+Y cuidado con cómo se prueba esto: renderizar `NotifToast` **suelto** no ejercita
+ni el `Transition` ni el ref, así que da en verde con el bug puesto. El caso que
+lo caza es montarlo dentro del `SnackbarProvider` real con el prop `Components`
+(«monta `notif-*` dentro del SnackbarProvider real» en `NotifToast.test.jsx`).
 
 ---
 
