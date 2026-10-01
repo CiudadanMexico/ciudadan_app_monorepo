@@ -79,6 +79,30 @@
       "target": "api::shipment-package.shipment-package",
       "mappedBy": "shipment"
     },
+    "pickup_status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "requested",
+        "scheduled",
+        "collected",
+        "cancelled",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "provider_pickup_id": {
+      "type": "string"
+    },
+    "pickup_requested_at": {
+      "type": "datetime"
+    },
+    "pickup_scheduled_at": {
+      "type": "datetime"
+    },
+    "pickup_raw_response": {
+      "type": "json"
+    },
     "raw_response": {
       "type": "json"
     },

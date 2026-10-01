@@ -1216,6 +1216,111 @@ module.exports = {
   },
 
   /**
+   * SOLICITAR RECOLECCIÓN (PICKUP)
+   * POST /api/skydropx/shipment/:id/pickup
+   *
+   * Solicita a Skydropx la recolección de un envío ya creado.
+   * El :id es el provider_shipment_id (ID de Skydropx).
+   *
+   * Body: { date: "YYYY-MM-DD", time_from: "HH:MM", time_to: "HH:MM", instructions? }
+   *
+   * Condiciones:
+   * - El Shipment debe existir y tener provider_shipment_id.
+   * - El Shipment no debe estar cancelado/devuelto/fallido.
+   * - No se permite solicitar pickup dos veces (idempotente).
+   */
+  async requestPickup(ctx) {
+    try {
+      const { id } = ctx.params;
+      const body = ctx.request?.body ?? {};
+
+      if (!id) return ctx.badRequest("El ID del envío es requerido");
+
+      const { date, time_from, time_to, instructions } = body;
+
+      if (!date || !time_from || !time_to) {
+        return ctx.badRequest("date, time_from y time_to son requeridos");
+      }
+
+      // Buscar el Shipment por provider_shipment_id
+      const shipments = await strapi.entityService.findMany(SHIPMENT_UID, {
+        filters: { provider_shipment_id: String(id) },
+        populate: { packages: true },
+        limit: 1,
+      });
+
+      const shipment = shipments?.[0] ?? null;
+
+      if (!shipment) {
+        return ctx.notFound("Envío no encontrado en Ciudadan");
+      }
+
+      // Validar estado del shipment
+      const estadosBloqueados = ["cancelled", "returned", "failed"];
+      if (estadosBloqueados.includes(shipment.status)) {
+        return ctx.badRequest(`No se puede solicitar pickup para un envío en estado ${shipment.status}`);
+      }
+
+      // Idempotencia: ya tiene pickup solicitado
+      if (shipment.provider_pickup_id) {
+        return ctx.send({
+          success: true,
+          message: "El envío ya tiene una recolección solicitada",
+          pickup: {
+            provider_pickup_id: shipment.provider_pickup_id,
+            status: shipment.pickup_status,
+            scheduled_at: shipment.pickup_scheduled_at,
+          },
+          duplicated: true,
+        });
+      }
+
+      // Llamar a Skydropx
+      const pickupResponse = await skydropxService.createPickup({
+        shipment_id: String(id),
+        date,
+        time_from,
+        time_to,
+        instructions: instructions ?? null,
+      });
+
+      const pickupData = pickupResponse?.data ?? pickupResponse;
+      const pickupAttrs = pickupData?.attributes ?? {};
+      const providerPickupId = pickupData?.id ?? pickupAttrs?.id ?? null;
+
+      // Actualizar Shipment
+      await strapi.entityService.update(SHIPMENT_UID, shipment.id, {
+        data: {
+          pickup_status: "requested",
+          provider_pickup_id: providerPickupId ? String(providerPickupId) : null,
+          pickup_requested_at: new Date().toISOString(),
+          pickup_scheduled_at: pickupAttrs?.scheduled_at ?? null,
+          pickup_raw_response: pickupResponse,
+        },
+      });
+
+      ctx.status = 201;
+      ctx.body = {
+        success: true,
+        message: "Recolección solicitada",
+        pickup: {
+          provider_pickup_id: providerPickupId,
+          status: "requested",
+          scheduled_at: pickupAttrs?.scheduled_at ?? null,
+        },
+      };
+    } catch (error) {
+      strapi.log.error("Error solicitando pickup Skydropx:", error);
+      ctx.status = error?.status ?? 500;
+      ctx.body = {
+        success: false,
+        message: error?.message ?? "No fue posible solicitar la recolección",
+        details: error?.details ?? null,
+      };
+    }
+  },
+
+  /**
    * WEBHOOK DE SKYDROPX
    * POST /api/skydropx/shipment/webhook
    * Skydropx notifica cambios de estado del envío.
@@ -1247,6 +1352,29 @@ module.exports = {
         strapi.log.warn("Webhook Skydropx sin shipment_id: " + JSON.stringify(body).slice(0, 500));
         ctx.status = 200;
         ctx.body = { success: true, message: "Evento ignorado: sin shipment_id" };
+        return;
+      }
+
+      // Validar que el shipment existe en Ciudadan antes de procesar
+      const shipments = await strapi.entityService.findMany(SHIPMENT_UID, {
+        filters: { provider_shipment_id: String(shipmentId) },
+        limit: 1,
+      });
+
+      const shipmentExists = shipments?.[0] ?? null;
+
+      // También verificar por pedido legacy (compatibilidad)
+      const pedidos = await strapi.entityService.findMany(PEDIDO_UID, {
+        filters: { skydropx_shipment_id: String(shipmentId) },
+        limit: 1,
+      });
+
+      const pedidoExists = pedidos?.[0] ?? null;
+
+      if (!shipmentExists && !pedidoExists) {
+        strapi.log.warn(`Webhook Skydropx para envío desconocido: ${shipmentId}`);
+        ctx.status = 200;
+        ctx.body = { success: true, message: "Evento ignorado: envío no registrado" };
         return;
       }
 

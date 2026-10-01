@@ -352,4 +352,134 @@ module.exports = createCoreController(PEDIDO_UID, ({ strapi }) => ({
       }, ctx.status);
     }
   },
+
+  /**
+   * GET /api/pedidos/:id/tracking
+   *
+   * Vista de tracking para el COMPRADOR. Devuelve la información logística
+   * del pedido desde el backend de Ciudadan (nunca desde Skydropx directo).
+   *
+   * Respuesta:
+   * {
+   *   pedido: { id, status, monto_total, moneda },
+   *   shipment: { id, status, master_tracking_number, carrier_name, pickup_status },
+   *   packages: [{ package_number, tracking_number, tracking_url, label_url, status, items }]
+   * }
+   */
+  async getTracking(ctx) {
+    try {
+      const pedidoId = Number(ctx.params.id);
+      if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
+        return ctx.badRequest('id de pedido inválido');
+      }
+
+      const pedido = await strapi.entityService.findOne(PEDIDO_UID, pedidoId, {
+        populate: {
+          shipment: {
+            populate: {
+              packages: {
+                populate: {
+                  items: {
+                    populate: { producto: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!pedido) return ctx.notFound('Pedido no encontrado');
+
+      const shipment = pedido.shipment ?? null;
+
+      // Compatibilidad: si no hay Shipment pero sí campos legacy en el pedido
+      if (!shipment && pedido.skydropx_shipment_id) {
+        return ctx.send({
+          pedido: {
+            id: pedido.id,
+            status: pedido.status,
+            monto_total: pedido.monto_total,
+            moneda: pedido.moneda,
+          },
+          shipment: {
+            id: null,
+            status: pedido.skydropx_status ?? null,
+            master_tracking_number: pedido.skydropx_tracking_number ?? null,
+            carrier_name: pedido.proveedor ?? null,
+            pickup_status: null,
+          },
+          packages: pedido.skydropx_tracking_number
+            ? [{
+                package_number: '1',
+                tracking_number: pedido.skydropx_tracking_number,
+                tracking_url: null,
+                label_url: pedido.skydropx_label_url ?? null,
+                status: pedido.skydropx_status ?? null,
+                items: [],
+              }]
+            : [],
+        });
+      }
+
+      if (!shipment) {
+        return ctx.send({
+          pedido: {
+            id: pedido.id,
+            status: pedido.status,
+            monto_total: pedido.monto_total,
+            moneda: pedido.moneda,
+          },
+          shipment: null,
+          packages: [],
+        });
+      }
+
+      const packages = (Array.isArray(shipment.packages) ? shipment.packages : []).map((pkg) => ({
+        id: pkg.id,
+        package_number: pkg.package_number,
+        length: pkg.length,
+        width: pkg.width,
+        height: pkg.height,
+        weight: pkg.weight,
+        declared_value: pkg.declared_value,
+        package_protected: pkg.package_protected,
+        tracking_number: pkg.tracking_number ?? null,
+        tracking_url: pkg.tracking_url ?? null,
+        label_url: pkg.label_url ?? null,
+        status: pkg.status ?? 'pending',
+        items: (Array.isArray(pkg.items) ? pkg.items : []).map((item) => ({
+          producto_id: item?.producto?.id ?? item?.producto ?? null,
+          nombre: item?.nombre ?? null,
+          quantity: item?.quantity ?? 0,
+          precio_unitario: item?.precio_unitario ?? null,
+        })),
+      }));
+
+      return ctx.send({
+        pedido: {
+          id: pedido.id,
+          status: pedido.status,
+          monto_total: pedido.monto_total,
+          moneda: pedido.moneda,
+        },
+        shipment: {
+          id: shipment.id,
+          status: shipment.status,
+          master_tracking_number: shipment.master_tracking_number ?? null,
+          carrier_name: shipment.carrier_name ?? null,
+          pickup_status: shipment.pickup_status ?? null,
+          pickup_scheduled_at: shipment.pickup_scheduled_at ?? null,
+        },
+        packages,
+      });
+    } catch (error) {
+      strapi.log.error('Error consultando tracking del pedido:', error);
+      ctx.status = error?.status ?? 500;
+      return ctx.send({
+        success: false,
+        message: error?.message ?? 'No fue posible consultar el tracking',
+      }, ctx.status);
+    }
+  },
 }));

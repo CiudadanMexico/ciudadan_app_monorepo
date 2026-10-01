@@ -543,6 +543,41 @@ async function getShipment(shipmentId) {
   return skydropxRequest(`/api/v1/shipments/${encodeURIComponent(shipmentId)}`, { method: "GET", });
 }
 
+/**
+ * SOLICITAR RECOLECCIÓN (PICKUP)
+ *
+ * Skydropx: POST /api/v1/pickups
+ * Body: { pickup: { shipment_id, date, time_from, time_to, instructions? } }
+ */
+async function createPickup(pickup) {
+  if (!pickup)
+    throw new Error("La información de recolección es requerida");
+
+  if (!pickup.shipment_id)
+    throw new Error("shipment_id es requerido para solicitar la recolección");
+
+  if (!pickup.date || !pickup.time_from || !pickup.time_to)
+    throw new Error("date, time_from y time_to son requeridos");
+
+  const payload = {
+    pickup: {
+      shipment_id: String(pickup.shipment_id),
+      date: String(pickup.date),
+      time_from: String(pickup.time_from),
+      time_to: String(pickup.time_to),
+    },
+  };
+
+  if (pickup.instructions) {
+    payload.pickup.instructions = String(pickup.instructions).slice(0, 200);
+  }
+
+  return skydropxRequest("/api/v1/pickups", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 
 module.exports = {
   getAccessToken,
@@ -566,4 +601,5 @@ module.exports = {
 
   createShipment,
   getShipment,
+  createPickup,
 };

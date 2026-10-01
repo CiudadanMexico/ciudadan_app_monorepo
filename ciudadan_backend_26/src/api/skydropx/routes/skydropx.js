@@ -78,6 +78,16 @@ module.exports = {
         policies: ['global::try-auth0-user']
       },
     },
+    // Solicitar recolección (pickup) de un envío
+    {
+      method: "POST",
+      path: "/skydropx/shipment/:id/pickup",
+      handler: "skydropx.requestPickup",
+      config: {
+        auth: false,
+        policies: ['global::try-auth0-user'],
+      },
+    },
     // Webhook de Skydropx (sin auth; se valida con SKYDROPX_WEBHOOK_SECRET)
     {
       method: "POST",

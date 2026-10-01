@@ -31,5 +31,15 @@ module.exports = {
         policies: ['global::try-auth0-user'],
       },
     },
+    // Tracking del comprador (desde el backend de Ciudadan, no Skydropx directo)
+    {
+      method: 'GET',
+      path: '/pedidos/:id/tracking',
+      handler: 'pedido.getTracking',
+      config: {
+        auth: false,
+        policies: ['global::try-auth0-user'],
+      },
+    },
   ],
 };
