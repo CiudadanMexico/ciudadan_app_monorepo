@@ -169,6 +169,46 @@ export const prepararEnvio = async (pedidoId, payload) => {
 };
 
 /**
+ * Consulta el tracking de un pedido desde el backend de Ciudadan.
+ * GET /api/pedidos/:id/tracking
+ */
+export const obtenerTrackingPedido = async (pedidoId) => {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/tracking`);
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible consultar el tracking');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
+ * Solicita la recolección (pickup) de un envío en Skydropx.
+ * POST /api/skydropx/shipment/:id/pickup
+ */
+export const solicitarPickup = async (shipmentId, { date, time_from, time_to, instructions }) => {
+  const response = await fetch(`${API_URL}/api/skydropx/shipment/${encodeURIComponent(shipmentId)}/pickup`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ date, time_from, time_to, instructions })
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible solicitar la recolección');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
  * Consulta el envío hasta que Skydropx genere el tracking y la etiqueta (la creación responde 202 sin esos datos).
  */
 export const esperarGuiaEnvio = async (shipmentId, options = {}) => {
