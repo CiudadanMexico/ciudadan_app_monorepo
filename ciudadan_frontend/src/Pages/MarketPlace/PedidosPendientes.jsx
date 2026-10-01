@@ -463,6 +463,89 @@ const PedidosPendientes = ({ store }) => {
               </Box>
             )}
 
+            {/* Envío creado en Skydropx: master tracking + paquetes con tracking/label individual */}
+            {attributes.shipment?.data?.attributes?.provider_shipment_id && (() => {
+              const shipmentAttrs = attributes.shipment.data.attributes;
+              const shipmentPackages = shipmentAttrs?.packages?.data ?? [];
+              return (
+                <Box
+                  sx={{
+                    mt: 1,
+                    p: 1.5,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                  }}
+                >
+                  <Box display="flex" alignItems="center" gap={1} flexWrap="wrap" mb={1}>
+                    <LocalShippingIcon color="action" fontSize="small" />
+                    <Typography variant="body2" fontWeight={600}>
+                      {shipmentAttrs?.carrier_name ?? attributes.proveedor ?? 'Paquetería'}
+                    </Typography>
+                    {shipmentAttrs?.master_tracking_number && (
+                      <Typography variant="body2">
+                        <strong>Master tracking:</strong> {shipmentAttrs.master_tracking_number}
+                      </Typography>
+                    )}
+                    {shipmentAttrs?.status && (
+                      <Chip size="small" color="info" variant="outlined" label={`Envío: ${shipmentAttrs.status}`} />
+                    )}
+                  </Box>
+
+                  {shipmentPackages.map((pkg) => (
+                    <Box
+                      key={pkg.id}
+                      sx={{
+                        mt: 1,
+                        p: 1,
+                        border: '1px dashed',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: 1.5,
+                      }}
+                    >
+                      <Typography variant="body2" fontWeight={600}>
+                        Paquete {pkg.attributes?.package_number}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {pkg.attributes?.length}×{pkg.attributes?.width}×{pkg.attributes?.height} cm · {pkg.attributes?.weight} kg
+                      </Typography>
+                      {pkg.attributes?.tracking_number && (
+                        <Typography variant="body2">
+                          <strong>Tracking:</strong> {pkg.attributes.tracking_number}
+                        </Typography>
+                      )}
+                      {pkg.attributes?.status && (
+                        <Chip size="small" variant="outlined" label={pkg.attributes.status} />
+                      )}
+                      {pkg.attributes?.label_url && (
+                        <Button
+                          size="small"
+                          variant="text"
+                          startIcon={<PrintIcon />}
+                          onClick={() => window.open(pkg.attributes.label_url, '_blank', 'noopener,noreferrer')}
+                        >
+                          Etiqueta
+                        </Button>
+                      )}
+                      {pkg.attributes?.tracking_url && (
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => window.open(pkg.attributes.tracking_url, '_blank', 'noopener,noreferrer')}
+                        >
+                          Seguimiento
+                        </Button>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              );
+            })()}
+
             {/* Items renderizados con el estilo de PedidosEntregados */}
             {itemList.length === 0 ? (
               <Typography color="text.secondary">No hay artículos en este pedido.</Typography>
@@ -484,7 +567,7 @@ const PedidosPendientes = ({ store }) => {
                 </Button>
               )}
 
-              {attributes.status === "pendiente_envio" && !attributes.shipment?.data && (
+              {attributes.status === "pendiente_envio" && !attributes.shipment?.data && !attributes.skydropx_shipment_id && (
                 <Button
                   variant="contained"
                   color="secondary"
@@ -495,7 +578,7 @@ const PedidosPendientes = ({ store }) => {
                   Preparar envío
                 </Button>
               )}
-              {attributes.status === "pendiente_envio" && saldoDisponible > (attributes?.monto_envio ?? 0) && (
+              {attributes.status === "pendiente_envio" && !attributes.shipment?.data?.attributes?.provider_shipment_id && saldoDisponible > (attributes?.monto_envio ?? 0) && (
                 <Button
                   variant="contained"
                   disabled={apiLoading}

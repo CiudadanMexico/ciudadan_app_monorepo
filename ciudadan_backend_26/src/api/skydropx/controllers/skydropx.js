@@ -7,6 +7,47 @@ const PRODUCT_UID = "api::producto.producto";
 const ADDRESS_UID = "api::direccion.direccion";
 const PEDIDO_UID = "api::pedido.pedido";
 const BALANCE_UID = "api::logistics-balance.logistics-balance";
+const SHIPMENT_UID = "api::shipment.shipment";
+const PACKAGE_UID = "api::shipment-package.shipment-package";
+
+/**
+ * MAPA DE ESTADOS SKYDROPX -> SHIPMENT (modelo logístico Fase 1+).
+ * El workflow_status del envío y/o el tracking_status del paquete
+ * se normalizan al enum de api::shipment.shipment.
+ */
+const SKYDROPX_SHIPMENT_STATUS_MAP = {
+  pending: "pending",
+  created: "processing",
+  processing: "processing",
+  ready: "ready",
+  picked_up: "picked_up",
+  in_transit: "in_transit",
+  out_for_delivery: "out_for_delivery",
+  delivered: "delivered",
+  cancelled: "cancelled",
+  canceled: "cancelled",
+  returned: "returned",
+  failed: "failed",
+};
+
+function resolveShipmentStatus({ workflowStatus, trackingStatus, hasTracking }) {
+  const candidates = [trackingStatus, workflowStatus]
+    .map((s) => String(s ?? "").toLowerCase())
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (SKYDROPX_SHIPMENT_STATUS_MAP[candidate]) {
+      return SKYDROPX_SHIPMENT_STATUS_MAP[candidate];
+    }
+  }
+
+  // Ya hay tracking/etiqueta pero no conocemos el estado: el envío está listo.
+  if (hasTracking) {
+    return "ready";
+  }
+
+  return null;
+}
 
 /**
  * Normaliza los items del pedido.
@@ -116,7 +157,9 @@ async function syncShipmentFromSkydropx(shipmentId) {
   let packageTrackingStatus = null;
 
   const included = Array.isArray(shipment?.included) ? shipment?.included : [];
-  const packageData = included?.find((item) => item?.type === "package");
+  // TODOS los paquetes incluidos (un shipment puede tener N paquetes)
+  const includedPackages = included.filter((item) => item?.type === "package");
+  const packageData = includedPackages[0] ?? null;
   const packageAttributes = packageData?.attributes ?? null;
 
   if (packageAttributes) {
@@ -208,6 +251,103 @@ async function syncShipmentFromSkydropx(shipmentId) {
     }
   }
 
+  /**
+   * -------------------------------------------------
+   * Sincronizar el nuevo modelo logístico (Fase 3):
+   * Shipment + ShipmentPackages. El pedido conserva sus
+   * campos legacy por compatibilidad, pero la fuente de
+   * verdad logística pasa a ser el Shipment.
+   * -------------------------------------------------
+   */
+  let shipmentEntity = null;
+  try {
+    const shipments = await strapi.entityService.findMany(SHIPMENT_UID, {
+      filters: { provider_shipment_id: String(shipmentId) },
+      populate: { packages: true },
+      limit: 1,
+    });
+
+    shipmentEntity = shipments?.[0] ?? null;
+
+    if (shipmentEntity) {
+      const shipmentUpdate = {
+        raw_response: shipment,
+      };
+
+      const masterTracking = attrs?.master_tracking_number ?? trackingNumber ?? null;
+      if (masterTracking) {
+        shipmentUpdate.master_tracking_number = masterTracking;
+      }
+
+      if (attrs.carrier_name) {
+        shipmentUpdate.carrier_name = attrs.carrier_name;
+      }
+
+      const nuevoShipmentStatus = resolveShipmentStatus({
+        workflowStatus,
+        trackingStatus: packageTrackingStatus,
+        hasTracking: Boolean(masterTracking || trackingNumber || labelUrl),
+      });
+
+      if (nuevoShipmentStatus && nuevoShipmentStatus !== shipmentEntity.status) {
+        shipmentUpdate.status = nuevoShipmentStatus;
+      }
+
+      await strapi.entityService.update(SHIPMENT_UID, shipmentEntity.id, {
+        data: shipmentUpdate,
+      });
+
+      // Actualizar cada paquete físico con su tracking/label/estado.
+      // Se relaciona por provider_package_id si existe; si no, por orden.
+      const localPackages = Array.isArray(shipmentEntity.packages) ? shipmentEntity.packages : [];
+
+      for (const [index, includedPkg] of includedPackages.entries()) {
+        const pkgAttrs = includedPkg?.attributes ?? {};
+        const providerPackageId = includedPkg?.id ?? pkgAttrs?.id ?? null;
+
+        let localPkg = providerPackageId
+          ? localPackages.find((p) => String(p.provider_package_id) === String(providerPackageId))
+          : null;
+
+        // Fallback: emparejar por package_number (índice + 1)
+        if (!localPkg) {
+          localPkg = localPackages.find((p) => String(p.package_number) === String(index + 1)) ?? localPackages[index] ?? null;
+        }
+
+        if (!localPkg) continue;
+
+        const pkgUpdate = {};
+
+        if (providerPackageId && !localPkg.provider_package_id) {
+          pkgUpdate.provider_package_id = String(providerPackageId);
+        }
+        if (pkgAttrs?.tracking_number) {
+          pkgUpdate.tracking_number = pkgAttrs.tracking_number;
+        }
+        if (pkgAttrs?.tracking_url_provider) {
+          pkgUpdate.tracking_url = pkgAttrs.tracking_url_provider;
+        }
+        if (pkgAttrs?.label_url) {
+          pkgUpdate.label_url = pkgAttrs.label_url;
+        }
+
+        const pkgStatus = SKYDROPX_SHIPMENT_STATUS_MAP[String(pkgAttrs?.tracking_status ?? "").toLowerCase()];
+        if (pkgStatus && pkgStatus !== localPkg.status) {
+          pkgUpdate.status = pkgStatus;
+        } else if (pkgAttrs?.label_url && localPkg.status === "pending") {
+          pkgUpdate.status = "labeled";
+        }
+
+        if (Object.keys(pkgUpdate).length > 0) {
+          await strapi.entityService.update(PACKAGE_UID, localPkg.id, { data: pkgUpdate });
+        }
+      }
+    }
+  } catch (shipmentSyncError) {
+    // No rompemos la sincronización del pedido por un error en el nuevo modelo.
+    strapi.log.error(`Error sincronizando Shipment/Packages del envío ${shipmentId}:`, shipmentSyncError);
+  }
+
   return {
     shipment: {
       id: shipmentData?.id ?? shipmentId,
@@ -220,9 +360,17 @@ async function syncShipmentFromSkydropx(shipmentId) {
       tracking_url: trackingUrl,
       package_tracking_status: packageTrackingStatus,
       order_detail_url: attrs?.order_detail_url ?? null,
+      packages: includedPackages.map((p) => ({
+        id: p?.id ?? null,
+        tracking_number: p?.attributes?.tracking_number ?? null,
+        tracking_url: p?.attributes?.tracking_url_provider ?? null,
+        label_url: p?.attributes?.label_url ?? null,
+        tracking_status: p?.attributes?.tracking_status ?? null,
+      })),
       raw: shipment,
     },
     pedido: pedido ? { id: pedido?.id, status: pedido?.status } : null,
+    shipment_entity_id: shipmentEntity?.id ?? null,
   };
 }
 
@@ -593,15 +741,11 @@ module.exports = {
       const officeDeliveryPointId = body?.office_delivery_point_id ?? null;
       const requestPackages = Array.isArray(body?.packages) ? body.packages : [];
 
-      if (officePickup && !officePickupPointId) {
-        return ctx.badRequest("office_pickup_point_id es requerido cuando la recolección es en sucursal");
-      }
+      // Nota: la validación de office points se realiza después de cargar el
+      // pedido, porque si existe un Shipment preparado los puntos pueden
+      // venir guardados ahí (capturados durante la preparación del envío).
 
-      if (officeDelivery && !officeDeliveryPointId) {
-        return ctx.badRequest("office_delivery_point_id es requerido cuando la entrega es en sucursal");
-      }
-
-      // * 1. Obtener pedido
+      // * 1. Obtener pedido (incluye el Shipment preparado con sus paquetes, si existe)
       const pedido = await strapi.entityService.findOne(PEDIDO_UID, pedidoId, {
         populate: {
           store: {
@@ -617,7 +761,20 @@ module.exports = {
             populate: {
               producto: true
             }
-          }
+          },
+          shipment: {
+            populate: {
+              packages: {
+                populate: {
+                  items: {
+                    populate: {
+                      producto: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
 
@@ -632,11 +789,17 @@ module.exports = {
 
       /**
        * -------------------------------------------------
-       * 3. Evitar duplicados
+       * 3. Evitar duplicados (idempotencia)
        * -------------------------------------------------
        */
       if (pedido.skydropx_shipment_id) {
         return ctx.badRequest("El pedido ya tiene un envío de Skydropx creado");
+      }
+
+      const preparedShipment = pedido.shipment ?? null;
+
+      if (preparedShipment?.provider_shipment_id) {
+        return ctx.badRequest("El envío preparado ya fue creado en Skydropx");
       }
 
       /**
@@ -773,10 +936,45 @@ module.exports = {
        * -------------------------------------------------
        * 11. Construir packages
        * -------------------------------------------------
-       * Nuestra cotización actual crea un parcel por item/producto.
-       * Por eso el número de packages debe coincidir con el número de items cotizados.
+       * FUENTE DE VERDAD (Fase 3):
+       * Si el vendedor preparó el envío, los packages se construyen
+       * desde los ShipmentPackages físicos confirmados.
+       * Si no existe preparación, se mantiene el flujo legacy
+       * (un package por item del pedido) por compatibilidad.
        */
-      const packages = skydropxService.buildShipmentPackages(items, requestPackages);
+      const preparedPackages = Array.isArray(preparedShipment?.packages) ? preparedShipment.packages : [];
+
+      let packages;
+      if (preparedShipment && preparedPackages.length > 0) {
+        packages = skydropxService.buildParcelsFromShipmentPackages(preparedPackages);
+      } else {
+        packages = skydropxService.buildShipmentPackages(items, requestPackages);
+      }
+
+      /**
+       * -------------------------------------------------
+       * 11b. Pickup / delivery en sucursal
+       * -------------------------------------------------
+       * Se prefieren los valores confirmados durante la preparación
+       * del envío; el body solo se usa como fallback (flujo legacy).
+       * Nunca se envían point ids si la modalidad no aplica.
+       */
+      const finalOfficePickup = preparedShipment ? Boolean(preparedShipment.office_pickup) : officePickup;
+      const finalOfficeDelivery = preparedShipment ? Boolean(preparedShipment.office_delivery) : officeDelivery;
+      const finalOfficePickupPointId = finalOfficePickup
+        ? (preparedShipment?.office_pickup_point_id ?? officePickupPointId)
+        : null;
+      const finalOfficeDeliveryPointId = finalOfficeDelivery
+        ? (preparedShipment?.office_delivery_point_id ?? officeDeliveryPointId)
+        : null;
+
+      if (finalOfficePickup && !finalOfficePickupPointId) {
+        return ctx.badRequest("office_pickup_point_id es requerido cuando la recolección es en sucursal");
+      }
+
+      if (finalOfficeDelivery && !finalOfficeDeliveryPointId) {
+        return ctx.badRequest("office_delivery_point_id es requerido cuando la entrega es en sucursal");
+      }
 
       // -------------------------------------------------
       // 12. Obtener el importe de rate seleccionado y validar
@@ -786,7 +984,7 @@ module.exports = {
 
       //--------------------------------------------------
       // 13. Reservar saldo
-      const reservation = await strapi.service("BALANCE_UID").reserveShipmentBalance({
+      const reservation = await strapi.service(BALANCE_UID).reserveShipmentBalance({
         storeId: store.id,
         orderId: pedidoId,
         amount: shippingAmount,
@@ -806,6 +1004,14 @@ module.exports = {
 
       // * 14. Crear envío en Skydropx
       try {
+        // Estado consistente: el Shipment preparado pasa a "processing"
+        // antes de llamar al proveedor (nunca se marca como creado antes de tiempo).
+        if (preparedShipment) {
+          await strapi.entityService.update(SHIPMENT_UID, preparedShipment.id, {
+            data: { status: "processing" },
+          });
+        }
+
         const shipment = await skydropxService.createShipment({
           rate_id: pedido.skydropx_rate_id,
           unique_shipment: true,
@@ -815,10 +1021,10 @@ module.exports = {
           address_from: addressFrom,
           address_to: addressTo,
           packages,
-          office_pickup: officePickup,
-          office_delivery: officeDelivery,
-          office_pickup_point_id: officePickupPointId,
-          office_delivery_point_id: officeDeliveryPointId,
+          office_pickup: finalOfficePickup,
+          office_delivery: finalOfficeDelivery,
+          office_pickup_point_id: finalOfficePickupPointId,
+          office_delivery_point_id: finalOfficeDeliveryPointId,
         });
 
         // * 15. Extraer respuesta inicial
@@ -833,7 +1039,7 @@ module.exports = {
         }
 
         // 17. Confirmar cargo
-        await strapi.service("BALANCE_UID").commitShipmentCharge({
+        await strapi.service(BALANCE_UID).commitShipmentCharge({
           transactionId: reservation.transactionId,
           shipmentId,
         });
@@ -872,6 +1078,57 @@ module.exports = {
           },
         });
 
+        /**
+         * 18b. Persistir en el nuevo modelo logístico (Shipment + Packages).
+         * Skydropx responde 202: tracking/labels pueden llegar después
+         * vía getShipment()/webhook (syncShipmentFromSkydropx).
+         */
+        if (preparedShipment) {
+          const included = Array.isArray(shipment?.included) ? shipment.included : [];
+          const includedPackages = included.filter((item) => item?.type === "package");
+
+          await strapi.entityService.update(SHIPMENT_UID, preparedShipment.id, {
+            data: {
+              provider: "skydropx",
+              provider_shipment_id: String(shipmentId),
+              master_tracking_number: shipmentAttributes?.master_tracking_number ?? null,
+              carrier_name: carrierName,
+              status: resolveShipmentStatus({
+                workflowStatus,
+                trackingStatus: null,
+                hasTracking: Boolean(shipmentAttributes?.master_tracking_number),
+              }) ?? "processing",
+              raw_response: shipment,
+            },
+          });
+
+          // Asociar provider_package_id y datos iniciales a cada paquete
+          for (const [index, includedPkg] of includedPackages.entries()) {
+            const pkgAttrs = includedPkg?.attributes ?? {};
+            const providerPackageId = includedPkg?.id ?? null;
+
+            const localPkg =
+              preparedPackages.find((p) => String(p.package_number) === String(index + 1)) ??
+              preparedPackages[index] ??
+              null;
+
+            if (!localPkg) continue;
+
+            const pkgUpdate = {};
+            if (providerPackageId) pkgUpdate.provider_package_id = String(providerPackageId);
+            if (pkgAttrs?.tracking_number) pkgUpdate.tracking_number = pkgAttrs.tracking_number;
+            if (pkgAttrs?.tracking_url_provider) pkgUpdate.tracking_url = pkgAttrs.tracking_url_provider;
+            if (pkgAttrs?.label_url) {
+              pkgUpdate.label_url = pkgAttrs.label_url;
+              pkgUpdate.status = "labeled";
+            }
+
+            if (Object.keys(pkgUpdate).length > 0) {
+              await strapi.entityService.update(PACKAGE_UID, localPkg.id, { data: pkgUpdate });
+            }
+          }
+        }
+
         // * 19. Respuesta al frontend
         ctx.status = 202;
         ctx.body = {
@@ -889,10 +1146,28 @@ module.exports = {
         };
       } catch (error) {
         // 20. Liberar reserva
-        await strapi.service("BALANCE_UID").releaseShipmentReservation({
+        await strapi.service(BALANCE_UID).releaseShipmentReservation({
           transactionId: reservation.transactionId,
           reason: error?.message,
         });
+
+        // Marcar el Shipment preparado como fallido (nunca queda como creado).
+        if (preparedShipment) {
+          try {
+            await strapi.entityService.update(SHIPMENT_UID, preparedShipment.id, {
+              data: {
+                status: "failed",
+                metadata: {
+                  ...(preparedShipment.metadata || {}),
+                  creation_error: error?.message ?? "Error desconocido",
+                  creation_failed_at: new Date().toISOString(),
+                },
+              },
+            });
+          } catch (updateError) {
+            strapi.log.error("Error marcando shipment como fallido:", updateError);
+          }
+        }
 
         throw error;
       }

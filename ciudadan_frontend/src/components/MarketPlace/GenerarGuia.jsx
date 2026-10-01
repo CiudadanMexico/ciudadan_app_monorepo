@@ -64,6 +64,16 @@ const GenerarGuia = ({ openGuiaModal, handleCloseGuia, selectedPagoPedido, onShi
     setError(null);
     setCargando(true);
 
+    // Si el envío ya fue preparado, prellenar los puntos de oficina
+    // capturados durante la preparación (no pedirlos de nuevo).
+    const preparedShipment = selectedPagoPedido?.attributes?.shipment?.data?.attributes ?? null;
+    if (preparedShipment?.office_pickup_point_id) {
+      setPickupPointId(preparedShipment.office_pickup_point_id);
+    }
+    if (preparedShipment?.office_delivery_point_id) {
+      setDeliveryPointId(preparedShipment.office_delivery_point_id);
+    }
+
     const cargar = async () => {
       try {
 

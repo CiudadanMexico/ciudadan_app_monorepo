@@ -296,6 +296,78 @@ function buildShipmentPackages(items, requestPackages = []) {
 }
 
 /**
+ * Construye los packages de Skydropx a partir de los ShipmentPackages
+ * REALES confirmados por el vendedor (Fase 3).
+ *
+ * A diferencia de buildShipmentPackages (que deriva de OrderItems),
+ * aquí la fuente de verdad son los paquetes físicos preparados:
+ * dimensiones, peso, valor declarado y protección pertenecen al paquete.
+ *
+ * @param {Array} shipmentPackages - entidades ShipmentPackage con items poblados.
+ */
+function buildParcelsFromShipmentPackages(shipmentPackages = []) {
+  if (!Array.isArray(shipmentPackages) || shipmentPackages.length === 0) {
+    throw new Error("El envío no tiene paquetes preparados");
+  }
+
+  return shipmentPackages.map((pkg, index) => {
+    const length = Number(pkg.length);
+    const width = Number(pkg.width);
+    const height = Number(pkg.height);
+    const weight = Number(pkg.weight);
+
+    if (!Number.isFinite(length) || length <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un largo válido`);
+    if (!Number.isFinite(width) || width <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un ancho válido`);
+    if (!Number.isFinite(height) || height <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un alto válido`);
+    if (!Number.isFinite(weight) || weight <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un peso válido`);
+
+    const parcel = {
+      package_number: String(pkg.package_number ?? index + 1),
+      length: Math.ceil(length),
+      width: Math.ceil(width),
+      height: Math.ceil(height),
+      weight,
+    };
+
+    // Campos opcionales del contrato de Skydropx: solo se envían si existen.
+    const declaredValue = Number(pkg.declared_value);
+    if (Number.isFinite(declaredValue) && declaredValue > 0) {
+      parcel.declared_value = Math.ceil(declaredValue);
+    }
+
+    if (pkg.package_protected === true) {
+      parcel.package_protected = true;
+    }
+
+    if (pkg.consignment_note) {
+      parcel.consignment_note = String(pkg.consignment_note);
+    }
+
+    if (pkg.package_type) {
+      parcel.package_type = String(pkg.package_type);
+    }
+
+    // Contenido del paquete (ShipmentPackageItems)
+    const items = Array.isArray(pkg.items) ? pkg.items : [];
+    if (items.length > 0) {
+      parcel.products = items.map((item) => ({
+        product_id: `product-market-${item?.producto?.id ?? item?.producto ?? "desconocido"}`,
+        name: String(item?.nombre ?? "Producto").slice(0, 40),
+        quantity: Number(item?.quantity) || 1,
+        price: Number(item?.precio_unitario) || 0,
+        country_code: "MX",
+      }));
+    }
+
+    return parcel;
+  });
+}
+
+/**
  * Construye los paquetes usando directamente el número
  * de paquetes de la cotización.
  *
@@ -481,6 +553,7 @@ module.exports = {
 
   buildParcelsFromItems,
   buildShipmentPackages,
+  buildParcelsFromShipmentPackages,
   buildShipmentPackagesFromCount,
 
   getConsignmentNotes,
