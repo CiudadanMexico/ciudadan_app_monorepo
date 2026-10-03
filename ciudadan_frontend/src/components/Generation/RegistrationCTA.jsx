@@ -10,6 +10,7 @@ const RegistrationCTA = ({
   text,
   buttonLabel,
   via = 'general',
+  href,
   secondary,
   sx,
 }) => (
@@ -53,7 +54,7 @@ const RegistrationCTA = ({
         spacing={{ xs: 1.5, sm: 2 }}
         justifyContent="center"
       >
-        <Button href={buildRegistroUrl(via)} variant="contained" disableElevation sx={ctaPrimarySx}>
+        <Button href={href || buildRegistroUrl(via)} variant="contained" disableElevation sx={ctaPrimarySx}>
           {buttonLabel}
         </Button>
         {secondary?.label && (
