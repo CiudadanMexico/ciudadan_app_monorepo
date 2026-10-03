@@ -1,0 +1,18 @@
+# Imagen de desarrollo — corre `craco start` con hot-reload.
+# No hay imagen de producción propia: el build (`npm run build`) se sirve
+# desde el pipeline de deploy existente, no desde Docker.
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
+
+COPY . .
+
+ENV WDS_SOCKET_PORT=0
+ENV CHOKIDAR_USEPOLLING=true
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

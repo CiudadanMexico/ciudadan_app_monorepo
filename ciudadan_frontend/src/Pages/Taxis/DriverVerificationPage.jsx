@@ -23,7 +23,7 @@ import {
   VerificationHeader,
   VerificationSidebar,
 } from '../../components/Taxis/driver-verification';
-import { getValidationReviewBundle } from '../../services/driverVerification/gettters';
+import { getValidationReviewBundle } from '../../services/driverVerification/getters';
 import {
   completeValidation,
   updateEvidenceReview,
@@ -209,7 +209,7 @@ const DriverVerificationPage = () => {
       await refreshReviewBundle();
       showFeedback(successMessages[action] || 'Acción completada.');
       if (action === 'request_resub') {
-        navigate(`/herramientas/agencia/conductores`);
+        navigate(`/herramientas/conductores`);
       }
     } catch (completeError) {
       showFeedback(completeError?.message || 'No se pudo completar la acción.', 'error');

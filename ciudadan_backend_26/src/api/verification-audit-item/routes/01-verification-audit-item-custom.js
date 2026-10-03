@@ -7,7 +7,7 @@ module.exports = {
       path: '/verification-audits/:id/items',
       handler: 'verification-audit-item.submit',
       config: {
-        policies: ['global::is-auditor'],
+        policies: [],
         middlewares: [],
       },
     },

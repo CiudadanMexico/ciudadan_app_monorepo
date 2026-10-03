@@ -13,7 +13,7 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import { resolveValidationByAgendaId } from '../../services/driverVerification/gettters';
+import { resolveValidationByAgendaId } from '../../services/driverVerification/getters';
 import {
   AGENDA_ESTADO,
   getAgendaEstadoChipProps,
