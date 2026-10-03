@@ -4,7 +4,7 @@
  * aún (PENDING en config), se muestra la sección sin botón de invitación
  * y sin inventar enlaces.
  */
-import { Box, Typography, Grid } from '@mui/material';
+import { Box, Typography, Grid, Button } from '@mui/material';
 import { GEN_COLORS, GEN_FONTS } from './GenerationTheme';
 
 const DiscordSection = ({ title, intro, features = [], inviteUrl, note, icon }) => (
@@ -59,6 +59,28 @@ const DiscordSection = ({ title, intro, features = [], inviteUrl, note, icon }) 
           >
             {note}
           </Typography>
+        )}
+        {inviteUrl && (
+          <Button
+            href={inviteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="contained"
+            disableElevation
+            sx={{
+              mt: 3,
+              bgcolor: '#5865F2',
+              color: '#fff',
+              fontWeight: 700,
+              px: 3,
+              py: 1.2,
+              borderRadius: 999,
+              fontSize: '0.9rem',
+              '&:hover': { bgcolor: '#4752c4' },
+            }}
+          >
+            Unirse al Discord
+          </Button>
         )}
       </Grid>
       <Grid size={{ xs: 12, md: 7 }}>
