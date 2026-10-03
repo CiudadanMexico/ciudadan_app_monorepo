@@ -3,7 +3,7 @@
  * Hero con el texto en el área oscura de la imagen (HTML/CSS, nunca incrustado).
  */
 import { useEffect } from 'react';
-import { Box, Grid, Stack, Typography } from '@mui/material';
+import { Box, Grid, Typography } from '@mui/material';
 import SmartToyRounded from '@mui/icons-material/SmartToyRounded';
 import AgricultureRounded from '@mui/icons-material/AgricultureRounded';
 import MovieCreationRounded from '@mui/icons-material/MovieCreationRounded';

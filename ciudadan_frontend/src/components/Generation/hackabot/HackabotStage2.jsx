@@ -7,7 +7,6 @@
 import { Box, Typography, Grid, Stack } from '@mui/material';
 import ResponsiveHero from '../ResponsiveHero';
 import SectionHeader from '../SectionHeader';
-import ProgramStats from '../ProgramStats';
 import { GEN_COLORS, GEN_FONTS, sectionSx } from '../GenerationTheme';
 import { HACKABOT, GENERATION_ASSETS } from '../../../config/generationFounderConfig';
 

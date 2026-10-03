@@ -2,7 +2,7 @@
  * HackabotActivity — compromiso de actividad (spec 7.8).
  * Mínimo 15 horas semanales; no se evalúa por estar conectado.
  */
-import { Box, Typography, Grid, Stack } from '@mui/material';
+import { Box, Typography, Grid } from '@mui/material';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import SectionHeader from '../SectionHeader';
 import { GEN_COLORS, GEN_FONTS, sectionSx } from '../GenerationTheme';

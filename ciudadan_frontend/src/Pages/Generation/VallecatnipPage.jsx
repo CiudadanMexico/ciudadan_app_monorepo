@@ -3,7 +3,7 @@
  * Ecoaldea piloto: construcción, cultivo, fabricación y trabajo real.
  */
 import { useEffect } from 'react';
-import { Box, Chip, Grid, Stack, Typography } from '@mui/material';
+import { Box, Chip, Grid, Typography } from '@mui/material';
 import GenerationHero from '../../components/Generation/GenerationHero';
 import SectionHeader from '../../components/Generation/SectionHeader';
 import ProgramStats from '../../components/Generation/ProgramStats';
