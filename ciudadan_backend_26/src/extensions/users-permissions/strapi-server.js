@@ -519,5 +519,77 @@ module.exports = function extendUsersPermissionsPlugin(plugin) {
     },
   });
 
+  // =====================================================================
+  // Correccion de exposicion publica de GET /api/users (fase 1 esfericulos).
+  //
+  // Evidencia: sin credencial alguna, /api/users devolvia telefono, curp,
+  // rfc, fecha_nacimiento, cp, ids de stripe/openpay, observaciones y
+  // marcadores de estatus legal (amparo/cofepris) de TODOS los usuarios.
+  //
+  // Regla implementada (denylist): se quitan SOLO los campos privados
+  // inequivos (contacto directo, documentos de identidad, pagos, notas
+  // internas). Se conserva todo lo que los flujos legitimos del frontend
+  // usan de estas respuestas (RolesContext: role, roles, direcciones,
+  // club, agencia, areas; registros por email; nombre de muestra), porque
+  // en esta instancia el frontend de ciudadan.org NO usa el JWT de Strapi
+  // para /users (sus rutas find/findOne de users son deliberadamente
+  // publicas con policies: []).
+  //
+  // Peticiones con token de API valido de Strapi (servicios internos,
+  // p.ej. el backend de esfericulos) reciben la respuesta INTEGRA, igual
+  // que antes, con los campos que pidan via ?fields[].
+  // =====================================================================
+  const camposPrivados = [
+    'telefono', 'curp', 'rfc', 'fecha_nacimiento', 'cp',
+    'id_stripe', 'stripeCustomerId', 'stripeSubscriptionId', 'stripePriceId',
+    'subscriptionStatus', 'openpayid', 'openpaykey',
+    'foliocofepris', 'esperandocofepris',
+    'observaciones', 'settings', 'profile', 'prueba',
+    'esperandoamparo', 'tipoamparo', 'amparostatus',
+  ];
+
+  const limpiarCamposPrivados = (user) => {
+    if (!user || typeof user !== 'object') return user;
+    const copia = { ...user };
+    for (const c of camposPrivados) delete copia[c];
+    return copia;
+  };
+
+  const portadorEsTokenDeApi = async (ctx) => {
+    const header =
+      (ctx.request && ctx.request.headers && ctx.request.headers.authorization) || '';
+    if (typeof header !== 'string' || !header.startsWith('Bearer ')) return false;
+    const raw = header.slice(7).trim();
+    if (!raw) return false;
+    try {
+      const crypto = require('crypto');
+      const salt = process.env.API_TOKEN_SALT || 'strapi';
+      const accessKey = crypto.createHmac('sha512', salt).update(raw).digest('hex');
+      const row = await strapi.db
+        .connection('strapi_api_tokens')
+        .where('access_key', accessKey)
+        .first();
+      return !!row;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const originalFind = plugin.controllers.user.find;
+  plugin.controllers.user.find = async function findConPrivacidad(ctx) {
+    await originalFind(ctx);
+    if (await portadorEsTokenDeApi(ctx)) return;   // servicios internos: integra
+    if (Array.isArray(ctx.body)) {
+      ctx.body = ctx.body.map((u) => limpiarCamposPrivados(u && u.attributes ? { ...u, attributes: limpiarCamposPrivados(u.attributes) } : limpiarCamposPrivados(u)));
+    } else if (ctx.body && typeof ctx.body === 'object' && Array.isArray(ctx.body.data)) {
+      ctx.body = { ...ctx.body, data: ctx.body.data.map((u) => limpiarCamposPrivados(u && u.attributes ? { ...u, attributes: limpiarCamposPrivados(u.attributes) } : limpiarCamposPrivados(u))) };
+    } else if (ctx.body && typeof ctx.body === 'object') {
+      ctx.body = limpiarCamposPrivados(ctx.body.attributes ? { ...ctx.body, attributes: limpiarCamposPrivados(ctx.body.attributes) } : ctx.body);
+    }
+  };
+
+  // findOne NO se toca: su ruta exige Auth0 valido (policy is-authenticated-auth0);
+  // el acceso anonimo recibe 403 antes de llegar al controller.
+
   return plugin;
 };
