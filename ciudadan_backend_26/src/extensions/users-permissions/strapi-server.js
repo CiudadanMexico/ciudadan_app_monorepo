@@ -592,101 +592,67 @@ module.exports = function extendUsersPermissionsPlugin(plugin) {
   // el acceso anonimo recibe 403 antes de llegar al controller.
 
   // =====================================================================
-  // Anti auto-otorgamiento de privilegios/estados (revision fase 1
-  // esfericulos). Evidencia previa: POST /api/auth/local/register anonimo
-  // con roles {extra:['admin']} y verificado:true creaba el usuario CON
-  // esos privilegios; POST /api/users es igual de permeable al incluir
-  // el campo role requerido.
+  // Anti auto-otorgamiento de privilegios/estados (revision fase 1 +
+  // pre-check de fase 2 esfericulos). Evidencia previa: el registro local
+  // anonimo con roles {extra:['admin']} + verificado:true creaba el usuario
+  // CON esos privilegios.
   //
-  // Regla: en las rutas de escritura de usuario (create publico, register
-  // local, update con sesion Auth0) el llamador SIN roles.extra
-  // admin/socio (criterio is-admin-or-socio del propio backend):
-  //   - roles.extra se filtra a la lista de AUTOSERVICIO del frontend
-  //     (['pasajero'] — lo que RegistroPasajero envia de verdad);
-  //   - los estados protegidos (verificacion, membresia, legal, pagos)
-  //     se eliminan del payload;
-  //   - role estandar distinto de Authenticated se fuerza a Authenticated
-  //     (solo existen Authenticated=1 / Public=2).
-  // Los llamadores admin/socio pasan integrales (flujos administrativos
-  // del frontend: updateExtraRole, agregar-socio — este ultimo usa
-  // db.query directo y no pasa por aqui).
-  // Flujo legitimo preservado: RegistroPasajero envia {extra:['pasajero']}
-  // y pasa el filtro identico.
+  // Revision (2026-10-05, fase 2): la AUTORIZACION administrativa es solo
+  // roles.extra 'admin' — ser socio NO concede administrar roles ni estados
+  // protegidos. Autenticacion Auth0 != autorizacion.
+  //   - create/register sin admin: roles limitados a autoservicio
+  //     (['pasajero']) y estados protegidos eliminados.
+  //   - update sin admin: CONSERVA los roles legitimos del objetivo
+  //     (actuales ∪ autoservicio enviados); sin quitar ni privilegiar.
+  //   - destroy sin admin: 403 (borrar exige autorizacion administrativa).
+  // Las reglas viven en utils/escritura-protegida.js (probables por script).
   // =====================================================================
-  const ROLES_AUTOSERVICIO = ['pasajero'];
-  const ROL_ESTANDAR_AUTENTICADO = 1;   // up_roles: 1=Authenticated, 2=Public
-  const CAMPOS_PROTEGIDOS_ESCRITURA = [
-    'verificado', 'membresia_vigente', 'tipo_membresia', 'fecha_membresia',
-    'fecha_fin_membresia_actual', 'registrado', 'curado',
-    'esperandocofepris', 'foliocofepris', 'esperandoamparo', 'tipoamparo',
-    'amparostatus', 'status_legal',
-    'id_stripe', 'stripeCustomerId', 'stripeSubscriptionId', 'stripePriceId',
-    'subscriptionStatus', 'openpayid', 'openpaykey',
-  ];
+  const {
+    esAdminDeStrapi, prepararCreacion, prepararEdicion, puedeEliminar,
+  } = require('./utils/escritura-protegida.js');
 
-  const esLlamadorPrivilegiado = (ctx) => {
-    const extra = Array.isArray(ctx.state && ctx.state.strapiUser && ctx.state.strapiUser.roles && ctx.state.strapiUser.roles.extra)
-      ? ctx.state.strapiUser.roles.extra
-      : [];
-    return extra.includes('admin') || extra.includes('socio');
-  };
-
-  const filtrarRolesAutoasignados = (roles) => {
-    if (!roles || typeof roles !== 'object') return roles;
-    const extraOriginal = Array.isArray(roles.extra) ? roles.extra : [];
-    const filtrado = extraOriginal.filter((r) => ROLES_AUTOSERVICIO.includes(r));
-    return { ...roles, extra: filtrado.length ? filtrado : [...ROLES_AUTOSERVICIO] };
-  };
-
-  const limpiarEscrituraNoAutorizada = (body, ctx, deDonde) => {
-    if (!body || typeof body !== 'object') return;
-    let toco = false;
-    for (const campo of CAMPOS_PROTEGIDOS_ESCRITURA) {
-      if (body[campo] !== undefined) { delete body[campo]; toco = true; }
-    }
-    if (body.roles !== undefined) {
-      const antes = JSON.stringify(body.roles && body.roles.extra || null);
-      body.roles = filtrarRolesAutoasignados(body.roles);
-      if (JSON.stringify(body.roles && body.roles.extra || null) !== antes) toco = true;
-    }
-    if (body.role !== undefined && Number(body.role) !== ROL_ESTANDAR_AUTENTICADO) {
-      body.role = ROL_ESTANDAR_AUTENTICADO; toco = true;
-    }
-    // anidamiento data (algunos flujos del FE envuelven el payload asi)
-    if (body.data && typeof body.data === 'object' && !Array.isArray(body.data)) {
-      for (const campo of CAMPOS_PROTEGIDOS_ESCRITURA) {
-        if (body.data[campo] !== undefined) { delete body.data[campo]; toco = true; }
-      }
-      if (body.data.roles !== undefined) {
-        const antes = JSON.stringify(body.data.roles && body.data.roles.extra || null);
-        body.data.roles = filtrarRolesAutoasignados(body.data.roles);
-        if (JSON.stringify(body.data.roles && body.data.roles.extra || null) !== antes) toco = true;
-      }
-      if (body.data.role !== undefined && Number(body.data.role) !== ROL_ESTANDAR_AUTENTICADO) {
-        body.data.role = ROL_ESTANDAR_AUTENTICADO; toco = true;
-      }
-    }
-    if (toco) {
-      strapi.log.warn(`escritura-protegida: se quitaron roles/estados no autorizados en ${deDonde}`);
+  const avisarFiltrado = (tocados, deDonde) => {
+    if (tocados && tocados.length) {
+      strapi.log.warn(`escritura-protegida: ${deDonde}: filtrado de ${tocados.join(', ')}`);
     }
   };
 
   const originalUserCreate = plugin.controllers.user.create;
   plugin.controllers.user.create = async function createProtegido(ctx) {
-    if (!esLlamadorPrivilegiado(ctx)) limpiarEscrituraNoAutorizada(ctx.request.body, ctx, 'POST /api/users');
+    if (!esAdminDeStrapi(ctx.state && ctx.state.strapiUser)) {
+      avisarFiltrado(prepararCreacion(ctx.request.body), 'POST /api/users');
+    }
     return originalUserCreate(ctx);
   };
 
   const originalUserUpdate = plugin.controllers.user.update;
   plugin.controllers.user.update = async function updateProtegido(ctx) {
-    if (!esLlamadorPrivilegiado(ctx)) limpiarEscrituraNoAutorizada(ctx.request.body, ctx, 'PUT /api/users/:id');
+    if (!esAdminDeStrapi(ctx.state && ctx.state.strapiUser)) {
+      let rolesActuales = null;
+      try {
+        const objetivo = await strapi.db.query('plugin::users-permissions.user')
+          .findOne({ where: { id: ctx.params.id } });
+        rolesActuales = objetivo ? objetivo.roles : null;
+      } catch { /* sin objetivo: sin roles que conservar */ }
+      avisarFiltrado(prepararEdicion(ctx.request.body, rolesActuales), 'PUT /api/users/:id');
+    }
     return originalUserUpdate(ctx);
   };
 
   const originalAuthRegister = plugin.controllers.auth.register;
   plugin.controllers.auth.register = async function registerProtegido(ctx) {
-    if (!esLlamadorPrivilegiado(ctx)) limpiarEscrituraNoAutorizada(ctx.request.body, ctx, 'POST /api/auth/local/register');
+    if (!esAdminDeStrapi(ctx.state && ctx.state.strapiUser)) {
+      avisarFiltrado(prepararCreacion(ctx.request.body), 'POST /api/auth/local/register');
+    }
     return originalAuthRegister(ctx);
+  };
+
+  const originalUserDestroy = plugin.controllers.user.destroy;
+  plugin.controllers.user.destroy = async function destroyProtegido(ctx) {
+    if (!puedeEliminar(ctx.state && ctx.state.strapiUser)) {
+      return ctx.forbidden('borrar usuarios exige autorizacion administrativa (roles.extra admin)');
+    }
+    return originalUserDestroy(ctx);
   };
 
   return plugin;
