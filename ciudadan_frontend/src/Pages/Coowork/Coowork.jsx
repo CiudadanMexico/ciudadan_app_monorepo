@@ -48,7 +48,7 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
 import { resolverTarea, completarTarea, subirEvidencia } from '../../services/cowork/mutationsServices.js';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
@@ -180,7 +180,11 @@ const CooWork = () => {
   // independiente del verificador — mismo patrón de acceso reducido.
   const soloAuditor = isAuditor() && !tienePermisoCRUD && !soloVerificador;
   const [searchParams, setSearchParams] = useSearchParams();
+  // Deep-link /coowork/especializadas/:areaSlug -> abre Tareas Especializadas
+  // reutilizando el mismo componente de Coowork (sin una segunda pantalla).
+  const { areaSlug } = useParams();
   const [tab, setTab] = useState(() => {
+    if (areaSlug) return 'especializadas';
     return getTabFromSearchParams(searchParams) || (tienePermisoCRUD ? 'socio' : 'generales');
   });
   const [subTab, setSubTab] = useState(0);
@@ -214,6 +218,12 @@ const CooWork = () => {
     if (parsed) setTab(parsed);
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  // Si se entra por deep-link (con :areaSlug) se mantiene la pestaña de
+  // Tareas Especializadas, incluso si el usuario cambia de tab y vuelve.
+  useEffect(() => {
+    if (areaSlug) setTab('especializadas');
+  }, [areaSlug]);
 
   const handleTabChange = (event, newValue) => setTab(newValue);
   const handleSubTabChange = (event, newValue) => setSubTab(newValue);
@@ -818,7 +828,7 @@ const CooWork = () => {
             <Typography color="#ccc">
               Gestiona tareas técnicas y de alto impacto dentro del ecosistema Ciudadan.
             </Typography>
-            <TareasEspecializadas />
+            <TareasEspecializadas initialAreaSlug={areaSlug} />
           </motion.div>
         )}
       </Container>

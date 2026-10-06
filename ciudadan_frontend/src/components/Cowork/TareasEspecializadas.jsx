@@ -35,6 +35,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import { styled } from '@mui/material/styles';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
 import { TareaCard } from './Tareas.jsx';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
@@ -56,6 +57,7 @@ import {
   getActiveRootAreas,
   normalizeTask,
 } from '../../utils/cowork.helpers.js';
+import { findAreaIndexBySlug } from '../../utils/areaSlug.js';
 
 const neonGreen = '#00ff99';
 const amarilloCiudadan = '#f5c400';
@@ -496,7 +498,12 @@ const SubareaAccordion = ({
   </Accordion>
 );
 
-const TareasEspecializadas = () => {
+const TareasEspecializadas = ({ initialAreaSlug = null }) => {
+  const navigate = useNavigate();
+  // Slug pedido por URL (deep-link /coowork/especializadas/:areaSlug) que no
+  // corresponde a ninguna área del usuario: se muestra un aviso informativo en
+  // lugar de crashear o romper el área de trabajo.
+  const [slugNoDisponible, setSlugNoDisponible] = useState(null);
   const [areas, setAreas] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [availableAreas, setAvailableAreas] = useState([]);
@@ -856,6 +863,23 @@ const TareasEspecializadas = () => {
     if (areaTab >= hierarchy.length) setAreaTab(0);
   }, [areaTab, hierarchy.length]);
 
+  // Deep-link: selecciona automáticamente el área pedida en la URL. No hace
+  // requests nuevos — reutiliza `hierarchy` (áreas verificadas del usuario).
+  useEffect(() => {
+    if (!initialAreaSlug) {
+      setSlugNoDisponible(null);
+      return;
+    }
+
+    const idx = findAreaIndexBySlug(hierarchy, initialAreaSlug);
+    if (idx >= 0) {
+      setAreaTab(idx);
+      setSlugNoDisponible(null);
+    } else {
+      setSlugNoDisponible(initialAreaSlug);
+    }
+  }, [initialAreaSlug, hierarchy]);
+
   if (authLoading || loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
@@ -937,7 +961,11 @@ const TareasEspecializadas = () => {
           </Alert>
         )}
         {seccionBecario}
-        <EmptyState>Aún no tienes áreas asignadas para ver tareas especializadas.</EmptyState>
+        <EmptyState>
+          {slugNoDisponible
+            ? 'Esta especialidad todavía no está disponible para tu cuenta. Aún no tienes áreas verificadas asignadas.'
+            : 'Aún no tienes áreas asignadas para ver tareas especializadas.'}
+        </EmptyState>
         <DeclararAreaForm
           areas={availableAreas}
           areaId={declararAreaId}
@@ -970,6 +998,31 @@ const TareasEspecializadas = () => {
         </Alert>
       )}
       {seccionBecario}
+      {slugNoDisponible && (
+        <Box sx={{ mb: 3 }}>
+          <EmptyState
+            actions={
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setSlugNoDisponible(null);
+                  navigate('/coowork?tab=especializadas');
+                }}
+                sx={{
+                  color: '#fff',
+                  borderColor: 'rgba(255,255,255,0.5)',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                }}
+              >
+                Ver todas mis especialidades
+              </Button>
+            }
+          >
+            Esta especialidad todavía no está disponible para tu cuenta.
+          </EmptyState>
+        </Box>
+      )}
       <Paper
         elevation={0}
         sx={{
@@ -1003,7 +1056,7 @@ const TareasEspecializadas = () => {
         </AreaTabs>
       </Paper>
 
-      {selectedArea && (
+      {!slugNoDisponible && selectedArea && (
         <Stack spacing={3}>
           <Box>
             <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
