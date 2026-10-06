@@ -60,6 +60,14 @@ import SkillsManagement from '../Pages/CoWork/Skills/SkillsManagement.jsx';
 import VerificarUsuarios from '../Pages/CoWork/Verificacion/VerificarUsuarios.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
+
+// ---------- Generación Fundadora 2026 ----------
+import GeneracionFundadoraPage from '../Pages/Generation/GeneracionFundadoraPage.jsx';
+import HackabotPage from '../Pages/Generation/HackabotPage.jsx';
+import VallecatnipPage from '../Pages/Generation/VallecatnipPage.jsx';
+import CreadoresPage from '../Pages/Generation/CreadoresPage.jsx';
+import AliadosPage from '../Pages/Generation/AliadosPage.jsx';
+import RegistroGeneracionPage from '../Pages/Generation/RegistroGeneracionPage.jsx';
 import RequisitosConductor from '../components/Taxiz/RequisitosConductor.jsx';
 import Academia from '../components/Academia/Academia.jsx';
 import LmAi from '../components/Asistente/LmAi.jsx';
@@ -373,6 +381,32 @@ const Rutas = () => {
     <Route
       path='/registrar'
       element={<ReferirAlias />}
+    />
+
+    {/* Generación Fundadora 2026 */}
+    <Route
+      path='/generacion-fundadora'
+      element={<GeneracionFundadoraPage />}
+    />
+    <Route
+      path='/hackabot'
+      element={<HackabotPage />}
+    />
+    <Route
+      path='/vallecatnip'
+      element={<VallecatnipPage />}
+    />
+    <Route
+      path='/creadores'
+      element={<CreadoresPage />}
+    />
+    <Route
+      path='/aliados'
+      element={<AliadosPage />}
+    />
+    <Route
+      path='/generacion-fundadora/registro'
+      element={<RegistroGeneracionPage />}
     />
 
     {/* Callback / Auth */}

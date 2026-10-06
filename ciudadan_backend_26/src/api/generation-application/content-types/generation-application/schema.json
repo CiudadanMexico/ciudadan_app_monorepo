@@ -1,0 +1,82 @@
+{
+  "kind": "collectionType",
+  "collectionName": "generation_applications",
+  "info": {
+    "singularName": "generation-application",
+    "pluralName": "generation-applications",
+    "displayName": "Generation Application",
+    "description": "Postulaciones de la Generación Fundadora Ciudadan 2026 (4 vías: hackabot, vallecatnip, creadores, aliados, general)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "path": {
+      "type": "enumeration",
+      "enum": ["hackabot", "vallecatnip", "creadores", "aliados", "general"],
+      "default": "general",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["new", "reviewing", "contacted", "accepted", "waitlist", "rejected", "active"],
+      "default": "new"
+    },
+    "source": {
+      "type": "string"
+    },
+    "utm_source": {
+      "type": "string"
+    },
+    "utm_medium": {
+      "type": "string"
+    },
+    "utm_campaign": {
+      "type": "string"
+    },
+    "utm_content": {
+      "type": "string"
+    },
+    "referrer": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "availability": {
+      "type": "string"
+    },
+    "discord": {
+      "type": "string"
+    },
+    "portfolio": {
+      "type": "string"
+    },
+    "answers": {
+      "type": "json"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}
