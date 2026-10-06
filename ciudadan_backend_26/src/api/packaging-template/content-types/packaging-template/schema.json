@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "packaging_templates",
+  "info": {
+    "singularName": "packaging-template",
+    "pluralName": "packaging-templates",
+    "displayName": "PackagingTemplate",
+    "description": "Plantilla de empaque de una tienda. Ayuda al vendedor a preparar envíos; no reemplaza su criterio."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "store": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::store.store"
+    },
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "length": {
+      "type": "decimal",
+      "required": true
+    },
+    "width": {
+      "type": "decimal",
+      "required": true
+    },
+    "height": {
+      "type": "decimal",
+      "required": true
+    },
+    "max_weight": {
+      "type": "decimal"
+    },
+    "package_type": {
+      "type": "string"
+    },
+    "consignment_note": {
+      "type": "string"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}

@@ -81,3 +81,150 @@ export const fetchPackagings = async ({ code, name }) => {
   const response_data = await response.json().catch(() => null);
   return response_data;
 };
+
+export const fetchOfficePoints = async (rateId, direction = 'delivery') => {
+  const params = new URLSearchParams();
+  params.append('rate_id', String(rateId));
+  params.append('direction', direction);
+
+  const response = await fetch(`${API_URL}/api/skydropx/office-points?${params.toString()}`);
+  const response_data = await response.json().catch(() => null);
+  return response_data;
+};
+
+export const crearEnvio = async (payload) => {
+  const response = await fetch(`${API_URL}/api/skydropx/shipment`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible crear el envío');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+export const obtenerEnvio = async (shipmentId) => {
+  const response = await fetch(`${API_URL}/api/skydropx/shipment/${encodeURIComponent(shipmentId)}`);
+  const response_data = await response.json().catch(() => null);
+  return response_data;
+};
+
+/**
+ * Congela en backend el snapshot de la tarifa seleccionada por el comprador.
+ * POST /api/pedidos/:id/shipping-quote
+ */
+export const guardarTarifaSeleccionada = async (pedidoId, { quotationId, rate, estimatedParcels, rawResponse }) => {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/shipping-quote`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      quotation_id: quotationId,
+      rate,
+      estimated_parcels: estimatedParcels,
+      raw_response: rawResponse,
+    })
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible guardar la tarifa seleccionada');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
+ * El vendedor prepara los paquetes físicos reales del envío.
+ * POST /api/pedidos/:id/preparar-envio
+ */
+export const prepararEnvio = async (pedidoId, payload) => {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/preparar-envio`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible preparar el envío');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
+ * Consulta el tracking de un pedido desde el backend de Ciudadan.
+ * GET /api/pedidos/:id/tracking
+ */
+export const obtenerTrackingPedido = async (pedidoId) => {
+  const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/tracking`);
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible consultar el tracking');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
+ * Solicita la recolección (pickup) de un envío en Skydropx.
+ * POST /api/skydropx/shipment/:id/pickup
+ */
+export const solicitarPickup = async (shipmentId, { date, time_from, time_to, instructions }) => {
+  const response = await fetch(`${API_URL}/api/skydropx/shipment/${encodeURIComponent(shipmentId)}/pickup`, {
+    method: 'POST',
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ date, time_from, time_to, instructions })
+  });
+  const response_data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const error = new Error(response_data?.message ?? 'No fue posible solicitar la recolección');
+    error.details = response_data?.details ?? null;
+    throw error;
+  }
+
+  return response_data;
+};
+
+/**
+ * Consulta el envío hasta que Skydropx genere el tracking y la etiqueta (la creación responde 202 sin esos datos).
+ */
+export const esperarGuiaEnvio = async (shipmentId, options = {}) => {
+  const maxIntentos = options?.maxIntentos ?? 6;
+  const esperaMs = options?.esperaMs ?? 3000;
+
+  for (let intento = 0; intento < maxIntentos; intento++) {
+    const response = await obtenerEnvio(shipmentId);
+    const shipment = response?.shipment;
+
+    if (shipment?.tracking_number || shipment?.label_url) {
+      return shipment;
+    }
+
+    await sleep(esperaMs);
+  }
+
+  return null;
+};

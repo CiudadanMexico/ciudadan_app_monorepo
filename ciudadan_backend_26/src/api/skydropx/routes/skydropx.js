@@ -29,6 +29,15 @@ module.exports = {
         auth: false,
       },
     },
+    // Consultar catalogo de puntos de oficina
+    {
+      method: "GET",
+      path: "/skydropx/office-points",
+      handler: "skydropx.getOfficePoints",
+      config: {
+        auth: false,
+      },
+    },
     // Crear una cotización
     {
       method: "POST",
@@ -67,6 +76,25 @@ module.exports = {
       config: {
         auth: false,
         policies: ['global::try-auth0-user']
+      },
+    },
+    // Solicitar recolección (pickup) de un envío
+    {
+      method: "POST",
+      path: "/skydropx/shipment/:id/pickup",
+      handler: "skydropx.requestPickup",
+      config: {
+        auth: false,
+        policies: ['global::try-auth0-user'],
+      },
+    },
+    // Webhook de Skydropx (sin auth; se valida con SKYDROPX_WEBHOOK_SECRET)
+    {
+      method: "POST",
+      path: "/skydropx/shipment/webhook",
+      handler: "skydropx.shipmentWebhook",
+      config: {
+        auth: false,
       },
     },
   ],

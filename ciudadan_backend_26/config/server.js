@@ -1,3 +1,5 @@
+const cronTasks = require('./cron-tasks');
+
 module.exports = ({ env }) => ({
   host: env('HOST', '0.0.0.0'),
   port: env.int('PORT', 1337),
@@ -6,6 +8,13 @@ module.exports = ({ env }) => ({
   },
   dirs: {
     public: './public',
+  },
+  // Cron del backend (config/cron-tasks.js). En Strapi 4 está desactivado por
+  // defecto, hay que habilitarlo explícitamente. Poner CRON_ENABLED=false en
+  // despliegues con varias instancias para no duplicar envíos de correo.
+  cron: {
+    enabled: env.bool('CRON_ENABLED', true),
+    tasks: cronTasks,
   },
   webhooks: {
     populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
