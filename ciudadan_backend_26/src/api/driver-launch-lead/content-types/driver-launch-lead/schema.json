@@ -1,0 +1,94 @@
+{
+  "kind": "collectionType",
+  "collectionName": "driver_launch_leads",
+  "info": {
+    "singularName": "driver-launch-lead",
+    "pluralName": "driver-launch-leads",
+    "displayName": "Driver Launch Lead",
+    "description": "Leads de la landing de descarga/prelanzamiento de conductores (promo + aviso de lanzamiento por Brevo)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true,
+      "comment": "Siempre normalizado: trim + lowercase"
+    },
+    "wants_launch_email": {
+      "type": "boolean",
+      "default": false
+    },
+    "download_requested_at": {
+      "type": "datetime"
+    },
+    "downloaded_at": {
+      "type": "datetime"
+    },
+    "promo_claimed": {
+      "type": "boolean",
+      "default": false
+    },
+    "promo_source": {
+      "type": "string",
+      "comment": "Ej. prelaunch_download. No asumir que sólo existe esa fuente"
+    },
+    "claim_token": {
+      "type": "string",
+      "unique": true,
+      "private": true
+    },
+    "email_consent": {
+      "type": "boolean",
+      "default": false
+    },
+    "email_consent_at": {
+      "type": "datetime"
+    },
+    "privacy_version": {
+      "type": "string"
+    },
+    "utm_source": {
+      "type": "string"
+    },
+    "utm_medium": {
+      "type": "string"
+    },
+    "utm_campaign": {
+      "type": "string"
+    },
+    "utm_content": {
+      "type": "string"
+    },
+    "referrer": {
+      "type": "text"
+    },
+    "launch_email_status": {
+      "type": "enumeration",
+      "enum": ["pending", "sending", "sent", "failed"],
+      "default": "pending"
+    },
+    "launch_email_attempts": {
+      "type": "integer",
+      "default": 0,
+      "min": 0
+    },
+    "launch_email_sent_at": {
+      "type": "datetime"
+    },
+    "brevo_message_id": {
+      "type": "string"
+    },
+    "launch_email_last_error": {
+      "type": "text"
+    },
+    "linked_driver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver.driver"
+    }
+  }
+}
