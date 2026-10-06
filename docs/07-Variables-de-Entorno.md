@@ -46,6 +46,31 @@
 | `CHATBOT_WEBHOOK_PATH` | `/webhook` | Path webhook |
 | `WIKI_ROOT_PATH` | `C:/yii/wikis` | Raíz de la wiki local (.md) |
 | `WEBHOOKS_POPULATE_RELATIONS` | `false` | populate en webhooks |
+| `BREVO_API_KEY` | — | API key v3 de Brevo (token). Sin valor **no se envía ningún correo** |
+| `BREVO_SENDER_EMAIL` | `no-reply@ciudadan.org` | Remitente verificado en Brevo |
+| `BREVO_NOTIFICACION_EMAIL` | `equipo@ciudadan.org` | Buzón(es) que reciben el aviso de cada postulación (CSV) |
+| `BREVO_TIMEOUT_MS` | `10000` | Timeout HTTP del cliente Brevo |
+
+### 1.1 Correo transaccional (Brevo)
+
+Implementado en `ciudadan_backend_26/src/services/brevo/index.js` (mismo patrón que
+`src/services/uber-direct/`) y se dispara desde `POST /api/prelanzamiento` cuando
+`tipo === 'socio-estatal'` (el único formulario que captura correo del postulante):
+
+1. **Confirmación al postulante** si dejó un correo válido.
+2. **Aviso interno** a `BREVO_NOTIFICACION_EMAIL` con los datos capturados.
+
+El nombre del remitente (`sender.name` de la API) **no vive en el `.env`**: lo define
+cada módulo que llama a `brevo.enviar()` vía el parámetro `senderName`
+(ej. `'Ciudadan · Socios Estatales'`), con fallback a `"Ciudadan"` cuando no se
+especifica. El `.env` queda solo con infraestructura: `BREVO_API_KEY`,
+`BREVO_SENDER_EMAIL` y `BREVO_NOTIFICACION_EMAIL` (+ `BREVO_TIMEOUT_MS` opcional).
+
+Es *best-effort*: si falta la API key, el remitente o el correo del postulante, se registra
+un warning en el log y la postulación se guarda igual (un fallo de correo nunca pierde el lead).
+Diagnóstico rápido: `BREVO_API_KEY` + `BREVO_SENDER_EMAIL` son las dos mínimas para enviar.
+
+Selftest sin red: `node tests/selftests/brevo.selftest.js`
 
 ## 2. Socket Service (`socket-service/.env`)
 
