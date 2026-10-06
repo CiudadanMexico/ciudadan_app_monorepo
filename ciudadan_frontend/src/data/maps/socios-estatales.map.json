@@ -1,0 +1,87 @@
+{
+  "title": "Socios Estatales de Ciudadan",
+  "scope": "MX",
+  "fillBy": "status",
+  "patternBy": "nodeStage",
+  "intensityBy": "drivers.total",
+  "labels": [
+    {
+      "field": "name",
+      "variant": "name",
+      "priority": 1
+    },
+    {
+      "field": "investment",
+      "variant": "money",
+      "hideWhenNull": true,
+      "priority": 2
+    },
+    {
+      "field": "status",
+      "variant": "status",
+      "hideWhenNull": true,
+      "priority": 3
+    }
+  ],
+  "legend": {
+    "title": "Disponibilidad",
+    "items": [
+      {
+        "token": "available",
+        "label": "Disponible",
+        "description": "Estado disponible para postulación de Socio Estatal"
+      },
+      {
+        "token": "processing",
+        "label": "En proceso",
+        "description": "Postulación en revisión o proceso de asignación"
+      },
+      {
+        "token": "assigned",
+        "label": "Asignado",
+        "description": "Socio Estatal confirmado y en operación"
+      }
+    ]
+  },
+  "tooltip": {
+    "fields": [
+      {
+        "field": "name",
+        "label": "Estado",
+        "variant": "name"
+      },
+      {
+        "field": "status",
+        "label": "Estatus",
+        "variant": "status"
+      },
+      {
+        "field": "drivers.total",
+        "label": "Conductores estimados",
+        "variant": "metric",
+        "hideWhenNull": true
+      },
+      {
+        "field": "investment",
+        "label": "Aportación",
+        "variant": "money",
+        "hideWhenNull": true
+      },
+      {
+        "field": "participation",
+        "label": "Participación",
+        "variant": "percent",
+        "suffix": "% de membresías",
+        "hideWhenNull": true
+      },
+      {
+        "field": "months",
+        "label": "Plazo financiamiento",
+        "variant": "text",
+        "prefix": "Hasta ",
+        "suffix": " MSI",
+        "hideWhenNull": true
+      }
+    ]
+  }
+}
