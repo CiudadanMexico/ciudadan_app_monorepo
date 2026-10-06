@@ -9,6 +9,9 @@
     "build": "strapi build",
     "strapi": "strapi",
     "deploy": "strapi deploy",
+    "seed:marketplace-categories": "node seed/seed-store-categories.js",
+    "seed:food-categories": "node seed/seed-food-categories.js",
+    "seed:categories": "node seed/seed-store-categories.js && node seed/seed-food-categories.js",
     "postinstall": "patch-package"
   },
   "dependencies": {
