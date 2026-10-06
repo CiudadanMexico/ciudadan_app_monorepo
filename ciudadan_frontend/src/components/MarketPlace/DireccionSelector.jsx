@@ -71,7 +71,8 @@ export default function DireccionSelector({ onConfirm }) {
     setValue,
     suggestions: { status, data },
     clearSuggestions,
-  } = usePlacesAutocomplete({ debounce: 300, requestOptions: { componentRestrictions: { country: "mx" } } });
+    init,
+  } = usePlacesAutocomplete({ debounce: 300, requestOptions: { componentRestrictions: { country: "mx" } }, initOnMount: false });
 
   const { isLoaded: isMapLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -224,6 +225,13 @@ export default function DireccionSelector({ onConfirm }) {
         address.numero = long_name;
     });
     return address;
+  };
+
+  const handleSetNewAddress = (flag = false) => {
+    setIngresarNueva(flag);
+    if(flag){
+      init();
+    }
   };
 
   // Función para validar dirección apta para envío
@@ -758,7 +766,7 @@ export default function DireccionSelector({ onConfirm }) {
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="subtitle1">Ingresar nueva dirección</Typography>
             <FormControlLabel
-              control={<Switch checked={ingresarNueva} onChange={(e) => setIngresarNueva(e.target.checked)} />}
+              control={<Switch checked={ingresarNueva} onChange={(e) => handleSetNewAddress(e.target.checked)} />}
               label={ingresarNueva ? "ON" : "OFF"}
             />
           </Box>

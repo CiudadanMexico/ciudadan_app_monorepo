@@ -42,24 +42,17 @@ async function getAccessToken() {
   const data = await response.json();
 
   if (!response.ok) {
-    strapi.log.error("Error obteniendo token Skydropx:", data);
-
+    strapi.log.error("Error obteniendo token Skydropx: " + JSON.stringify(data, null, 2));
     const error = new Error(data?.error_description ?? data?.message ?? "No fue posible obtener token Skydropx");
-    // @ts-ignore
     error.status = response.status;
-    // @ts-ignore
     error.details = data;
-
     throw error;
   }
 
   cachedToken = data.access_token;
-
   const expiresIn = Number(data.expires_in) || 7200;
-
   // Dejamos 5 minutos de margen.
   cachedTokenExpiresAt = now + Math.max(expiresIn - 300, 60) * 1000;
-
   return cachedToken;
 }
 
@@ -84,12 +77,9 @@ async function skydropxRequest(endpoint, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    strapi.log.error(`Skydropx API ${response.status}:`, data);
-
+    strapi.log.error(`Skydropx API ${response.status}: ${JSON.stringify(data, null, 2)}`);
     const error = new Error(data?.message ?? data?.error_description ?? "Error en API Skydropx");
-    // @ts-ignore
     error.status = response.status;
-    // @ts-ignore
     error.details = data;
     throw error;
   }
@@ -197,7 +187,7 @@ function normalizeShipmentAddress(direccion, options = {}) {
   const postalCode = direccionJson.postal_code ?? direccion.cp;
   const state = direccionJson.state ?? direccion.estado;
   const city = direccionJson.city ?? direccion.ciudad;
-  const neighborhood = direccionJson.neighborhood?? direccion?.colonia;
+  const neighborhood = direccionJson.neighborhood ?? direccion?.colonia;
   const street = direccionJson.street ?? direccion.route;
   const number = direccionJson.number ?? direccion.numero;
   const formattedAddress = direccionJson.formatted_address ?? "";
@@ -265,31 +255,115 @@ function normalizeShipmentAddress(direccion, options = {}) {
  * Skydropx necesita package_number para relacionarlo
  * con el paquete de la cotización.
  */
-function buildShipmentPackages(items) {
+function buildShipmentPackages(items, requestPackages = []) {
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error("No se encontraron productos para crear el envío");
   }
 
-  
-
   return items.map((item, index) => {
     const producto = item?.producto;
+    const requestPackage = requestPackages[index] ?? requestPackages[0] ?? {};
 
-    return {
+    const pkg = {
       package_number: String(index + 1),
-      consignment_note: producto?.shipping?.consignment_note,
-      package_type: producto?.shipping?.package_type,
-      products:[
+      consignment_note: requestPackage?.consignment_note ?? producto?.shipping?.consignment_note,
+      package_type: requestPackage?.package_type ?? producto?.shipping?.package_type,
+      products: [
         {
           product_id: `product-market-${producto?.id}`,
-          name: producto?.nombre?.slice(0,40),
-          description_en: producto?.descripcion?.slice(0,50),
+          name: producto?.nombre?.slice(0, 40),
+          description_en: producto?.descripcion?.slice(0, 50),
           quantity: item.cantidad,
           price: item?.precio_unitario ?? producto?.precio,
           country_code: "MX"
         }
       ]
+    };
+
+    // Dimensiones proporcionadas por el administrador de la tienda
+    const length = Number(requestPackage?.length);
+    const width = Number(requestPackage?.width);
+    const height = Number(requestPackage?.height);
+    const weight = Number(requestPackage?.weight);
+
+    if (Number.isFinite(length) && length > 0) pkg.length = Math.ceil(length);
+    if (Number.isFinite(width) && width > 0) pkg.width = Math.ceil(width);
+    if (Number.isFinite(height) && height > 0) pkg.height = Math.ceil(height);
+    if (Number.isFinite(weight) && weight > 0) pkg.weight = weight;
+
+    return pkg;
+  });
+}
+
+/**
+ * Construye los packages de Skydropx a partir de los ShipmentPackages
+ * REALES confirmados por el vendedor (Fase 3).
+ *
+ * A diferencia de buildShipmentPackages (que deriva de OrderItems),
+ * aquí la fuente de verdad son los paquetes físicos preparados:
+ * dimensiones, peso, valor declarado y protección pertenecen al paquete.
+ *
+ * @param {Array} shipmentPackages - entidades ShipmentPackage con items poblados.
+ */
+function buildParcelsFromShipmentPackages(shipmentPackages = []) {
+  if (!Array.isArray(shipmentPackages) || shipmentPackages.length === 0) {
+    throw new Error("El envío no tiene paquetes preparados");
+  }
+
+  return shipmentPackages.map((pkg, index) => {
+    const length = Number(pkg.length);
+    const width = Number(pkg.width);
+    const height = Number(pkg.height);
+    const weight = Number(pkg.weight);
+
+    if (!Number.isFinite(length) || length <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un largo válido`);
+    if (!Number.isFinite(width) || width <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un ancho válido`);
+    if (!Number.isFinite(height) || height <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un alto válido`);
+    if (!Number.isFinite(weight) || weight <= 0)
+      throw new Error(`El paquete ${index + 1} no tiene un peso válido`);
+
+    const parcel = {
+      package_number: String(pkg.package_number ?? index + 1),
+      length: Math.ceil(length),
+      width: Math.ceil(width),
+      height: Math.ceil(height),
+      weight,
+    };
+
+    // Campos opcionales del contrato de Skydropx: solo se envían si existen.
+    const declaredValue = Number(pkg.declared_value);
+    if (Number.isFinite(declaredValue) && declaredValue > 0) {
+      parcel.declared_value = Math.ceil(declaredValue);
     }
+
+    if (pkg.package_protected === true) {
+      parcel.package_protected = true;
+    }
+
+    if (pkg.consignment_note) {
+      parcel.consignment_note = String(pkg.consignment_note);
+    }
+
+    if (pkg.package_type) {
+      parcel.package_type = String(pkg.package_type);
+    }
+
+    // Contenido del paquete (ShipmentPackageItems)
+    const items = Array.isArray(pkg.items) ? pkg.items : [];
+    if (items.length > 0) {
+      parcel.products = items.map((item) => ({
+        product_id: `product-market-${item?.producto?.id ?? item?.producto ?? "desconocido"}`,
+        name: String(item?.nombre ?? "Producto").slice(0, 40),
+        quantity: Number(item?.quantity) || 1,
+        price: Number(item?.precio_unitario) || 0,
+        country_code: "MX",
+      }));
+    }
+
+    return parcel;
   });
 }
 
@@ -375,6 +449,18 @@ async function getPackagings({ page = 1, per_page = 20, code, name }) {
   return skydropxRequest(`/api/v1/shipments/packagings?${params.toString()}`, { method: "GET" });
 };
 
+async function getOfficePoints(rate_id = null, direction = 'delivery') {
+  if (!rate_id)
+    throw new Error("rate_id es requerido");
+
+  const params = new URLSearchParams();
+
+  params.append('rate_id', String(rate_id));
+  params.append('direction', String(direction));
+
+  return skydropxRequest(`/api/v1/shipments/office_points?${params.toString()}`, { method: "GET" });
+}
+
 /**
  * =====================================================
  * CREAR ENVÍO
@@ -421,6 +507,23 @@ async function createShipment(shipment) {
     },
   };
 
+  // Recolección / entrega en sucursal (Ocurre)
+  if (shipment.office_pickup) {
+
+    payload.shipment.office_pickup = true;
+    if (shipment.office_pickup_point_id) {
+
+      payload.shipment.office_pickup_point_id = String(shipment.office_pickup_point_id);
+    }
+  }
+
+  if (shipment.office_delivery) {
+    payload.shipment.office_delivery = true;
+    if (shipment.office_delivery_point_id) {
+      payload.shipment.office_delivery_point_id = String(shipment.office_delivery_point_id);
+    }
+  }
+
   // Quitamos propiedades undefined para evitar romper la API.
   //const cleanPayload = JSON.parse(JSON.stringify(payload));
 
@@ -431,16 +534,47 @@ async function createShipment(shipment) {
 }
 
 /**
- * =====================================================
  * CONSULTAR ENVÍO
- * =====================================================
  */
 async function getShipment(shipmentId) {
   if (!shipmentId)
     throw new Error("El ID del envío es requerido");
 
-  return skydropxRequest(`/api/v1/shipments/${encodeURIComponent(shipmentId)}`, {
-    method: "GET",
+  return skydropxRequest(`/api/v1/shipments/${encodeURIComponent(shipmentId)}`, { method: "GET", });
+}
+
+/**
+ * SOLICITAR RECOLECCIÓN (PICKUP)
+ *
+ * Skydropx: POST /api/v1/pickups
+ * Body: { pickup: { shipment_id, date, time_from, time_to, instructions? } }
+ */
+async function createPickup(pickup) {
+  if (!pickup)
+    throw new Error("La información de recolección es requerida");
+
+  if (!pickup.shipment_id)
+    throw new Error("shipment_id es requerido para solicitar la recolección");
+
+  if (!pickup.date || !pickup.time_from || !pickup.time_to)
+    throw new Error("date, time_from y time_to son requeridos");
+
+  const payload = {
+    pickup: {
+      shipment_id: String(pickup.shipment_id),
+      date: String(pickup.date),
+      time_from: String(pickup.time_from),
+      time_to: String(pickup.time_to),
+    },
+  };
+
+  if (pickup.instructions) {
+    payload.pickup.instructions = String(pickup.instructions).slice(0, 200);
+  }
+
+  return skydropxRequest("/api/v1/pickups", {
+    method: "POST",
+    body: JSON.stringify(payload),
   });
 }
 
@@ -454,6 +588,7 @@ module.exports = {
 
   buildParcelsFromItems,
   buildShipmentPackages,
+  buildParcelsFromShipmentPackages,
   buildShipmentPackagesFromCount,
 
   getConsignmentNotes,
@@ -462,6 +597,9 @@ module.exports = {
   createQuotation,
   getQuotation,
 
+  getOfficePoints,
+
   createShipment,
   getShipment,
+  createPickup,
 };

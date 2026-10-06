@@ -18,6 +18,7 @@ import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx
 import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
+import DescargarConductores from '../Pages/DescargarConductores.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
@@ -356,9 +357,16 @@ const Rutas = () => {
     return <Prelanzamiento />;
   }
 
+  // Landing de descarga de la app de conductores (campañas / QR en eventos).
+  if (hostname === 'descargar.ciudadan.org') {
+    return <DescargarConductores />;
+  }
+
   return (
     <Routes>
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+      <Route path='/descargar' element={<DescargarConductores />} />
+      <Route path='/descargar-conductores' element={<DescargarConductores />} />
 
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
@@ -473,6 +481,13 @@ const Rutas = () => {
       element={<VerifyFreeTrip />}
     />
 
+    {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
+        (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
+        por si algún enlace antiguo la usa */}
+    <Route
+      path='/herramientas/conductores'
+      element={<ConductoresAgencia />}
+    />
     <Route
       path='/herramientas/agencia/conductores'
       element={<ConductoresAgencia />}
@@ -523,6 +538,22 @@ const Rutas = () => {
     />
     <Route
       path='/marketplaces'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-no-oficiales'
       element={<MarketPage />}
     />
     <Route
