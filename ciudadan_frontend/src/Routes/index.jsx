@@ -473,6 +473,13 @@ const Rutas = () => {
       element={<VerifyFreeTrip />}
     />
 
+    {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
+        (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
+        por si algún enlace antiguo la usa */}
+    <Route
+      path='/herramientas/conductores'
+      element={<ConductoresAgencia />}
+    />
     <Route
       path='/herramientas/agencia/conductores'
       element={<ConductoresAgencia />}
