@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {
   Alert,
@@ -16,6 +16,7 @@ import {
   Button,
 } from '@mui/material';
 import useTodos from '../../hooks/useTodos';
+import useAuth0Token from '../../hooks/useAuth0Token';
 import { useNavigate } from 'react-router-dom';
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
@@ -40,9 +41,10 @@ const isParentArea = (area) => {
 };
 
 export default function AgregarTarea() {
-  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { user, isAuthenticated } = useAuth0();
   const navigate = useNavigate();
   const { createTodo } = useTodos();
+  const { getToken } = useAuth0Token();
 
   const [allAreas, setAllAreas] = useState([]);
   const [areas, setAreas] = useState([]);
@@ -70,17 +72,6 @@ export default function AgregarTarea() {
   const [error, setError] = useState(null);
   const [creando, setCreando] = useState(false);
 
-  const getToken = useCallback(async () => {
-    try {
-      return await getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.ciudadan.org' },
-      });
-    } catch (e) {
-      console.warn('⚠️ No se pudo obtener token Auth0:', e.message);
-      return null;
-    }
-  }, [getAccessTokenSilently]);
-
   // ---------------------
   // CARGAR AREAS
   // ---------------------
@@ -88,6 +79,10 @@ export default function AgregarTarea() {
   useEffect(() => {
     async function fetchAreas() {
       const token = await getToken();
+      if (!token) {
+        setError('No pudimos validar tu sesión. Vuelve a iniciar sesión para crear tareas.');
+        return;
+      }
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await fetch(
         `${STRAPI}/api/areas?populate[parent_area]=*&pagination[limit]=1000&sort[0]=name:asc`,

@@ -56,4 +56,27 @@ describe('SocioEstatalForm — Formulario real de postulación', () => {
     fireEvent.submit(form);
     expect(screen.getByText(/Acepta el aviso de privacidad/i)).toBeInTheDocument();
   });
+
+  it('captura el correo electrónico requerido para la confirmación por Brevo', () => {
+    const { form } = renderForm();
+    const email = screen.getByLabelText(/Correo electrónico/i);
+    expect(email).toBeInTheDocument();
+    expect(email).toHaveAttribute('type', 'email');
+    expect(screen.getByText(/te enviamos la confirmación de tu postulación/i)).toBeInTheDocument();
+    // En un envío vacío el correo queda marcado como obligatorio.
+    fireEvent.submit(form);
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('rechaza un correo con formato inválido', () => {
+    const { form } = renderForm();
+    fireEvent.change(screen.getByLabelText(/Nombre completo/i), {
+      target: { value: 'María García López' },
+    });
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'maria-arroba-oaxaca' },
+    });
+    fireEvent.submit(form);
+    expect(screen.getByText(/Escribe un correo válido/i)).toBeInTheDocument();
+  });
 });
