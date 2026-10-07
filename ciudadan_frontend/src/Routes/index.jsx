@@ -12,10 +12,13 @@ import Probador from '../components/Testers/Probador.jsx';
 import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
 import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
+import ReciclandoPage from '../Pages/Gana/ReciclandoPage.jsx';
+import AgenciaDigitalPage from '../Pages/Gana/AgenciaDigitalPage.jsx';
 import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
 import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
+import DescargarConductores from '../Pages/DescargarConductores.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
@@ -97,6 +100,7 @@ import ITokens from '../Pages/Cartera/ITokens.jsx';
 import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
 import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
+import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
 import Identidad from '../Pages/Identidad.jsx';
@@ -121,6 +125,7 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
 import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
+import CiudadaneandoPage from '../Pages/Comunidad/CiudadaneandoPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
 import SocialSectionPage from '../Pages/Comunidad/SocialSectionPage.jsx';
 
@@ -352,9 +357,16 @@ const Rutas = () => {
     return <Prelanzamiento />;
   }
 
+  // Landing de descarga de la app de conductores (campañas / QR en eventos).
+  if (hostname === 'descargar.ciudadan.org') {
+    return <DescargarConductores />;
+  }
+
   return (
     <Routes>
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+      <Route path='/descargar' element={<DescargarConductores />} />
+      <Route path='/descargar-conductores' element={<DescargarConductores />} />
 
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
@@ -409,6 +421,14 @@ const Rutas = () => {
       element={<RentaUniversalPage />}
     />
     <Route
+      path='/gana/reciclando'
+      element={<ReciclandoPage />}
+    />
+    <Route
+      path='/gana/agencias'
+      element={<AgenciaDigitalPage />}
+    />
+    <Route
       path='/gana/lideresverificadores'
       element={<LideresVerificadoresPage />}
     />
@@ -461,6 +481,13 @@ const Rutas = () => {
       element={<VerifyFreeTrip />}
     />
 
+    {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
+        (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
+        por si algún enlace antiguo la usa */}
+    <Route
+      path='/herramientas/conductores'
+      element={<ConductoresAgencia />}
+    />
     <Route
       path='/herramientas/agencia/conductores'
       element={<ConductoresAgencia />}
@@ -511,6 +538,22 @@ const Rutas = () => {
     />
     <Route
       path='/marketplaces'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-no-oficiales'
       element={<MarketPage />}
     />
     <Route
@@ -642,6 +685,16 @@ const Rutas = () => {
     <Route
       path='/coowork'
       element={<Coowork />}
+    />
+    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia */}
+    <Route
+      path='/coowork/especializadas/:areaSlug'
+      element={<Coowork />}
+    />
+    {/* Masters Ciudadan (vista previa) */}
+    <Route
+      path='/coowork/profesores'
+      element={<ProfesoresPage />}
     />
     {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
     <Route
@@ -894,6 +947,10 @@ const Rutas = () => {
     <Route
       path='/comunidad'
       element={<ComunidadRoute />}
+    />
+    <Route
+      path='/comunidad/ciudadaneando'
+      element={<CiudadaneandoPage />}
     />
     <Route
       path='/comunidad/feed'

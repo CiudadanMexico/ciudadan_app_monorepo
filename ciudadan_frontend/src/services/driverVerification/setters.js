@@ -1,8 +1,9 @@
 import { normalizeEntity, parseJsonSafe } from '../../utils/preRegisterForSteps/helpers';
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL || '';
+const STRAPI_TOKEN = process.env.REACT_APP_STRAPI_TOKEN || '';
 
-const buildJsonOptions = (method, payload, token) => {
+const buildJsonOptions = (method, payload, token = STRAPI_TOKEN) => {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
   return {

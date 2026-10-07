@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shipment_package_items",
+  "info": {
+    "singularName": "shipment-package-item",
+    "pluralName": "shipment-package-items",
+    "displayName": "ShipmentPackageItem",
+    "description": "Contenido de un paquete físico: qué productos del pedido (y cuántos) terminaron dentro."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "shipment_package": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::shipment-package.shipment-package",
+      "inversedBy": "items"
+    },
+    "producto": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::producto.producto"
+    },
+    "order_item_id": {
+      "type": "integer"
+    },
+    "quantity": {
+      "type": "integer",
+      "required": true,
+      "default": 1
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "precio_unitario": {
+      "type": "decimal"
+    }
+  }
+}
