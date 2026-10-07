@@ -12,10 +12,13 @@ import Probador from '../components/Testers/Probador.jsx';
 import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
 import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
+import ReciclandoPage from '../Pages/Gana/ReciclandoPage.jsx';
+import AgenciaDigitalPage from '../Pages/Gana/AgenciaDigitalPage.jsx';
 import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
 import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
+import DescargarConductores from '../Pages/DescargarConductores.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
@@ -28,6 +31,10 @@ import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
+import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
+import SociosEstatalesPage from '../Pages/SociosEstatales/SociosEstatalesPage.jsx';
+import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx';
+
 import MiMembresia from '../Pages/MiMembresia.jsx';
 import MarketPlace from '../Pages/MarketPlace/MarketPlace.jsx';
 import ProductosPage from '../Pages/MarketPlace/ProductosPage.jsx';
@@ -101,6 +108,7 @@ import ITokens from '../Pages/Cartera/ITokens.jsx';
 import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
 import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
+import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
 import Identidad from '../Pages/Identidad.jsx';
@@ -125,6 +133,7 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
 import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
+import CiudadaneandoPage from '../Pages/Comunidad/CiudadaneandoPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
 import SocialSectionPage from '../Pages/Comunidad/SocialSectionPage.jsx';
 
@@ -356,9 +365,16 @@ const Rutas = () => {
     return <Prelanzamiento />;
   }
 
+  // Landing de descarga de la app de conductores (campañas / QR en eventos).
+  if (hostname === 'descargar.ciudadan.org') {
+    return <DescargarConductores />;
+  }
+
   return (
     <Routes>
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+      <Route path='/descargar' element={<DescargarConductores />} />
+      <Route path='/descargar-conductores' element={<DescargarConductores />} />
 
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
@@ -425,28 +441,36 @@ const Rutas = () => {
         element={<Notificacion />}
       />
 
-      {/* Gana / GanaRoute */}
-      <Route
-        path='/gana'
-        element={<GanaRoute />}
-      />
-      <Route
-        path='/gana/ver-anuncios'
-        element={<AnunciosRemunerados />}
-      />
-      <Route
-        path='/gana/renta-universal'
-        element={<RentaUniversalPage />}
-      />
-      <Route
-        path='/gana/lideresverificadores'
-        element={<LideresVerificadoresPage />}
-      />
-      <Route
-        path='/gana/lideresverificadores/registro'
-        element={<RedireccionPrelanzamiento tipo='lider' />}
-      />
-      {/* Taxis */}
+    {/* Gana / GanaRoute */}
+    <Route
+      path='/gana'
+      element={<GanaRoute />}
+    />
+    <Route
+      path='/gana/ver-anuncios'
+      element={<AnunciosRemunerados />}
+    />
+    <Route
+      path='/gana/renta-universal'
+      element={<RentaUniversalPage />}
+    />
+    <Route
+      path='/gana/reciclando'
+      element={<ReciclandoPage />}
+    />
+    <Route
+      path='/gana/agencias'
+      element={<AgenciaDigitalPage />}
+    />
+    <Route
+      path='/gana/lideresverificadores'
+      element={<LideresVerificadoresPage />}
+    />
+    <Route
+      path='/gana/lideresverificadores/registro'
+      element={<RedireccionPrelanzamiento tipo='lider' />}
+    />
+    {/* Taxis */}
 
 
       {/* Taxis */}
@@ -491,14 +515,21 @@ const Rutas = () => {
         element={<VerifyFreeTrip />}
       />
 
-      <Route
-        path='/herramientas/agencia/conductores'
-        element={<ConductoresAgencia />}
-      />
-      <Route
-        path='/validations/:validationId/review'
-        element={<DriverVerificationPage />}
-      />
+    {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
+        (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
+        por si algún enlace antiguo la usa */}
+    <Route
+      path='/herramientas/conductores'
+      element={<ConductoresAgencia />}
+    />
+    <Route
+      path='/herramientas/agencia/conductores'
+      element={<ConductoresAgencia />}
+    />
+    <Route
+      path='/validations/:validationId/review'
+      element={<DriverVerificationPage />}
+    />
 
       {/* Food / Restaurantes */}
       <Route
@@ -534,23 +565,39 @@ const Rutas = () => {
         element={<RestaurantesRoute />}
       />
 
-      {/* Market / Marketplace / MarketRoute */}
-      <Route
-        path='/market'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/marketplaces'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/market/producto/:slug'
-        element={<Producto />}
-      />
-      <Route
-        path='/market/store/:slug'
-        element={<Tienda />}
-      />
+    {/* Market / Marketplace / MarketRoute */}
+    <Route
+      path='/market'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/producto/:slug'
+      element={<Producto />}
+    />
+    <Route
+      path='/market/store/:slug'
+      element={<Tienda />}
+    >
       <Route
         path='agregar-producto'
         element={<AgregarProducto />}
@@ -579,112 +626,51 @@ const Rutas = () => {
         path='configuracion'
         element={<ConfiguracionTienda />}
       />
-      {/* Market / Marketplace / MarketRoute */}
-      <Route
-        path='/market'
-        element={<MarketPage />}
+      <Route 
+        path='saldo-logistico'
+        element={<SaldoLogistico />}
       />
-      <Route
-        path='/marketplaces'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/market/tiendas-oficiales'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/market/tiendas-no-oficiales'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/marketplaces/tiendas-oficiales'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/marketplaces/tiendas-no-oficiales'
-        element={<MarketPage />}
-      />
-      <Route
-        path='/market/producto/:slug'
-        element={<Producto />}
-      />
-      <Route
-        path='/market/store/:slug'
-        element={<Tienda />}
-      >
-        <Route
-          path='agregar-producto'
-          element={<AgregarProducto />}
-        />
-        <Route
-          path='pedidos'
-          element={<MisProductos />}
-        />
-        <Route
-          path='entregados'
-          element={<PedidosEntregados />}
-        />
-        <Route
-          path='productos'
-          element={<AgregarProducto />}
-        />
-        <Route
-          path='preguntas-producto'
-          element={<MisProductos />}
-        />
-        <Route
-          path='pagos'
-          element={<PagosTienda />}
-        />
-        <Route
-          path='configuracion'
-          element={<ConfiguracionTienda />}
-        />
-        <Route
-          path='saldo-logistico'
-          element={<SaldoLogistico />}
-        />
-      </Route>
-      <Route
-        path='/registro-vendedor'
-        element={<RegistroTienda />}
-      />
-      <Route
-        path='/agregar-producto'
-        element={<AgregarProducto />}
-      />
-      <Route
-        path='/carrito'
-        element={<Carrito />}
-      />
-      <Route
-        path='/carrito/finalizar'
-        element={<FinalizarCompra />}
-      />
-      <Route
-        path='/carrito/comida/checkout'
-        element={<FoodCheckout />}
-      />
-      <Route
-        path='/compras/*'
-        element={<Compras />}
-      />
-      <Route
-        path='/productos/*'
-        element={<ProductosPage />}
-      />
-      <Route
-        path='/productos/eliminar/:slug'
-        element={<EliminarProductoWrapper />}
-      />
-      <Route
-        path='/productos/eliminar/:slug'
-        element={<EliminarProductoWrapper />}
-      />
-      <Route
-        path='/market/comprar/:slug'
-        element={<FinalizarCompraProducto />}
-      />
+    </Route>
+    <Route
+      path='/registro-vendedor'
+      element={<RegistroTienda />}
+    />
+    <Route
+      path='/agregar-producto'
+      element={<AgregarProducto />}
+    />
+    <Route
+      path='/carrito'
+      element={<Carrito />}
+    />
+    <Route
+      path='/carrito/finalizar'
+      element={<FinalizarCompra />}
+    />
+    <Route
+      path='/carrito/comida/checkout'
+      element={<FoodCheckout />}
+    />
+    <Route
+      path='/compras/*'
+      element={<Compras />}
+    />
+    <Route
+      path='/productos/*'
+      element={<ProductosPage />}
+    />
+    <Route
+      path='/productos/eliminar/:slug'
+      element={<EliminarProductoWrapper />}
+    />
+    <Route
+      path='/productos/eliminar/:slug'
+      element={<EliminarProductoWrapper />}
+    />
+    <Route
+      path='/market/comprar/:slug'
+      element={<FinalizarCompraProducto />}
+    />
 
       {/* Cartera / OpWallet */}
       <Route
@@ -717,33 +703,43 @@ const Rutas = () => {
         element={<PreRegistroConductor2 />}
       />
 
-      {/* Academia / Coowork */}
-      <Route
-        path='/academia'
-        element={<Rompecabezas />}
-      />
-      <Route
-        path='/academias'
-        element={<Academia />}
-      />
-      <Route
-        path='/academia/taxis'
-        element={<Academia />}
-      />
-      <Route
-        path='/coowork'
-        element={<Coowork />}
-      />
-      {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
-      <Route
-        path='/coowork/socio'
-        element={<Coowork />}
-      />
-      {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
-      <Route
-        path='/coowork/mi-agencia/tareas'
-        element={<MiAgenciaTareas />}
-      />
+    {/* Academia / Coowork */}
+    <Route
+      path='/academia'
+      element={<Rompecabezas />}
+    />
+    <Route
+      path='/academias'
+      element={<Academia />}
+    />
+    <Route
+      path='/academia/taxis'
+      element={<Academia />}
+    />
+    <Route
+      path='/coowork'
+      element={<Coowork />}
+    />
+    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia */}
+    <Route
+      path='/coowork/especializadas/:areaSlug'
+      element={<Coowork />}
+    />
+    {/* Masters Ciudadan (vista previa) */}
+    <Route
+      path='/coowork/profesores'
+      element={<ProfesoresPage />}
+    />
+    {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
+    <Route
+      path='/coowork/socio'
+      element={<Coowork />}
+    />
+    {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
+    <Route
+      path='/coowork/mi-agencia/tareas'
+      element={<MiAgenciaTareas />}
+    />
 
       {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
       <Route
@@ -940,11 +936,21 @@ const Rutas = () => {
         element={<Contenido />}
       />
 
-      {/* Membresías */}
-      <Route
-        path='/membresias'
-        element={<Membresias />}
-      />
+    {/* Membresías */}
+    <Route
+      path='/membresias'
+      element={<Membresias />}
+    />
+
+    {/* Socios Estatales */}
+    <Route
+      path='/socios-estatales'
+      element={<SociosEstatalesPage />}
+    />
+    <Route
+      path='/socios-estatales/:estado'
+      element={<SocioEstatalEstado />}
+    />
 
       <Route
         path='/membresias/pagar/*'
@@ -971,108 +977,112 @@ const Rutas = () => {
         element={<ActivaTuMembresia />}
       />
 
-      {/* Comunidad */}
+    {/* Comunidad */}
+    <Route
+      path='/comunidad'
+      element={<ComunidadRoute />}
+    />
+    <Route
+      path='/comunidad/ciudadaneando'
+      element={<CiudadaneandoPage />}
+    />
+    <Route
+      path='/comunidad/feed'
+      element={(
+        <SocialSectionPage
+          sectionKey='feed'
+          title='Feed'
+          description='Abre el feed social de Ciudadan.'
+          note='Esta pantalla queda conectada al nuevo Social Shell.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats/:conversationId'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='La conversación ocupa el espacio principal de Social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/contactos'
+      element={(
+        <SocialSectionPage
+          sectionKey='contactos'
+          title='Contactos'
+          description='Abre la agenda y los contactos integrados.'
+          note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/grupos'
+      element={(
+        <SocialSectionPage
+          sectionKey='grupos'
+          title='Grupos'
+          description='Pantalla provisional para grupos.'
+          note='Este espacio queda listo para conectar los grupos del ecosistema social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/nuevo-anuncio-programado'
+      element={<Anuncios />}
+    />
+    <Route
+      path='/comunidad/mis-anuncios'
+      element={<Anuncios />}
+    />
+    <Route
+      path='/comunidad/mis-anuncios/:slug'
+      element={<Anuncios />}
+    >
       <Route
-        path='/comunidad'
-        element={<ComunidadRoute />}
-      />
-      <Route
-        path='/comunidad/feed'
-        element={(
-          <SocialSectionPage
-            sectionKey='feed'
-            title='Feed'
-            description='Abre el feed social de Ciudadan.'
-            note='Esta pantalla queda conectada al nuevo Social Shell.'
-            primaryActionLabel='Ir a Asamblea'
-          />
-        )}
-      />
-      <Route
-        path='/comunidad/chats'
-        element={(
-          <SocialSectionPage
-            sectionKey='chats'
-            title='Chats'
-            description='Abre las conversaciones de Telegram integradas en Ciudadan.'
-            note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
-            primaryActionLabel='Ir a Asamblea'
-          />
-        )}
-      />
-      <Route
-        path='/comunidad/chats/:conversationId'
-        element={(
-          <SocialSectionPage
-            sectionKey='chats'
-            title='Chats'
-            description='Abre las conversaciones de Telegram integradas en Ciudadan.'
-            note='La conversación ocupa el espacio principal de Social.'
-            primaryActionLabel='Ir a Asamblea'
-          />
-        )}
-      />
-      <Route
-        path='/comunidad/contactos'
-        element={(
-          <SocialSectionPage
-            sectionKey='contactos'
-            title='Contactos'
-            description='Abre la agenda y los contactos integrados.'
-            note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
-            primaryActionLabel='Ir a Asamblea'
-          />
-        )}
-      />
-      <Route
-        path='/comunidad/grupos'
-        element={(
-          <SocialSectionPage
-            sectionKey='grupos'
-            title='Grupos'
-            description='Pantalla provisional para grupos.'
-            note='Este espacio queda listo para conectar los grupos del ecosistema social.'
-            primaryActionLabel='Ir a Asamblea'
-          />
-        )}
-      />
-      <Route
-        path='/comunidad/nuevo-anuncio-programado'
+        path='programados'
         element={<Anuncios />}
       />
       <Route
-        path='/comunidad/mis-anuncios'
+        path='historial'
         element={<Anuncios />}
       />
       <Route
-        path='/comunidad/mis-anuncios/:slug'
+        path='configuracion'
         element={<Anuncios />}
-      >
-        <Route
-          path='programados'
-          element={<Anuncios />}
-        />
-        <Route
-          path='historial'
-          element={<Anuncios />}
-        />
-        <Route
-          path='configuracion'
-          element={<Anuncios />}
-        />
-      </Route>
-      <Route
-        path='/referir'
-        element={<Referir />}
       />
-      <Route
-        path='/referir/*'
-        element={<Referir />}
-      />
-      <Route
-        path='/agregar-club/:club'
-        element={<Referir />}
-      />
+    </Route>
+    <Route
+      path='/referir'
+      element={<Referir />}
+    />
+    <Route
+      path='/referir/*'
+      element={<Referir />}
+    />
+    <Route
+      path='/agregar-club/:club'
+      element={<Referir />}
+    />
 
       {/* Misc / Tests */}
       <Route
@@ -1094,15 +1104,25 @@ const Rutas = () => {
         element={<StripeSuccessRedirect />}
       />
 
-      {/* Fallbacks / aliases */}
+    {/* Fallbacks / aliases */}
+    <Route
+      path='/marketplaces'
+      element={<MarketPlace />}
+    />
+    <Route
+      path='/market'
+      element={<MarketPlace />}
+    />
+
+    {/* Demo / QA interno de GeoNetworkMap — habilitado SOLO en desarrollo
+        (en el build de producción la ruta no existe, igual que otros
+        probadores internos del repo). No está en el menú público. */}
+    {process.env.NODE_ENV !== 'production' && (
       <Route
-        path='/marketplaces'
-        element={<MarketPlace />}
+        path='/dev/geo-network-map'
+        element={<GeoNetworkMapDemo />}
       />
-      <Route
-        path='/market'
-        element={<MarketPlace />}
-      />
+    )}
 
       <Route
         path='/testoken'

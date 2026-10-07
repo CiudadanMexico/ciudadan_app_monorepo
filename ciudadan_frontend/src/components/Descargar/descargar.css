@@ -1,0 +1,104 @@
+/* Landing de descarga de la app de conductores (mobile-first). */
+.desc-page { --desc-navy:#10182b; --desc-yellow:#efe92f; --desc-teal:#5de4c7; --desc-red:#b52c46; color:var(--desc-navy); background:#fafbf7; font-family:'Inter','Segoe UI',sans-serif; line-height:1.6; }
+.desc-page *, .desc-page *::before, .desc-page *::after { box-sizing:border-box; }
+.desc-page h1,.desc-page h2,.desc-page h3,.desc-page p { margin-top:0; }
+.desc-page h2 { font-size:clamp(1.7rem,4.6vw,2.9rem); letter-spacing:-.04em; line-height:1.14; font-weight:800; margin-bottom:14px; }
+.desc-page h3 { font-size:1.25rem; line-height:1.3; margin-bottom:8px; }
+.desc-page a { color:inherit; }
+.desc-page :focus-visible { outline:3px solid #a06aff; outline-offset:4px; }
+.desc-page section[id] { scroll-margin-top:96px; }
+.desc-sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+
+.desc-header { position:sticky; top:0; z-index:30; background:#10182bf2; color:#fff; border-bottom:1px solid #ffffff1f; }
+.desc-header-inner { display:flex!important; align-items:center; justify-content:space-between; gap:14px; min-height:64px; }
+.desc-brand { display:flex; align-items:center; gap:7px; text-decoration:none; font-size:1.35rem; font-weight:850; letter-spacing:-.05em; }
+.desc-brand img { object-fit:contain; }
+.desc-brand-dot { color:var(--desc-yellow); }
+.desc-header-link { font-size:.72rem; font-weight:800; letter-spacing:.06em; text-decoration:none; color:var(--desc-yellow); }
+
+.desc-hero { position:relative; overflow:hidden; background:var(--desc-navy); color:#fff; padding:34px 0 40px; }
+.desc-eyebrow { display:flex; align-items:center; gap:9px; font-size:.68rem; letter-spacing:.12em; font-weight:800; color:var(--desc-yellow); margin-bottom:16px; }
+.desc-eyebrow>span { width:7px; height:7px; border-radius:50%; background:var(--desc-yellow); }
+.desc-hero h1 { font-size:clamp(2rem,7.4vw,3.4rem); line-height:1.06; letter-spacing:-.045em; font-weight:850; margin-bottom:14px; }
+.desc-hero h1 em { font-style:normal; color:var(--desc-yellow); }
+.desc-hero-lead { font-size:1.02rem; color:#e6eaf3; max-width:36ch; margin-bottom:18px; }
+.desc-hero-card { background:#ffffff12; border:1px solid #ffffff26; border-radius:14px; padding:16px; margin-bottom:18px; }
+.desc-hero-price { display:flex; align-items:baseline; gap:8px; font-size:2.5rem; font-weight:850; letter-spacing:-.05em; color:var(--desc-yellow); }
+.desc-hero-price small { font-size:.8rem; font-weight:700; color:#fff; }
+.desc-hero-card p { font-size:.86rem; color:#dfe4ef; margin:6px 0 0; }
+.desc-hero-card s { color:#98a2b8; }
+.desc-hero-cta { display:flex; flex-direction:column; gap:10px; }
+.desc-hero-cta .MuiButton-root { font-size:.8rem; letter-spacing:.03em; padding:14px 18px; }
+.desc-hero-note { font-size:.72rem; color:#b9c2d4; margin-top:10px!important; }
+.desc-hero-urgencia { display:table; background:var(--desc-red); color:#fff; font-size:.66rem; letter-spacing:.1em; font-weight:800; padding:5px 10px; border-radius:4px; margin-top:14px; }
+
+.desc-confianza { background:var(--desc-yellow); display:flex; flex-wrap:wrap; justify-content:center; gap:8px 26px; padding:12px 16px; font-size:.72rem; font-weight:800; text-align:center; }
+.desc-hero-captura { text-align:center; }
+.desc-hero-captura img { display:block; width:100%; max-width:380px; height:auto; margin:18px auto 0; border-radius:24px; box-shadow:0 26px 60px #00000059; background:#fff; }
+.desc-beneficios { padding:44px 0 8px; }
+.desc-kicker { font-size:.68rem; font-weight:800; letter-spacing:.15em; color:#6846a8; margin-bottom:10px; }
+.desc-grid { display:grid; grid-template-columns:1fr; gap:12px; margin-top:20px; }
+.desc-card { background:#fff; border:1px solid #dfe4df; border-radius:14px; padding:18px; }
+.desc-card .MuiSvgIcon-root { font-size:26px; color:#6940c9; }
+.desc-card h3 { margin:8px 0 4px; font-size:1.05rem; }
+.desc-card p { font-size:.9rem; color:#4a5568; margin:0; }
+
+.desc-captura { padding:40px 0; }
+.desc-captura-grid { display:grid; grid-template-columns:1fr; gap:24px; align-items:center; }
+.desc-captura img { display:block; width:100%; max-width:420px; height:auto; margin:0 auto; border-radius:22px; box-shadow:0 24px 60px #10182b30; background:#fff; }
+.desc-lista-check { list-style:none; padding:0; margin:14px 0 0; }
+.desc-lista-check li { position:relative; padding-left:28px; margin-bottom:10px; font-size:.95rem; }
+.desc-lista-check li::before { content:'✓'; position:absolute; left:0; top:0; width:20px; height:20px; border-radius:50%; background:var(--desc-teal); color:#0b2b25; font-size:.78rem; font-weight:900; display:grid; place-items:center; }
+
+.desc-descarga { padding:44px 0; }
+.desc-descarga-grid { display:grid; grid-template-columns:1fr; gap:22px; align-items:start; }
+.desc-form,.desc-pasos { background:#fff; border:1px solid #dfe4df; border-radius:18px; padding:22px 18px; }
+.desc-form h3,.desc-pasos h3 { font-size:1.4rem; letter-spacing:-.03em; }
+.desc-lead { font-size:.95rem; color:#4a5568; }
+.desc-check { font-size:.86rem; line-height:1.45; }
+.desc-btn,.desc-btn-descarga { margin-top:14px!important; background:var(--desc-navy)!important; color:var(--desc-yellow)!important; font-weight:800!important; letter-spacing:.03em!important; }
+.desc-btn-descarga { display:flex!important; width:100%; justify-content:center; gap:8px; text-decoration:none!important; }
+.desc-btn:hover,.desc-btn-descarga:hover { background:#1b2540!important; }
+.desc-peso { font-size:.78rem; color:#8a5a00; background:#fff6da; border:1px solid #f0d99a; border-radius:10px; padding:9px 11px; margin:12px 0 0; }
+.desc-nota { font-size:.74rem; color:#68707f; margin:12px 0 0; }
+.desc-aviso { display:flex; gap:8px; align-items:flex-start; font-size:.82rem; color:#8f1f38; background:#fdecef; border:1px solid #f3c2cd; border-radius:10px; padding:10px; }
+.desc-aviso .MuiSvgIcon-root { font-size:20px; flex:none; }
+.desc-mensaje { font-size:.95rem; font-weight:600; }
+.desc-sello { display:inline-block; font-size:.66rem; font-weight:800; letter-spacing:.09em; background:var(--desc-teal); color:#0b2b25; padding:5px 9px; border-radius:5px; }
+.desc-pasos-lista { margin:14px 0; padding-left:20px; font-size:.9rem; }
+.desc-pasos-lista li { margin-bottom:7px; }
+.desc-acciones { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.desc-acciones .MuiButton-root { text-transform:none; }
+.desc-turnstile { margin:12px 0 2px; min-height:66px; }
+
+.desc-pasos-num { display:grid; gap:10px; margin:18px 0 0; padding:0; list-style:none; }
+.desc-pasos-num li { background:#fff; border:1px solid #dfe4df; border-radius:14px; padding:16px; }
+.desc-pasos-num li strong { display:block; font-size:1rem; margin-bottom:3px; }
+.desc-pasos-num li span { font-size:.88rem; color:#4a5568; }
+
+.desc-movil { background:#fff3f5; border:1px solid #f3c2cd; border-radius:16px; padding:18px; margin-top:26px; }
+.desc-movil .MuiButton-root { margin-top:10px!important; }
+.desc-footer { background:var(--desc-navy); color:#fff; padding:38px 0 110px; text-align:center; }
+.desc-footer p { font-size:.82rem; color:#c1cadd; }
+.desc-footer a { color:var(--desc-teal); }
+.desc-mobile-cta { display:none; }
+@media(min-width:900px) {
+  .desc-header-inner { min-height:80px; }
+  .desc-brand { font-size:1.7rem; }
+  .desc-header-link { font-size:.8rem; }
+  .desc-hero { padding:64px 0 74px; }
+  .desc-hero-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:44px; align-items:center; }
+  .desc-hero-cta { flex-direction:row; }
+  .desc-grid { grid-template-columns:repeat(4,1fr); gap:16px; }
+  .desc-captura-grid { grid-template-columns:.95fr 1.05fr; gap:44px; }
+  .desc-descarga-grid { grid-template-columns:1.1fr .9fr; gap:34px; }
+  .desc-form,.desc-pasos { padding:30px; }
+  .desc-pasos-num { grid-template-columns:repeat(2,1fr); }
+  .desc-footer { padding:52px 0; }
+}
+@media(max-width:599px) {
+  .desc-mobile-cta { display:block; position:fixed; bottom:0; left:0; right:0; z-index:40; padding:9px 12px calc(9px + env(safe-area-inset-bottom)); background:#10182bf5; border-top:1px solid #ffffff20; }
+  .desc-mobile-cta .MuiButton-root { width:100%; font-size:.76rem; color:var(--desc-yellow)!important; background:var(--desc-navy)!important; }
+}
+@media(prefers-reduced-motion:reduce) { .desc-page *, .desc-page *::before,.desc-page *::after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+

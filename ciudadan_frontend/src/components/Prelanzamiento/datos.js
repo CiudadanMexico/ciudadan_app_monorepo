@@ -6,6 +6,7 @@ export const TIPOS = [
 export const ESTADOS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
 export const ASIGNADOS = ['Ciudad de México', 'Estado de México'];
 export const CIERRE = Date.parse('2026-10-09T00:00:00-06:00');
+const ES_EMAIL = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 export const esTipo = value => TIPOS.some(tipo => tipo.value === value);
 export const normalizarTelefono = value => {
   let digits = String(value || '').replace(/\D/g, '');
@@ -32,7 +33,13 @@ export function atribucion(location, origin) {
     lider: params.get('lider') || params.get('ref') || params.get('codigo') || '',
   };
 }
-export function validarFormulario(values, tipo) {
+/**
+ * @param {object} values
+ * @param {string} tipo
+ * @param {{emailObligatorio?: boolean}} [opciones] `emailObligatorio` solo lo usa
+ *   el formulario de Socio Estatal (el genérico de prelanzamiento no captura correo).
+ */
+export function validarFormulario(values, tipo, opciones = {}) {
   const errors = {};
   const required = ['nombre', 'estado', 'municipio'];
   if (tipo === 'conductor') required.push('vehiculo', 'ciudad');
@@ -42,6 +49,9 @@ export function validarFormulario(values, tipo) {
   if (!esTipo(tipo)) errors.tipo = 'Selecciona cómo quieres participar.';
   if (String(values.nombre || '').trim().length < 3) errors.nombre = 'Escribe tu nombre completo.';
   if (!normalizarTelefono(values.telefono)) errors.telefono = 'Escribe 10 dígitos, con o sin +52.';
+  const email = String(values.email || '').trim();
+  if (opciones.emailObligatorio && !email) errors.email = 'Completa este campo.';
+  else if (email && !ES_EMAIL.test(email)) errors.email = 'Escribe un correo válido (ej. nombre@dominio.com).';
   if (!values.consentimiento) errors.consentimiento = 'Acepta el aviso de privacidad y autoriza el contacto.';
   if (tipo === 'socio-estatal') {
     ['estado', 'estadoSolicitado'].forEach(key => {

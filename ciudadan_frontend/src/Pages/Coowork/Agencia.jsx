@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Paper, Typography, List, ListItem, ListItemText, Grid2 as Grid, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
-import { useAuth0 } from '@auth0/auth0-react';
+import useAuth0Token from '../../hooks/useAuth0Token';
 import { getMiembrosAgencia } from '../../services/cowork/queryServices.js';
 
 const darkGray = '#002200';
@@ -21,22 +21,11 @@ const ReputacionStat = ({ label, value }) => (
 );
 
 export default function Agencia() {
-  const { getAccessTokenSilently } = useAuth0();
+  const { getToken } = useAuth0Token();
   const [agencia, setAgencia] = useState(null);
   const [miembros, setMiembros] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const getToken = useCallback(async () => {
-    try {
-      return await getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.ciudadan.org' },
-      });
-    } catch (e) {
-      console.warn('No se pudo obtener token Auth0:', e.message);
-      return null;
-    }
-  }, [getAccessTokenSilently]);
 
   useEffect(() => {
     let cancelado = false;
@@ -45,6 +34,11 @@ export default function Agencia() {
       setError(null);
       try {
         const token = await getToken();
+        // Sin token no se llama a la API (evita el 403 "Forbidden" sin detalle).
+        if (!token) {
+          setError('No pudimos validar tu sesión. Vuelve a iniciar sesión para ver tu agencia.');
+          return;
+        }
         const res = await getMiembrosAgencia(token);
         if (cancelado) return;
         setAgencia(res?.agencia || null);
