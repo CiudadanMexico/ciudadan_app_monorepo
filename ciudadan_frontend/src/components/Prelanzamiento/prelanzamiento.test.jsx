@@ -27,6 +27,15 @@ test('valida teléfono, autorización y estados asignados', () => {
   const errors = validarFormulario({ telefono: '123', estado: 'Ciudad de México', estadoSolicitado: 'Estado de México' }, 'socio-estatal');
   expect(errors.telefono).toBeTruthy(); expect(errors.consentimiento).toBeTruthy(); expect(errors.estadoSolicitado).toBeTruthy();
 });
+test('el correo es opcional salvo que el formulario lo exija', () => {
+  const completos = { nombre: 'María García', telefono: '9511234567', estado: 'Oaxaca', municipio: 'Oaxaca de Juárez', estadoSolicitado: 'Oaxaca', experiencia: 'Coordino 40 conductores desde 2019.', nodo: 'si', consentimiento: true };
+  // El formulario genérico de prelanzamiento no captura correo: sin error.
+  expect(validarFormulario(completos, 'socio-estatal').email).toBeUndefined();
+  // El formulario de Socio Estatal sí lo exige (ahí llega la confirmación).
+  expect(validarFormulario(completos, 'socio-estatal', { emailObligatorio: true }).email).toBe('Completa este campo.');
+  expect(validarFormulario({ ...completos, email: 'no-es-correo' }, 'socio-estatal', { emailObligatorio: true }).email).toBeTruthy();
+  expect(validarFormulario({ ...completos, email: 'maria@oaxaca.mx' }, 'socio-estatal', { emailObligatorio: true }).email).toBeUndefined();
+});
 test.each([
   ['conductor', '¿Qué vehículo manejas actualmente?'],
   ['lider', '¿Cuántos conductores podrías invitar?'],

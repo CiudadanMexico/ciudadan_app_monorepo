@@ -1,0 +1,56 @@
+{
+  "kind": "singleType",
+  "collectionName": "driver_membership_configs",
+  "info": {
+    "singularName": "driver-membership-config",
+    "pluralName": "driver-membership-configs",
+    "displayName": "Driver Membership Config",
+    "description": "Configuración de la membresía de CONDUCTOR (precios, promoción y fecha de lanzamiento). No reutilizar la colección `membresia`."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "regular_monthly_price": {
+      "type": "decimal",
+      "default": 500,
+      "comment": "Precio ordinario mensual de la membresía de conductor (MXN)"
+    },
+    "promotional_monthly_price": {
+      "type": "decimal",
+      "default": 300,
+      "comment": "Precio promocional mensual (MXN) durante promotion_duration_months de membresía real"
+    },
+    "currency": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "promotion_duration_months": {
+      "type": "integer",
+      "default": 12,
+      "min": 1,
+      "comment": "Meses de membresía real que se cobran a precio promocional. No se cuenta desde la descarga."
+    },
+    "promotion_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "promotion_claim_deadline": {
+      "type": "datetime",
+      "comment": "Fecha límite para Obtener la promoción. null = sin límite"
+    },
+    "launch_at": {
+      "type": "datetime",
+      "comment": "Fecha/hora oficial del lanzamiento. Se muestra SIEMPRE formateada desde esta fecha (nunca hardcodear día de la semana)"
+    },
+    "launch_title": {
+      "type": "string",
+      "default": "Gran lanzamiento Ciudadan"
+    },
+    "apk_version": {
+      "type": "string",
+      "comment": "Versión del APK publicado en public/downloads/ciudadan-latest.apk (informativo, interno)"
+    }
+  }
+}

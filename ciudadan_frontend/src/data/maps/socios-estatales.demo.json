@@ -1,0 +1,418 @@
+[
+  {
+    "regionId": "MX-AGU",
+    "status": "available",
+    "drivers": {
+      "taxi": 720,
+      "apps": 1080,
+      "total": 1800
+    },
+    "investment": 12000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-BCN",
+    "status": "available",
+    "drivers": {
+      "taxi": 1680,
+      "apps": 2520,
+      "total": 4200
+    },
+    "investment": 24000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-BCS",
+    "status": "available",
+    "drivers": {
+      "taxi": 440,
+      "apps": 660,
+      "total": 1100
+    },
+    "investment": 10000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-CAM",
+    "status": "available",
+    "drivers": {
+      "taxi": 380,
+      "apps": 570,
+      "total": 950
+    },
+    "investment": 10000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-COA",
+    "status": "available",
+    "drivers": {
+      "taxi": 1240,
+      "apps": 1860,
+      "total": 3100
+    },
+    "investment": 18000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-COL",
+    "status": "available",
+    "drivers": {
+      "taxi": 328,
+      "apps": 492,
+      "total": 820
+    },
+    "investment": 10000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-CHP",
+    "status": "available",
+    "drivers": {
+      "taxi": 1160,
+      "apps": 1740,
+      "total": 2900
+    },
+    "investment": 15000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-CHH",
+    "status": "available",
+    "drivers": {
+      "taxi": 1520,
+      "apps": 2280,
+      "total": 3800
+    },
+    "investment": 22000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-CMX",
+    "status": "assigned",
+    "drivers": {
+      "taxi": 15400,
+      "apps": 23100,
+      "total": 38500
+    },
+    "investment": 85000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "active"
+  },
+  {
+    "regionId": "MX-DUR",
+    "status": "available",
+    "drivers": {
+      "taxi": 560,
+      "apps": 840,
+      "total": 1400
+    },
+    "investment": 12000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-GUA",
+    "status": "available",
+    "drivers": {
+      "taxi": 2080,
+      "apps": 3120,
+      "total": 5200
+    },
+    "investment": 28000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-GRO",
+    "status": "available",
+    "drivers": {
+      "taxi": 840,
+      "apps": 1260,
+      "total": 2100
+    },
+    "investment": 14000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-HID",
+    "status": "available",
+    "drivers": {
+      "taxi": 920,
+      "apps": 1380,
+      "total": 2300
+    },
+    "investment": 14000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-JAL",
+    "status": "processing",
+    "drivers": {
+      "taxi": 5920,
+      "apps": 8880,
+      "total": 14800
+    },
+    "investment": 45000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "pilot"
+  },
+  {
+    "regionId": "MX-MEX",
+    "status": "assigned",
+    "drivers": {
+      "taxi": 16800,
+      "apps": 25200,
+      "total": 42000
+    },
+    "investment": 95000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "active"
+  },
+  {
+    "regionId": "MX-MIC",
+    "status": "available",
+    "drivers": {
+      "taxi": 1360,
+      "apps": 2040,
+      "total": 3400
+    },
+    "investment": 18000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-MOR",
+    "status": "available",
+    "drivers": {
+      "taxi": 760,
+      "apps": 1140,
+      "total": 1900
+    },
+    "investment": 12000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-NAY",
+    "status": "available",
+    "drivers": {
+      "taxi": 392,
+      "apps": 588,
+      "total": 980
+    },
+    "investment": 10000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-NLE",
+    "status": "processing",
+    "drivers": {
+      "taxi": 6600,
+      "apps": 9900,
+      "total": 16500
+    },
+    "investment": 52000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "pilot"
+  },
+  {
+    "regionId": "MX-OAX",
+    "status": "available",
+    "drivers": {
+      "taxi": 1280,
+      "apps": 1920,
+      "total": 3200
+    },
+    "investment": 16500,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-PUE",
+    "status": "processing",
+    "drivers": {
+      "taxi": 2720,
+      "apps": 4080,
+      "total": 6800
+    },
+    "investment": 32000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "pilot"
+  },
+  {
+    "regionId": "MX-QUE",
+    "status": "processing",
+    "drivers": {
+      "taxi": 1440,
+      "apps": 2160,
+      "total": 3600
+    },
+    "investment": 22000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "pilot"
+  },
+  {
+    "regionId": "MX-ROO",
+    "status": "available",
+    "drivers": {
+      "taxi": 1640,
+      "apps": 2460,
+      "total": 4100
+    },
+    "investment": 25000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-SLP",
+    "status": "available",
+    "drivers": {
+      "taxi": 1040,
+      "apps": 1560,
+      "total": 2600
+    },
+    "investment": 16000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-SIN",
+    "status": "available",
+    "drivers": {
+      "taxi": 1240,
+      "apps": 1860,
+      "total": 3100
+    },
+    "investment": 18000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-SON",
+    "status": "available",
+    "drivers": {
+      "taxi": 1320,
+      "apps": 1980,
+      "total": 3300
+    },
+    "investment": 20000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-TAB",
+    "status": "available",
+    "drivers": {
+      "taxi": 680,
+      "apps": 1020,
+      "total": 1700
+    },
+    "investment": 12000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-TAM",
+    "status": "available",
+    "drivers": {
+      "taxi": 1400,
+      "apps": 2100,
+      "total": 3500
+    },
+    "investment": 20000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-TLA",
+    "status": "available",
+    "drivers": {
+      "taxi": 440,
+      "apps": 660,
+      "total": 1100
+    },
+    "investment": 10000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-VER",
+    "status": "processing",
+    "drivers": {
+      "taxi": 3160,
+      "apps": 4740,
+      "total": 7900
+    },
+    "investment": 35000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "pilot"
+  },
+  {
+    "regionId": "MX-YUC",
+    "status": "available",
+    "drivers": {
+      "taxi": 1240,
+      "apps": 1860,
+      "total": 3100
+    },
+    "investment": 18000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  },
+  {
+    "regionId": "MX-ZAC",
+    "status": "available",
+    "drivers": {
+      "taxi": 480,
+      "apps": 720,
+      "total": 1200
+    },
+    "investment": 11000,
+    "months": 12,
+    "participation": 5,
+    "nodeStage": "planned"
+  }
+]

@@ -12,6 +12,8 @@
     "seed:marketplace-categories": "node seed/seed-store-categories.js",
     "seed:food-categories": "node seed/seed-food-categories.js",
     "seed:categories": "node seed/seed-store-categories.js && node seed/seed-food-categories.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "sync:apk": "node scripts/sync-apk.js",
     "postinstall": "patch-package"
   },
   "dependencies": {
