@@ -163,16 +163,16 @@ export default function MarketPage() {
       }
 
       const responseProducts = await getProducts(requestParams, () => console.log("<- Success fetch products ->"));
-      
+
       if (responseProducts?.data) {
         const items = responseProducts.data;
         const meta = responseProducts.meta || {};
-        
+
         const enriched = await Promise.all(items.map(async (p) => {
           const enrichedData = await enrichProduct(p);
           return { ...p, ...enrichedData };
         }));
-        
+
         setProducts(enriched);
         setHasMore(items.length === meta?.pagination?.pageSize);
       } else {
@@ -304,150 +304,152 @@ export default function MarketPage() {
   const shouldShowCategorias = showCategories && categories.length > 0 && !loadingCategorias;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-      <Box display="flex" alignItems="center" mb={2}>
-        <Box sx={{ flex: 1, mr: 1 }}>
-          <Buscador
-            search={search}
-            advanceFilter={advancedFilters}
-            onChangeSearch={(s) => setSearch(s)}
-            onChangeAdvanceFilters={(newFilters) => setAdvancedFilters(newFilters)}
-            onChangePriceRange={handleChangePriceRange}
-            onChangeSelectedBrand={handleChangeSelectedBrand}
-            onChangeSelectedStore={handleChangeSelectedStore}
-            flagEnableClearSearch={enableClearSearch}
-            initializeClearSearch={() => setEnableClearSearch(false)}
-          />
-        </Box>
-      </Box>
-
-      {/* mt: 2.5 compensa el `top: -20px` de .pestanas-bar para que no solape el Buscador */}
+    <>
       <Box sx={{ mt: 3, mb: 1 }}>
         <Pestanas
           tabs={marketTabs}
           basePath={marketBasePath}
         />
       </Box>
-
-      {
-        shouldShowCategorias && (
-          <Box mt={4}>
-            <CategoriasSlider
-              categorias={categories.map(c => ({
-                nombre: c.attributes?.nombre || c.nombre || '—',
-                slug: c.attributes?.slug || c.slug || '—',
-                imagen: c.attributes?.imagen?.data?.attributes?.url ? `${process.env.REACT_APP_STRAPI_URL}${c.attributes.imagen.data.attributes.url}` : null,
-              }))}
-              onClick={(slug) => setSelectedCategory(slug)}
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
+        {/* mt: 2.5 compensa el `top: -20px` de .pestanas-bar para que no solape el Buscador */}
+        <Box display="flex" alignItems="center" mb={2}>
+          <Box sx={{ flex: 1, mr: 1 }}>
+            <Buscador
+              search={search}
+              advanceFilter={advancedFilters}
+              onChangeSearch={(s) => setSearch(s)}
+              onChangeAdvanceFilters={(newFilters) => setAdvancedFilters(newFilters)}
+              onChangePriceRange={handleChangePriceRange}
+              onChangeSelectedBrand={handleChangeSelectedBrand}
+              onChangeSelectedStore={handleChangeSelectedStore}
+              flagEnableClearSearch={enableClearSearch}
+              initializeClearSearch={() => setEnableClearSearch(false)}
             />
           </Box>
-        )
-      }
-      {
-        title && (
-          <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
-            <IconButton
-              onClick={handlerClearSearch}
-              aria-label="volver"
-              size="small"
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h6" fontWeight={700} sx={{ m: 0 }}>
-              <u className="productos-titulo">{title}</u>
-            </Typography>
-          </Box>
-        )
-      }
-      {
-        (!ubicacion?.codigoPostal && (!search || !selectedCategory)) && (
-          <Box my={2} textAlign="center">
-            <Typography>📍 No hemos detectado tu ubicación. Por favor configura tu ubicación para mostrar productos cercanos.</Typography>
-          </Box>
-        )
-      }
-      {
-        errorProductos && (
-          <Box my={2}>
-            <Typography color="error">{errorProductos}</Typography>
-          </Box>
-        )
-      }
-      <Grid container mt={3} p={1} alignContent={'center'}>
+        </Box>
+
+
+
         {
-          (loadingProducts && products.length === 0) && Array.from({ length: isDesktop ? 8 : 4 }).map((_, i) => (
-            <Grid key={`skel-${i}`} item xs={12} sm={6} md={3}>
-              <Skeleton variant="rectangular" height={220} />
-              <Skeleton width="60%" sx={{ mt: 1 }} />
-              <Skeleton width="40%" />
-            </Grid>
-          ))
-        }
-        {
-          (!loadingProducts && products.length === 0) && (
-            <Grid item xs={12}>
-              <Box display="flex" flexDirection="column" alignItems="center" py={6}>
-                <Typography variant="h6">{(search || selectedCategory) ? (loadingFetchProducts ? '' : 'No hay productos.') : 'No se encontraron productos.'}</Typography>
-                {loadingFetchProducts && <PreCargador text="Buscando productos..." />}
-              </Box>
-            </Grid>
+          shouldShowCategorias && (
+            <Box mt={4}>
+              <CategoriasSlider
+                categorias={categories.map(c => ({
+                  nombre: c.attributes?.nombre || c.nombre || '—',
+                  slug: c.attributes?.slug || c.slug || '—',
+                  imagen: c.attributes?.imagen?.data?.attributes?.url ? `${process.env.REACT_APP_STRAPI_URL}${c.attributes.imagen.data.attributes.url}` : null,
+                }))}
+                onClick={(slug) => setSelectedCategory(slug)}
+              />
+            </Box>
           )
         }
         {
-          products.map((prod, idx) => {
-            const id = prod.id ?? prod.attributes?.id ?? Math.random().toString(36).slice(2, 9);
-            const tituloProd = prod.attributes?.nombre ?? prod.nombre ?? 'Sin título';
-            const slug = prod.attributes?.slug ?? prod.slug ?? '';
-            const imagen = prod.imagen ?? (prod.attributes?.imagenes?.data?.[0]?.attributes?.url ? `${process.env.REACT_APP_STRAPI_URL}${prod.attributes.imagenes.data[0].attributes.url}` : null);
-            const descripcion = prod.attributes?.descripcion ?? prod.descripcion ?? '';
-            const precio = prod.precio ?? Number(prod.attributes?.precio) ?? null;
-            const envioAprox = prod.envio && (typeof prod.envio === 'object' ? (prod.envio.costo ? `$${prod.envio.costo} aprox.` : null) : prod.envio);
-            const localidad = prod.attributes?.localidad ?? '';
-            const isLast = idx === products.length - 1;
-            return (
-              <Grid
-                key={`product-item-${id}`}
-                item
-                xs={12}
-                sm={6}
-                md={3}
-                data-id={id}
-                ref={(el) => {
-                  if (el) itemRefs.current.set(id, el);
-                  else itemRefs.current.delete(id);
-                  if (isLast)
-                    lastProductRef.current = el;
-                }}
-                className="producto-card"
-                sx={{
-                  opacity: visible[id] ? 1 : 0,
-                  transform: visible[id] ? 'translateY(0)' : 'translateY(20px)',
-                  transition: 'all 0.6s ease'
-                }}
+          title && (
+            <Box display="flex" alignItems="center" gap={1} sx={{ mb: 2 }}>
+              <IconButton
+                onClick={handlerClearSearch}
+                aria-label="volver"
+                size="small"
               >
-                <ProductoCard
-                  titulo={tituloProd}
-                  slug={slug}
-                  imagenes={prod.attributes?.imagenes}
-                  descripcion={descripcion}
-                  imagen={imagen}
-                  precio={precio}
-                  envioAprox={envioAprox}
-                  localidad={localidad}
-                  estado={prod.attributes?.estado}
-                  // PASAMOS calificacion en escala 0..5 y numero de calificaciones
-                  calificacion={prod.calificacion ?? null}
-                  numeroCalificaciones={prod.numCalificaciones ?? prod.attributes?.numero_calificaciones ?? 0}
-                  vendidos={prod.attributes?.vendidos}
-                  total={prod.total && `$${prod.total}`}
-                  productoId={id}
-                  currentUserId={userData?.id}
-                />
-              </Grid>
-            );
-          })
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6" fontWeight={700} sx={{ m: 0 }}>
+                <u className="productos-titulo">{title}</u>
+              </Typography>
+            </Box>
+          )
         }
-        {/* {
+        {
+          (!ubicacion?.codigoPostal && (!search || !selectedCategory)) && (
+            <Box my={2} textAlign="center">
+              <Typography>📍 No hemos detectado tu ubicación. Por favor configura tu ubicación para mostrar productos cercanos.</Typography>
+            </Box>
+          )
+        }
+        {
+          errorProductos && (
+            <Box my={2}>
+              <Typography color="error">{errorProductos}</Typography>
+            </Box>
+          )
+        }
+        <Grid container mt={3} p={1} alignContent={'center'}>
+          {
+            (loadingProducts && products.length === 0) && Array.from({ length: isDesktop ? 8 : 4 }).map((_, i) => (
+              <Grid key={`skel-${i}`} item xs={12} sm={6} md={3}>
+                <Skeleton variant="rectangular" height={220} />
+                <Skeleton width="60%" sx={{ mt: 1 }} />
+                <Skeleton width="40%" />
+              </Grid>
+            ))
+          }
+          {
+            (!loadingProducts && products.length === 0) && (
+              <Grid item xs={12}>
+                <Box display="flex" flexDirection="column" alignItems="center" py={6}>
+                  <Typography variant="h6">{(search || selectedCategory) ? (loadingFetchProducts ? '' : 'No hay productos.') : 'No se encontraron productos.'}</Typography>
+                  {loadingFetchProducts && <PreCargador text="Buscando productos..." />}
+                </Box>
+              </Grid>
+            )
+          }
+          {
+            products.map((prod, idx) => {
+              const id = prod.id ?? prod.attributes?.id ?? Math.random().toString(36).slice(2, 9);
+              const tituloProd = prod.attributes?.nombre ?? prod.nombre ?? 'Sin título';
+              const slug = prod.attributes?.slug ?? prod.slug ?? '';
+              const imagen = prod.imagen ?? (prod.attributes?.imagenes?.data?.[0]?.attributes?.url ? `${process.env.REACT_APP_STRAPI_URL}${prod.attributes.imagenes.data[0].attributes.url}` : null);
+              const descripcion = prod.attributes?.descripcion ?? prod.descripcion ?? '';
+              const precio = prod.precio ?? Number(prod.attributes?.precio) ?? null;
+              const envioAprox = prod.envio && (typeof prod.envio === 'object' ? (prod.envio.costo ? `$${prod.envio.costo} aprox.` : null) : prod.envio);
+              const localidad = prod.attributes?.localidad ?? '';
+              const isLast = idx === products.length - 1;
+              return (
+                <Grid
+                  key={`product-item-${id}`}
+                  item
+                  xs={12}
+                  sm={6}
+                  md={3}
+                  data-id={id}
+                  ref={(el) => {
+                    if (el) itemRefs.current.set(id, el);
+                    else itemRefs.current.delete(id);
+                    if (isLast)
+                      lastProductRef.current = el;
+                  }}
+                  className="producto-card"
+                  sx={{
+                    opacity: visible[id] ? 1 : 0,
+                    transform: visible[id] ? 'translateY(0)' : 'translateY(20px)',
+                    transition: 'all 0.6s ease'
+                  }}
+                >
+                  <ProductoCard
+                    titulo={tituloProd}
+                    slug={slug}
+                    imagenes={prod.attributes?.imagenes}
+                    descripcion={descripcion}
+                    imagen={imagen}
+                    precio={precio}
+                    envioAprox={envioAprox}
+                    localidad={localidad}
+                    estado={prod.attributes?.estado}
+                    // PASAMOS calificacion en escala 0..5 y numero de calificaciones
+                    calificacion={prod.calificacion ?? null}
+                    numeroCalificaciones={prod.numCalificaciones ?? prod.attributes?.numero_calificaciones ?? 0}
+                    vendidos={prod.attributes?.vendidos}
+                    total={prod.total && `$${prod.total}`}
+                    productoId={id}
+                    currentUserId={userData?.id}
+                  />
+                </Grid>
+              );
+            })
+          }
+          {/* {
           (search || selectedCategory) && products.length > 0 && (
             <Box mt={3} display="flex" justifyContent="center" alignItems="center">
               <Pagination count={Math.ceil(products.length / (porPagina || 1))} page={pagina} onChange={(_, v) => setPagina(v)} />
@@ -460,8 +462,9 @@ export default function MarketPage() {
             </Box>
           )
         } */}
-      </Grid>
+        </Grid>
 
-    </Container>
+      </Container>
+    </>
   )
 };
