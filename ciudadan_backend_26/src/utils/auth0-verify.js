@@ -77,9 +77,12 @@ async function getAuth0Email(token, { strapi }) {
 
   // Si la request falla, no dejamos el fallo cacheado — un token realmente
   // inválido/expirado no debe quedar "atascado" bloqueando reintentos.
-  emailPromise.catch((error) => {
+  // El rechazo ORIGINAL de emailPromise ya se propaga a quien haga await
+  // (las policies). Aqui NO se re-lanza: un re-throw en este handler crea
+  // una promesa sin nadie que la maneje -> unhandled rejection -> CRASH del
+  // proceso con cualquier token invalido/expirado/local (vector DoS).
+  emailPromise.catch(() => {
     cache.delete(token);
-    throw error;
   });
 
   return emailPromise;
