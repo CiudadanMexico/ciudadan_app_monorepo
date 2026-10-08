@@ -71,8 +71,12 @@ function initMediaSocket(strapi) {
     "http://localhost:3001,http://localhost:3000,http://localhost:33422,http://localhost:33033")
     .split(",").map((s) => s.trim()).filter(Boolean);
 
+  // Path propio: en produccion nginx enruta /socket.io/ al socket-service
+  // legacy (:33331) y el resto a Strapi (:33332). Con un path distinto el
+  // socket media llega a Strapi sin tocar nginx ni el servicio legacy.
+  const MEDIA_SOCKET_PATH = process.env.MEDIA_SOCKET_PATH || "/media-socket.io/";
   const io = new Server(strapi.server.httpServer, {
-    path: "/socket.io",
+    path: MEDIA_SOCKET_PATH,
     cors: { origin: origins, methods: ["GET", "POST"], credentials: false },
   });
 

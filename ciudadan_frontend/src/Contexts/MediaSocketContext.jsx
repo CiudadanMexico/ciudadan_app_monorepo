@@ -77,7 +77,10 @@ export const MediaSocketProvider = ({ getToken, children }) => {
         socketRef.current.disconnect();
         socketRef.current = null;
       }
-      const s = io(SOCKET_URL, { auth: { token } });
+      const s = io(SOCKET_URL, {
+        auth: { token },
+        path: process.env.REACT_APP_MEDIA_SOCKET_PATH || "/media-socket.io/",
+      });
       socketRef.current = s;
       // re-suscribir los listeners ya registrados (reconnect)
       for (const [ev, fns] of listenersRef.current.entries()) {
