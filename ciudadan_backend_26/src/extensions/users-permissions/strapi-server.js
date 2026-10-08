@@ -81,7 +81,7 @@ module.exports = function extendUsersPermissionsPlugin(plugin) {
     }
 
     const user = await strapi.entityService.findOne(USER_UID, userId, {
-      fields: ['id', 'username', 'email'],
+      fields: ['id', 'username', 'email', 'area_details'],
       populate: {
         areas: {
           fields: ['id', 'name', 'level', 'is_active'],
@@ -479,9 +479,16 @@ module.exports = function extendUsersPermissionsPlugin(plugin) {
         populate: { areas: { fields: ['id'] } },
       });
       const idsActuales = (userConAreas.areas || []).map((a) => a.id);
-      if (!idsActuales.includes(subareaCreadaOReusada.id)) {
+      // Se liga la subárea creada/reusada Y su raíz madre. La hija sola no
+      // bastaba: los consumidores que filtran level===0 (tabs antiguos,
+      // permisos) nunca la veían, y la especialidad aprobada quedaba
+      // invisible aunque el chip la muestre por su cuenta.
+      const idsFinales = new Set(idsActuales);
+      idsFinales.add(areaIdNum);
+      idsFinales.add(subareaCreadaOReusada.id);
+      if (!idsActuales.includes(subareaCreadaOReusada.id) || !idsActuales.includes(areaIdNum)) {
         await strapi.entityService.update(USER_UID, userId, {
-          data: { areas: { set: [...idsActuales.map((id) => ({ id })), { id: subareaCreadaOReusada.id }] } },
+          data: { areas: { set: [...idsFinales].map((id) => ({ id })) } },
         });
       }
     }

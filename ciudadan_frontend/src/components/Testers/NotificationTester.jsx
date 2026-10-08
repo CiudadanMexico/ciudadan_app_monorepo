@@ -1,53 +1,86 @@
 import React from "react";
-import axios from "axios";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useNotifications } from "../../Contexts/NotificationsContext";
 
+/**
+ * Tester de notificaciones (ruta: /notificationtester).
+ *
+ * Prueba EXACTAMENTE la misma API pública que usarán los componentes (§25):
+ *   const { toast, send } = useNotifications();
+ * No usa endpoints especiales.
+ *
+ * OJO con el doble toast: aquí `send()` se manda a `user.email`, o sea a la
+ * MISMA pestaña que está escuchando el socket. El contexto ya reconoce ese eco
+ * (meta.clientOrigin) y NO lo vuelve a anunciar, así que se ve UN solo toast:
+ * el de "enviada y persistida". Para ver también el toast de LLEGADA (variante
+ * notif-info) abre una segunda pestaña con otro usuario, o cambia el `to`.
+ */
 const NotificationTester = () => {
-  const handleSendNotification = async () => {
-    try {
-      const payload = {
-        title: "🔔 Notificación de prueba",
-        body: "Este es un mensaje de prueba enviada desde el componente NotificationTester",
-        email: "ciudadanmx@gmail.com", // o el email del usuario destino
-        meta: {
-          tipo: "prueba",
-          fecha: new Date().toISOString(),
-        },
-      };
+  const { user } = useAuth0();
+  const { toast, send, loading } = useNotifications();
+  const [sending, setSending] = React.useState(false);
 
-      // 👉 Llama a tu backend (usa tu URL real del servidor, no Strapi)
-      const response = await axios.post(
-        `${process.env.REACT_APP_SOCKET_URL || "http://localhost:3033"}/notifica`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  const handleToast = () => {
+    toast.success("Toast funcionando");
+  };
 
-      console.log("✅ Notificación enviada correctamente:", response.data);
-      alert("✅ Notificación enviada al servidor y emitida por socket");
-    } catch (error) {
-      console.error("❌ Error al enviar la notificación:", error);
-      alert("❌ Error al enviar la notificación. Revisa la consola.");
+  const handleToastError = () => {
+    toast.error("Error de prueba");
+  };
+
+  const handleSend = async () => {
+    const to = user?.email;
+    if (!to) {
+      toast.warning("Inicia sesión para probar send() (falta user.email)");
+      return;
     }
+
+    setSending(true);
+    try {
+      await send({
+        to,
+        title: "Prueba de notificaciones",
+        message: "Esta notificación debe persistir y llegar por socket.",
+        type: "system.info",
+        link: "/notificaciones",
+      });
+      toast.success("Notificación enviada y persistida");
+    } catch (err) {
+      console.error("NotificationTester.send error", err);
+      toast.error(err?.message || "No se pudo enviar la notificación");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const buttonStyle = {
+    backgroundColor: "#fff200",
+    color: "#000",
+    border: "2px solid #6d6e71",
+    borderRadius: "12px",
+    padding: "10px 20px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    marginRight: 8,
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <button
-        onClick={handleSendNotification}
-        style={{
-          backgroundColor: "#fff200",
-          color: "#000",
-          border: "2px solid #6d6e71",
-          borderRadius: "12px",
-          padding: "10px 20px",
-          fontWeight: "bold",
-          cursor: "pointer",
-        }}
-      >
-        Enviar notificación
+      <h3>Tester de notificaciones</h3>
+      <p style={{ color: "#666" }}>
+        {user ? `Destinatario: ${user.email}` : "No hay sesión iniciada"}
+      </p>
+
+      <button onClick={handleToast} style={buttonStyle}>
+        toast.success("Toast funcionando")
+      </button>
+
+      <button onClick={handleToastError} style={buttonStyle}>
+        toast.error("Error de prueba")
+      </button>
+
+      <button onClick={handleSend} style={buttonStyle} disabled={sending || loading}>
+        {sending ? "Enviando..." : "send({ ... })"}
       </button>
     </div>
   );

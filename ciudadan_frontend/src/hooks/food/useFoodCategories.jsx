@@ -13,15 +13,18 @@ export function useFoodCategories() {
     try {
       const res = await fetch(`${CATEGORIES_URL}?populate=imagen`);
       const data = await res.json();
-     
       const categoriesData = data?.data ?? [];
+      console.log("categories data:", categoriesData);
       const categoriesTransformed = categoriesData?.map((c) => {
         const { id, attributes } = c;
         const imagen = transformImageStrapi(attributes?.imagen ?? {});
+        console.log("id category:", id, "attributes:", attributes, "Imagen:", imagen);
         return ({id, attributes: {...attributes, imagen}});
       });
+      console.log("categories transformed:", categoriesTransformed);
       return categoriesTransformed;
     } catch (err) {
+      console.error("Error al consultar categorias:", err);
       setError(err);
       return [];
     }finally{

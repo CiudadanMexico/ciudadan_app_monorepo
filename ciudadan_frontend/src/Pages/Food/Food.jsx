@@ -143,23 +143,20 @@ const Food = ({ filtros = '', parametros = '' }) => {
     setSelectedTab(newValue);
   };
 
+  const handleGetCategories = async () => {
+    try {
+      const cats = await getCategories();
+      setCategorias(cats ?? []);
+      console.log("Categorias food:", cats);
+    } catch (e) {
+      safeLogError('Error cargando categorías', e);
+      setCategorias([]);
+    }
+  };
+
   // cargar categorias
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const cats = await getCategories();
-        if (!mounted) return;
-        setCategorias(cats || []);
-        console.log("Categorias food:", cats);
-      } catch (e) {
-        safeLogError('Error cargando categorías', e);
-        if (mounted) setCategorias([]);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+    handleGetCategories();
   }, []);
 
   useEffect(() => {

@@ -23,6 +23,11 @@
       "type": "boolean",
       "default": true
     },
+    "area": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::area.area"
+    },
     "todos": {
       "type": "relation",
       "relation": "manyToMany",

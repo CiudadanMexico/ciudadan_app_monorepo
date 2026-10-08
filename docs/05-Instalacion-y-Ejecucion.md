@@ -196,6 +196,51 @@ Verificación rápida:
 
 ---
 
+## Paso 7b — Servicios systemd (instancias VPS)
+
+En la instancia VPS los tres servicios viven bajo **systemd**: sobreviven a
+reinicio/apagado y se auto-reinician si mueren.
+
+| Unidad | Servicio | Puerto | Log de la app |
+|---|---|---|---|
+| `ciudadan-backend` | Strapi (`launcher.sh backend`) | 33032 | `~/logs/ciudadan-backend.log` |
+| `ciudadan-frontend` | CRA dev server (`launcher.sh frontend`) | 3001 | `~/logs/ciudadan-frontend.log` |
+| `ciudadan-socket` | Socket service (`launcher.sh socket`) | 33035 | `~/logs/ciudadan-socket.log` |
+
+```bash
+sudo systemctl status  ciudadan-backend      # estado
+sudo systemctl restart ciudadan-backend      # reiniciar
+sudo systemctl stop    ciudadan-frontend     # parar
+journalctl -u ciudadan-backend -f           # eventos del propio systemd
+tail -f ~/logs/ciudadan-backend.log         # salida de la app (append)
+```
+
+Detalles que conviene saber:
+
+- **`ExecStart` es `launcher.sh <servicio>`**, la misma receta manual de siempre (carga nvm
+  y exporta las `SOCKET_*` del `.env`). No hay dos formas de arrancar que puedan divergir.
+- **`Restart=always` + `enable` en `multi-user.target`**: si la máquina se reinicia o el
+  proceso muere, vuelven solos. Antes **no había ni cron `@reboot` ni unidad**: un apagado
+  dejaba la instancia sin backend ni socket (502 en el túnel) hasta que alguien lo lanzara
+  a mano — fue el motivo de la caída del 2026-10-07.
+- **`MemoryHigh`/`MemoryMax` por unidad**: si un servicio se dispara de memoria, systemd
+  reinicia *a ese servicio* en vez de dejar que el OOM killer de Linux se lleve el proceso
+  de otro (nos pasó: un Jest apretado mató el dev server).
+- Los logs van a los mismos ficheros de siempre (`StandardOutput=append:`), así que los
+  `tail -f` de siempre siguen funcionando.
+- Las unidades viven en `/etc/systemd/system/ciudadan-*.service` (son de la máquina, no del
+  repo). Si cambias una: `sudo systemctl daemon-reload` antes de reiniciar.
+
+Verificación tras arrancar:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:33032/_health   # 204
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3001/           # 200
+curl -s http://localhost:33032/admin/init | grep -o '"hasAdmin":[a-z]*'   # ¿existe admin?
+```
+
+---
+
 ## Paso 8 — Deploy a producción (sucinto)
 
 ### vía CI/CD (GitHub Actions)

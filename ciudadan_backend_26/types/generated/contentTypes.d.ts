@@ -4073,6 +4073,74 @@ export interface ApiGenWalletGenWallet extends Schema.CollectionType {
   };
 }
 
+export interface ApiGenerationApplicationGenerationApplication
+  extends Schema.CollectionType {
+  collectionName: 'generation_applications';
+  info: {
+    singularName: 'generation-application';
+    pluralName: 'generation-applications';
+    displayName: 'Generation Application';
+    description: 'Postulaciones de la Generaci\u00F3n Fundadora Ciudadan 2026 (4 v\u00EDas: hackabot, vallecatnip, creadores, aliados, general)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::generation-application.generation-application',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    name: Attribute.String & Attribute.Required;
+    email: Attribute.Email & Attribute.Required;
+    phone: Attribute.String;
+    path: Attribute.Enumeration<
+      ['hackabot', 'vallecatnip', 'creadores', 'aliados', 'general']
+    > &
+      Attribute.Required &
+      Attribute.DefaultTo<'general'>;
+    status: Attribute.Enumeration<
+      [
+        'new',
+        'reviewing',
+        'contacted',
+        'accepted',
+        'waitlist',
+        'rejected',
+        'active'
+      ]
+    > &
+      Attribute.DefaultTo<'new'>;
+    source: Attribute.String;
+    utm_source: Attribute.String;
+    utm_medium: Attribute.String;
+    utm_campaign: Attribute.String;
+    utm_content: Attribute.String;
+    referrer: Attribute.String;
+    city: Attribute.String;
+    state: Attribute.String;
+    availability: Attribute.String;
+    discord: Attribute.String;
+    portfolio: Attribute.String;
+    answers: Attribute.JSON;
+    notes: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::generation-application.generation-application',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::generation-application.generation-application',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiKitjardineroKitjardinero extends Schema.CollectionType {
   collectionName: 'kitjardineros';
   info: {
@@ -4635,9 +4703,10 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   attributes: {
     cuerpo: Attribute.Blocks;
     user_email: Attribute.String;
+    titulo: Attribute.String;
     usuario: Attribute.Relation<
       'api::notificacion.notificacion',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     timestamp: Attribute.DateTime;
@@ -4647,6 +4716,7 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
     link: Attribute.String;
     imagen: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     icono: Attribute.String;
+    meta: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5859,6 +5929,7 @@ export interface ApiSkillSkill extends Schema.CollectionType {
     name: Attribute.String & Attribute.Required;
     description: Attribute.Text;
     is_active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    area: Attribute.Relation<'api::skill.skill', 'manyToOne', 'api::area.area'>;
     todos: Attribute.Relation<
       'api::skill.skill',
       'manyToMany',
@@ -7012,6 +7083,7 @@ declare module '@strapi/types' {
       'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
+      'api::generation-application.generation-application': ApiGenerationApplicationGenerationApplication;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::license-catalog.license-catalog': ApiLicenseCatalogLicenseCatalog;

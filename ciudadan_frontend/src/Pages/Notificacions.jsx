@@ -1,5 +1,5 @@
 // src/components/Notifications/AllNotificaciones.jsx
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -40,20 +40,6 @@ const MAIN_DOMAIN = (process.env.REACT_APP_MAIN_DOMAIN || "").replace(/\/$/, "")
 
 const MAX_PAGE_SIZE = 25;
 
-const extractPlainText = (value) => {
-  if (!value) return "";
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    return value
-      .map((block) => block?.children?.map((child) => child?.text || "").join(""))
-      .join(" ");
-  }
-  if (typeof value === "object" && value.children) {
-    return value.children.map((child) => child?.text || "").join("");
-  }
-  return "";
-};
-
 const buildLink = (rawLink) => {
   if (!rawLink) return null;
   if (/^https?:\/\//i.test(rawLink)) return rawLink;
@@ -63,17 +49,17 @@ const buildLink = (rawLink) => {
 
 export default function AllNotificaciones() {
   const navigate = useNavigate();
-  const ctx = useNotifications() || {};
-  const notificaciones = ctx.notificaciones ?? ctx.notifications ?? [];
-  const loading = ctx.loading ?? false;
-  const refreshFn =
-    ctx.refreshNotificaciones ??
-    ctx.refreshNotifications ??
-    ctx.fetchNotifications ??
-    ctx.fetchNotificaciones ??
-    ctx.refresh;
-  const markAsReadFn = ctx.markAsRead ?? ctx.markRead ?? null;
-  const markAsUnreadFn = ctx.markAsUnread ?? ctx.markAsUnread ?? ctx.markAsUnread ?? null;
+  // API única (§3): todo llega ya normalizado (§12).
+  const {
+    notifications = [],
+    loading = false,
+    unreadCount = 0,
+    refresh: refreshFn,
+    markAsRead: markAsReadFn,
+    markAsUnread: markAsUnreadFn,
+    markAllAsRead: markAllAsReadFn,
+    toast,
+  } = useNotifications() || {};
 
   // UI state
   const [query, setQuery] = useState("");
@@ -82,76 +68,39 @@ export default function AllNotificaciones() {
   const [pageSize, setPageSize] = useState(MAX_PAGE_SIZE);
   const [page, setPage] = useState(1);
 
-  // optimistic local read overrides (id => boolean)
-  const [localReadMap, setLocalReadMap] = useState({});
-  const mountedRef = useRef(true);
-
+  // reinicia la paginación cuando cambia la lista (el estado de lectura ya
+  // vive en el context: aquí NO se mantiene un mapa local duplicado)
   useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  // sync localReadMap when notifications list changes (preserve manual toggles)
-  useEffect(() => {
-    const map = {};
-    (Array.isArray(notificaciones) ? notificaciones : []).forEach((n) => {
-      const a = n?.attributes ?? n;
-      const isRead = a?.leida === true || a?.read === true || a?.leida === "true";
-      map[n.id] = isRead;
-    });
-    // merge with existing local overrides but prefer server values for new ids
-    setLocalReadMap((prev) => ({ ...map, ...prev }));
-    // reset paging when data changes
     setPage(1);
-  }, [JSON.stringify(notificaciones)]); // stringify to detect changes in deep arrays
+  }, [notifications]);
 
-  // derived & filtered list
+  // derived & filtered list (todo normalizado §12)
   const filteredSorted = useMemo(() => {
-    const list = Array.isArray(notificaciones) ? [...notificaciones] : [];
+    const list = Array.isArray(notifications) ? [...notifications] : [];
 
-    // filter by query
     const q = (query || "").trim().toLowerCase();
     const filteredByQuery = q
-      ? list.filter((n) => {
-          const a = n?.attributes ?? n;
-          const title = (a?.titulo || a?.title || "").toString().toLowerCase() || "";
-          const mensaje = extractPlainText(a?.mensaje || a?.cuerpo || "").toLowerCase();
-          return title.includes(q) || mensaje.includes(q);
-        })
+      ? list.filter(
+          (n) =>
+            (n.title || "").toLowerCase().includes(q) ||
+            (n.message || "").toLowerCase().includes(q)
+        )
       : list;
 
-    // apply unread filter
     const filteredByUnread = onlyUnreadToggle
-      ? filteredByQuery.filter((n) => {
-          const read = localReadMap[n.id];
-          const a = n?.attributes ?? n;
-          const serverRead = a?.leida === true || a?.read === true || a?.leida === "true";
-          // prefer local override if present (boolean), otherwise serverRead
-          const isRead = typeof read === "boolean" ? read : serverRead;
-          return !isRead;
-        })
+      ? filteredByQuery.filter((n) => !n.read)
       : filteredByQuery;
 
-    // sort
     filteredByUnread.sort((a, b) => {
-      const at = a?.attributes ?? a;
-      const bt = b?.attributes ?? b;
-      const aDate = new Date(at?.timestamp ?? at?.createdAt ?? at?.created_at ?? 0).getTime();
-      const bDate = new Date(bt?.timestamp ?? bt?.createdAt ?? bt?.created_at ?? 0).getTime();
+      const aDate = new Date(a?.createdAt ?? 0).getTime();
+      const bDate = new Date(b?.createdAt ?? 0).getTime();
       return sortBy === "newest" ? bDate - aDate : aDate - bDate;
     });
 
     return filteredByUnread;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notificaciones, query, onlyUnreadToggle, sortBy, localReadMap]);
+  }, [notifications, query, onlyUnreadToggle, sortBy]);
 
-  const totalCount = (Array.isArray(notificaciones) ? notificaciones : []).length;
-  const unreadCount = (Array.isArray(notificaciones) ? notificaciones : []).filter((n) => {
-    const a = n?.attributes ?? n;
-    return !(a?.leida === true || a?.read === true || a?.leida === "true");
-  }).length;
+  const totalCount = (notifications || []).length;
 
   const visibleNotifications = filteredSorted.slice(0, page * pageSize);
 
@@ -167,82 +116,47 @@ export default function AllNotificaciones() {
   };
 
   const handleMarkAllRead = async () => {
-    const unreadIds = (Array.isArray(notificaciones) ? notificaciones : [])
-      .filter((n) => {
-        const a = n?.attributes ?? n;
-        return !(a?.leida === true || a?.read === true || a?.leida === "true");
-      })
-      .map((n) => n.id);
-
-    if (unreadIds.length === 0) return;
-    if (typeof markAsReadFn === "function") {
-      try {
-        await markAsReadFn(unreadIds);
-        // optimistic update
-        setLocalReadMap((prev) => {
-          const copy = { ...prev };
-          unreadIds.forEach((id) => (copy[id] = true));
-          return copy;
-        });
-      } catch (e) {
-        console.error("mark all read error", e);
-      }
-    } else if (typeof refreshFn === "function") {
-      await refreshFn();
+    if (!unreadCount) return;
+    try {
+      // Endpoint masivo del backend que sólo toca este usuario (§20).
+      await markAllAsReadFn();
+      toast?.success?.("Todas las notificaciones quedaron como leídas");
+    } catch (e) {
+      console.error("mark all read error", e);
+      toast?.error?.("No se pudieron marcar las notificaciones");
     }
   };
 
-  const handleToggleRead = async (notifId) => {
-    const current = !!localReadMap[notifId];
-    // if we have an "unread" function and want to unmark, use it
-    if (current && typeof markAsUnreadFn === "function") {
-      try {
-        await markAsUnreadFn(notifId);
-        if (!mountedRef.current) return;
-        setLocalReadMap((p) => ({ ...p, [notifId]: false }));
+  const handleToggleRead = async (notifId, currentlyRead) => {
+    try {
+      if (typeof currentlyRead === "boolean") {
+        // el context hace la actualización optimista y revierte si falla (§19)
+        if (currentlyRead) {
+          if (typeof markAsUnreadFn === "function") await markAsUnreadFn(notifId);
+        } else if (typeof markAsReadFn === "function") {
+          await markAsReadFn(notifId);
+        }
         return;
-      } catch (e) {
-        console.error("mark as unread error", e);
       }
+      if (typeof markAsReadFn === "function") await markAsReadFn(notifId);
+    } catch (e) {
+      console.error("toggle read error", e);
+      toast?.error?.("No se pudo actualizar la notificación");
     }
-
-    // otherwise, mark as read
-    if (!current && typeof markAsReadFn === "function") {
-      try {
-        await markAsReadFn(notifId);
-        if (!mountedRef.current) return;
-        setLocalReadMap((p) => ({ ...p, [notifId]: true }));
-        return;
-      } catch (e) {
-        console.error("mark as read error", e);
-      }
-    }
-
-    // fallback: optimistic toggle locally (if no server functions)
-    setLocalReadMap((p) => ({ ...p, [notifId]: !current }));
   };
 
   const handleOpenNotification = async (notif) => {
-    const id = notif.id;
-    const attrs = notif?.attributes ?? notif;
-    const isRead = localReadMap[id] ?? (attrs?.leida === true || attrs?.read === true || attrs?.leida === "true");
+    const { id, read, link } = notif;
 
-    // mark as read if unread
-    if (!isRead && typeof markAsReadFn === "function") {
+    if (!read && typeof markAsReadFn === "function") {
       try {
         await markAsReadFn(id);
-        if (mountedRef.current) setLocalReadMap((p) => ({ ...p, [id]: true }));
       } catch (e) {
         console.error("markAsRead error", e);
       }
-    } else {
-      // optimistic
-      if (!isRead) setLocalReadMap((p) => ({ ...p, [id]: true }));
     }
 
-    // navigate / open link
-    const rawLink = attrs?.link ?? attrs?.url ?? attrs?.href ?? null;
-    const finalLink = buildLink(rawLink);
+    const finalLink = buildLink(link);
     if (finalLink) {
       if (/^https?:\/\//i.test(finalLink)) {
         window.location.href = finalLink;
@@ -250,7 +164,6 @@ export default function AllNotificaciones() {
         navigate(finalLink);
       }
     } else {
-      // fallback to detail page if no direct link
       navigate(`/notificacion/${id}`);
     }
   };
@@ -364,7 +277,7 @@ export default function AllNotificaciones() {
             <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
               <CircularProgress />
             </Box>
-          ) : (!Array.isArray(notificaciones) || notificaciones.length === 0) ? (
+          ) : notifications.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 6 }}>
               <NotificationsOffIcon sx={{ fontSize: 48, color: "text.secondary", mb: 1 }} />
               <Typography color="text.secondary">No hay notificaciones</Typography>
@@ -373,20 +286,11 @@ export default function AllNotificaciones() {
             <>
               <List disablePadding>
                 {visibleNotifications.map((notif) => {
-                  const id = notif.id;
-                  const attrs = notif.attributes ?? notif;
-                  const serverRead = attrs?.leida === true || attrs?.read === true || attrs?.leida === "true";
-                  const isRead = typeof localReadMap[id] === "boolean" ? localReadMap[id] : serverRead;
-                  const title =
-                    attrs?.titulo ||
-                    attrs?.title ||
-                    (typeof attrs?.mensaje === "string" ? attrs.mensaje.slice(0, 140) : null) ||
-                    extractPlainText(attrs?.cuerpo) ||
-                    "Notificación";
-                  const snippet = extractPlainText(attrs?.mensaje || attrs?.cuerpo).slice(0, 280);
-                  const dateText = attrs?.timestamp
-                    ? new Date(attrs.timestamp).toLocaleString()
-                    : new Date(attrs.createdAt ?? attrs.created_at ?? Date.now()).toLocaleString();
+                  const { id, title, read: isRead, createdAt } = notif;
+                  const snippet = (notif.message || "").slice(0, 280);
+                  const dateText = createdAt
+                    ? new Date(createdAt).toLocaleString()
+                    : new Date().toLocaleString();
 
                   return (
                     <React.Fragment key={id}>
@@ -401,11 +305,11 @@ export default function AllNotificaciones() {
                             <Stack direction="row" spacing={1} alignItems="center">
                               <Chip label={isRead ? "Leída" : "No leída"} size="small" />
                               <Tooltip title={isRead ? "Marcar como no leída" : "Marcar como leída"}>
-                                <IconButton edge="end" onClick={() => handleToggleRead(id)} size="small">
+                                <IconButton edge="end" onClick={() => handleToggleRead(id, isRead)} size="small">
                                   {isRead ? <MailOutlineIcon /> : <MarkEmailReadIcon />}
                                 </IconButton>
                               </Tooltip>
-                              { (attrs?.link || attrs?.url || attrs?.href) && (
+                              {notif.link && (
                                 <Tooltip title="Abrir enlace">
                                   <IconButton edge="end" onClick={() => handleOpenNotification(notif)} size="small">
                                     <OpenInNewIcon />
