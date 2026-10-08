@@ -519,5 +519,141 @@ module.exports = function extendUsersPermissionsPlugin(plugin) {
     },
   });
 
+  // =====================================================================
+  // Correccion de exposicion publica de GET /api/users (fase 1 esfericulos).
+  //
+  // Evidencia: sin credencial alguna, /api/users devolvia telefono, curp,
+  // rfc, fecha_nacimiento, cp, ids de stripe/openpay, observaciones y
+  // marcadores de estatus legal (amparo/cofepris) de TODOS los usuarios.
+  //
+  // Regla implementada (denylist): se quitan SOLO los campos privados
+  // inequivos (contacto directo, documentos de identidad, pagos, notas
+  // internas). Se conserva todo lo que los flujos legitimos del frontend
+  // usan de estas respuestas (RolesContext: role, roles, direcciones,
+  // club, agencia, areas; registros por email; nombre de muestra), porque
+  // en esta instancia el frontend de ciudadan.org NO usa el JWT de Strapi
+  // para /users (sus rutas find/findOne de users son deliberadamente
+  // publicas con policies: []).
+  //
+  // Peticiones con token de API valido de Strapi (servicios internos,
+  // p.ej. el backend de esfericulos) reciben la respuesta INTEGRA, igual
+  // que antes, con los campos que pidan via ?fields[].
+  // =====================================================================
+  const camposPrivados = [
+    'telefono', 'curp', 'rfc', 'fecha_nacimiento', 'cp',
+    'id_stripe', 'stripeCustomerId', 'stripeSubscriptionId', 'stripePriceId',
+    'subscriptionStatus', 'openpayid', 'openpaykey',
+    'foliocofepris', 'esperandocofepris',
+    'observaciones', 'settings', 'profile', 'prueba',
+    'esperandoamparo', 'tipoamparo', 'amparostatus',
+  ];
+
+  const limpiarCamposPrivados = (user) => {
+    if (!user || typeof user !== 'object') return user;
+    const copia = { ...user };
+    for (const c of camposPrivados) delete copia[c];
+    return copia;
+  };
+
+  const portadorEsTokenDeApi = async (ctx) => {
+    const header =
+      (ctx.request && ctx.request.headers && ctx.request.headers.authorization) || '';
+    if (typeof header !== 'string' || !header.startsWith('Bearer ')) return false;
+    const raw = header.slice(7).trim();
+    if (!raw) return false;
+    try {
+      const crypto = require('crypto');
+      const salt = process.env.API_TOKEN_SALT || 'strapi';
+      const accessKey = crypto.createHmac('sha512', salt).update(raw).digest('hex');
+      const row = await strapi.db
+        .connection('strapi_api_tokens')
+        .where('access_key', accessKey)
+        .first();
+      return !!row;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const originalFind = plugin.controllers.user.find;
+  plugin.controllers.user.find = async function findConPrivacidad(ctx) {
+    await originalFind(ctx);
+    if (await portadorEsTokenDeApi(ctx)) return;   // servicios internos: integra
+    if (Array.isArray(ctx.body)) {
+      ctx.body = ctx.body.map((u) => limpiarCamposPrivados(u && u.attributes ? { ...u, attributes: limpiarCamposPrivados(u.attributes) } : limpiarCamposPrivados(u)));
+    } else if (ctx.body && typeof ctx.body === 'object' && Array.isArray(ctx.body.data)) {
+      ctx.body = { ...ctx.body, data: ctx.body.data.map((u) => limpiarCamposPrivados(u && u.attributes ? { ...u, attributes: limpiarCamposPrivados(u.attributes) } : limpiarCamposPrivados(u))) };
+    } else if (ctx.body && typeof ctx.body === 'object') {
+      ctx.body = limpiarCamposPrivados(ctx.body.attributes ? { ...ctx.body, attributes: limpiarCamposPrivados(ctx.body.attributes) } : ctx.body);
+    }
+  };
+
+  // findOne NO se toca: su ruta exige Auth0 valido (policy is-authenticated-auth0);
+  // el acceso anonimo recibe 403 antes de llegar al controller.
+
+  // =====================================================================
+  // Anti auto-otorgamiento de privilegios/estados (revision fase 1 +
+  // pre-check de fase 2 esfericulos). Evidencia previa: el registro local
+  // anonimo con roles {extra:['admin']} + verificado:true creaba el usuario
+  // CON esos privilegios.
+  //
+  // Revision (2026-10-05, fase 2): la AUTORIZACION administrativa es solo
+  // roles.extra 'admin' — ser socio NO concede administrar roles ni estados
+  // protegidos. Autenticacion Auth0 != autorizacion.
+  //   - create/register sin admin: roles limitados a autoservicio
+  //     (['pasajero']) y estados protegidos eliminados.
+  //   - update sin admin: CONSERVA los roles legitimos del objetivo
+  //     (actuales ∪ autoservicio enviados); sin quitar ni privilegiar.
+  //   - destroy sin admin: 403 (borrar exige autorizacion administrativa).
+  // Las reglas viven en utils/escritura-protegida.js (probables por script).
+  // =====================================================================
+  const {
+    esAdminDeStrapi, prepararCreacion, prepararEdicion, puedeEliminar,
+  } = require('./utils/escritura-protegida.js');
+
+  const avisarFiltrado = (tocados, deDonde) => {
+    if (tocados && tocados.length) {
+      strapi.log.warn(`escritura-protegida: ${deDonde}: filtrado de ${tocados.join(', ')}`);
+    }
+  };
+
+  const originalUserCreate = plugin.controllers.user.create;
+  plugin.controllers.user.create = async function createProtegido(ctx) {
+    if (!esAdminDeStrapi(ctx.state && ctx.state.strapiUser)) {
+      avisarFiltrado(prepararCreacion(ctx.request.body), 'POST /api/users');
+    }
+    return originalUserCreate(ctx);
+  };
+
+  const originalUserUpdate = plugin.controllers.user.update;
+  plugin.controllers.user.update = async function updateProtegido(ctx) {
+    if (!esAdminDeStrapi(ctx.state && ctx.state.strapiUser)) {
+      let rolesActuales = null;
+      try {
+        const objetivo = await strapi.db.query('plugin::users-permissions.user')
+          .findOne({ where: { id: ctx.params.id } });
+        rolesActuales = objetivo ? objetivo.roles : null;
+      } catch { /* sin objetivo: sin roles que conservar */ }
+      avisarFiltrado(prepararEdicion(ctx.request.body, rolesActuales), 'PUT /api/users/:id');
+    }
+    return originalUserUpdate(ctx);
+  };
+
+  const originalAuthRegister = plugin.controllers.auth.register;
+  plugin.controllers.auth.register = async function registerProtegido(ctx) {
+    if (!esAdminDeStrapi(ctx.state && ctx.state.strapiUser)) {
+      avisarFiltrado(prepararCreacion(ctx.request.body), 'POST /api/auth/local/register');
+    }
+    return originalAuthRegister(ctx);
+  };
+
+  const originalUserDestroy = plugin.controllers.user.destroy;
+  plugin.controllers.user.destroy = async function destroyProtegido(ctx) {
+    if (!puedeEliminar(ctx.state && ctx.state.strapiUser)) {
+      return ctx.forbidden('borrar usuarios exige autorizacion administrativa (roles.extra admin)');
+    }
+    return originalUserDestroy(ctx);
+  };
+
   return plugin;
 };
