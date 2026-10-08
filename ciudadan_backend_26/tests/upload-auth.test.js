@@ -52,21 +52,19 @@ test('POST /api/upload queda con auth:false y la policy is-authenticated-auth0',
 
 test('las demás rutas de media quedan intactas', () => {
   const plugin = fakeUploadPlugin();
+  const before = JSON.parse(JSON.stringify(plugin.routes['content-api'].routes));
   extendUploadPlugin(plugin);
 
-  const find = plugin.routes['content-api'].routes.find(
-    (r) => r.method === 'GET' && r.path === '/files'
-  );
-  const destroy = plugin.routes['content-api'].routes.find(
-    (r) => r.method === 'DELETE' && r.path === '/files/:id'
-  );
-
-  assert.deepEqual(find.config, {}, 'GET /files no debe tocarse');
-  assert.deepEqual(destroy.config, {}, 'DELETE /files/:id no debe tocarse');
+  for (const ruta of plugin.routes['content-api'].routes) {
+    if (ruta.method === 'POST' && ruta.path === '/') continue;
+    const original = before.find((r) => r.method === ruta.method && r.path === ruta.path);
+    assert.ok(original, 'no debe aparecer ninguna ruta nueva salvo el fallback de subida');
+    assert.deepEqual(ruta.config, original.config, `${ruta.method} ${ruta.path} no debe tocarse`);
+  }
 });
 
 test('si la versión futura no declara la ruta, la registra en lugar de perder el override', () => {
-  const plugin = { routes: { 'content-api': { routes: [{ method: 'GET', path: '/files', handler: 'content-api.find', config: {} }] } } };
+  const plugin = { routes: { 'content-api': { routes: [] } } };
   extendUploadPlugin(plugin);
 
   const upload = plugin.routes['content-api'].routes.find(

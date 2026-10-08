@@ -20,20 +20,17 @@ import {
   Paper,
   Select,
   Stack,
-  Tab,
-  Tabs,
   TextField,
+  Tooltip,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
-import { styled } from '@mui/material/styles';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
 import { TareaCard } from './Tareas.jsx';
@@ -53,8 +50,9 @@ import {
   getUserAreas,
 } from '../../services/cowork/queryServices.js';
 import {
-  buildAreaHierarchy,
+  buildSkillChips,
   getActiveRootAreas,
+  normalizeAreas,
   normalizeTask,
 } from '../../utils/cowork.helpers.js';
 import { findAreaIndexBySlug } from '../../utils/areaSlug.js';
@@ -78,40 +76,6 @@ const ALLOWED_MIMES_RESOLVER = [
 ];
 const MAX_FILE_SIZE_RESOLVER = 10 * 1024 * 1024;
 const MAX_ARCHIVOS_RESOLVER = 10;
-
-const AreaTabs = styled((props) => (
-  <Tabs
-    {...props}
-    slotProps={{ indicator: { children: <span className="MuiTabs-indicatorSpan" /> } }}
-  />
-))({
-  '& .MuiTabs-indicator': {
-    display: 'flex',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-    height: 3,
-  },
-  '& .MuiTabs-indicatorSpan': {
-    width: '70%',
-    backgroundColor: neonGreen,
-    borderRadius: 2,
-    boxShadow: `0 0 10px ${neonGreen}`,
-  },
-});
-
-const AreaTab = styled(Tab)(({ theme }) => ({
-  color: '#d6d6d6',
-  fontWeight: 700,
-  textTransform: 'none',
-  minHeight: 48,
-  padding: theme.spacing(1, 2),
-  '&.Mui-selected': {
-    color: neonGreen,
-  },
-  '&:hover': {
-    color: neonGreen,
-  },
-}));
 
 export const EmptyState = ({ children, actions }) => (
   <Paper
@@ -505,9 +469,15 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
   // lugar de crashear o romper el área de trabajo.
   const [slugNoDisponible, setSlugNoDisponible] = useState(null);
   const [areas, setAreas] = useState([]);
+  // area_details del usuario para marcar chips pendientes de verificación.
+  const [areaDetails, setAreaDetails] = useState({});
   const [tasks, setTasks] = useState([]);
   const [availableAreas, setAvailableAreas] = useState([]);
   const [areaTab, setAreaTab] = useState(0);
+  // Panel de "agregar otra especialidad" detrás del chip "+ Agregar". Solo
+  // existe cuando ya hay ≥1 chip; con 0 chips el formulario se muestra
+  // directamente (rama vacía, más abajo) y este flag se ignora.
+  const [showAddSkill, setShowAddSkill] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingAvailableAreas, setLoadingAvailableAreas] = useState(false);
   const [error, setError] = useState(null);
@@ -523,8 +493,6 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
   const [assignError, setAssignError] = useState(null);
   const [declararSuccess, setDeclararSuccess] = useState(null);
   const [resolvingId, setResolvingId] = useState(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { isAuthenticated, isLoading: authLoading, loginWithRedirect, getAccessTokenSilently } = useAuth0();
   const { userData } = useRoles();
   const userId = userData?.id;
@@ -564,9 +532,17 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
       } catch { /* token optional for public routes */ }
 
       const userJson = await getUserAreas(userId, token);
-      const userAreas = getActiveRootAreas(userJson?.areas || []);
-
-      setAreas(userAreas);
+      // FIX (shape): el endpoint responde {"data": user} (ver
+      // user.getAreas en el backend). Antes se leía userJson.areas y era
+      // undefined SIEMPRE → el panel nunca listaba áreas y la especialidad
+      // aprobada no aparecía. Se aceptan ambas formas por si el contrato
+      // llega a cambiar.
+      // Se guarda la lista COMPLETA normalizada (raíces y subáreas level 1):
+      // los chips las muestran todas y buildSkillChips decide el filtro.
+      const assignedAreas = normalizeAreas(userJson?.data?.areas ?? userJson?.areas ?? []);
+      const details = userJson?.data?.area_details ?? userJson?.area_details ?? {};
+      setAreas(assignedAreas);
+      setAreaDetails(details && typeof details === 'object' ? details : {});
       setAreaTab(0);
 
       // Antes: si el usuario no tenía áreas verificadas, ni siquiera se
@@ -579,13 +555,14 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
       const todosJson = await getSpecializedTodos(token);
       setTasks((todosJson.data || []).map(normalizeTask));
 
-      if (userAreas.length === 0) {
+      if (assignedAreas.length === 0) {
         await fetchAvailableAreas();
       }
     } catch (err) {
       console.error('Error cargando tareas especializadas:', err);
       setError('No se pudieron cargar las tareas especializadas');
       setAreas([]);
+      setAreaDetails({});
       setTasks([]);
     } finally {
       setLoading(false);
@@ -601,6 +578,7 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
       setAssignError(null);
       setSuccess(null);
       setAreas([]);
+      setAreaDetails({});
       setTasks([]);
       return;
     }
@@ -705,6 +683,7 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
       setDeclararAreaId('');
       setDeclararExperiencia('');
       setDeclararArchivos([]);
+      setShowAddSkill(false);
       await fetchSpecializedTasks();
     } catch (err) {
       console.error('Error declarando área:', err);
@@ -861,8 +840,10 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
     [resolverDialog, archivosResolver, getAccessTokenSilently]
   );
 
-  const hierarchy = useMemo(() => buildAreaHierarchy(areas, tasks), [areas, tasks]);
-  const selectedArea = hierarchy[areaTab];
+  // Chips de especialidades: raíces activas + subáreas level 1 aprobadas,
+  // con las tareas de cada una. El primero queda seleccionado por defecto.
+  const chips = useMemo(() => buildSkillChips(areas, tasks, areaDetails), [areas, tasks, areaDetails]);
+  const selectedArea = chips[areaTab];
 
   // Tareas nivel `becario`: el PDF las agrupa como "especializadas" en la
   // UI, pero no requieren área verificada — no encajan en buildAreaHierarchy
@@ -871,8 +852,8 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
   const becarioTasks = useMemo(() => tasks.filter((t) => t.nivel === 'becario'), [tasks]);
 
   useEffect(() => {
-    if (areaTab >= hierarchy.length) setAreaTab(0);
-  }, [areaTab, hierarchy.length]);
+    if (areaTab >= chips.length) setAreaTab(0);
+  }, [areaTab, chips.length]);
 
   // Deep-link: selecciona automáticamente el área pedida en la URL. No hace
   // requests nuevos — reutiliza `hierarchy` (áreas verificadas del usuario).
@@ -882,14 +863,14 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
       return;
     }
 
-    const idx = findAreaIndexBySlug(hierarchy, initialAreaSlug);
+    const idx = findAreaIndexBySlug(chips, initialAreaSlug);
     if (idx >= 0) {
       setAreaTab(idx);
       setSlugNoDisponible(null);
     } else {
       setSlugNoDisponible(initialAreaSlug);
     }
-  }, [initialAreaSlug, hierarchy]);
+  }, [initialAreaSlug, chips]);
 
   if (authLoading || loading) {
     return (
@@ -963,7 +944,7 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
     </Stack>
   );
 
-  if (hierarchy.length === 0) {
+  if (chips.length === 0) {
     return (
       <Box sx={{ mt: 3 }}>
         {success && (
@@ -1034,6 +1015,7 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
           </EmptyState>
         </Box>
       )}
+      {/* Chips de especialidades aprobadas (+ chip "+ Agregar" para declarar otra). */}
       <Paper
         elevation={0}
         sx={{
@@ -1041,6 +1023,7 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
           borderRadius: 3,
           bgcolor: 'rgba(0,0,0,0.22)',
           mb: 4,
+          p: { xs: 1.5, md: 2 },
           width: { xs: '100%', md: 'min(1020px, calc(100vw - 64px))' },
           maxWidth: '100vw',
           mx: { xs: 0, md: '50%' },
@@ -1048,24 +1031,74 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
           overflow: 'hidden',
         }}
       >
-        <AreaTabs
-          value={areaTab}
-          onChange={(event, newValue) => setAreaTab(newValue)}
-          variant={isMobile ? 'scrollable' : 'standard'}
-          scrollButtons={isMobile ? 'auto' : false}
-          allowScrollButtonsMobile
-          centered={!isMobile}
-        >
-          {hierarchy.map((area) => (
-            <AreaTab
-              key={area.id}
-              icon={<AccountTreeIcon />}
-              iconPosition="start"
-              label={`${area.name || area.nombre} (${area.totalTasks})`}
-            />
-          ))}
-        </AreaTabs>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ rowGap: 1 }}>
+          {chips.map((area, idx) => {
+            const selected = idx === areaTab;
+            const label = `${area.name || area.nombre} (${area.totalTasks})`;
+            const chip = (
+              <Chip
+                key={area.id}
+                icon={<AccountTreeIcon />}
+                label={area.pendiente ? `${label} · Pendiente` : label}
+                onClick={() => setAreaTab(idx)}
+                sx={{
+                  fontWeight: 800,
+                  color: selected ? '#002200' : area.pendiente ? '#f5c400' : neonGreen,
+                  bgcolor: selected ? neonGreen : 'transparent',
+                  border: `1px solid ${selected ? neonGreen : area.pendiente ? '#f5c400' : 'rgba(0,255,153,0.45)'}`,
+                  borderStyle: area.pendiente && !selected ? 'dashed' : 'solid',
+                  '&:hover': { bgcolor: selected ? neonGreen : 'rgba(0,255,153,0.12)' },
+                  '& .MuiChip-icon': { color: selected ? '#002200' : area.pendiente ? '#f5c400' : neonGreen },
+                }}
+              />
+            );
+            return area.pendiente && !selected ? (
+              <Tooltip key={area.id} title="Pendiente de verificación por un socio o admin">
+                {chip}
+              </Tooltip>
+            ) : (
+              chip
+            );
+          })}
+          <Chip
+            icon={<AddIcon />}
+            label="Agregar"
+            onClick={() => setShowAddSkill((v) => !v)}
+            variant={showAddSkill ? 'filled' : 'outlined'}
+            sx={{
+              fontWeight: 800,
+              color: showAddSkill ? '#002200' : '#fff',
+              bgcolor: showAddSkill ? amarilloCiudadan : 'transparent',
+              border: `1px solid ${amarilloCiudadan}`,
+              '&:hover': { bgcolor: showAddSkill ? amarilloCiudadan : 'rgba(245,196,0,0.12)' },
+              '& .MuiChip-icon': { color: showAddSkill ? '#002200' : amarilloCiudadan },
+            }}
+          />
+        </Stack>
       </Paper>
+
+      {showAddSkill && (
+        <DeclararAreaForm
+          areas={availableAreas}
+          areaId={declararAreaId}
+          onChangeArea={setDeclararAreaId}
+          experiencia={declararExperiencia}
+          onChangeExperiencia={setDeclararExperiencia}
+          archivos={declararArchivos}
+          onChangeArchivos={handleDeclararArchivosChange}
+          onQuitarArchivo={handleQuitarDeclararArchivo}
+          onSubmit={handleDeclararArea}
+          loading={declarando}
+          loadingAreas={loadingAvailableAreas}
+          error={assignError}
+          success={declararSuccess}
+          userId={userId}
+          onProposeSubarea={handleProposeSubarea}
+          proposingSubarea={proposingSubarea}
+          proposedError={proposedError}
+          proposedSuccess={proposedSuccess}
+        />
+      )}
 
       {!slugNoDisponible && selectedArea && (
         <Stack spacing={3}>

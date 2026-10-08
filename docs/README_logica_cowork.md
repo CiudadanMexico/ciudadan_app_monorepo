@@ -181,5 +181,31 @@ Comparación de la lógica de negocio entre backend (`ciudadan_backend_26/src/ap
 | D3 | Baja | Documentar `todo.asignado_a` como "primer asignado" |
 | D4 | Baja | Confirmar con cliente si socio puede auto-asignarse |
 | D5 | Bloqueador | Diagnosticar fallo de `npm run develop` |
+| D6 | Alta (resuelto) | `userJson.areas` vs `{"data": user}` + subáreas aprobadas invisibles (ver §Chips de especialidades) |
 
 **Conclusión**: la lógica de negocio (state machine, matriz Fase 6, reglas de calificación Fase 4) está **alineada** entre backend y frontend. Las discrepancias son de robustez (transacción en `asignar.js`), semántica (`resolved_at`) y entorno (`npm run develop`). No hay bugs funcionales críticos en el happy path.
+
+---
+
+## Chips de especialidades (panel "Tareas especializadas") — `2026-10-08`
+
+**Comportamiento.** El panel muestra un chip por cada especialidad del usuario
+(áreas raíz activas + subáreas level 1 aprobadas, deduplicadas por nombre) con
+su conteo de tareas; el primero queda seleccionado por defecto. Cada chip
+filtra las tareas de esa especialidad (por `task.areas` o `task.subareas`). Los
+chips pendientes de verificación van punteados con «Pendiente». Cuando ya hay
+≥1 chip aparece un chip final **«+ Agregar»** que abre el formulario de
+auto-declaración (el mismo de antes, sin duplicarlo); con 0 especialidades se
+muestra el formulario directamente, como antes.
+
+**Root-cause del bug "aprobada pero no aparece"** (caso publia, `area_details["1"].status="verified"` con la relación `up_users_areas_links` ya ligada, y aun así el panel vacío). Dos fallos independientes que sumaban:
+1. **Shape**: `GET /api/users/:id/areas` responde `{"data": user}` y el frontend
+   leía `userJson.areas` (undefined) → el panel SIEMPRE estaba vacío. Ahora se
+   lee `userJson?.data?.areas ?? userJson?.areas ?? []`.
+2. **Level**: al aprobar una propuesta, `revisarSubarea` ligaba solo la subárea
+   `level: 1` y el panel filtraba `level === 0`. Ahora el helper
+   `buildSkillChips` (ver `src/utils/cowork.helpers.js`, con `buildSkillChips` +
+   `buildAreaEntry` y tests en `cowork.helpers.test.js`) incluye level 1, y el
+   backend además liga la raíz madre al aprobar para que los consumidores que
+   asumen raíces no se rompan. El endpoint `getAreas` también devuelve
+   `area_details` (flag de pendiente).
