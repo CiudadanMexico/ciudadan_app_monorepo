@@ -804,15 +804,15 @@ const Rutas = () => {
     {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
     <Route
       path='/wiki/main'
-      element={<WikiApp />}
+      element={<WikiApp section='main' />}
     />
     <Route
       path='/wiki/help'
-      element={<WikiApp />}
+      element={<WikiApp section='help' />}
     />
     <Route
       path='/wiki/faq'
-      element={<WikiApp />}
+      element={<WikiApp section='faq' />}
     />
     {/* Cualquier otro documento por slug */}
     <Route
