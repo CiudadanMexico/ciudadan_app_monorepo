@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { WikiService } from "./WikiService";
+import { getWikiFsRoot } from "../config/WikiPaths";
 
 /**
  * Observa la carpeta de la wiki y sincroniza los .md con la BD (metadatos) SIN reescribir
@@ -15,18 +16,39 @@ export class WikiWatcherService {
   private pathToWatch: string;
   private wikiService: WikiService;
   private debounceTimers = new Map<string, NodeJS.Timeout>();
+  private watcher: fs.FSWatcher | null = null;
 
-  constructor(wikiService: WikiService) {
+  constructor(wikiService: WikiService, root?: string) {
     this.wikiService = wikiService;
-    const defaultPath = process.platform === 'win32'
-      ? path.resolve('./wikis')
-      : '/var/www/apps/wikis';
-    this.pathToWatch = process.env.WIKI_ROOT_PATH || defaultPath;
+    this.pathToWatch = root ?? getWikiFsRoot();
+  }
+
+  /**
+   * Cambia la raíz observada en caliente: cierra el watcher anterior, limpia
+   * los debounces pendientes, reindexa la nueva raíz y abre un watcher nuevo.
+   * Devuelve true si la raíz cambió.
+   */
+  public async switchRoot(newRoot: string): Promise<boolean> {
+    const normalizedNew = path.normalize(newRoot);
+    if (normalizedNew === path.normalize(this.pathToWatch)) return false;
+    this.closeWatcher();
+    for (const timer of this.debounceTimers.values()) clearTimeout(timer);
+    this.debounceTimers.clear();
+    this.pathToWatch = normalizedNew;
+    console.log(`🔁 [WikiWatcherService] Raíz cambiada → ${normalizedNew}`);
+    this.start();
+    return true;
+  }
+
+  /** Raíz que se está observando actualmente. */
+  public getWatchedPath(): string {
+    return this.pathToWatch;
   }
 
   public start(): void {
-    // Asegurar que la carpeta wiki exista para que el watcher no falle al iniciar
-    if (fs.existsSync(this.pathToWatch)) {
+    // Asegurar que la carpeta wiki exista para que el watcher no falle al iniciar.
+    // (Antes la condición estaba invertida: solo creaba la carpeta si YA existía.)
+    if (!fs.existsSync(this.pathToWatch)) {
       fs.mkdirSync(this.pathToWatch, { recursive: true });
     }
 
@@ -35,7 +57,13 @@ export class WikiWatcherService {
     this.indexAll();
 
     console.log(`👁️ [WikiWatcherService] Monitoreando cambios, carpetas y subcarpetas en ${this.pathToWatch}`);
-    fs.watch(this.pathToWatch, { recursive: true }, (eventType, triggerFilename) => {
+    this.openWatcher();
+  }
+
+  private openWatcher(): void {
+    this.closeWatcher();
+    try {
+      this.watcher = fs.watch(this.pathToWatch, { recursive: true }, (eventType, triggerFilename) => {
       const filename = Array.isArray(triggerFilename) ? triggerFilename[0] : triggerFilename;
       if (!filename) return;
 
@@ -56,7 +84,19 @@ export class WikiWatcherService {
       }, 800); // ventana corta: colapsa eventos repetidos del mismo archivo
 
       this.debounceTimers.set(key, timer);
-    });
+      });
+    } catch (err) {
+      console.error(`🛑 [WikiWatcherService] No se pudo observar ${this.pathToWatch}:`, err);
+    }
+  }
+
+  private closeWatcher(): void {
+    try {
+      this.watcher?.close();
+    } catch {
+      // noop: cerrar un watcher ya cerrado no debe tumbar el switch
+    }
+    this.watcher = null;
   }
 
   /**

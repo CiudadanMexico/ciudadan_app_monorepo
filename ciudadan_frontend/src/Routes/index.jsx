@@ -1,8 +1,8 @@
 // src/routes/Rutas.jsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-import io from 'socket.io-client';
 import { Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { getSocket } from '../lib/socketClient.jsx';
 import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
@@ -13,9 +13,13 @@ import MultimediaRoute from '../Pages/Multimedia/MultimediaRoute.jsx';
 import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
 import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
+import ReciclandoPage from '../Pages/Gana/ReciclandoPage.jsx';
+import AgenciaDigitalPage from '../Pages/Gana/AgenciaDigitalPage.jsx';
 import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
-import LiderVerificadorRegistroPage from '../Pages/Gana/LiderVerificadorRegistroPage.jsx';
+import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
+import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
+import DescargarConductores from '../Pages/DescargarConductores.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
@@ -26,10 +30,12 @@ import GenRoute from '../Pages/GenRoute.jsx';
 import OpWalletRoute from '../Pages/OpWalletRoute.jsx';
 import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
-import RegistroConductor from '../Pages/RegistroConductor.jsx';
-import PreRegistroConductor from '../Pages/PreRegistroConductor.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
+import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
+import SociosEstatalesPage from '../Pages/SociosEstatales/SociosEstatalesPage.jsx';
+import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx';
+
 import MiMembresia from '../Pages/MiMembresia.jsx';
 import MarketPlace from '../Pages/MarketPlace/MarketPlace.jsx';
 import ProductosPage from '../Pages/MarketPlace/ProductosPage.jsx';
@@ -95,17 +101,24 @@ import ITokens from '../Pages/Cartera/ITokens.jsx';
 import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
 import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
+import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
+import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
+import Identidad from '../Pages/Identidad.jsx';
+import Votaciones from '../Pages/Votaciones.jsx';
+import Objetos from '../Pages/Objetos.jsx';
 
 // Taxis (pasajero / conductor / trip)
-import Pasajero from '../components/Taxiz/Pasajero.jsx';
-import Conductor from '../components/Taxiz/ConductorDebug.jsx';
+import Pasajero from '../components/Taxis/Pasajero.jsx';
+import Conductor from '../components/Taxis/Conductor.jsx';
 import TripView from '../components/Taxiz/TripView.jsx';
+import HistorialViajes from '../components/Taxis/HistorialViajes.jsx';
 
 //import QrScanner from '../components/Agencias/QrScanner.jsx';
 
 // Membresías extras
 import MembershipCheckout from '../components/Membresias/MembershipCheckout.jsx';
+import MercadoPagoRetorno from '../components/Membresias/MercadoPagoRetorno.jsx';
 import ProbarMembresia from '../components/Membresias/ProbarMembresia.jsx';
 import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 
@@ -113,7 +126,9 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
 import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
+import CiudadaneandoPage from '../Pages/Comunidad/CiudadaneandoPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
+import SocialSectionPage from '../Pages/Comunidad/SocialSectionPage.jsx';
 
 // Contenidos / Blog
 //import ContenidosPage from '../Pages/Blog/Contenidos.jsx';
@@ -148,6 +163,8 @@ import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
 import ComidaOfertas from '../Pages/Food/ComidaOfertas.jsx';
 import ComidaProducto from '../Pages/Food/ComidaProducto.jsx';
 import FoodCheckout from '../components/Food/FoodCheckout.jsx';
+import VerifyFreeTrip from '../components/Taxis/VerifyFreeTrip';
+import SaldoLogistico from '../Pages/MarketPlace/SaldoLogistico';
 
 // ---------- Wrappers (usar useParams) ----------
 const EditarContenidoWrapper = () => {
@@ -236,29 +253,6 @@ const WikiWrapper = () => {
   return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
 };
 
-// Guía de usuario (ruta /wiki/ayuda): carga help/guia-usuario.md
-const WikiAyudaRoute = () => {
-  const navigate = useNavigate();
-  const [doc, setDoc] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    wikiService
-      .getDocument('wiki/help/guia-usuario.md')
-      .then((found) => { if (!cancelled) setDoc(found); })
-      .catch(() => { if (!cancelled) setDoc(null); });
-    return () => { cancelled = true; };
-  }, []);
-
-  const handleNavigateDocument = (path) => {
-    const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
-    const parts = normalized.split('/').filter(Boolean);
-    const last = parts.length ? parts[parts.length - 1] : normalized;
-    if (last) navigate(`/wiki/${last}`);
-  };
-
-  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
-};
 
 // Layout para Wiki
 const WikiLayout = ({ children }) => (
@@ -274,20 +268,30 @@ const TripViewRoute = () => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const socketUrl = process.env.REACT_APP_SOCKET_URL;
-    if (!socketUrl) return undefined;
-
-    const client = io(socketUrl, {
-      transports: ['websocket', 'polling'],
-    });
+    const client = getSocket();
+    if (!client) return;
 
     setSocket(client);
+  }, []);
+
+  useEffect(() => {
+    if (!socket || !user?.email) return;
+
+    const register = () => {
+      socket.emit('register', { email: user.email });
+    };
+
+    if (socket.connected) {
+      register();
+      return undefined;
+    }
+
+    socket.on('connect', register);
 
     return () => {
-      client.disconnect();
-      setSocket(null);
+      socket.off('connect', register);
     };
-  }, []);
+  }, [socket, user?.email]);
 
   const strapiConfig = useMemo(() => ({
     baseUrl: process.env.REACT_APP_STRAPI_URL || '',
@@ -318,8 +322,31 @@ const TripViewRoute = () => {
   );
 };
 
-const Rutas = () => (
-  <Routes>
+const Rutas = () => {
+  const hostname = window.location.hostname;
+  const dominiosPrelanzamiento = [
+    "taxis.ciudadan.org",
+    "lideres.ciudadan.org",
+    "socios.ciudadan.org",
+  ];
+  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
+
+  if (isDomainPrelanzamiento) {
+    return <Prelanzamiento />;
+  }
+
+  // Landing de descarga de la app de conductores (campañas / QR en eventos).
+  if (hostname === 'descargar.ciudadan.org') {
+    return <DescargarConductores />;
+  }
+
+  return (
+    <Routes>
+      <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+      <Route path='/descargar' element={<DescargarConductores />} />
+      <Route path='/descargar-conductores' element={<DescargarConductores />} />
+
+    <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
     <Route
       path='/'
@@ -364,7 +391,7 @@ const Rutas = () => (
       element={<Notificacion />}
     />
 
-                {/* Gana / GanaRoute */}
+    {/* Gana / GanaRoute */}
     <Route
       path='/gana'
       element={<GanaRoute />}
@@ -378,15 +405,23 @@ const Rutas = () => (
       element={<RentaUniversalPage />}
     />
     <Route
+      path='/gana/reciclando'
+      element={<ReciclandoPage />}
+    />
+    <Route
+      path='/gana/agencias'
+      element={<AgenciaDigitalPage />}
+    />
+    <Route
       path='/gana/lideresverificadores'
       element={<LideresVerificadoresPage />}
     />
     <Route
       path='/gana/lideresverificadores/registro'
-      element={<LiderVerificadorRegistroPage />}
+      element={<RedireccionPrelanzamiento tipo='lider' />}
     />
     {/* Taxis */}
-    
+
 
     {/* Taxis */}
     <Route
@@ -395,11 +430,11 @@ const Rutas = () => (
     />
     <Route
       path='/taxis/conductor/registro'
-      element={<RegistroConductor />}
+      element={<RedireccionPrelanzamiento tipo='conductor' />}
     />
     <Route
       path='/taxis/conductor/preregistro'
-      element={<PreRegistroConductor />}
+      element={<RedireccionPrelanzamiento tipo='conductor' />}
     />
     <Route
       path='/taxis/conductor/esperando'
@@ -418,10 +453,25 @@ const Rutas = () => (
       element={<Pasajero />}
     />
     <Route
+      path='/taxis/viajes/historial'
+      element={<HistorialViajes />}
+    />
+    <Route
       path='/taxis/viaje/:travelId'
       element={<TripViewRoute />}
     />
+    <Route
+      path='/taxis/viaje-gratis'
+      element={<VerifyFreeTrip />}
+    />
 
+    {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
+        (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
+        por si algún enlace antiguo la usa */}
+    <Route
+      path='/herramientas/conductores'
+      element={<ConductoresAgencia />}
+    />
     <Route
       path='/herramientas/agencia/conductores'
       element={<ConductoresAgencia />}
@@ -456,7 +506,7 @@ const Rutas = () => (
       path='/comida/comprar/:slug'
       element={<ComprarFoodProduct />}
     />
-    <Route 
+    <Route
       path='/comida/ofertas'
       element={<ComidaOfertas />}
     />
@@ -472,6 +522,22 @@ const Rutas = () => (
     />
     <Route
       path='/marketplaces'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/market/tiendas-no-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-oficiales'
+      element={<MarketPage />}
+    />
+    <Route
+      path='/marketplaces/tiendas-no-oficiales'
       element={<MarketPage />}
     />
     <Route
@@ -509,6 +575,10 @@ const Rutas = () => (
       <Route
         path='configuracion'
         element={<ConfiguracionTienda />}
+      />
+      <Route 
+        path='saldo-logistico'
+        element={<SaldoLogistico />}
       />
     </Route>
     <Route
@@ -600,10 +670,39 @@ const Rutas = () => (
       path='/coowork'
       element={<Coowork />}
     />
+    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia */}
+    <Route
+      path='/coowork/especializadas/:areaSlug'
+      element={<Coowork />}
+    />
+    {/* Masters Ciudadan (vista previa) */}
+    <Route
+      path='/coowork/profesores'
+      element={<ProfesoresPage />}
+    />
     {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
     <Route
       path='/coowork/socio'
       element={<Coowork />}
+    />
+    {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
+    <Route
+      path='/coowork/mi-agencia/tareas'
+      element={<MiAgenciaTareas />}
+    />
+
+    {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
+    <Route
+      path='/identidad'
+      element={<Identidad />}
+    />
+    <Route
+      path='/votaciones'
+      element={<Votaciones />}
+    />
+    <Route
+      path='/objetos'
+      element={<Objetos />}
     />
     <Route
       path='/asignar-tarea'
@@ -681,23 +780,24 @@ const Rutas = () => (
       path='/wiki'
       element={<Navigate to='/wiki/main' replace />}
     />
-    {/* Guía de usuario del sitio en /wiki/ayuda */}
+    {/* Guía de usuario del sitio en /wiki/ayuda: mismo visor con las 3
+        pestañas que /wiki/help (abierto en Ayuda), no solo la guía suelta. */}
     <Route
       path='/wiki/ayuda'
-      element={<WikiAyudaRoute />}
+      element={<WikiApp section='help' />}
     />
     {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
     <Route
       path='/wiki/main'
-      element={<WikiApp />}
+      element={<WikiApp section='main' />}
     />
     <Route
       path='/wiki/help'
-      element={<WikiApp />}
+      element={<WikiApp section='help' />}
     />
     <Route
       path='/wiki/faq'
-      element={<WikiApp />}
+      element={<WikiApp section='faq' />}
     />
     {/* Cualquier otro documento por slug */}
     <Route
@@ -793,6 +893,16 @@ const Rutas = () => (
       element={<Membresias />}
     />
 
+    {/* Socios Estatales */}
+    <Route
+      path='/socios-estatales'
+      element={<SociosEstatalesPage />}
+    />
+    <Route
+      path='/socios-estatales/:estado'
+      element={<SocioEstatalEstado />}
+    />
+
     <Route
       path='/membresias/pagar/*'
       element={<ProbarMembresia />}
@@ -804,6 +914,10 @@ const Rutas = () => (
     <Route
       path='/membresias/adquirir/*'
       element={<MembershipCheckout />}
+    />
+    <Route
+      path='/membresias/retorno'
+      element={<MercadoPagoRetorno />}
     />
     <Route
       path='/mi-membresia'
@@ -818,6 +932,70 @@ const Rutas = () => (
     <Route
       path='/comunidad'
       element={<ComunidadRoute />}
+    />
+    <Route
+      path='/comunidad/ciudadaneando'
+      element={<CiudadaneandoPage />}
+    />
+    <Route
+      path='/comunidad/feed'
+      element={(
+        <SocialSectionPage
+          sectionKey='feed'
+          title='Feed'
+          description='Abre el feed social de Ciudadan.'
+          note='Esta pantalla queda conectada al nuevo Social Shell.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/chats/:conversationId'
+      element={(
+        <SocialSectionPage
+          sectionKey='chats'
+          title='Chats'
+          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+          note='La conversación ocupa el espacio principal de Social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/contactos'
+      element={(
+        <SocialSectionPage
+          sectionKey='contactos'
+          title='Contactos'
+          description='Abre la agenda y los contactos integrados.'
+          note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
+    />
+    <Route
+      path='/comunidad/grupos'
+      element={(
+        <SocialSectionPage
+          sectionKey='grupos'
+          title='Grupos'
+          description='Pantalla provisional para grupos.'
+          note='Este espacio queda listo para conectar los grupos del ecosistema social.'
+          primaryActionLabel='Ir a Asamblea'
+        />
+      )}
     />
     <Route
       path='/comunidad/nuevo-anuncio-programado'
@@ -887,12 +1065,23 @@ const Rutas = () => (
       element={<MarketPlace />}
     />
 
+    {/* Demo / QA interno de GeoNetworkMap — habilitado SOLO en desarrollo
+        (en el build de producción la ruta no existe, igual que otros
+        probadores internos del repo). No está en el menú público. */}
+    {process.env.NODE_ENV !== 'production' && (
+      <Route
+        path='/dev/geo-network-map'
+        element={<GeoNetworkMapDemo />}
+      />
+    )}
+
     <Route
       path='/testoken'
       element={<TestToken />}
     />
   </Routes>
-);
+  );
+};
 
 export default Rutas;
 

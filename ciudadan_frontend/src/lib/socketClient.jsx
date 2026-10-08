@@ -17,10 +17,11 @@ export function getSocket() {
     socket = io(url, {
       transports: ["websocket"],
       reconnection: true,
-      reconnectionAttempts: 3,
+      reconnectionAttempts: Infinity,
       reconnectionDelay: 2000,
       reconnectionDelayMax: 5000,
       timeout: 4000,
+      forceNew: false,
     });
 
     socket.on("connect", () => {
@@ -40,6 +41,14 @@ export function getSocket() {
   }
 
   return socket;
+}
+
+export function disconnectSocket() {
+  if (!socket) return;
+
+  socket.removeAllListeners();
+  socket.disconnect();
+  socket = null;
 }
 
 export function emitEvent(eventName, payload, ack) {

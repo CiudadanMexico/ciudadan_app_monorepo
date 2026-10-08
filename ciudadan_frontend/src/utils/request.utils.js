@@ -20,7 +20,15 @@ const fetchJson = async (
   const data = await parseJson(res);
 
   if (!res.ok) {
-    throw new Error(data?.error?.message || data?.message || fallbackMessage);
+    // Strapi responde 403 con el mensaje genérico "Forbidden" cuando una
+    // policy (ej. is-admin-or-socio) rechaza: eso no le dice nada al usuario.
+    // Si la policy mandó un motivo específico, ese sí se respeta tal cual.
+    const mensaje = data?.error?.message || data?.message || fallbackMessage;
+    throw new Error(
+      res.status === 403 && mensaje === 'Forbidden'
+        ? 'Sesión expirada o sin permisos para esta acción. Vuelve a iniciar sesión.'
+        : mensaje
+    );
   }
 
   return data;

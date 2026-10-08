@@ -29,10 +29,10 @@ export const useStoreAdminPedidos = () => {
   };
 
   const getPedidosPendientes = async (store_id) => {
-    if (!store_id) return [];
+    if (!store_id) return DEFAULT_RESPONSE;
     setCargando(true);
     try {
-      const populateStr = "populate[item][populate][producto][populate]=imagen_predeterminada&populate[pago_id][populate][comprobante]=*";
+      const populateStr = "populate[item][populate][producto][populate]=imagen_predeterminada&populate[pago_id][populate][comprobante]=*&populate[shipment][populate][packages][populate][items]=*";
       const filtersStr = `filters[store][id][$eq]=${store_id}&filters[finalizado][$eq]=false`;
       const sortStr = 'sort=status';
       const response = await fetch(`${PEDIDOS_URL}?${filtersStr}&${populateStr}&${sortStr}`);
@@ -72,7 +72,6 @@ export const useStoreAdminPedidos = () => {
    * Actualiza el state local para remover el pedido (si cambió a enviado) y muestra snack.
    * @param {number} pedidoId
    * @param {{}} body
-   * @return {object}
    */
   const patchPedido = async (pedidoId, body = {}) => {
     setApiLoading(true);
@@ -101,19 +100,19 @@ export const useStoreAdminPedidos = () => {
     setApiLoading(true);
 
     try {
-      const response = await fetch(`${PAGOS_URL}/${pagoId}`,{
-        method:'PUT',
+      const response = await fetch(`${PAGOS_URL}/${pagoId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ data: body })
       });
       const json = await response.json();
       return json?.data;
     } catch (error) {
       console.error("Error al actualizar pago:", error);
       return null;
-    }finally{
+    } finally {
       setApiLoading(false);
     }
   };

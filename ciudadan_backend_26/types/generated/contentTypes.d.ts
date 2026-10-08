@@ -834,6 +834,11 @@ export interface PluginUsersPermissionsUser extends Schema.CollectionType {
       'api::agencia.agencia'
     >;
     free_trip: Attribute.Boolean;
+    logistics_transactions: Attribute.Relation<
+      'plugin::users-permissions.user',
+      'oneToMany',
+      'api::logistics-transaction.logistics-transaction'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1143,6 +1148,56 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'oneToMany',
       'plugin::users-permissions.user'
     >;
+    total_verifications: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    total_audited: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    conforming: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    inconsistencies: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    critical_findings: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    reverifications: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    trust_score: Attribute.Decimal & Attribute.DefaultTo<0>;
+    trust_algorithm_version: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1510,7 +1565,9 @@ export interface ApiCarsEvidenceCarsEvidence extends Schema.CollectionType {
         'vin',
         'interior',
         'trunk',
-        'video_360'
+        'video_360',
+        'official_query_capture',
+        'incident'
       ]
     >;
     file: Attribute.Media<'images' | 'videos' | 'files'> & Attribute.Required;
@@ -1543,9 +1600,11 @@ export interface ApiCarsEvidenceCarsEvidence extends Schema.CollectionType {
     >;
     origin: Attribute.Enumeration<['preregister', 'reupload', 'live_capture']> &
       Attribute.DefaultTo<'preregister'>;
-    sha256: Attribute.String;
+    client_sha256: Attribute.String;
+    server_sha256: Attribute.String;
     perceptual_hash: Attribute.String;
     nonce: Attribute.String;
+    idempotency_key: Attribute.String;
     timestamp_client: Attribute.DateTime;
     timestamp_server: Attribute.DateTime;
     gps_lat: Attribute.Decimal;
@@ -1618,7 +1677,8 @@ export interface ApiCarsValidationCarsValidation extends Schema.CollectionType {
         'expired',
         'cancelled',
         'under_review',
-        'awaiting_resubmission'
+        'awaiting_resubmission',
+        'automatic_review'
       ]
     > &
       Attribute.DefaultTo<'pending'>;
@@ -1653,6 +1713,18 @@ export interface ApiCarsValidationCarsValidation extends Schema.CollectionType {
       'oneToMany',
       'api::cars-validation-event.cars-validation-event'
     >;
+    protocol_version: Attribute.String & Attribute.DefaultTo<'1.0'>;
+    reverification_of: Attribute.Relation<
+      'api::cars-validation.cars-validation',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    reverifications: Attribute.Relation<
+      'api::cars-validation.cars-validation',
+      'oneToMany',
+      'api::cars-validation.cars-validation'
+    >;
+    reverification_reason: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1663,6 +1735,49 @@ export interface ApiCarsValidationCarsValidation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::cars-validation.cars-validation',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiCarsValidationChallengeCarsValidationChallenge
+  extends Schema.CollectionType {
+  collectionName: 'cars_validation_challenges';
+  info: {
+    singularName: 'cars-validation-challenge';
+    pluralName: 'cars-validation-challenges';
+    displayName: 'Cars Validation Challenge';
+    description: 'Nonce/challenge de un solo uso por paso del protocolo de verificacion (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 1)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    validation: Attribute.Relation<
+      'api::cars-validation-challenge.cars-validation-challenge',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    nonce_id: Attribute.String & Attribute.Required & Attribute.Unique;
+    session_id: Attribute.String & Attribute.Required;
+    step: Attribute.String & Attribute.Required;
+    issued_at: Attribute.DateTime;
+    expires_at: Attribute.DateTime;
+    used_at: Attribute.DateTime;
+    status: Attribute.Enumeration<['issued', 'used', 'expired', 'revoked']> &
+      Attribute.DefaultTo<'issued'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::cars-validation-challenge.cars-validation-challenge',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::cars-validation-challenge.cars-validation-challenge',
       'oneToOne',
       'admin::user'
     > &
@@ -1714,7 +1829,16 @@ export interface ApiCarsValidationEventCarsValidationEvent
         'checklist_updated',
         'agenda_synced',
         'validation_status_changed',
-        'resubmission_requested'
+        'resubmission_requested',
+        'external_verification_registered',
+        'audit_created',
+        'audit_completed',
+        'audit_escalated',
+        'reverification_created',
+        'challenge_issued',
+        'evidence_uploaded',
+        'evidence_validated',
+        'risk_calculated'
       ]
     >;
     payload: Attribute.JSON;
@@ -2480,6 +2604,9 @@ export interface ApiConfiguracionUsuarioConfiguracionUsuario
     email: Attribute.Email;
     configuraciones: Attribute.JSON;
     pago_labory: Attribute.Boolean;
+    free_trip: Attribute.Enumeration<['pendiente', 'disponible', 'utilizado']> &
+      Attribute.DefaultTo<'pendiente'>;
+    en_viaje: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -2730,6 +2857,13 @@ export interface ApiDireccionDireccion extends Schema.CollectionType {
       'oneToOne',
       'api::food-restaurant.food-restaurant'
     >;
+    pais: Attribute.String;
+    pais_codigo: Attribute.String;
+    estado_codigo: Attribute.String;
+    colonia: Attribute.String;
+    route: Attribute.String;
+    numero: Attribute.String;
+    place_id: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -2859,6 +2993,11 @@ export interface ApiDriverDriver extends Schema.CollectionType {
       ]
     >;
     free_trips: Attribute.Integer & Attribute.DefaultTo<5>;
+    en_viaje: Attribute.Boolean;
+    promo_eligible: Attribute.Boolean & Attribute.DefaultTo<false>;
+    promo_source: Attribute.String;
+    promo_granted_at: Attribute.DateTime;
+    promo_expires_at: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -2870,6 +3009,71 @@ export interface ApiDriverDriver extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::driver.driver',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDriverLaunchLeadDriverLaunchLead
+  extends Schema.CollectionType {
+  collectionName: 'driver_launch_leads';
+  info: {
+    singularName: 'driver-launch-lead';
+    pluralName: 'driver-launch-leads';
+    displayName: 'Driver Launch Lead';
+    description: 'Leads de la landing de descarga/prelanzamiento de conductores (promo + aviso de lanzamiento por Brevo)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    email: Attribute.Email & Attribute.Required & Attribute.Unique;
+    wants_launch_email: Attribute.Boolean & Attribute.DefaultTo<false>;
+    download_requested_at: Attribute.DateTime;
+    downloaded_at: Attribute.DateTime;
+    promo_claimed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    promo_source: Attribute.String;
+    claim_token: Attribute.String & Attribute.Private & Attribute.Unique;
+    email_consent: Attribute.Boolean & Attribute.DefaultTo<false>;
+    email_consent_at: Attribute.DateTime;
+    privacy_version: Attribute.String;
+    utm_source: Attribute.String;
+    utm_medium: Attribute.String;
+    utm_campaign: Attribute.String;
+    utm_content: Attribute.String;
+    referrer: Attribute.Text;
+    launch_email_status: Attribute.Enumeration<
+      ['pending', 'sending', 'sent', 'failed']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    launch_email_attempts: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    launch_email_sent_at: Attribute.DateTime;
+    brevo_message_id: Attribute.String;
+    launch_email_last_error: Attribute.Text;
+    linked_driver: Attribute.Relation<
+      'api::driver-launch-lead.driver-launch-lead',
+      'oneToOne',
+      'api::driver.driver'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::driver-launch-lead.driver-launch-lead',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::driver-launch-lead.driver-launch-lead',
       'oneToOne',
       'admin::user'
     > &
@@ -2907,6 +3111,53 @@ export interface ApiDriverLocationDriverLocation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::driver-location.driver-location',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDriverMembershipConfigDriverMembershipConfig
+  extends Schema.SingleType {
+  collectionName: 'driver_membership_configs';
+  info: {
+    singularName: 'driver-membership-config';
+    pluralName: 'driver-membership-configs';
+    displayName: 'Driver Membership Config';
+    description: 'Configuraci\u00F3n de la membres\u00EDa de CONDUCTOR (precios, promoci\u00F3n y fecha de lanzamiento). No reutilizar la colecci\u00F3n `membresia`.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    regular_monthly_price: Attribute.Decimal & Attribute.DefaultTo<500>;
+    promotional_monthly_price: Attribute.Decimal & Attribute.DefaultTo<300>;
+    currency: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    promotion_duration_months: Attribute.Integer &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Attribute.DefaultTo<12>;
+    promotion_active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    promotion_claim_deadline: Attribute.DateTime;
+    launch_at: Attribute.DateTime;
+    launch_title: Attribute.String &
+      Attribute.DefaultTo<'Gran lanzamiento Ciudadan'>;
+    apk_version: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::driver-membership-config.driver-membership-config',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::driver-membership-config.driver-membership-config',
       'oneToOne',
       'admin::user'
     > &
@@ -3072,6 +3323,77 @@ export interface ApiEventoEvento extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::evento.evento',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiExternalVerificationExternalVerification
+  extends Schema.CollectionType {
+  collectionName: 'external_verifications';
+  info: {
+    singularName: 'external-verification';
+    pluralName: 'external-verifications';
+    displayName: 'External Verification';
+    description: 'Consulta oficial externa (INE, REPUVE, licencias estatales) durante la verificaci\u00F3n presencial (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 4). Separada de cars-evidence: una consulta oficial no es una foto.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    validation: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    entity_type: Attribute.Enumeration<['driver', 'vehicle', 'license']> &
+      Attribute.Required;
+    entity_id: Attribute.Integer & Attribute.Required;
+    source_name: Attribute.String & Attribute.Required;
+    source_type: Attribute.Enumeration<
+      ['official_api', 'official_app', 'official_web']
+    > &
+      Attribute.Required;
+    verification_method: Attribute.Enumeration<['api', 'app', 'web']> &
+      Attribute.Required;
+    check_type: Attribute.Enumeration<
+      ['credential', 'vehicle_theft', 'license']
+    > &
+      Attribute.Required;
+    query_reference_hash: Attribute.String;
+    query_reference_masked: Attribute.String;
+    requested_at: Attribute.DateTime;
+    completed_at: Attribute.DateTime;
+    result: Attribute.Enumeration<
+      ['verified', 'not_found', 'reported', 'mismatch', 'unavailable', 'error']
+    > &
+      Attribute.Required;
+    result_data: Attribute.JSON;
+    result_hash: Attribute.String;
+    evidence: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'manyToOne',
+      'api::cars-evidence.cars-evidence'
+    >;
+    performed_by: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    status: Attribute.Enumeration<['valid', 'suspicious', 'failed']> &
+      Attribute.DefaultTo<'valid'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::external-verification.external-verification',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::external-verification.external-verification',
       'oneToOne',
       'admin::user'
     > &
@@ -3485,6 +3807,12 @@ export interface ApiFoodOrderFoodOrder extends Schema.CollectionType {
       'api::food-restaurant.food-restaurant'
     >;
     fecha_verificado: Attribute.DateTime;
+    delivery_contact_name: Attribute.String & Attribute.Required;
+    delivery_contact_phone: Attribute.String & Attribute.Required;
+    delivery_notes: Attribute.Text;
+    pickup_contact_name: Attribute.String;
+    pickup_contact_phone: Attribute.String;
+    pickup_notes: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3646,6 +3974,7 @@ export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
     singularName: 'food-restaurant';
     pluralName: 'food-restaurants';
     displayName: 'Food Restaurants';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -3693,6 +4022,7 @@ export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
       'oneToMany',
       'api::food-offer.food-offer'
     >;
+    telefono: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3820,6 +4150,49 @@ export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
   };
 }
 
+export interface ApiLicenseCatalogLicenseCatalog extends Schema.CollectionType {
+  collectionName: 'license_catalogs';
+  info: {
+    singularName: 'license-catalog';
+    pluralName: 'license-catalogs';
+    displayName: 'License Catalog';
+    description: 'Cat\u00E1logo de verificaci\u00F3n de licencias de conducir por entidad federativa (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 4). No hay API nacional \u00FAnica: 32 entidades, cada una con su propio m\u00E9todo/portal.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    entidad_federativa: Attribute.String &
+      Attribute.Required &
+      Attribute.Unique;
+    license_provider: Attribute.String & Attribute.Required;
+    official_url: Attribute.String;
+    method: Attribute.Enumeration<
+      ['official_api', 'official_web', 'official_app']
+    > &
+      Attribute.DefaultTo<'official_web'>;
+    required_fields: Attribute.JSON;
+    verification_enabled: Attribute.Boolean & Attribute.DefaultTo<true>;
+    reference_type: Attribute.String;
+    evidence_required: Attribute.Boolean & Attribute.DefaultTo<true>;
+    notes: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::license-catalog.license-catalog',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::license-catalog.license-catalog',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiListaSuscripcionListaSuscripcion
   extends Schema.CollectionType {
   collectionName: 'listas_suscripciones';
@@ -3859,6 +4232,128 @@ export interface ApiListaSuscripcionListaSuscripcion
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::lista-suscripcion.lista-suscripcion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLogisticsBalanceLogisticsBalance
+  extends Schema.CollectionType {
+  collectionName: 'logistics_balances';
+  info: {
+    singularName: 'logistics-balance';
+    pluralName: 'logistics-balances';
+    displayName: 'LogisticsBalance';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    store: Attribute.Relation<
+      'api::logistics-balance.logistics-balance',
+      'oneToOne',
+      'api::store.store'
+    >;
+    availableBalance: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    reservedBalance: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Attribute.DefaultTo<0>;
+    currency: Attribute.String;
+    status: Attribute.Enumeration<['active', 'blocked']> &
+      Attribute.DefaultTo<'active'>;
+    lastTransactionAt: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::logistics-balance.logistics-balance',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::logistics-balance.logistics-balance',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLogisticsTransactionLogisticsTransaction
+  extends Schema.CollectionType {
+  collectionName: 'logistics_transactions';
+  info: {
+    singularName: 'logistics-transaction';
+    pluralName: 'logistics-transactions';
+    displayName: 'LogisticsTransaction';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    store: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'manyToOne',
+      'api::store.store'
+    >;
+    type: Attribute.Enumeration<
+      ['deposit', 'shipment_charge', 'refund', 'adjustment']
+    >;
+    amount: Attribute.Decimal;
+    status: Attribute.Enumeration<
+      ['pending', 'completed', 'cancelled', 'failed', 'reversed', 'rejected']
+    >;
+    balanceBefore: Attribute.Decimal;
+    balanceAfter: Attribute.Decimal;
+    orders: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToMany',
+      'api::pedido.pedido'
+    >;
+    payment: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToOne',
+      'api::pago.pago'
+    >;
+    shipment: Attribute.String;
+    externalReference: Attribute.String;
+    idempotencyKey: Attribute.String;
+    description: Attribute.String;
+    metadata: Attribute.JSON;
+    by_user: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    completedAt: Attribute.DateTime;
+    transactionReference: Attribute.String;
+    reservationReference: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::logistics-transaction.logistics-transaction',
       'oneToOne',
       'admin::user'
     > &
@@ -4076,6 +4571,49 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   };
 }
 
+export interface ApiPackagingTemplatePackagingTemplate
+  extends Schema.CollectionType {
+  collectionName: 'packaging_templates';
+  info: {
+    singularName: 'packaging-template';
+    pluralName: 'packaging-templates';
+    displayName: 'PackagingTemplate';
+    description: 'Plantilla de empaque de una tienda. Ayuda al vendedor a preparar env\u00EDos; no reemplaza su criterio.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    store: Attribute.Relation<
+      'api::packaging-template.packaging-template',
+      'manyToOne',
+      'api::store.store'
+    >;
+    nombre: Attribute.String & Attribute.Required;
+    length: Attribute.Decimal & Attribute.Required;
+    width: Attribute.Decimal & Attribute.Required;
+    height: Attribute.Decimal & Attribute.Required;
+    max_weight: Attribute.Decimal;
+    package_type: Attribute.String;
+    consignment_note: Attribute.String;
+    activo: Attribute.Boolean & Attribute.DefaultTo<true>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::packaging-template.packaging-template',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::packaging-template.packaging-template',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiPagoPago extends Schema.CollectionType {
   collectionName: 'pagos';
   info: {
@@ -4098,7 +4636,8 @@ export interface ApiPagoPago extends Schema.CollectionType {
         'servicio',
         'membresia',
         'carrito',
-        'comida'
+        'comida',
+        'logistica'
       ]
     >;
     carrito_id: Attribute.Relation<
@@ -4132,7 +4671,7 @@ export interface ApiPagoPago extends Schema.CollectionType {
     descripcion: Attribute.String;
     metadata: Attribute.JSON;
     disputa: Attribute.Boolean;
-    metodo_pago: Attribute.Enumeration<['stripe']>;
+    metodo_pago: Attribute.Enumeration<['stripe', 'spei', 'transferencia']>;
     Observaciones: Attribute.Text;
     pago_guia: Attribute.Decimal;
     pago_vendedor: Attribute.Decimal;
@@ -4261,6 +4800,26 @@ export interface ApiPedidoPedido extends Schema.CollectionType {
       'api::store.store'
     >;
     store_email: Attribute.String;
+    skydropx_quotation_id: Attribute.String;
+    skydropx_rate_id: Attribute.String;
+    skydropx_shipment_id: Attribute.String;
+    skydropx_tracking_number: Attribute.String;
+    skydropx_label_url: Attribute.String;
+    skydropx_status: Attribute.String;
+    skydropx_rate: Attribute.JSON;
+    delivery_contact_information: Attribute.JSON;
+    pickup_contact_information: Attribute.JSON;
+    monto_subtotal: Attribute.Decimal & Attribute.DefaultTo<0>;
+    shipping_quote: Attribute.Relation<
+      'api::pedido.pedido',
+      'oneToOne',
+      'api::shipping-quote.shipping-quote'
+    >;
+    shipment: Attribute.Relation<
+      'api::pedido.pedido',
+      'oneToOne',
+      'api::shipment.shipment'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4374,6 +4933,10 @@ export interface ApiPostulacionPostulacion extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
+    prelanzamiento_clave: Attribute.String &
+      Attribute.Private &
+      Attribute.Unique;
+    prelanzamiento_datos: Attribute.JSON & Attribute.Private;
     postulante: Attribute.Relation<
       'api::postulacion.postulacion',
       'oneToOne',
@@ -4536,6 +5099,8 @@ export interface ApiProductoProducto extends Schema.CollectionType {
       'oneToMany',
       'api::favorito.favorito'
     >;
+    usa_stock: Attribute.Boolean & Attribute.DefaultTo<false>;
+    shipping: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4900,12 +5465,261 @@ export interface ApiServicioServicio extends Schema.CollectionType {
   };
 }
 
+export interface ApiShipmentShipment extends Schema.CollectionType {
+  collectionName: 'shipments';
+  info: {
+    singularName: 'shipment';
+    pluralName: 'shipments';
+    displayName: 'Shipment';
+    description: 'Env\u00EDo real generado para un pedido. Puede tener N ShipmentPackages.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    pedido: Attribute.Relation<
+      'api::shipment.shipment',
+      'oneToOne',
+      'api::pedido.pedido'
+    >;
+    shipping_quote: Attribute.Relation<
+      'api::shipment.shipment',
+      'oneToOne',
+      'api::shipping-quote.shipping-quote'
+    >;
+    provider: Attribute.String & Attribute.DefaultTo<'skydropx'>;
+    provider_shipment_id: Attribute.String;
+    master_tracking_number: Attribute.String;
+    carrier_name: Attribute.String;
+    status: Attribute.Enumeration<
+      [
+        'pending',
+        'processing',
+        'ready',
+        'picked_up',
+        'in_transit',
+        'out_for_delivery',
+        'delivered',
+        'cancelled',
+        'returned',
+        'failed'
+      ]
+    > &
+      Attribute.DefaultTo<'pending'>;
+    total: Attribute.Decimal;
+    currency_code: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    office_pickup: Attribute.Boolean & Attribute.DefaultTo<false>;
+    office_delivery: Attribute.Boolean & Attribute.DefaultTo<false>;
+    office_pickup_point_id: Attribute.String;
+    office_delivery_point_id: Attribute.String;
+    packages: Attribute.Relation<
+      'api::shipment.shipment',
+      'oneToMany',
+      'api::shipment-package.shipment-package'
+    >;
+    pickup_status: Attribute.Enumeration<
+      ['pending', 'requested', 'scheduled', 'collected', 'cancelled', 'failed']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    provider_pickup_id: Attribute.String;
+    pickup_requested_at: Attribute.DateTime;
+    pickup_scheduled_at: Attribute.DateTime;
+    pickup_raw_response: Attribute.JSON;
+    raw_response: Attribute.JSON;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::shipment.shipment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::shipment.shipment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiShipmentPackageShipmentPackage
+  extends Schema.CollectionType {
+  collectionName: 'shipment_packages';
+  info: {
+    singularName: 'shipment-package';
+    pluralName: 'shipment-packages';
+    displayName: 'ShipmentPackage';
+    description: 'Paquete f\u00EDsico real confirmado por el vendedor. Cada paquete puede tener su propio tracking y etiqueta.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    shipment: Attribute.Relation<
+      'api::shipment-package.shipment-package',
+      'manyToOne',
+      'api::shipment.shipment'
+    >;
+    package_number: Attribute.String;
+    length: Attribute.Decimal;
+    width: Attribute.Decimal;
+    height: Attribute.Decimal;
+    weight: Attribute.Decimal;
+    declared_value: Attribute.Decimal;
+    package_protected: Attribute.Boolean & Attribute.DefaultTo<false>;
+    consignment_note: Attribute.String;
+    package_type: Attribute.String;
+    provider_package_id: Attribute.String;
+    tracking_number: Attribute.String;
+    tracking_url: Attribute.String;
+    label_url: Attribute.String;
+    status: Attribute.Enumeration<
+      [
+        'pending',
+        'labeled',
+        'picked_up',
+        'in_transit',
+        'out_for_delivery',
+        'delivered',
+        'cancelled',
+        'returned'
+      ]
+    > &
+      Attribute.DefaultTo<'pending'>;
+    items: Attribute.Relation<
+      'api::shipment-package.shipment-package',
+      'oneToMany',
+      'api::shipment-package-item.shipment-package-item'
+    >;
+    raw_response: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::shipment-package.shipment-package',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::shipment-package.shipment-package',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiShipmentPackageItemShipmentPackageItem
+  extends Schema.CollectionType {
+  collectionName: 'shipment_package_items';
+  info: {
+    singularName: 'shipment-package-item';
+    pluralName: 'shipment-package-items';
+    displayName: 'ShipmentPackageItem';
+    description: 'Contenido de un paquete f\u00EDsico: qu\u00E9 productos del pedido (y cu\u00E1ntos) terminaron dentro.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    shipment_package: Attribute.Relation<
+      'api::shipment-package-item.shipment-package-item',
+      'manyToOne',
+      'api::shipment-package.shipment-package'
+    >;
+    producto: Attribute.Relation<
+      'api::shipment-package-item.shipment-package-item',
+      'manyToOne',
+      'api::producto.producto'
+    >;
+    order_item_id: Attribute.Integer;
+    quantity: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<1>;
+    nombre: Attribute.String;
+    precio_unitario: Attribute.Decimal;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::shipment-package-item.shipment-package-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::shipment-package-item.shipment-package-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiShippingQuoteShippingQuote extends Schema.CollectionType {
+  collectionName: 'shipping_quotes';
+  info: {
+    singularName: 'shipping-quote';
+    pluralName: 'shipping-quotes';
+    displayName: 'ShippingQuote';
+    description: 'Snapshot de la tarifa log\u00EDstica seleccionada durante el checkout. Es una ESTIMACI\u00D3N, no el env\u00EDo real.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    pedido: Attribute.Relation<
+      'api::shipping-quote.shipping-quote',
+      'oneToOne',
+      'api::pedido.pedido'
+    >;
+    provider: Attribute.String & Attribute.DefaultTo<'skydropx'>;
+    quotation_id: Attribute.String;
+    rate_id: Attribute.String;
+    carrier_name: Attribute.String;
+    provider_service_name: Attribute.String;
+    provider_service_code: Attribute.String;
+    amount: Attribute.Decimal;
+    service_fee: Attribute.Decimal;
+    vat_fee: Attribute.Decimal;
+    total: Attribute.Decimal;
+    currency_code: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    delivery_days: Attribute.Integer;
+    office_pickup_required: Attribute.Boolean & Attribute.DefaultTo<false>;
+    office_delivery_required: Attribute.Boolean & Attribute.DefaultTo<false>;
+    office_pickup_point_id: Attribute.String;
+    office_delivery_point_id: Attribute.String;
+    estimated_parcels: Attribute.JSON;
+    rate_snapshot: Attribute.JSON;
+    raw_response: Attribute.JSON;
+    status: Attribute.Enumeration<
+      ['selected', 'used', 'expired', 'superseded']
+    > &
+      Attribute.DefaultTo<'selected'>;
+    selected_at: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::shipping-quote.shipping-quote',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::shipping-quote.shipping-quote',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
   collectionName: 'site_settings';
   info: {
     singularName: 'site-setting';
     pluralName: 'site-settings';
     displayName: 'Site_setting';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -4916,6 +5730,8 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     driver_verifier_required_referrals: Attribute.Integer &
       Attribute.DefaultTo<10>;
     verifier_candidates_whatsapp_group_url: Attribute.String;
+    wikis_path: Attribute.String;
+    whatsapp_number: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4970,6 +5786,43 @@ export interface ApiSkillSkill extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::skill.skill',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiSkydropxRechargeAccountSkydropxRechargeAccount
+  extends Schema.SingleType {
+  collectionName: 'skydropx_recharge_accounts';
+  info: {
+    singularName: 'skydropx-recharge-account';
+    pluralName: 'skydropx-recharge-accounts';
+    displayName: 'Skydropx-recharge-account';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    bank: Attribute.String & Attribute.Required;
+    clabe: Attribute.String & Attribute.Required;
+    beneficiary: Attribute.String & Attribute.Required;
+    rfc: Attribute.String;
+    reference: Attribute.String;
+    instructions: Attribute.Text;
+    active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::skydropx-recharge-account.skydropx-recharge-account',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::skydropx-recharge-account.skydropx-recharge-account',
       'oneToOne',
       'admin::user'
     > &
@@ -5212,6 +6065,18 @@ export interface ApiStoreStore extends Schema.CollectionType {
           localized: true;
         };
       }>;
+    logistics_transactions: Attribute.Relation<
+      'api::store.store',
+      'oneToMany',
+      'api::logistics-transaction.logistics-transaction'
+    >;
+    isOfficial: Attribute.Boolean &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }> &
+      Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5394,6 +6259,63 @@ export interface ApiTaxiDebtTaxiDebt extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::taxi-debt.taxi-debt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiTaxiReportTaxiReport extends Schema.CollectionType {
+  collectionName: 'taxi_reports';
+  info: {
+    singularName: 'taxi-report';
+    pluralName: 'taxi-reports';
+    displayName: 'taxi-report';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    description: Attribute.Text;
+    date_report: Attribute.DateTime;
+    confirmed_by: Attribute.Enumeration<['user', 'driver']>;
+    coordinates: Attribute.JSON;
+    completed_trip: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+          max: 100;
+        },
+        number
+      >;
+    travel: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'api::viaje.viaje'
+    >;
+    passenger: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    driver: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::taxi-report.taxi-report',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::taxi-report.taxi-report',
       'oneToOne',
       'admin::user'
     > &
@@ -5597,6 +6519,130 @@ export interface ApiTriprequestTriprequest extends Schema.CollectionType {
   };
 }
 
+export interface ApiVerificationAuditVerificationAudit
+  extends Schema.CollectionType {
+  collectionName: 'verification_audits';
+  info: {
+    singularName: 'verification-audit';
+    pluralName: 'verification-audits';
+    displayName: 'Verification Audit';
+    description: 'Auditor\u00EDa independiente de una validaci\u00F3n presencial (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 6). El auditor nunca es el mismo usuario que el verificador del expediente.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    validation: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'manyToOne',
+      'api::cars-validation.cars-validation'
+    >;
+    auditor: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    auditor_agency: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    audit_type: Attribute.Enumeration<
+      ['sample', 'deep', 'reverification_trigger']
+    > &
+      Attribute.Required;
+    selection_reason: Attribute.Enumeration<
+      [
+        'random',
+        'risk',
+        'complaint',
+        'new_verifier',
+        'anomaly',
+        'critical_case',
+        'escalation'
+      ]
+    > &
+      Attribute.Required;
+    status: Attribute.Enumeration<
+      ['pending', 'in_progress', 'completed', 'escalated']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    result: Attribute.Enumeration<
+      ['conformity', 'inconsistency', 'insufficient', 'evidence_fraud']
+    >;
+    score: Attribute.Integer;
+    notes: Attribute.Text;
+    started_at: Attribute.DateTime;
+    completed_at: Attribute.DateTime;
+    protocol_version: Attribute.String & Attribute.DefaultTo<'1.0'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::verification-audit.verification-audit',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiVerificationAuditItemVerificationAuditItem
+  extends Schema.CollectionType {
+  collectionName: 'verification_audit_items';
+  info: {
+    singularName: 'verification-audit-item';
+    pluralName: 'verification-audit-items';
+    displayName: 'Verification Audit Item';
+    description: 'Punto individual revisado dentro de una auditor\u00EDa (docs/TAXIS-VERIFICACION-CONDUCTORES-FASES.md, Fase 6, secci\u00F3n 25/26)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    audit: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'manyToOne',
+      'api::verification-audit.verification-audit'
+    >;
+    check_key: Attribute.String & Attribute.Required;
+    result: Attribute.Enumeration<
+      ['pass', 'fail', 'uncertain', 'not_applicable']
+    > &
+      Attribute.Required;
+    evidence_reviewed: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'manyToMany',
+      'api::cars-evidence.cars-evidence'
+    >;
+    ext_verif_reviewed: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'manyToMany',
+      'api::external-verification.external-verification'
+    >;
+    note: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::verification-audit-item.verification-audit-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiViajeViaje extends Schema.CollectionType {
   collectionName: 'viajes';
   info: {
@@ -5654,6 +6700,63 @@ export interface ApiViajeViaje extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::viaje.viaje',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiViajeOfertaViajeOferta extends Schema.CollectionType {
+  collectionName: 'viaje_ofertas';
+  info: {
+    singularName: 'viaje-oferta';
+    pluralName: 'viaje-ofertas';
+    displayName: 'viaje_oferta';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    pasajero: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    conductor: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'api::driver.driver'
+    >;
+    driver_email: Attribute.Email;
+    user_email: Attribute.Email;
+    precio_sugerido: Attribute.Decimal;
+    coordenadas: Attribute.JSON;
+    viaje: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'api::viaje.viaje'
+    >;
+    calif_conductor: Attribute.Decimal &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+          max: 5;
+        },
+        number
+      >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::viaje-oferta.viaje-oferta',
       'oneToOne',
       'admin::user'
     > &
@@ -5776,6 +6879,7 @@ declare module '@strapi/types' {
       'api::carro.carro': ApiCarroCarro;
       'api::cars-evidence.cars-evidence': ApiCarsEvidenceCarsEvidence;
       'api::cars-validation.cars-validation': ApiCarsValidationCarsValidation;
+      'api::cars-validation-challenge.cars-validation-challenge': ApiCarsValidationChallengeCarsValidationChallenge;
       'api::cars-validation-event.cars-validation-event': ApiCarsValidationEventCarsValidationEvent;
       'api::cartera.cartera': ApiCarteraCartera;
       'api::categoria-contenido.categoria-contenido': ApiCategoriaContenidoCategoriaContenido;
@@ -5795,10 +6899,13 @@ declare module '@strapi/types' {
       'api::curso.curso': ApiCursoCurso;
       'api::direccion.direccion': ApiDireccionDireccion;
       'api::driver.driver': ApiDriverDriver;
+      'api::driver-launch-lead.driver-launch-lead': ApiDriverLaunchLeadDriverLaunchLead;
       'api::driver-location.driver-location': ApiDriverLocationDriverLocation;
+      'api::driver-membership-config.driver-membership-config': ApiDriverMembershipConfigDriverMembershipConfig;
       'api::driver-verifier-candidacy.driver-verifier-candidacy': ApiDriverVerifierCandidacyDriverVerifierCandidacy;
       'api::enlace.enlace': ApiEnlaceEnlace;
       'api::evento.evento': ApiEventoEvento;
+      'api::external-verification.external-verification': ApiExternalVerificationExternalVerification;
       'api::favorito.favorito': ApiFavoritoFavorito;
       'api::food-cart.food-cart': ApiFoodCartFoodCart;
       'api::food-categorie.food-categorie': ApiFoodCategorieFoodCategorie;
@@ -5813,12 +6920,16 @@ declare module '@strapi/types' {
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
+      'api::license-catalog.license-catalog': ApiLicenseCatalogLicenseCatalog;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
+      'api::logistics-balance.logistics-balance': ApiLogisticsBalanceLogisticsBalance;
+      'api::logistics-transaction.logistics-transaction': ApiLogisticsTransactionLogisticsTransaction;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
       'api::message.message': ApiMessageMessage;
       'api::my-agency.my-agency': ApiMyAgencyMyAgency;
       'api::notificacion.notificacion': ApiNotificacionNotificacion;
+      'api::packaging-template.packaging-template': ApiPackagingTemplatePackagingTemplate;
       'api::pago.pago': ApiPagoPago;
       'api::pedido.pedido': ApiPedidoPedido;
       'api::planta.planta': ApiPlantaPlanta;
@@ -5832,18 +6943,27 @@ declare module '@strapi/types' {
       'api::resena.resena': ApiResenaResena;
       'api::respuesta.respuesta': ApiRespuestaRespuesta;
       'api::servicio.servicio': ApiServicioServicio;
+      'api::shipment.shipment': ApiShipmentShipment;
+      'api::shipment-package.shipment-package': ApiShipmentPackageShipmentPackage;
+      'api::shipment-package-item.shipment-package-item': ApiShipmentPackageItemShipmentPackageItem;
+      'api::shipping-quote.shipping-quote': ApiShippingQuoteShippingQuote;
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::skill.skill': ApiSkillSkill;
+      'api::skydropx-recharge-account.skydropx-recharge-account': ApiSkydropxRechargeAccountSkydropxRechargeAccount;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
       'api::store.store': ApiStoreStore;
       'api::store-categorie.store-categorie': ApiStoreCategorieStoreCategorie;
       'api::tarea.tarea': ApiTareaTarea;
       'api::taxi-debt.taxi-debt': ApiTaxiDebtTaxiDebt;
+      'api::taxi-report.taxi-report': ApiTaxiReportTaxiReport;
       'api::todo.todo': ApiTodoTodo;
       'api::transaccion.transaccion': ApiTransaccionTransaccion;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
+      'api::verification-audit.verification-audit': ApiVerificationAuditVerificationAudit;
+      'api::verification-audit-item.verification-audit-item': ApiVerificationAuditItemVerificationAuditItem;
       'api::viaje.viaje': ApiViajeViaje;
+      'api::viaje-oferta.viaje-oferta': ApiViajeOfertaViajeOferta;
       'api::wallet.wallet': ApiWalletWallet;
       'api::world-coin-wallet.world-coin-wallet': ApiWorldCoinWalletWorldCoinWallet;
     }

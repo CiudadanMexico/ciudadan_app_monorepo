@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "logistics_balances",
+  "info": {
+    "singularName": "logistics-balance",
+    "pluralName": "logistics-balances",
+    "displayName": "LogisticsBalance",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "store": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::store.store"
+    },
+    "availableBalance": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0
+    },
+    "reservedBalance": {
+      "type": "decimal",
+      "default": 0,
+      "min": 0
+    },
+    "currency": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "active",
+        "blocked"
+      ],
+      "default": "active"
+    },
+    "lastTransactionAt": {
+      "type": "datetime"
+    }
+  }
+}

@@ -43,10 +43,12 @@ import TareasEspecializadas, { EmptyState } from './../../components/Cowork/Tare
 import EventosGrid from './../Eventos/EventosGrid.jsx';
 import HerramientrasGrid from './../../components/Cowork/HerramientrasGrid.jsx';
 import ConductoresAgencia from './../../components/Cowork/ConductoresAgencia.jsx';
+import Auditorias from './../../components/Cowork/Auditorias.jsx';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
 import { resolverTarea, completarTarea, subirEvidencia } from '../../services/cowork/mutationsServices.js';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
@@ -83,7 +85,7 @@ const MAX_ARCHIVOS_RESOLVER = 10;
 // nombre elimina esa clase de bug de raíz.
 const getTabFromSearchParams = (searchParams) => {
   const tabParam = searchParams.get('tab');
-  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores'].includes(tabParam)) {
+  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores', 'auditorias'].includes(tabParam)) {
     return tabParam;
   }
   return null;
@@ -169,13 +171,20 @@ const SubTabs = styled((props) => (
 });
 
 const CooWork = () => {
-  const { userData, isAdmin, isSocio, isVerificador } = useRoles();
+  const { userData, isAdmin, isSocio, isVerificador, isAuditor } = useRoles();
   const tienePermisoCRUD = isAdmin() || isSocio();
   // chat.md: verificador (sin admin/socio) NO ve "Herramientas" ni el resto
   // del tab Socio — solo le aparece "Verificar Conductores", nada más.
   const soloVerificador = isVerificador() && !tienePermisoCRUD;
+  // docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md: auditor es un rol
+  // independiente del verificador — mismo patrón de acceso reducido.
+  const soloAuditor = isAuditor() && !tienePermisoCRUD && !soloVerificador;
   const [searchParams, setSearchParams] = useSearchParams();
+  // Deep-link /coowork/especializadas/:areaSlug -> abre Tareas Especializadas
+  // reutilizando el mismo componente de Coowork (sin una segunda pantalla).
+  const { areaSlug } = useParams();
   const [tab, setTab] = useState(() => {
+    if (areaSlug) return 'especializadas';
     return getTabFromSearchParams(searchParams) || (tienePermisoCRUD ? 'socio' : 'generales');
   });
   const [subTab, setSubTab] = useState(0);
@@ -209,6 +218,12 @@ const CooWork = () => {
     if (parsed) setTab(parsed);
     setSearchParams({}, { replace: true });
   }, [searchParams, setSearchParams]);
+
+  // Si se entra por deep-link (con :areaSlug) se mantiene la pestaña de
+  // Tareas Especializadas, incluso si el usuario cambia de tab y vuelve.
+  useEffect(() => {
+    if (areaSlug) setTab('especializadas');
+  }, [areaSlug]);
 
   const handleTabChange = (event, newValue) => setTab(newValue);
   const handleSubTabChange = (event, newValue) => setSubTab(newValue);
@@ -519,6 +534,9 @@ const CooWork = () => {
             {soloVerificador && (
               <StyledTab value="conductores" icon={<DirectionsCarIcon />} label="Verificar Conductores" />
             )}
+            {soloAuditor && (
+              <StyledTab value="auditorias" icon={<FactCheckIcon />} label="Auditorías" />
+            )}
             {/* "Mis Tareas": antes el único lugar para entregar una tarea ya
                 tomada (con archivos/enlaces/notas) vivía dentro del tab
                 Socio -> sub-tab Tareas, inalcanzable para cualquier usuario
@@ -657,6 +675,17 @@ const CooWork = () => {
             transition={{ duration: 0.4 }}
           >
             <ConductoresAgencia />
+          </motion.div>
+        )}
+
+        {tab === 'auditorias' && soloAuditor && (
+          <motion.div
+            key="auditorias"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Auditorias />
           </motion.div>
         )}
 
@@ -799,7 +828,7 @@ const CooWork = () => {
             <Typography color="#ccc">
               Gestiona tareas técnicas y de alto impacto dentro del ecosistema Ciudadan.
             </Typography>
-            <TareasEspecializadas />
+            <TareasEspecializadas initialAreaSlug={areaSlug} />
           </motion.div>
         )}
       </Container>

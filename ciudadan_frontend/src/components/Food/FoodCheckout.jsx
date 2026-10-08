@@ -28,11 +28,14 @@ import { useRoles } from '../../Contexts/RolesContext';
 import DireccionSelector from '../MarketPlace/DireccionSelector';
 import useUberDirect from '../../hooks/food/useUberDirect';
 import FoodCheckoutPago from './FoodCheckoutPago';
+import FoodDeliveryContact from './FoodDeliveryContact';
+import { useSnackbar } from 'notistack';
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
 
 const STEPS = [
   'Dirección',
+  'Datos de entrega',
   'Confirmar pedido',
   'Pagos',
   'Verificación',
@@ -40,6 +43,7 @@ const STEPS = [
 
 const FoodCheckout = () => {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const { userData } = useRoles();
   const {
     items = [],
@@ -65,6 +69,40 @@ const FoodCheckout = () => {
   const [cotizandoEnvios, setCotizandoEnvios] = useState(false);
   const [errorCotizacion, setErrorCotizacion] = useState('');
   const [todosLosPagosSubidos, setTodosLosPagosSubidos] = useState(false);
+  const [datosEntrega, setDatosEntrega] = useState({ nombre: '', telefono: '', notas: '', });
+
+  // Función para cambiar state de datos de entrega
+  const handleDatosEntregaChange = (campo, valor) => {
+    setDatosEntrega((prev) => ({
+      ...prev,
+      [campo]: valor,
+    }));
+  };
+
+  const validarDatosEntrega = () => {
+    const nombre = datosEntrega.nombre.trim();
+    const telefono = datosEntrega.telefono.trim();
+
+    if (!nombre) {
+      enqueueSnackbar('Ingresa el nombre de quien recibirá el pedido.', { variant: 'warning' });
+      return false;
+    }
+
+    if (!telefono) {
+      enqueueSnackbar('Ingresa un número de teléfono para la entrega.', { variant: 'warning', });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleContinuarDatosEntrega = () => {
+    const datosEntregaValidados = validarDatosEntrega();
+    if (datosEntregaValidados)
+      setActiveStep(2);
+
+  };
+
   /*
    * Agrupar productos por restaurante.
    */
@@ -82,6 +120,10 @@ const FoodCheckout = () => {
         grupos[restauranteId] = {
           id: restauranteId,
           nombre: item.restaurante?.nombre ?? item.restaurante?.data?.attributes?.nombre ?? item.restaurante_nombre ?? 'Restaurante',
+          nombre_bancario: item?.restaurante?.nombre_bancario ?? item?.restaurante?.data?.attributes?.nombre_bancario ?? item.restaurante?.attributes?.nombre_bancario ?? '',
+          clabe_bancaria: item?.restaurante?.clabe_bancaria ?? item?.restaurante?.data?.attributes?.clabe_bancaria ?? item?.restaurante?.attributes?.clabe_bancaria ?? '',
+          banco: item?.restaurante?.banco ?? item?.restaurante?.data?.attributes?.banco ?? item?.restaurante?.attributes?.banco ?? '',
+          direccion: item?.restaurante?.direccion?.data ?? null,
           items: [],
         };
       }
@@ -156,19 +198,21 @@ const FoodCheckout = () => {
         const payload = {
           data: {
             items: restaurante.items.map((item) => ({
-              producto: item.producto?.id ?? item.producto,
-              variante: item.variante?.id ?? item.variante ?? null,
+              product: item.producto?.id ?? item.producto,
+              restaurant: restaurante.id,
               nombre: item.nombre,
-              nombre_variante: item.nombre_variante ?? null,
               precio_unitario: item.precio_unitario,
+              nombre_variante: item.nombre_variante ?? null,
+              variant: item.variante?.id ?? item.variante ?? null,
               cantidad: item.cantidad,
               subtotal: item.subtotal,
-              modificadores: item.modificadores ?? [],
+              modifiers: item?.modificadores ?? [],
               metadata: item.metadata ?? {},
             })),
             fecha_creacion: new Date().toISOString(),
             user: userData?.id,
             direccion_destino: direccionSeleccionada?.id ?? null,
+            direccion_origen: restaurante?.direccion?.id ?? quote?.direccionOrigenId ?? null,
             monto_envio: envioRestaurante,
             monto_total: totalRestaurante,
             moneda: 'MXN',
@@ -183,18 +227,20 @@ const FoodCheckout = () => {
                * Información de Uber Direct.
                */
               uber_direct: {
-                quote_id: quote?.id ?? null,
+                quote_id: quote?.quote?.id ?? null,
                 expires: quote?.expires ?? null,
                 fee: quote?.quote?.fee ?? null,
                 currency: quote?.quote?.currency ?? 'MXN',
                 pickup: quote?.coordinates?.pickup ?? null,
                 dropoff: quote?.coordinates?.dropoff ?? null,
                 mock: Boolean(quote?.mock),
-
               },
             },
             restaurant: restaurante.id,
             fecha_verificado: null,
+            delivery_contact_name: datosEntrega.nombre.trim(),
+            delivery_contact_phone: datosEntrega.telefono.trim(),
+            delivery_notes: datosEntrega.notas.trim() || null,
           },
         };
 
@@ -202,8 +248,7 @@ const FoodCheckout = () => {
           {
             method: 'POST',
             headers: {
-              'Content-Type':
-                'application/json',
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
           }
@@ -221,6 +266,10 @@ const FoodCheckout = () => {
           restaurante: {
             id: restaurante.id,
             nombre: restaurante.nombre,
+            nombre_bancario: restaurante?.nombre_bancario,
+            clabe_bancaria: restaurante?.clabe_bancaria,
+            banco: restaurante?.banco,
+            direccion: restaurante?.direccion,
           },
         });
       }
@@ -232,7 +281,7 @@ const FoodCheckout = () => {
        */
       await clearCart();
 
-      setActiveStep(2);
+      setActiveStep(3);
     } catch (err) {
       console.error('Error creando food_orders:', err);
       setError(err.message ?? 'No fue posible crear las órdenes.');
@@ -263,11 +312,7 @@ const FoodCheckout = () => {
     return (obtenerCostoEnvio(restaurantId) ?? 0);
   };
 
-  const subirComprobante = async ({
-    orden,
-    ordenId,
-    file,
-  }) => {
+  const subirComprobante = async ({ orden, ordenId, file }) => {
 
     console.log("Subiendo archivo SIN ref", {
       archivoName: file?.name,
@@ -278,7 +323,7 @@ const FoodCheckout = () => {
     try {
       // ---------------- 1) Reusar pago existente si lo hay ----------------
       let pagoId = orden?.pago ?? orden?.attributes?.pago ?? orden?.attributes?.pago_id ?? null;
-      const restaurant = orden?.restaurant ?? orden?.attributes?.restaurant ?? {
+      const restaurant = orden?.restaurante ?? orden?.restaurant ?? orden?.attributes?.restaurant ?? {
         name: "Tienda sin nombre",
         banco: "—",
         clabe_bancaria: "—",
@@ -298,7 +343,7 @@ const FoodCheckout = () => {
           usuario: userData?.id,
           monto: montoNumeric,
           status: "pendiente_verificacion",
-          food_order: orden.id,
+          food_order: ordenId,
           usuario_email: userData?.email,
           food_restaurant: restaurant?.id,
         };
@@ -333,6 +378,8 @@ const FoodCheckout = () => {
       const pedidoUpdatePayload = {
         data: {
           pago: pagoId?.id,
+          fecha_pagado: new Date().toISOString(),
+          status: "pendiente_verificacion",
         },
       };
 
@@ -354,6 +401,8 @@ const FoodCheckout = () => {
 
       const pedidoUpdatedJson = await pedidoRes.json();
       console.log("cart y emojis - pedido actualizado (raw):", pedidoUpdatedJson);
+
+      return pagoId;
     } catch (err) {
       console.error("cart y emojis - Hubo un error en handleSubirComprobante:", err);
       setError(
@@ -461,7 +510,7 @@ const FoodCheckout = () => {
         <Button
           variant="contained"
           onClick={() =>
-            navigate('/comida-carrito')
+            navigate('/carrito')
           }
         >
           Regresar al carrito
@@ -483,11 +532,7 @@ const FoodCheckout = () => {
         Finalizar compra
       </Typography>
 
-      <Stepper
-        activeStep={activeStep}
-        alternativeLabel
-        sx={{ mb: 5 }}
-      >
+      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 5 }} >
         {STEPS.map((label) => (
           <Step key={label}>
             <StepLabel>
@@ -498,10 +543,7 @@ const FoodCheckout = () => {
       </Stepper>
 
       {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3 }}
-        >
+        <Alert severity="error" sx={{ mb: 3 }} >
           {error}
         </Alert>
       )}
@@ -509,27 +551,12 @@ const FoodCheckout = () => {
       {/* PASO 1 */}
       {activeStep === 0 && (
         <Box>
-          <Typography
-            variant="h6"
-            fontWeight={800}
-            sx={{ mb: 2 }}
-          >
+          <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }} >
             Dirección de entrega
           </Typography>
-
-          {/*
-           * Aquí conectaremos tu componente
-           * existente de direcciones.
-           *
-           * Temporalmente:
-           */}
-
           <Paper
             variant="outlined"
-            sx={{
-              p: 3,
-              borderRadius: 3,
-            }}
+            sx={{ p: 3, borderRadius: 3, }}
           >
             {/* <Typography color="text.secondary" sx={{ mb: 2 }}>
               Aquí se mostrará el selector de direcciones del usuario.
@@ -555,15 +582,30 @@ const FoodCheckout = () => {
           </Stack>
         </Box>
       )}
-
-      {/* PASO 2 */}
+      {/** PASO 2 */}
       {activeStep === 1 && (
         <Box>
-          <Typography
-            variant="h6"
-            fontWeight={800}
-            sx={{ mb: 2 }}
-          >
+          <FoodDeliveryContact
+            nombre={datosEntrega?.nombre}
+            telefono={datosEntrega?.telefono}
+            notas={datosEntrega?.notas}
+            onChange={handleDatosEntregaChange}
+          />
+          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }} >
+            <Button
+              variant="contained"
+              onClick={() => handleContinuarDatosEntrega()}
+            >
+              Continuar
+            </Button>
+          </Stack>
+        </Box>
+      )}
+
+      {/* PASO 3 */}
+      {activeStep === 2 && (
+        <Box>
+          <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }} >
             Confirmar pedido
           </Typography>
 
@@ -715,8 +757,8 @@ const FoodCheckout = () => {
         </Box>
       )}
 
-      {/* PASO 3 */}
-      {activeStep === 2 && (
+      {/* PASO 4 */}
+      {activeStep === 3 && (
         <Box>
           {/* <Typography variant="h6" fontWeight={800} sx={{ mb: 2 }}>
             Realizar pagos
@@ -790,16 +832,12 @@ const FoodCheckout = () => {
             subirComprobante={subirComprobante}
             onTodosLosPagosSubidos={setTodosLosPagosSubidos}
           />
-          <Stack
-            direction="row"
-            justifyContent="flex-end"
-            sx={{ mt: 3 }}
-          >
+          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
             <Button
               variant="contained"
               disabled={!todosLosPagosSubidos}
               onClick={() =>
-                setActiveStep(3)
+                setActiveStep(4)
               }
             >
               Continuar
@@ -808,46 +846,21 @@ const FoodCheckout = () => {
         </Box>
       )}
 
-      {/* PASO 4 */}
-      {activeStep === 3 && (
-        <Box
-          sx={{
-            maxWidth: 650,
-            mx: 'auto',
-            textAlign: 'center',
-            py: 5,
-          }}
-        >
-          <CheckCircleOutline
-            sx={{
-              fontSize: 80,
-              mb: 2,
-            }}
-          />
-
-          <Typography
-            variant="h5"
-            fontWeight={800}
-            gutterBottom
-          >
+      {/* PASO 5 */}
+      {activeStep === 4 && (
+        <Box sx={{ maxWidth: 650, mx: 'auto', textAlign: 'center', py: 5, }} >
+          <CheckCircleOutline sx={{ fontSize: 80, mb: 2, }} />
+          <Typography variant="h5" fontWeight={800} gutterBottom >
             Pagos enviados
           </Typography>
-
-          <Typography
-            color="text.secondary"
-            sx={{ mb: 3 }}
-          >
-            Los restaurantes recibirán tus
-            comprobantes y verificarán cada pago.
-            Cada restaurante será responsable de
-            procesar y enviar su propia orden.
+          <Typography color="text.secondary" sx={{ mb: 3 }} >
+            Los restaurantes recibirán tus comprobantes y verificarán cada pago.
+            Cada restaurante será responsable de procesar y enviar su propia orden.
           </Typography>
 
           <Button
             variant="contained"
-            onClick={() =>
-              navigate('/comida-mis-pedidos')
-            }
+            onClick={() => navigate('/compras/ordenes-comida')}
           >
             Ver mis pedidos
           </Button>

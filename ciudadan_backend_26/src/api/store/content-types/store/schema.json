@@ -173,6 +173,21 @@
         }
       },
       "type": "string"
+    },
+    "logistics_transactions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::logistics-transaction.logistics-transaction",
+      "mappedBy": "store"
+    },
+    "isOfficial": {
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "type": "boolean",
+      "default": false
     }
   }
 }

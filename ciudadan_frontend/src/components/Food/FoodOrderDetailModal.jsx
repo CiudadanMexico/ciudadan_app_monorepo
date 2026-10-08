@@ -1,25 +1,10 @@
-import {
-  Box,
-  Chip,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
-  Stack,
-  Typography
-} from "@mui/material";
-
-import {
-  Close,
-  LocationOn,
-  Payment,
-  Restaurant,
-  ShoppingBag,
-  Schedule
-} from "@mui/icons-material";
-
-import { useMemo } from "react";
+import { AccordionSummary, Box, Chip, Dialog, DialogContent, DialogTitle, Divider, IconButton, Stack, Typography } from "@mui/material";
+import { Close, LocationOn, Restaurant, ShoppingBag, Schedule, Fastfood, LocalPizza } from "@mui/icons-material";
+import Fade from '@mui/material/Fade';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Accordion, { accordionClasses } from '@mui/material/Accordion';
+import AccordionDetails, { accordionDetailsClasses } from '@mui/material/AccordionDetails';
+import { useMemo, useState } from "react";
 import { STRAPI_URL } from "../../utils/strapiHelpers";
 
 /*
@@ -95,6 +80,138 @@ const ORDER_STATUS = {
   }
 };
 
+const ModifiersAccordionDetails = ({
+  modifiers = [],
+  productIndex = 0,
+  orderCurrency = "MXN"
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const handleExpansion = () => setExpanded((prev) => !prev)
+  return (
+    <Accordion
+      slots={{ transition: Fade }}
+      slotProps={{ transition: { timeout: 400 } }}
+      mt={1}
+      ml={2}
+      expanded={expanded}
+      onChange={handleExpansion}
+      sx={[
+        expanded
+          ? {
+            [`& .${accordionClasses.region}`]: {
+              height: 'auto',
+            },
+            [`& .${accordionDetailsClasses.root}`]: {
+              display: 'block',
+            },
+          }
+          : {
+            [`& .${accordionClasses.region}`]: {
+              height: 0,
+            },
+            [`& .${accordionDetailsClasses.root}`]: {
+              display: 'none',
+            },
+            boxShadow:'none'
+          },
+      ]}
+    >
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+        >
+          <Fastfood sx={{ color: "primary.main" }} />
+          <Typography variant="subtitle2" fontWeight={700} >
+            Modificadores
+          </Typography>
+          <Typography variant="body2" color="text.secondary" >
+            ({modifiers?.length ?? 0})
+          </Typography>
+        </Stack>
+      </AccordionSummary>
+      <AccordionDetails>
+        {
+          modifiers.map((modifier, i) => {
+            const modifierImageUrl = modifier?.imagen ?? null;
+
+            return (
+              <Box key={`modifier-item-${modifier?.id}-producto-${productIndex}`} sx={{ display: "flex", alignItems: "center", gap: 1 }} >
+                {/* Imagen */}
+                <Box
+                  sx={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 2,
+                    overflow: "hidden",
+                    backgroundColor: "action.hover",
+                    flexShrink: 0
+                  }}
+                >
+                  {
+                    modifierImageUrl ? (
+                      <Box
+                        component="img"
+                        src={modifierImageUrl}
+                        alt={modifier?.nombre ?? `modificador-${i}-producto-${productIndex}`}
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover"
+                        }}
+                      />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          height: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "text.disabled"
+                        }}
+                      >
+                        <LocalPizza />
+                      </Box>
+                    )
+                  }
+
+                </Box>
+                {/* Modificador */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    minWidth: 0
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    fontWeight={700}
+                    sx={{
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {modifier?.nombre}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" >
+                    Cantidad: {modifier?.cantidad}
+                  </Typography>
+                </Box>
+                {/* Precio */}
+                <Typography variant="body2" fontWeight={700} sx={{ flexShrink: 0 }} >
+                  {formatCurrency(modifier?.precio * modifier?.cantidad, orderCurrency ?? "MXN")}
+                </Typography>
+              </Box>
+            )
+          })
+        }
+      </AccordionDetails>
+    </Accordion>
+  )
+};
 
 /*
   |--------------------------------------------------------------------------
@@ -105,30 +222,19 @@ const ORDER_STATUS = {
 const FoodOrderDetailModal = ({
   open,
   order,
-  onClose
+  onClose = () => { }
 }) => {
-
   const statusConfig = ORDER_STATUS[order?.attributes?.status] ?? {
     label: "Desconocido",
     color: "default"
   };
 
-  /*
-    |--------------------------------------------------------------------------
-    | Productos
-    |--------------------------------------------------------------------------
-  */
-
+  // Productos de items
   const items = useMemo(() => {
-    return order?.attributes?.items || [];
+    return order?.attributes?.items ?? [];
   }, [order]);
 
-  /*
-    |--------------------------------------------------------------------------
-    | Cantidad total
-    |--------------------------------------------------------------------------
-  */
-
+  // Cantidad total
   const totalItems = useMemo(() => {
     return items.reduce((total, item) => {
       return (
@@ -138,58 +244,34 @@ const FoodOrderDetailModal = ({
     }, 0);
   }, [items]);
 
+  // Retorno si no existe la orden
   if (!order) {
     return null;
   }
 
-  /*
-    |--------------------------------------------------------------------------
-    | Render
-    |--------------------------------------------------------------------------
-  */
+  // Render
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={(e, reason) => reason == 'escapeKeyDown' ? onClose() : console.log("Close dialog not enable")}
       fullWidth
       maxWidth="sm"
       scroll="paper"
       PaperProps={{
         sx: {
-          borderRadius: {
-            xs: 0,
-            sm: 3
-          },
-
-          margin: {
-            xs: 0,
-            sm: 2
-          },
-
-          width: {
-            xs: "100%",
-            sm: "calc(100% - 32px)"
-          },
-
-          maxHeight: {
-            xs: "100%",
-            sm: "calc(100% - 64px)"
-          }
+          borderRadius: { xs: 0, sm: 3 },
+          margin: { xs: 0, sm: 2 },
+          width: { xs: "100%", sm: "calc(100% - 32px)" },
+          maxHeight: { xs: "100%", sm: "calc(100% - 64px)" }
         }
       }}
     >
       {/* Header */}
       <DialogTitle
         sx={{
-          px: {
-            xs: 2,
-            sm: 3
-          },
-          pt: {
-            xs: 2,
-            sm: 2.5
-          },
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, sm: 2.5 },
           pb: 1
         }}
       >
@@ -200,42 +282,21 @@ const FoodOrderDetailModal = ({
           spacing={2}
         >
           <Box>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              fontWeight={600}
-            >
+            <Typography variant="overline" color="text.secondary" fontWeight={600}>
               Detalle del pedido
             </Typography>
-            <Typography
-              variant="h5"
-              fontWeight={800}
-              sx={{
-                fontSize: {
-                  xs: "1.35rem",
-                  sm: "1.5rem"
-                }
-              }}
-            >
+            <Typography variant="h5" fontWeight={800} sx={{ fontSize: { xs: "1.35rem", sm: "1.5rem" } }}>
               Pedido #{order.id}
             </Typography>
           </Box>
-          <IconButton
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
+          <IconButton onClick={onClose} aria-label="Cerrar">
             <Close />
           </IconButton>
         </Stack>
       </DialogTitle>
       <DialogContent
         dividers
-        sx={{
-          px: {
-            xs: 2,
-            sm: 3
-          }
-        }}
+        sx={{ px: { xs: 2, sm: 3 }, scrollbarWidth: 'thin' }}
       >
         <Stack spacing={3}>
           {/* Restaurante */}
@@ -260,17 +321,10 @@ const FoodOrderDetailModal = ({
                 <Restaurant />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                >
+                <Typography variant="caption" color="text.secondary" >
                   Restaurante
                 </Typography>
-                <Typography
-                  variant="body1"
-                  fontWeight={700}
-                  noWrap
-                >
+                <Typography variant="body1" fontWeight={700} noWrap >
                   {order?.attributes?.restaurant?.nombre ?? order?.attributes?.restaurant?.name ?? "Restaurante"}
                 </Typography>
               </Box>
@@ -278,20 +332,10 @@ const FoodOrderDetailModal = ({
           </Box>
           {/* Estado */}
           <Box>
-            <Typography
-              variant="subtitle2"
-              fontWeight={700}
-              sx={{ mb: 1 }}
-            >
+            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }} >
               Estado del pedido
             </Typography>
-            <Chip
-              label={statusConfig.label}
-              color={statusConfig.color}
-              sx={{
-                fontWeight: 700
-              }}
-            />
+            <Chip label={statusConfig.label} color={statusConfig.color} sx={{ fontWeight: 700 }} />
           </Box>
           {/* Productos */}
           <Box>
@@ -302,25 +346,18 @@ const FoodOrderDetailModal = ({
               sx={{ mb: 1.5 }}
             >
               <ShoppingBag
-                sx={{
-                  color: "primary.main"
-                }}
+                sx={{ color: "primary.main" }}
               />
-              <Typography
-                variant="subtitle2"
-                fontWeight={700}
-              >
+              <Typography variant="subtitle2" fontWeight={700} >
                 Productos
               </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
+              <Typography variant="body2" color="text.secondary" >
                 ({totalItems})
               </Typography>
             </Stack>
             <Stack spacing={1.5}>
               {items.map((item, index) => {
+
                 /*
                  * Ajustar estos campos cuando tengamos
                  * el schema de products-order.
@@ -333,94 +370,95 @@ const FoodOrderDetailModal = ({
 
                 const imageUrl = item?.product?.data?.attributes?.imagen_predeterminada?.data?.attributes?.url ?? item?.product?.image?.url ?? item?.imagen?.url ?? item?.image?.url;
                 const image = imageUrl ? `${STRAPI_URL}${imageUrl}` : null;
+                const modifiers = item?.modifiers ?? [];
                 return (
-                  <Box
-                    key={
-                      item?.id ||
-                      `${productName}-${index}`
-                    }
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5
-                    }}
-                  >
-                    {/* Imagen */}
+                  <Box key={item?.id || `${productName}-${index}`}>
                     <Box
                       sx={{
-                        width: 58,
-                        height: 58,
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        backgroundColor:
-                          "action.hover",
-                        flexShrink: 0
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        my:0.5
                       }}
                     >
-                      {image ? (
-                        <Box
-                          component="img"
-                          src={image}
-                          alt={productName}
+                      {/* Imagen */}
+                      <Box
+                        sx={{
+                          width: 58,
+                          height: 58,
+                          borderRadius: 2,
+                          overflow: "hidden",
+                          backgroundColor:
+                            "action.hover",
+                          flexShrink: 0
+                        }}
+                      >
+                        {image ? (
+                          <Box
+                            component="img"
+                            src={image}
+                            alt={productName}
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover"
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: "100%",
+                              height: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "text.disabled"
+                            }}
+                          >
+                            <ShoppingBag />
+                          </Box>
+                        )}
+                      </Box>
+                      {/* Producto */}
+                      <Box
+                        sx={{
+                          flex: 1,
+                          minWidth: 0
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          fontWeight={700}
                           sx={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover"
-                          }}
-                        />
-                      ) : (
-                        <Box
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "text.disabled"
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
                           }}
                         >
-                          <ShoppingBag />
-                        </Box>
-                      )}
-                    </Box>
-                    {/* Producto */}
-                    <Box
-                      sx={{
-                        flex: 1,
-                        minWidth: 0
-                      }}
-                    >
+                          {productName}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          Cantidad: {quantity}
+                        </Typography>
+                      </Box>
+                      {/* Precio */}
                       <Typography
                         variant="body2"
                         fontWeight={700}
                         sx={{
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap"
+                          flexShrink: 0
                         }}
                       >
-                        {productName}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                      >
-                        Cantidad: {quantity}
+                        {formatCurrency(
+                          price * quantity,
+                          order?.attributes?.moneda ?? "MXN"
+                        )}
                       </Typography>
                     </Box>
-                    {/* Precio */}
-                    <Typography
-                      variant="body2"
-                      fontWeight={700}
-                      sx={{
-                        flexShrink: 0
-                      }}
-                    >
-                      {formatCurrency(
-                        price * quantity,
-                        order?.attributes?.moneda ?? "MXN"
-                      )}
-                    </Typography>
+                    <ModifiersAccordionDetails modifiers={modifiers} productIndex={index} />
                   </Box>
                 );
               })}

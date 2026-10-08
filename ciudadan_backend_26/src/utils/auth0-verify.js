@@ -49,7 +49,7 @@ function cleanupExpired() {
  * todos modos. Cacheando la promesa, la 2ª..Nª llamada reutiliza la MISMA
  * request en vuelo en vez de disparar una nueva.
  */
-function getAuth0Email(token, { strapi } = {}) {
+async function getAuth0Email(token, { strapi }) {
   const cached = cache.get(token);
   if (cached && Date.now() - cached.cachedAt <= CACHE_TTL_MS) {
     return cached.emailPromise;
@@ -77,9 +77,59 @@ function getAuth0Email(token, { strapi } = {}) {
 
   // Si la request falla, no dejamos el fallo cacheado — un token realmente
   // inválido/expirado no debe quedar "atascado" bloqueando reintentos.
-  emailPromise.catch(() => cache.delete(token));
+  emailPromise.catch((error) => {
+    cache.delete(token);
+    throw error;
+  });
 
   return emailPromise;
 }
 
-module.exports = { getAuth0Email };
+const verifyHasRole = (roles, role = '') => {
+  if (!role) return false;
+  return Array.isArray(roles) && roles.includes(role)
+}
+
+const requireAdmin = async (ctx, strapi) => {
+  if (!strapi) {
+    return {
+      valid: false,
+      response: ctx.badRequest("Agregue instancia de strapi")
+    }
+  }
+  const user = ctx.state.strapiUser;
+
+  if (!user) {
+    return {
+      valid: false,
+      response: ctx.unauthorized("Debes iniciar sesión"),
+    };
+  }
+
+  const fullUser = await strapi.entityService.findOne("plugin::users-permissions.user", user.id);
+
+  if (!fullUser) {
+    return {
+      valid: false,
+      response: ctx.unauthorized("Usuario no encontrado"),
+    };
+  }
+
+  const roles = fullUser?.roles?.extra ?? [];
+
+  const admin = verifyHasRole(roles, "admin") || verifyHasRole(roles, "Admin") || verifyHasRole(roles, "Administrador");
+
+  if (!admin) {
+    return {
+      valid: false,
+      response: ctx.forbidden("No tienes permisos para realizar esta operación"),
+    };
+  }
+
+  return {
+    valid: true,
+    user: fullUser,
+  };
+};
+
+module.exports = { getAuth0Email, requireAdmin, verifyHasRole };

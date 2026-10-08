@@ -51,7 +51,7 @@ const PreferencesModal = ({
     };
 
     return (
-        <Dialog open={open} onClose={() => setOpen(false)} maxWidth='sm' fullWidth sx={{ zIndex: 1600 }}>
+        <Dialog open={open} onClose={() => setOpen(false)} maxWidth='sm' fullWidth sx={{ zIndex: 2100 }}>
             <DialogTitle>Tus preferencias de viaje</DialogTitle>
             <DialogContent dividers sx={{ maxHeight: '400px' }}>
                 <Box sx={{ display: 'grid', gap: 2 }}>
@@ -67,12 +67,26 @@ const PreferencesModal = ({
                     </Box>
 
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                        <TextField select label='Charla' value={preferences.charla || 'indiferente'} onChange={(e) => handlePreferenceFieldChange('charla', e.target.value)} fullWidth>
+                        <TextField
+                            select
+                            label='Charla'
+                            value={preferences.charla || 'indiferente'}
+                            onChange={(e) => handlePreferenceFieldChange('charla', e.target.value)}
+                            SelectProps={{ MenuProps: { sx: { zIndex: 2200 } } }}
+                            fullWidth
+                        >
                             {ENUM_OPTIONS.charla.map((option) => (
                                 <MenuItem key={option} value={option}>{option}</MenuItem>
                             ))}
                         </TextField>
-                        <TextField select label='Música' value={preferences.musica || 'indiferente'} onChange={(e) => handlePreferenceFieldChange('musica', e.target.value)} fullWidth>
+                        <TextField
+                            select
+                            label='Música'
+                            value={preferences.musica || 'indiferente'}
+                            onChange={(e) => handlePreferenceFieldChange('musica', e.target.value)}
+                            SelectProps={{ MenuProps: { sx: { zIndex: 2200 } } }}
+                            fullWidth
+                        >
                             {ENUM_OPTIONS.musica.map((option) => (
                                 <MenuItem key={option} value={option}>{option}</MenuItem>
                             ))}

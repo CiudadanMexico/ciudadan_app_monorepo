@@ -1,16 +1,52 @@
 import { Box, Button, Typography } from '@mui/material';
 import alertIcon from '../../assets/alert.png';
+import { useEffect, useState } from 'react';
 
-const formatDate = (iso) => {
+const strapiUrl = process.env.REACT_APP_STRAPI_URL || '';
+const strapiToken = process.env.REACT_APP_STRAPI_TOKEN || '';
+
+const formatDate = (date) => {
+    console.log('fecha de viaje deuda', date);
     try {
-        return new Date(iso).toLocaleString();
+        return new Date(date).toLocaleString('es-MX', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+        });
     } catch (e) {
-        return iso;
+        return date;
     }
 };
 
 const AdeudoWarning = ({ debt }) => {
+    const [phone, setPhone] = useState(null);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const url = `${strapiUrl.replace(/\/$/, '')}/api/site-setting`;
+
+                const resp = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(strapiToken ? { Authorization: `Bearer ${strapiToken}` } : {}),
+                    },
+                });
+
+                if (!resp.ok) throw new Error('Error consultando site settings');
+                const json = await resp.json();
+
+                const phoneNumber = json
+                    ? json.data?.attributes?.whatsapp_number
+                    : null;
+                setPhone(phoneNumber);
+            } catch (err) {
+                console.error('Error consultando número de WhatsApp de site settings', err)
+            }
+        })();
+    }, []);
+
     if (!debt || !debt.attributes) return null;
+
     const a = debt.attributes;
     const conductor = a.conductor && a.conductor.data && a.conductor.data.attributes ? a.conductor.data.attributes : null;
     const conductorName = conductor?.nombre_completo || a.conductor_email || 'Conductor';
@@ -21,13 +57,12 @@ const AdeudoWarning = ({ debt }) => {
     const destino = a.destino_direccion || '-';
 
     // Intentar obtener teléfono para WhatsApp
-    const phone = conductor && (conductor.telefono || conductor.phone || conductor.celular);
-    /*const whatsappLink = phone
-      ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-        `Hola ${conductorName}, respecto al adeudo del viaje. Mi email: ${user?.email || ''}`,
-      )}`
-      : null;*/
-    const whatsappLink = '+52 55 1234 5678'; // Reemplaza con el número de WhatsApp real del conductor o soporte
+    //const phone = conductor && (conductor.telefono || conductor.phone || conductor.celular || '52 961 245 7926');
+    const message = `Hola ${conductorName}, tengo un pago pendiente de un viaje.`;
+
+    const whatsappLink = phone
+        ? `https://wa.me/${String(phone).replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`
+        : null;
 
     return (
         <div

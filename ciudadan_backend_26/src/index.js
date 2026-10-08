@@ -42,6 +42,20 @@ module.exports = {
           (uniqueErr.message || uniqueErr)
       );
     }
+
+    // Configuración de la membresía de conductor (precios, promo y fecha de
+    // lanzamiento) para la landing de descarga. Idempotente: sólo crea el
+    // registro si todavía no existe, con 500/300 MXN y 12 meses.
+    try {
+      await strapi
+        .service("api::driver-membership-config.driver-membership-config")
+        .asegurarExiste();
+    } catch (configErr) {
+      strapi.log.warn(
+        "[bootstrap] No se pudo asegurar driver-membership-config: " +
+          (configErr.message || configErr)
+      );
+    }
   },
 
   async destroy({ strapi }) {

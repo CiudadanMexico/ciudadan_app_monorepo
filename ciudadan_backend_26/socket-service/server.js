@@ -7,6 +7,7 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const cors = require("cors");
+const axios = require("axios");
 
 const app = express();
 const server = http.createServer(app);
@@ -65,9 +66,17 @@ const { ConfigDatabase } = require('./dist/config/ConfigDatabase');
 const { DocumentRepositoryImpl } = require('./dist/repository/impl/DocumentRepositoryImpl');
 const { WikiService } = require('./dist/services/WikiService');
 const { WikiWatcherService } = require('./dist/services/WikiWatcherService');
+const { resolveActiveRoot } = require('./dist/config/WikiRootProvider');
 
 const WikiRouter = require("./dist/routes/WikiRouter");
 const { getUserRating } = require('./lib/calcRating');
+
+const strapiUrl = process.env.STRAPI_URL || "";
+const strapiToken = process.env.STRAPI_TOKEN || "";
+const headers = {
+  'Content-Type': 'application/json',
+  ...(strapiToken ? { Authorization: `Bearer ${strapiToken}` } : {})
+}
 
 let openpayRoute;
 try {
@@ -76,6 +85,14 @@ try {
   console.error("❌ Error cargando ./routes/openpay:", err);
 }
 if (openpayRoute) app.use("/api", openpayRoute);
+
+let mercadopagoRoute;
+try {
+  mercadopagoRoute = require("./routes/mercadopago");
+} catch (err) {
+  console.error("❌ Error cargando ./routes/mercadopago:", err);
+}
+if (mercadopagoRoute) app.use("/api", mercadopagoRoute);
 
 // Inicializas las dependencias de la Wiki
 const db = ConfigDatabase.getConnection();
@@ -86,8 +103,46 @@ const wikiService = new WikiService(documentRepository);
 app.use("/wiki", WikiRouter);
 
 // Iniciar watcher de archivos .md
-const wikiWatcher = new WikiWatcherService(wikiService);
-wikiWatcher.start();
+// La raíz se resuelve ANTES de indexar: precedencia site-setting.wikis_path
+// (Strapi) → WIKI_ROOT_PATH (.env) → default de plataforma. Ver
+// socket-service/config/WikiRootProvider.ts.
+let wikiWatcher = null;
+
+async function arrancarWiki() {
+  console.log('🧭 [Wiki] arrancarWiki: iniciando (STRAPI_URL =', (process.env.STRAPI_URL || '(vacío)') + ')');
+  try {
+    const { root, source } = await resolveActiveRoot();
+    console.log(`🗺️ [Wiki] Raíz activa: ${root} (origen: ${source})`);
+    wikiWatcher = new WikiWatcherService(wikiService, root);
+  } catch (err) {
+    console.error(
+      '🛑 [Wiki] No se pudo resolver wikis_path; se usa la raíz activa por defecto:',
+      err && err.message ? err.message : err
+    );
+    wikiWatcher = new WikiWatcherService(wikiService);
+  }
+  wikiWatcher.start();
+}
+
+// Re-chequeo: si `wikis_path` cambia en Strapi (tras expirar el TTL) se
+// re-apunta el watcher en caliente sin reiniciar el proceso.
+const WIKI_RECHECK_MS = Number(process.env.WIKI_CONFIG_TTL_MS) || 60000;
+arrancarWiki().finally(() => {
+  let ultimoOrigen = null;
+  setInterval(async () => {
+    if (!wikiWatcher) return;
+    try {
+      const { root, source } = await resolveActiveRoot();
+      if (source !== ultimoOrigen) {
+        ultimoOrigen = source;
+        console.log(`🗺️ [Wiki] Re-chequeo: raíz ${root} (origen: ${source})`);
+      }
+      await wikiWatcher.switchRoot(root); // no hace nada si no cambió
+    } catch (err) {
+      console.error('🛑 [Wiki] Error re-chequeando wikis_path:', err && err.message ? err.message : err);
+    }
+  }, WIKI_RECHECK_MS);
+});
 
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);
@@ -119,6 +174,7 @@ io.on("connection", (socket) => {
 
   socket.on('register', (data) => {
     try {
+      console.log(data);
       const email = (data && data.email) ? String(data.email) : null;
       if (email) {
         socket.join(email);
@@ -137,27 +193,47 @@ io.on("connection", (socket) => {
   socket.on('ofertaviaje', async (payload, ack) => {
     console.log('evento oferta taxista recibido');
     try {
-      const id = payload && (payload.id || payload.travelId || payload.travelid);
+      const travelId = payload && (payload.id || payload.travelId || payload.travelid);
       const coords = payload && (payload.coordinates || payload.coords || payload.location);
       //console.log('ofertaviaje payload:', JSON.stringify(payload, null, 2));
       if (!coords || typeof coords.lat !== 'number' || typeof coords.lng !== 'number') {
         if (typeof ack === 'function') ack({ ok: false, error: 'payload inválido: coordinates lat/lng requeridos' });
         return;
       }
-      const userRating = payload.driverId ? await getUserRating(payload.driverId, true) : null;
-      console.log('userRating obtenido para driverId', payload.driverId, ':', userRating);
+      const userRating = payload.driverEmail ? await getUserRating(payload.driverEmail, true) : null;
+      console.log('userRating obtenido para driverEmail', payload.driverEmail, ':', userRating);
       const out = {
-        fromSocketId: socket.id,
         coordinates: { lat: Number(coords.lat), lng: Number(coords.lng) },
         driver: payload.driver,
-        driverId: payload.driverId || null,
+        driverEmail: payload.driverEmail,
+        userEmail: payload.userEmail,
         travel: payload.rawTravel,
         price: payload.price,
         userRating,
         meta: payload.meta || null,
         timestamp: new Date().toISOString(),
       };
-      socket.broadcast.emit('ofertaviaje', out);
+
+      const newOffer = {
+        coordenadas: out.coordinates,
+        precio_sugerido: out.price,
+        driver_email: out.driverEmail,
+        user_email: out.userEmail,
+        calif_conductor: userRating,
+        pasajero: payload?.userId,
+        conductor: payload?.driverId,
+        viaje: travelId
+      }
+
+      const response = await axios.post(
+        `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas`,
+        { data: newOffer }, { headers }
+      );
+      if (!response) {
+        throw new Error('No se pudo guardar la oferta de viaje');
+      }
+
+      io.to(payload.userEmail).emit('ofertaviaje', out);
       if (typeof ack === 'function') ack({ ok: true });
     } catch (e) {
       console.error('Error manejando ofertaviaje:', e);
@@ -165,16 +241,40 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on('actualizandoUbicacion', (payload) => {
+  socket.on('joinRoom', (payload) => {
     try {
-      if (!payload || !payload.payload) {
-        console.error('Error en actualizandoUbicacion: payload inválido');
+      const room = payload.channel || payload.room || payload.email;
+      if (room && typeof room === 'string') {
+        socket.join(room);
+        console.debug(`Socket ${socket.id} se unió a room: ${room}`);
+      }
+    } catch (err) {
+      console.error('Error en joinRoom:', err);
+    }
+  });
+
+  socket.on('leaveRoom', (payload) => {
+    try {
+      const room = payload.channel || payload.room || payload.email;
+      if (room && typeof room === 'string') {
+        socket.leave(room);
+        console.debug(`Socket ${socket.id} dejó la room: ${room}`);
+      }
+    } catch (err) {
+      console.error('Error en leaveRoom:', err);
+    }
+  });
+
+  socket.on('driver-location', async (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en driver-location: payload inválido');
         return;
       }
-      console.log(payload.payload);
-      io.emit('driver-location', payload.payload);
+      //console.log('driver-location recibido:', JSON.stringify(payload, null, 2));
+      io.to(payload.travelId).emit('driver-location', payload);
     } catch (e) {
-      console.error('Error en actualizandoUbicacion:', e);
+      console.error('Error en driver-location:', e);
     }
   });
 
@@ -184,10 +284,92 @@ io.on("connection", (socket) => {
         console.error('Error en trip-update: payload inválido o falta travelId');
         return;
       }
-      console.log('trip-update recibido:', JSON.stringify(payload, null, 2));
-      io.emit('trip-update', payload);
+      //console.log('trip-update recibido:', JSON.stringify(payload, null, 2));
+      io.to(payload.travelId).emit('trip-update', payload);
     } catch (e) {
       console.error('Error en trip-update:', e);
+    }
+  });
+
+  socket.on('offer-accepted', async (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en offer-accepted: payload inválido o falta travelId');
+        return;
+      }
+
+      const url =
+        `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas?filters[$or][0][user_email][$eq]=${payload.user}&filters[$or][1][driver_email][$eq]=${payload.driver}&populate=*`;
+      const res = await axios.get(url, { headers });
+
+      if (!res) return;
+      const offers = Array.isArray(res.data.data) && res.data.data || null;
+      if (!offers) throw new Error('Error en obtener las ofertas de viaje');
+
+      for (const offer of offers) {
+        const delRes = await axios.delete(
+          `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas/${offer.id}`,
+          { headers }
+        );
+        if (!delRes) {
+          throw new Error('No se pudo eliminar la oferta de viaje');
+        }
+      }
+
+      io.emit('offer-accepted', payload);
+    } catch (e) {
+      console.error('Error en offer-accepted:', e);
+    }
+  });
+
+  socket.on('cancel-search', async (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en cancel-search: payload inválido o falta travelId');
+        return;
+      }
+
+      const url = `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas?filters[user_email][$eq]=${payload}&populate=*`;
+      const res = await axios.get(url, { headers });
+
+      if (!res) return;
+      const offers = Array.isArray(res.data.data) && res.data.data || null;
+      if (!offers) throw new Error('Error en obtener las ofertas de viaje');
+
+      for (const offer of offers) {
+        const delRes = await axios.delete(
+          `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas/${offer.id}`,
+          { headers }
+        );
+        if (!delRes) {
+          throw new Error('No se pudo eliminar la oferta de viaje');
+        }
+      }
+
+      io.emit('cancel-search', payload);
+    } catch (e) {
+      console.error('Error en cancel-search:', e);
+    }
+  });
+
+  socket.on('offer-rejected', async (payload) => {
+    try {
+      if (!payload) {
+        console.error('Error en offer-rejected: payload inválido o falta travelId');
+        return;
+      }
+
+      const response = await axios.delete(
+        `${strapiUrl.replace(/\/$/, '')}/api/viaje-ofertas/${payload.travelId}`,
+        { headers }
+      );
+      if (!response) {
+        throw new Error('No se pudo eliminar la oferta de viaje');
+      }
+
+      io.emit('offer-rejected', payload);
+    } catch (e) {
+      console.error('Error en offer-rejected:', e);
     }
   });
 
@@ -230,12 +412,3 @@ server.listen(PORT, () => {
   console.log(`🌐 CORS habilitado para: ${JSON.stringify(accept)}`);
   printRoutes(app);
 });
-
-
-
-
-
-
-
-
-

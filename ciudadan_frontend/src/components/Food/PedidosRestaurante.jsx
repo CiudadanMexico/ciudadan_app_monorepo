@@ -1,29 +1,11 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Grid,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-  Chip,
-  Divider
-} from '@mui/material';
-
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Grid, MenuItem, Stack, TextField, Typography, Chip, Divider } from '@mui/material';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import RestaurantOutlinedIcon from '@mui/icons-material/RestaurantOutlined';
-import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-
 import { useMemo, useState } from 'react';
+import { useSnackbar } from 'notistack';
 import PedidoDetalleModal from './PedidoDetalleModal';
 import usePedidosRestaurante from '../../hooks/food/usePedidosRestaurante';
 
@@ -63,6 +45,7 @@ const ESTADOS_PEDIDO = {
 };
 
 const PedidosRestaurante = ({ restaurante }) => {
+  const { enqueueSnackbar } = useSnackbar();
   const {
     pedidos,
     loading,
@@ -79,14 +62,12 @@ const PedidosRestaurante = ({ restaurante }) => {
     limpiarPedidoSeleccionado
   } = usePedidosRestaurante({
     restauranteId: restaurante?.id,
-    // Aquí utiliza el token que ya manejas en tu aplicación.
     token: null,
     refreshInterval: 30000
   });
   const [filtroStatus, setFiltroStatus] = useState('todos');
 
   const pedidosFiltrados = useMemo(() => {
-
     if (filtroStatus === 'todos') {
       return pedidos;
     }
@@ -97,6 +78,47 @@ const PedidosRestaurante = ({ restaurante }) => {
     );
 
   }, [pedidos, filtroStatus]);
+
+  const handleAceptar = async (pedido, pickupData) => {
+    if (!pedido?.id) {
+      enqueueSnackbar('Pedido inválido.', { variant: 'error' });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${process.env.REACT_APP_STRAPI_URL}/api/food-orders/${pedido.id}/verify-payment`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            pickupName: pickupData.pickupName,
+            pickupPhone: pickupData.pickupPhone,
+            pickupNotes: pickupData.pickupNotes,
+          }),
+        }
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message ?? 'No fue posible verificar el pago.');
+      }
+
+      setPedidoSeleccionado(null);
+
+      enqueueSnackbar('Pago verificado y envío preparado correctamente.', { variant: 'success', });
+
+    } catch (error) {
+      console.error('Error verificando pago:', error);
+      enqueueSnackbar(error.message || 'No fue posible verificar el pedido.', { variant: 'error' });
+
+    } finally {
+      obtenerPedidos({ mostrarLoading: false });
+    }
+  };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -289,8 +311,9 @@ const PedidosRestaurante = ({ restaurante }) => {
         pedido={pedidoSeleccionado}
         open={Boolean(pedidoSeleccionado)}
         onClose={() => setPedidoSeleccionado(null)}
-        handleAceptar={aceptar}
+        handleAceptar={handleAceptar}
         handleMarcarListo={marcarListo}
+        restaurante={restaurante}
       />
     </Box>
   );

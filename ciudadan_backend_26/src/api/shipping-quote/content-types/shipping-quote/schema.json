@@ -1,0 +1,96 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shipping_quotes",
+  "info": {
+    "singularName": "shipping-quote",
+    "pluralName": "shipping-quotes",
+    "displayName": "ShippingQuote",
+    "description": "Snapshot de la tarifa logística seleccionada durante el checkout. Es una ESTIMACIÓN, no el envío real."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "pedido": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pedido.pedido",
+      "mappedBy": "shipping_quote"
+    },
+    "provider": {
+      "type": "string",
+      "default": "skydropx"
+    },
+    "quotation_id": {
+      "type": "string"
+    },
+    "rate_id": {
+      "type": "string"
+    },
+    "carrier_name": {
+      "type": "string"
+    },
+    "provider_service_name": {
+      "type": "string"
+    },
+    "provider_service_code": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "decimal"
+    },
+    "service_fee": {
+      "type": "decimal"
+    },
+    "vat_fee": {
+      "type": "decimal"
+    },
+    "total": {
+      "type": "decimal"
+    },
+    "currency_code": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "delivery_days": {
+      "type": "integer"
+    },
+    "office_pickup_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "office_delivery_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "office_pickup_point_id": {
+      "type": "string"
+    },
+    "office_delivery_point_id": {
+      "type": "string"
+    },
+    "estimated_parcels": {
+      "type": "json"
+    },
+    "rate_snapshot": {
+      "type": "json"
+    },
+    "raw_response": {
+      "type": "json"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "selected",
+        "used",
+        "expired",
+        "superseded"
+      ],
+      "default": "selected"
+    },
+    "selected_at": {
+      "type": "datetime"
+    }
+  }
+}

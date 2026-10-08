@@ -137,6 +137,49 @@
     },
     "store_email": {
       "type": "string"
+    },
+    "skydropx_quotation_id": {
+      "type": "string"
+    },
+    "skydropx_rate_id": {
+      "type": "string"
+    },
+    "skydropx_shipment_id": {
+      "type": "string"
+    },
+    "skydropx_tracking_number": {
+      "type": "string"
+    },
+    "skydropx_label_url": {
+      "type": "string"
+    },
+    "skydropx_status": {
+      "type": "string"
+    },
+    "skydropx_rate": {
+      "type": "json"
+    },
+    "delivery_contact_information": {
+      "type": "json"
+    },
+    "pickup_contact_information": {
+      "type": "json"
+    },
+    "monto_subtotal": {
+      "type": "decimal",
+      "default": 0
+    },
+    "shipping_quote": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::shipping-quote.shipping-quote",
+      "inversedBy": "pedido"
+    },
+    "shipment": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::shipment.shipment",
+      "inversedBy": "pedido"
     }
   }
 }

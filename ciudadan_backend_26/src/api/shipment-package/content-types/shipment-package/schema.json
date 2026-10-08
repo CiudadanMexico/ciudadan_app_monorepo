@@ -1,0 +1,85 @@
+{
+  "kind": "collectionType",
+  "collectionName": "shipment_packages",
+  "info": {
+    "singularName": "shipment-package",
+    "pluralName": "shipment-packages",
+    "displayName": "ShipmentPackage",
+    "description": "Paquete físico real confirmado por el vendedor. Cada paquete puede tener su propio tracking y etiqueta."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "shipment": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::shipment.shipment",
+      "inversedBy": "packages"
+    },
+    "package_number": {
+      "type": "string"
+    },
+    "length": {
+      "type": "decimal"
+    },
+    "width": {
+      "type": "decimal"
+    },
+    "height": {
+      "type": "decimal"
+    },
+    "weight": {
+      "type": "decimal"
+    },
+    "declared_value": {
+      "type": "decimal"
+    },
+    "package_protected": {
+      "type": "boolean",
+      "default": false
+    },
+    "consignment_note": {
+      "type": "string"
+    },
+    "package_type": {
+      "type": "string"
+    },
+    "provider_package_id": {
+      "type": "string"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "tracking_url": {
+      "type": "string"
+    },
+    "label_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "labeled",
+        "picked_up",
+        "in_transit",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+        "returned"
+      ],
+      "default": "pending"
+    },
+    "items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::shipment-package-item.shipment-package-item",
+      "mappedBy": "shipment_package"
+    },
+    "raw_response": {
+      "type": "json"
+    }
+  }
+}
