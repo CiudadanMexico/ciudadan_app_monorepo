@@ -4635,9 +4635,10 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   attributes: {
     cuerpo: Attribute.Blocks;
     user_email: Attribute.String;
+    titulo: Attribute.String;
     usuario: Attribute.Relation<
       'api::notificacion.notificacion',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     timestamp: Attribute.DateTime;
@@ -4647,6 +4648,7 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
     link: Attribute.String;
     imagen: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     icono: Attribute.String;
+    meta: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5859,6 +5861,7 @@ export interface ApiSkillSkill extends Schema.CollectionType {
     name: Attribute.String & Attribute.Required;
     description: Attribute.Text;
     is_active: Attribute.Boolean & Attribute.DefaultTo<true>;
+    area: Attribute.Relation<'api::skill.skill', 'manyToOne', 'api::area.area'>;
     todos: Attribute.Relation<
       'api::skill.skill',
       'manyToMany',

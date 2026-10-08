@@ -30,6 +30,8 @@ npx cap sync android && npx cap open android   # mobile build
 - **Implementation status:** `docs/final-cowork.md`, `docs/RESUMEN-AVANCES-COWORK.md`
 - **Database schema:** `docs/DATABASE-SCHEMA.md` (60 tables, generated from schemas)
 - **Auth/permissions detail:** `docs/TAREAS-CRUD-PERMISOS.md`
+- **Notifications API (toast + notificaciones):** `docs/NOTIFICACIONES.md` —
+  todo pasa por `useNotifications()`; nunca `useSnackbar` ni un segundo socket.
 - **Agenda migration:** `docs/AGENDA-VALIDATION-SYNC.md`
 - **Monorepo/CI plan:** `plan_nonorepo.md`
 - **Backend schema dump:** `ciudadan_backend_26/strapi-schema-export.md` (regenerate via `node export-strapi-schema.js`)
@@ -46,6 +48,7 @@ npx cap sync android && npx cap open android   # mobile build
 | **cartera** | User's laborys wallet. |
 | **calificación** | Rating a `tarea`; triggers automatic laborys payment (backend lifecycle, not frontend). |
 | **verificación** | Document-based validation of a user's area/subarea, stored in `up_users.area_details` JSON. |
+| **notificación** | Persistent message stored in `api::notificacion.notificacion`, delivered in realtime to the recipient's **socket room (email)**. Never broadcast globally. Use `useNotifications()` only: `toast.*` = ephemeral local, `send()` = persistent. Full guide: `docs/NOTIFICACIONES.md`. |
 
 ⚠️ `membresiatipo: 'socio'` (cannabis club membership) ≠ `roles.extra: 'socio'` (permission role). Different concepts.
 

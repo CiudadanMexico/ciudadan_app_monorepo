@@ -16,9 +16,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Switch,
   Table,
@@ -35,8 +39,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useRoles } from '../../../Contexts/RolesContext';
 import { useSkills } from '../../../hooks/useSkills/useSkills';
+import { areaIdOf, areaPath } from '../../../utils/agregarTarea.helpers';
 
-const emptyForm = { name: '', description: '', is_active: true };
+const STRAPI = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
+
+const emptyForm = { name: '', description: '', is_active: true, area: '' };
 
 const SkillsManagement = () => {
   const { isAdmin, isEditor, isRoot } = useRoles();
@@ -47,9 +54,30 @@ const SkillsManagement = () => {
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState(null);
 
+  const [areas, setAreas] = useState([]);
+
   useEffect(() => {
     if (puedeGestionar) fetchSkills();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puedeGestionar]);
+
+  // Áreas activas para el select de "área padre" (lectura pública:
+  // GET /api/areas está en auth:false, igual que consumen AgregarTarea y el
+  // panel de tareas especializadas).
+  useEffect(() => {
+    if (!puedeGestionar) return;
+    (async () => {
+      try {
+        const res = await fetch(
+          `${STRAPI}/api/areas?filters[is_active][$ne]=false&pagination[limit]=1000&sort[0]=name:asc&populate[parent_area]=*`
+        );
+        if (!res.ok) throw new Error(`areas ${res.status}`);
+        const json = await res.json();
+        setAreas(json.data || []);
+      } catch (err) {
+        console.warn('No se pudieron cargar las áreas para skills:', err.message);
+      }
+    })();
   }, [puedeGestionar]);
 
   if (!puedeGestionar) {
@@ -76,6 +104,7 @@ const SkillsManagement = () => {
         name: skill.attributes?.name || '',
         description: skill.attributes?.description || '',
         is_active: skill.attributes?.is_active !== false,
+        area: areaIdOf(skill.attributes?.area) || '',
       },
     });
   };
@@ -90,13 +119,23 @@ const SkillsManagement = () => {
       setActionError('El nombre es requerido');
       return;
     }
+    // Toda skill debe colgar de un área: es lo que permite mostrar las
+    // especialidades filtradas por área en el formulario de agregar tarea.
+    if (!dialog.form.area) {
+      setActionError('Selecciona el área padre de la habilidad');
+      return;
+    }
+    const payload = {
+      ...dialog.form,
+      area: dialog.form.area ? Number(dialog.form.area) : null,
+    };
     setSaving(true);
     setActionError(null);
     try {
       if (dialog.editingId) {
-        await updateSkill(dialog.editingId, dialog.form);
+        await updateSkill(dialog.editingId, payload);
       } else {
-        await createSkill(dialog.form);
+        await createSkill(payload);
       }
       setDialog({ open: false, editingId: null, form: emptyForm });
       await fetchSkills();
@@ -130,8 +169,9 @@ const SkillsManagement = () => {
       </Stack>
 
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Colección simple de habilidades (nombre + estado activo) usada para filtrar tareas
-        especializadas por habilidad verificada del usuario.
+        Colección de habilidades (nombre + <strong>área padre requerida</strong> + estado
+        activo). El área es lo que permite mostrar las especialidades filtradas por
+        área en el formulario de <em>Agregar tarea</em> (nivel «Especialidad»).
       </Typography>
 
       {(error || actionError) && (
@@ -146,6 +186,7 @@ const SkillsManagement = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Nombre</TableCell>
+                <TableCell>Área</TableCell>
                 <TableCell>Descripción</TableCell>
                 <TableCell align="center">Activo</TableCell>
                 <TableCell align="right">Acciones</TableCell>
@@ -154,13 +195,13 @@ const SkillsManagement = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                     <CircularProgress size={24} />
                   </TableCell>
                 </TableRow>
               ) : skills.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">No hay habilidades registradas</Typography>
                   </TableCell>
                 </TableRow>
@@ -168,6 +209,15 @@ const SkillsManagement = () => {
                 skills.map((skill) => (
                   <TableRow key={skill.id}>
                     <TableCell>{skill.attributes?.name}</TableCell>
+                    <TableCell>
+                      {areaIdOf(skill.attributes?.area)
+                        ? areaPath(
+                            areas.find((a) => Number(a.id) === Number(areaIdOf(skill.attributes?.area))) ||
+                              skill.attributes?.area,
+                            areas
+                          )
+                        : <em>Sin área (editar para asignar)</em>}
+                    </TableCell>
                     <TableCell>
                       {skill.attributes?.description || <em>Sin descripción</em>}
                     </TableCell>
@@ -201,6 +251,24 @@ const SkillsManagement = () => {
               fullWidth
               disabled={saving}
             />
+            <FormControl fullWidth required disabled={saving}>
+              <InputLabel id="skill-area-label">Área *</InputLabel>
+              <Select
+                labelId="skill-area-label"
+                value={dialog.form.area}
+                label="Área *"
+                onChange={(e) => setDialog((p) => ({ ...p, form: { ...p.form, area: e.target.value } }))}
+              >
+                <MenuItem value="">
+                  <em>Elige el área padre</em>
+                </MenuItem>
+                {areas.map((a) => (
+                  <MenuItem key={a.id} value={String(a.id)}>
+                    {areaPath(a, areas)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               label="Descripción (opcional)"
               value={dialog.form.description}

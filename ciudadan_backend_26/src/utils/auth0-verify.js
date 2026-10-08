@@ -77,9 +77,15 @@ async function getAuth0Email(token, { strapi }) {
 
   // Si la request falla, no dejamos el fallo cacheado — un token realmente
   // inválido/expirado no debe quedar "atascado" bloqueando reintentos.
-  emailPromise.catch((error) => {
+  //
+  // OJO: NO re-lanzar dentro de este catch. Hacerlo creaba una promesa
+  // rechazada SIN MANEJAR, y Node mata el proceso por unhandled rejection:
+  // cualquier token inválido/expirado tumbaba el backend entero (bug real
+  // detectado al probar /api/notificaciones/me con un token falso:
+  // el log terminaba con "status: 401" + "Node.js v22"). El error se sigue
+  // propagando por el `return emailPromise` de abajo, que el llamador captura.
+  emailPromise.catch(() => {
     cache.delete(token);
-    throw error;
   });
 
   return emailPromise;
