@@ -44,7 +44,9 @@
 | `NUMBER_ID` | — | Número WhatsApp Cloud |
 | `PUBLIC_WEBHOOK_URL` | `https://chatbot.ciudadan.org/webhook` | URL webhook pública |
 | `CHATBOT_WEBHOOK_PATH` | `/webhook` | Path webhook |
-| `WIKI_ROOT_PATH` | `C:/yii/wikis` | Raíz de la wiki local (.md) |
+| `WIKI_ROOT_PATH` | `/home/ubuntu/apps/wikis` | Raíz de la wiki local (.md) |
+| `WIKI_CONFIG_TTL_MS` | `60000` | TTL de caché de la config de wiki desde Strapi |
+| `WIKI_CONFIG_TIMEOUT_MS` | `5000` | Timeout HTTP al leer `wikis_path` de Strapi |
 | `WEBHOOKS_POPULATE_RELATIONS` | `false` | populate en webhooks |
 | `BREVO_API_KEY` | — | API key v3 de Brevo (token). Sin valor **no se envía ningún correo** |
 | `BREVO_SENDER_EMAIL` | `no-reply@ciudadan.org` | Remitente verificado en Brevo |
@@ -81,6 +83,37 @@ Contiene **las mismas variables** que el backend (incluidos secretos). Las espec
 - `LMAI_PORT` (usada por `server-lmai.js`; default 5000).
 - Credenciales WhatsApp (`NUMBER_ID`, `META_VERIFY_TOKEN`, `VERIFY_TOKEN`, `PUBLIC_WEBHOOK_URL`).
 - Credenciales Notion y `WIKI_ROOT_PATH`.
+- `STRAPI_URL` debe apuntar al backend real (`http://127.0.0.1:33032` en esta
+  instancia; el valor viejo `http://localhost:33432` no responde). También la
+  usan tarifas/ratings/viajes y la wiki.
+
+### 2.1 Wiki: contenido fuera del repo (`site-setting.wikis_path`)
+
+Los `.md` de la wiki **no viven en el monorepo**: están en una carpeta física
+fuera del proyecto (`/home/ubuntu/apps/wikis/{main,help,faq}/`, con un
+subdirectorio por sección). La ruta se configura en Strapi
+(**Gestor de Contenidos → Site_setting → `wikis_path`**, ruta ABSOLUTA, ej.
+`/home/ubuntu/apps/wikis`).
+
+El socket-service la resuelve con esta precedencia
+(`socket-service/config/WikiRootProvider.ts`):
+1. `site-setting.wikis_path` en Strapi (`GET /api/wiki/public-config`).
+2. `WIKI_ROOT_PATH` del `.env` (fallback operativo si Strapi está caído).
+3. Default por plataforma (`/var/www/apps/wikis` en Linux).
+
+Notas operativas:
+- El valor de Strapi se cachea 60 s (`WIKI_CONFIG_TTL_MS`); el watcher se
+  re-apunta solo si `wikis_path` cambia (log `[Wiki] Re-chequeo`).
+- **Cuidado**: cualquier escritura dentro de `ciudadan_backend_26/` (incluido
+  `socket-service/dist/` o su `.env`) dispara el autoReload de Strapi (~24 s).
+  Mientras Strapi recarga, la wiki cae al fallback y luego se autocorrige en
+  el siguiente re-chequeo (es el comportamiento diseñado, no un error).
+- Al arrancar, el watcher indexa todos los `.md` (`Indexación inicial: N`);
+  si el árbol llega vacío (`nodes: []`), revisar que la carpeta tenga `.md`.
+- El frontend pide el árbol al socket: `REACT_APP_SOCKET_URL + /wiki`
+  (`services/wikiService.ts`); no debe apuntar a `localhost` en producción.
+- `socket-service/wiki/` está en `.gitignore`: no volver a commitear .md ahí.
+- Endpoint de diagnóstico: `GET /api/wiki/public-config` → `{ wikisPath }`.
 
 ## 3. Frontend (`ciudadan_frontend/.env`)
 
