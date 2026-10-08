@@ -5730,6 +5730,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     driver_verifier_required_referrals: Attribute.Integer &
       Attribute.DefaultTo<10>;
     verifier_candidates_whatsapp_group_url: Attribute.String;
+    wikis_path: Attribute.String;
     whatsapp_number: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
