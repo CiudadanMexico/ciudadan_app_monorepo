@@ -7,6 +7,7 @@ import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
 import Probador from '../components/Testers/Probador.jsx';
+import MultimediaRoute from '../Pages/Multimedia/MultimediaRoute.jsx';
 
 // ---------- Páginas principales ----------
 import HomeRoute from '../Pages/HomeRoute.jsx';
@@ -335,6 +336,12 @@ const Rutas = () => (
     <Route
       path='/probador'
       element={<Probador />}
+    />
+
+    {/* Multimedia (Bloque 5C) */}
+    <Route
+      path='/multimedia'
+      element={<MultimediaRoute />}
     />
     <Route
       path='/registrar'
