@@ -113,6 +113,10 @@ Notas operativas:
 - El frontend pide el árbol al socket: `REACT_APP_SOCKET_URL + /wiki`
   (`services/wikiService.ts`); no debe apuntar a `localhost` en producción.
 - `socket-service/wiki/` está en `.gitignore`: no volver a commitear .md ahí.
+- La fuente versionada de los .md de ejemplo es `wikiseed/` (raíz del
+  monorepo). Para llevarlos al destino en vivo:
+  `node wikiseed/sync-wikis.js [--dry-run] [--force]`
+  (usa la misma precedencia Strapi → `.env` → default; ver `wikiseed/README.md`).
 - Endpoint de diagnóstico: `GET /api/wiki/public-config` → `{ wikisPath }`.
 
 ## 3. Frontend (`ciudadan_frontend/.env`)
