@@ -39,7 +39,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { useRoles } from '../../../Contexts/RolesContext';
 import { useSkills } from '../../../hooks/useSkills/useSkills';
-import { areaIdOf, areaPath } from '../../../utils/agregarTarea.helpers';
+import { areasIdOf, areaPath } from '../../../utils/agregarTarea.helpers';
 
 const STRAPI = process.env.REACT_APP_STRAPI_URL || 'http://localhost:33032';
 
@@ -104,7 +104,7 @@ const SkillsManagement = () => {
         name: skill.attributes?.name || '',
         description: skill.attributes?.description || '',
         is_active: skill.attributes?.is_active !== false,
-        area: areaIdOf(skill.attributes?.area) || '',
+        areas: areasIdOf(skill.attributes?.areas) || '',
       },
     });
   };
@@ -210,10 +210,10 @@ const SkillsManagement = () => {
                   <TableRow key={skill.id}>
                     <TableCell>{skill.attributes?.name}</TableCell>
                     <TableCell>
-                      {areaIdOf(skill.attributes?.area)
+                      {areasIdOf(skill.attributes?.areas).length > 0
                         ? areaPath(
-                            areas.find((a) => Number(a.id) === Number(areaIdOf(skill.attributes?.area))) ||
-                              skill.attributes?.area,
+                            areas.find((a) => Number(a.id) === Number(areasIdOf(skill.attributes?.areas)[0])) ||
+                              skill.attributes?.areas,
                             areas
                           )
                         : <em>Sin área (editar para asignar)</em>}
