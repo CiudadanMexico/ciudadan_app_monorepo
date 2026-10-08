@@ -4361,6 +4361,100 @@ export interface ApiLogisticsTransactionLogisticsTransaction
   };
 }
 
+export interface ApiMediaMediaJob extends Schema.CollectionType {
+  collectionName: 'media_jobs';
+  info: {
+    singularName: 'media-job';
+    pluralName: 'media-jobs';
+    displayName: 'MediaJob';
+    description: 'Job multimedia via Ciudadan Media API (Bloque 5B). Ownership + media_job_id remoto + metadata UI. NO guarda Bearer ni paths internos.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    mediaJobId: Attribute.String;
+    type: Attribute.String & Attribute.Required;
+    status: Attribute.String & Attribute.DefaultTo<'queued'>;
+    resourceClass: Attribute.String;
+    usageContext: Attribute.String & Attribute.DefaultTo<'internal'>;
+    priority: Attribute.Integer & Attribute.DefaultTo<50>;
+    paramsSafeJson: Attribute.Text;
+    startedAt: Attribute.DateTime;
+    finishedAt: Attribute.DateTime;
+    errorCode: Attribute.String;
+    errorMessage: Attribute.Text;
+    warnings: Attribute.JSON;
+    parentJob: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'api::media.media-job'
+    >;
+    processingSeconds: Attribute.Float;
+    engine: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiMediaMediaUpload extends Schema.CollectionType {
+  collectionName: 'media_uploads';
+  info: {
+    singularName: 'media-upload';
+    pluralName: 'media-uploads';
+    displayName: 'MediaUpload';
+    description: 'Referencia de upload hacia la Media API (Bloque 5B). Ownership del archivo.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::media.media-upload',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    uploadId: Attribute.String & Attribute.Required;
+    storedPath: Attribute.String & Attribute.Private;
+    originalName: Attribute.String;
+    mimeType: Attribute.String;
+    sizeBytes: Attribute.Integer;
+    sha256: Attribute.String;
+    kind: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::media.media-upload',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::media.media-upload',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiMembresiaMembresia extends Schema.CollectionType {
   collectionName: 'membresias';
   info: {
@@ -6924,6 +7018,8 @@ declare module '@strapi/types' {
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::logistics-balance.logistics-balance': ApiLogisticsBalanceLogisticsBalance;
       'api::logistics-transaction.logistics-transaction': ApiLogisticsTransactionLogisticsTransaction;
+      'api::media.media-job': ApiMediaMediaJob;
+      'api::media.media-upload': ApiMediaMediaUpload;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
       'api::message.message': ApiMessageMessage;
