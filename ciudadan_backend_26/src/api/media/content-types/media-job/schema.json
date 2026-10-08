@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "media_jobs",
+  "info": {
+    "singularName": "media-job",
+    "pluralName": "media-jobs",
+    "displayName": "MediaJob",
+    "description": "Job multimedia via Ciudadan Media API (Bloque 5B). Ownership + media_job_id remoto + metadata UI. NO guarda Bearer ni paths internos."
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "user": { "type": "relation", "relation": "oneToOne", "target": "plugin::users-permissions.user" },
+    "mediaJobId": { "type": "string" },
+    "type": { "type": "string", "required": true },
+    "status": { "type": "string", "default": "queued" },
+    "resourceClass": { "type": "string" },
+    "usageContext": { "type": "string", "default": "internal" },
+    "priority": { "type": "integer", "default": 50 },
+    "paramsSafeJson": { "type": "text" },
+    "startedAt": { "type": "datetime" },
+    "finishedAt": { "type": "datetime" },
+    "errorCode": { "type": "string" },
+    "errorMessage": { "type": "text" },
+    "warnings": { "type": "json" },
+    "parentJob": { "type": "relation", "relation": "oneToOne", "target": "api::media.media-job" },
+    "processingSeconds": { "type": "float" },
+    "engine": { "type": "string" }
+  }
+}
