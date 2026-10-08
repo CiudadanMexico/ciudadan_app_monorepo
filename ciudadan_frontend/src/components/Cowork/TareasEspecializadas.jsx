@@ -661,7 +661,18 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
         token = await getAccessTokenSilently({
           authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
         });
-      } catch { /* token optional */ }
+      } catch { /* lo pilla el chequeo de abajo */ }
+
+      // El token NO es opcional en este flujo: /api/upload y /users/:id/areas
+      // exigen Bearer Auth0 (el JWT de Strapi no lo validan esas rutas).
+      // Antes el catch lo dejaba en null "por si acaso" y la petición salía
+      // SIN header → 401/403 genérico que la UI traducía como "No se pudo
+      // subir ... (401)" sin más pistas. Mejor un error que se entienda.
+      if (!token) {
+        throw new Error(
+          'No se pudo leer tu sesión para subir el archivo. Cierra sesión y vuelve a entrar.'
+        );
+      }
 
       const actuales = (userData?.areas || []).map((a) => (typeof a === 'object' ? a.id : Number(a)));
       const nuevosIds = Array.from(new Set([...actuales, Number(declararAreaId)]));
