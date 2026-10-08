@@ -252,29 +252,6 @@ const WikiWrapper = () => {
   return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
 };
 
-// Guía de usuario (ruta /wiki/ayuda): carga help/guia-usuario.md
-const WikiAyudaRoute = () => {
-  const navigate = useNavigate();
-  const [doc, setDoc] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    wikiService
-      .getDocument('wiki/help/guia-usuario.md')
-      .then((found) => { if (!cancelled) setDoc(found); })
-      .catch(() => { if (!cancelled) setDoc(null); });
-    return () => { cancelled = true; };
-  }, []);
-
-  const handleNavigateDocument = (path) => {
-    const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
-    const parts = normalized.split('/').filter(Boolean);
-    const last = parts.length ? parts[parts.length - 1] : normalized;
-    if (last) navigate(`/wiki/${last}`);
-  };
-
-  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
-};
 
 // Layout para Wiki
 const WikiLayout = ({ children }) => (
@@ -796,10 +773,11 @@ const Rutas = () => {
       path='/wiki'
       element={<Navigate to='/wiki/main' replace />}
     />
-    {/* Guía de usuario del sitio en /wiki/ayuda */}
+    {/* Guía de usuario del sitio en /wiki/ayuda: mismo visor con las 3
+        pestañas que /wiki/help (abierto en Ayuda), no solo la guía suelta. */}
     <Route
       path='/wiki/ayuda'
-      element={<WikiAyudaRoute />}
+      element={<WikiApp section='help' />}
     />
     {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
     <Route
