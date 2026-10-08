@@ -7,6 +7,13 @@ module.exports = {
     const path = require("path");
     const fs = require("fs");
 
+    // Bloque 5C: Socket.IO sobre el httpServer de Strapi (misma identidad,
+    // rooms media:user:<ID> server-side) + poller de jobs activos.
+    const { initMediaSocket } = require("./sockets/media-socket");
+    const { startMediaSyncPoller, stopMediaSyncPoller } = require("./api/media/services/media-sync-poller");
+    initMediaSocket(strapi);
+    startMediaSyncPoller(strapi);
+
     if (!strapi.dirs?.static?.public) {
       const appDir = strapi.dirs?.app?.root || process.cwd();
       strapi.dirs.static = strapi.dirs.static || {};
@@ -35,5 +42,13 @@ module.exports = {
           (uniqueErr.message || uniqueErr)
       );
     }
+  },
+
+  async destroy({ strapi }) {
+    // Bloque 5C: detener el poller en shutdown (sin timers huerfanos).
+    try {
+      const { stopMediaSyncPoller } = require("./api/media/services/media-sync-poller");
+      stopMediaSyncPoller();
+    } catch (e) { /* noop */ }
   },
 };

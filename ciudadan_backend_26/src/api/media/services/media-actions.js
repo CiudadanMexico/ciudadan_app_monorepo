@@ -12,6 +12,19 @@ const path = require("path");
 const { PassThrough } = require("stream");
 const { strapi } = global;
 const core = require("./media-service");
+const { mediaRoom } = require("../../../sockets/media-socket");
+const { socketPayload } = require("./media-sync-poller");
+
+// Socket.IO events desde REST (Paso 14/15/16): emitir inmediatamente al
+// room del propietario (sin esperar el poller). Socket.IO nunca escribe
+// estado en MediaJob.
+function emitEvent(job, event, userId) {
+  const io = global.strapi && global.strapi.io;
+  const uid = userId || (job && job.user && (job.user.id || job.user));
+  if (!io || !job || !uid) return;
+  const payload = socketPayload(job);
+  io.to(mediaRoom(uid)).emit(event, payload);
+}
 
 function mediaErr(status, code, message) {
   return new core.MediaError(status, code, message);
@@ -171,6 +184,7 @@ async function create(ctx) {
     },
   });
   // Paso 24: ID local publico; media_job_id NO se expone
+  emitEvent(row, "media:job:created", user.id);
   return {
     id: String(row.id),
     status: row.status,
@@ -279,9 +293,10 @@ async function cancel(ctx) {
   const res = await svc().apiClient.cancelJob(job.mediaJobId).catch((e) => { throw svc().mapClientError(e); });
   if (res.status !== 200) throw svc().mapRemoteError(res.status, res.data);
   const r = res.data || {};
-  await strapi.db.query("api::media.media-job").update({
+  const updatedJob = await strapi.db.query("api::media.media-job").update({
     where: { id: job.id }, data: { status: r.status || "cancelled" },
   });
+  emitEvent(updatedJob, r.result === "cancelled" ? "media:job:cancelled" : "media:job:updated", user.id);
   return { id: String(job.id), result: r.result || "cancel_requested", status: r.status || "cancelled" };
 }
 
@@ -314,6 +329,7 @@ async function retry(ctx) {
       publishedAt: new Date(),
     },
   });
+  emitEvent(newRow, "media:job:created", user.id);
   return { id: String(newRow.id), parentJobId: String(job.id), status: newRow.status };
 }
 
