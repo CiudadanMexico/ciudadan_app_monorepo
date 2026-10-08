@@ -14,14 +14,17 @@ const fs = require("fs");
 const MEDIA_API_URL = process.env.CIUDADAN_MEDIA_API_URL || "http://100.73.191.3:8090";
 const MEDIA_API_TOKEN = process.env.CIUDADAN_MEDIA_API_TOKEN || "";
 
+// Timeouts en MILISEGUNDOS (axios los interpreta en ms; valores en
+// segundos rompen en axios >= 1.x moderno, que aplica el timeout
+// estrictamente).
 const T = {
-  health: 5,
-  status: 5,
-  capabilities: 8,
-  submit: 15,
-  getStatus: 10,
-  uploadBase: 120,
-  downloadBase: 120,
+  health: 5000,
+  status: 5000,
+  capabilities: 8000,
+  submit: 15000,
+  getStatus: 10000,
+  uploadBase: 120000,
+  downloadBase: 120000,
 };
 
 function client() {
