@@ -41,6 +41,11 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
+      - name: Setup Node 20 (match con produccion; strapi exige <=20.x.x)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Setup SSH (key + known_hosts + cloudflared)
         shell: bash
         run: |
