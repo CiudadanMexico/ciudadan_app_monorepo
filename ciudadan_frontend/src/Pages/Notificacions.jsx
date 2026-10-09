@@ -145,15 +145,15 @@ export default function AllNotificaciones() {
     }
   };
 
-  const handleOpenNotification = async (notif) => {
-    const { id, read, link } = notif;
+  const handleOpenNotification = (notif) => {
+    const { id, read, link } = notif || {};
+    if (!id) return;
 
+    // Fire-and-forget: el context ya aplica el cambio optimista (baja el
+    // contador en el mismo render) y resincroniza con refresh() si falla.
+    // No se espera al backend para no retrasar la navegación.
     if (!read && typeof markAsReadFn === "function") {
-      try {
-        await markAsReadFn(id);
-      } catch (e) {
-        console.error("markAsRead error", e);
-      }
+      markAsReadFn(id).catch((e) => console.error("markAsRead error", e));
     }
 
     const finalLink = buildLink(link);
@@ -164,6 +164,7 @@ export default function AllNotificaciones() {
         navigate(finalLink);
       }
     } else {
+      // Sin link en el registro -> vista individual de la notificación.
       navigate(`/notificacion/${id}`);
     }
   };
@@ -296,7 +297,9 @@ export default function AllNotificaciones() {
                     <React.Fragment key={id}>
                       <ListItem
                         alignItems="flex-start"
+                        onClick={() => handleOpenNotification(notif)}
                         sx={{
+                          cursor: "pointer",
                           bgcolor: isRead ? "transparent" : "rgba(0,255,128,0.02)",
                           "&:hover": { bgcolor: isRead ? "rgba(255,255,255,0.02)" : "rgba(0,255,128,0.04)" },
                         }}
@@ -305,17 +308,15 @@ export default function AllNotificaciones() {
                             <Stack direction="row" spacing={1} alignItems="center">
                               <Chip label={isRead ? "Leída" : "No leída"} size="small" />
                               <Tooltip title={isRead ? "Marcar como no leída" : "Marcar como leída"}>
-                                <IconButton edge="end" onClick={() => handleToggleRead(id, isRead)} size="small">
+                                <IconButton edge="end" onClick={(e) => { e.stopPropagation(); handleToggleRead(id, isRead); }} size="small">
                                   {isRead ? <MailOutlineIcon /> : <MarkEmailReadIcon />}
                                 </IconButton>
                               </Tooltip>
-                              {notif.link && (
-                                <Tooltip title="Abrir enlace">
-                                  <IconButton edge="end" onClick={() => handleOpenNotification(notif)} size="small">
-                                    <OpenInNewIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
+                              <Tooltip title={notif.link ? "Abrir enlace" : "Ver notificación"}>
+                                <IconButton edge="end" onClick={(e) => { e.stopPropagation(); handleOpenNotification(notif); }} size="small">
+                                  <OpenInNewIcon />
+                                </IconButton>
+                              </Tooltip>
                             </Stack>
                           </ListItemSecondaryAction>
                         }

@@ -368,18 +368,10 @@ const NotificationsMenu = ({ handleLogout, isOpen, onClose, containerRef, onOpen
                               aria-label="abrir"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const final = buildLink(notif.link);
-                                if (final) {
-                                  if (/^https?:\/\//i.test(final)) {
-                                    window.location.href = final;
-                                  } else {
-                                    navigate(final);
-                                  }
-                                } else {
-                                  navigate(`/notificacion/${id}`);
-                                }
-
-                                if (typeof onClose === "function") onClose();
+                                // El icono reusa el mismo flujo que la fila:
+                                // link -> navegar, sin link -> /notificacion/:id,
+                                // y siempre markAsRead optimista (baja el contador).
+                                handleClickNotification(notif);
                               }}
                               sx={{ color: "#bfffd0" }}
                             >
