@@ -506,6 +506,7 @@ function CentroMultimedia() {
   const [artifactsJob, setArtifactsJob] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
   const jobsRef = useRef([]);
+  const [capsTick, setCapsTick] = useState(0); // retry manual de capabilities
 
   useEffect(() => {
     let cancelled = false;
@@ -532,15 +533,26 @@ function CentroMultimedia() {
 
   useEffect(() => { refreshJobs(); }, [refreshJobs]);
 
-  // cargar capabilities dinámicas (una vez con token)
+  // cargar capabilities dinamicas (con reintentos automaticos ante fallos transitorios:
+  // la Media API puede tardar > timeout tras un idle del tailnet o un deploy en curso)
   useEffect(() => {
-    if (!token) return;
+    if (!token) return undefined;
     let cancelled = false;
-    getMediaCapabilities(token)
-      .then((data) => { if (!cancelled) setCapabilities((data && data.capabilities) || {}); })
-      .catch((e) => { if (!cancelled) setError(e); });
+    let attempt = 0;
+    const load = async () => {
+      attempt += 1;
+      try {
+        const data = await getMediaCapabilities(token);
+        if (!cancelled) { setCapabilities((data && data.capabilities) || {}); setError(null); }
+      } catch (e) {
+        if (cancelled) return;
+        if (attempt < 3) { setTimeout(load, attempt * 2000); return; }
+        setError(e);
+      }
+    };
+    load();
     return () => { cancelled = true; };
-  }, [token]);
+  }, [token, capsTick]);
 
   // realtime: actualizar SOLO el job afectado; REST refetch al (re)conectar
   useEffect(() => {
@@ -588,6 +600,9 @@ function CentroMultimedia() {
       </Stack>
       {lastRefresh && <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>Última actualización: {fmtDate(lastRefresh)}{activeCount > 0 ? ` · ${activeCount} activo(s)` : ""}</Typography>}
       {error && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setError(null)}>{errorToMessage(error)}</Alert>}
+      {error && !capabilities && (
+        <Button size="small" variant="outlined" sx={{ mb: 2 }} onClick={() => { setError(null); setCapsTick((t) => t + 1); }}>Reintentar capabilities</Button>
+      )}
       {!token && <Alert severity="info" sx={{ mb: 2 }}>Inicia sesión para usar el Centro Multimedia.</Alert>}
       <NewJobPanel token={token} capabilities={capabilities || {}} onCreated={refreshJobs} />
       <Typography variant="h6" gutterBottom>Mis trabajos</Typography>

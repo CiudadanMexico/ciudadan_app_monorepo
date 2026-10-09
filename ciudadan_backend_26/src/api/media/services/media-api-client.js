@@ -73,7 +73,7 @@ async function health() {
 }
 
 async function getCapabilities() {
-  return request("GET", "/v1/capabilities", { timeout: T.capabilities });
+  return request("GET", "/v1/capabilities", { timeout: T.capabilities, retries: 2 });
 }
 
 async function getStatus() {
