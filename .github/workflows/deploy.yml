@@ -122,7 +122,10 @@ jobs:
           cd ciudadan_backend_26/socket-service
           npm ci --legacy-peer-deps --no-audit --no-fund
           npm run build
-          test -f dist/config/WikiRootProvider.js && echo "socket dist OK"
+          # tsc no copia archivos no-TS: el runtime lee dist/config/schema.sql (ConfigDatabase)
+          mkdir -p dist/config
+          cp config/schema.sql dist/config/schema.sql
+          test -f dist/config/WikiRootProvider.js && test -f dist/config/schema.sql && echo "socket dist OK (con schema.sql)"
 
       - name: Build frontend (CRA/craco, 100% en runner)
         run: |
