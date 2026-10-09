@@ -180,7 +180,7 @@ export default function AllNotificaciones() {
                 Todas las notificaciones
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Total: {totalCount} — No leídas: {unreadCount}
+                Total: {totalCount} — No leídas: {unreadCount} — Leídas: {Math.max(0, totalCount - unreadCount)}
               </Typography>
             </Grid>
 
