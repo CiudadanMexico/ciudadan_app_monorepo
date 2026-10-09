@@ -58,11 +58,29 @@ function socketPayload(job) {
   };
 }
 
-function emitToOwner(job, event, payload) {
+async function emitToOwner(job, event, payload) {
   const io = global.strapi && global.strapi.io;
-  if (!io || !job.user) return;
-  const userId = job.user.id || job.user;
+  if (!io) { logSafe(`[media-sync] emit OMITIDO (${event} job ${job.id}): io no disponible`); return; }
+  // el findMany puede no traer la relacion poblada segun version/config:
+  // resolver el dueno con un findOne (populate si funciopna; fallback al link)
+  let user = job.user;
+  if (!user || !(user.id || typeof user === "number" || typeof user === "string")) {
+    try {
+      const full = await global.strapi.db.query("api::media.media-job").findOne({ where: { id: job.id }, populate: ["user"] });
+      if (full && full.user) user = full.user;
+    } catch (e) { /* noop */ }
+  }
+  if (!user && job.id) {
+    try {
+      const rows = await global.strapi.db.connection.raw("SELECT user_id FROM media_jobs_user_links WHERE media_job_id = ? LIMIT 1", [job.id]);
+      const uid = rows && rows.rows && rows.rows[0] && rows.rows[0].user_id;
+      if (uid) user = { id: uid };
+    } catch (e) { /* noop */ }
+  }
+  const userId = user && (user.id || user);
+  if (!userId) { logSafe(`[media-sync] emit OMITIDO (${event} job ${job.id}): sin user resuelto`); return; }
   io.to(mediaRoom(userId)).emit(event, payload);
+  logSafe(`[media-sync] emit OK (${event} job ${job.id} -> ${mediaRoom(userId)})`);
 }
 
 /** Sync de UN job activo: compara remoto vs local; emite solo si cambio. */
@@ -88,7 +106,7 @@ async function syncActiveJob(job) {
           errorMessage: "El job remoto ya no existe en la Media API" },
       });
       logSafe(`[media-sync] job ${updated.id} -> failed (MEDIA_REMOTE_JOB_NOT_FOUND)`);
-      emitToOwner(updated, "media:job:failed", socketPayload(updated));
+      await emitToOwner(updated, "media:job:failed", socketPayload(updated));
     }
     return;
   }
@@ -117,14 +135,14 @@ async function syncActiveJob(job) {
 
   const payload = socketPayload(updated);
   if (updated.status !== job.status) {
-    if (updated.status === "succeeded") emitToOwner(updated, "media:job:succeeded", payload);
-    else if (updated.status === "failed") emitToOwner(updated, "media:job:failed", payload);
-    else if (updated.status === "cancelled") emitToOwner(updated, "media:job:cancelled", payload);
-    else if (updated.status === "interrupted") emitToOwner(updated, "media:job:interrupted", payload);
-    else emitToOwner(updated, "media:job:updated", payload);
+    if (updated.status === "succeeded") await emitToOwner(updated, "media:job:succeeded", payload);
+    else if (updated.status === "failed") await emitToOwner(updated, "media:job:failed", payload);
+    else if (updated.status === "cancelled") await emitToOwner(updated, "media:job:cancelled", payload);
+    else if (updated.status === "interrupted") await emitToOwner(updated, "media:job:interrupted", payload);
+    else await emitToOwner(updated, "media:job:updated", payload);
   } else {
     // cambio solo de metadata (warnings/error): evento updated
-    emitToOwner(updated, "media:job:updated", payload);
+    await emitToOwner(updated, "media:job:updated", payload);
   }
 }
 
