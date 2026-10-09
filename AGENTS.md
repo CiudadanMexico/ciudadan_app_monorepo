@@ -5,6 +5,11 @@ Monorepo (plain git, no workspace tooling) for **Ciudadan**, a Spanish-language 
 - `ciudadan_backend_26/` — Strapi 4.25.9 headless CMS + REST/GraphQL API (Node 18)
 - `ciudadan_frontend/` — React 18 + CRA/CRACO + MUI v6 + Capacitor (Android/iOS)
 
+> **Notas:** el proyecto original incluía un módulo `ciudadan_backend_26/market/`
+> (Vendure e-commerce). Ese módulo se desmontó/figuramente por que solo servía
+> como pasarela de pago de Stripe; su directorio y dependencias fueron removidos.
+> No hay subproyectos extra, solo los dos descritos arriba.
+
 ## Commands
 
 ### Backend (`ciudadan_backend_26/`)
