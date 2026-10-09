@@ -241,6 +241,68 @@ curl -s http://localhost:33032/admin/init | grep -o '"hasAdmin":[a-z]*'   # ¿ex
 
 ---
 
+## Paso 7c — Swap + watchdog (instancias VPS) — `2026-10-09`
+
+### Por qué existe esto
+
+La instancia tiene 6 GB de RAM y el CRA dev server (~2.8 GB) + Strapi saturan la
+memoria. El 2026-10-09 el frontend quedó **colgado en estado D** (proceso vivo
+pero sin responder en `:3001`): `Restart=always` de systemd **no** lo reinicia
+porque el proceso no muere, Cloudflare agotaba el timeout y devolvía
+**error 524** en `frontend-adrianperez2.ciudadan.org` aunque el túnel estuviera
+sano (4 conexiones) y backend/socket respondieran bien.
+
+### Swap persistente (2 GB)
+
+La máquina no tenía swap. Crear `/swapfile` da margen para que el kernel
+mueva páginas inactivas en vez de dejar procesos en D-state:
+
+```bash
+sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile \
+  && sudo mkswap /swapfile && sudo swapon /swapfile
+grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+free -m   # debe mostrar Swap: 2047
+```
+
+### Watchdog: reinicia lo que *cuelgue* (no solo lo que muera)
+
+`~/ciudadan-watchdog.sh` prueba la conectividad de cada puerto y solo reinicia
+si **no hay conexión** (código `000` de curl), nunca por 4xx/5xx normales:
+
+```bash
+#!/bin/bash
+# Uso: ciudadan-watchdog.sh <servicio> <puerto> <endpoint>
+SVC="$1"; PORT="$2"; EP="${3:-/}"
+CODE=$(timeout 10 curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:${PORT}${EP}" 2>/dev/null || echo 000)
+if [ "$CODE" = "000" ]; then
+  logger -t ciudadan-watchdog "$SVC sin conexion en :$PORT$EP -> restart"
+  /usr/bin/systemctl restart "$SVC"
+fi
+```
+
+Timer `ciudadan-watchdog.timer` (cada 3 min) → `ciudadan-watchdog.service`:
+
+```bash
+# /etc/systemd/system/ciudadan-watchdog.service (Type=oneshot):
+# ExecStart=/bin/bash -c "/home/ubuntu/ciudadan-watchdog.sh ciudadan-frontend 3001 /;
+#   /home/ubuntu/ciudadan-watchdog.sh ciudadan-backend 33032 /_health;
+#   /home/ubuntu/ciudadan-watchdog.sh ciudadan-socket 33035 /"
+sudo systemctl enable --now ciudadan-watchdog.timer
+systemctl list-timers ciudadan-watchdog --no-pager
+sudo systemctl start ciudadan-watchdog.service   # corrida manual de prueba
+```
+
+Notas:
+
+- Endpoints de chequeo: frontend `/`, backend `/_health`, socket `/`.
+- El túnel `cloudflared` (`systemd`, `Restart=on-failure`) también se chequea
+  indirectamente: si el origen cae, el watchdog lo levanta y el túnel lo
+  reanuda solo. Ver sus conexiones: `journalctl -u cloudflared -n 20`.
+- Como todo lo de `/etc/systemd/`, estos archivos son **de la máquina, no del
+  repo**: si se recrea la instancia hay que volver a crearlos (esta sección).
+
+---
+
 ## Paso 8 — Deploy a producción (sucinto)
 
 ### vía CI/CD (GitHub Actions)
@@ -276,6 +338,7 @@ sudo systemctl restart <servicio>
 | Scripts de seed fallan en Node 22 | `export NODE_OPTIONS=--openssl-legacy-provider` |
 | 401 en `/api/users` | Debe autenticarse con token **Auth0** (rutas override) |
 | Media no carga | Levanta el **middleware proxy** o apunta directo a Strapi `/uploads` |
+| 524 en el túnel (frontend) | Origen colgado en estado D por falta de RAM: revisa `ss -ltn|grep 3001` + `curl -s http://127.0.0.1:3001/`; si no responde, `sudo systemctl restart ciudadan-frontend`. Ver **Paso 7c** (swap + watchdog) |
 
 ---
 
