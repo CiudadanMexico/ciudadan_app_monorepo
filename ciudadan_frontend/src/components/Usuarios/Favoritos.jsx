@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Pestanas from "../../components/Pestanas.jsx";
 import { useLocation } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import { fetchFavoritos, eliminarFavorito } from "../../services/favoritosService";
+import { useNotifications } from "../../Contexts/NotificationsContext";
 import {
   Box,
   Typography,
@@ -28,7 +30,21 @@ import { motion } from "framer-motion";
 
 const Favoritos = () => {
   const location = useLocation();
-  const { user, isLoading } = useAuth0();
+  const { user, isLoading, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { toast } = useNotifications() || {};
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+
+  // Token Auth0 para los endpoints de favoritos (sin él Strapi responde 401).
+  const getFavToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
 
   const [tabIndex, setTabIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(
@@ -102,31 +118,15 @@ const Favoritos = () => {
       return;
     }
 
-    const fetchFavoritos = async () => {
+    const fetchFavoritosList = async () => {
       setLoadingItems(true);
       setError(null);
 
       try {
-        const baseRaw = process.env.REACT_APP_STRAPI_URL || "";
-        const base = baseRaw.replace(/\/+$/, "");
-        if (!base) throw new Error("REACT_APP_STRAPI_URL no definido en .env");
-
-        const url = `${base}/api/favoritos?filters[usuario_email][$eq]=${encodeURIComponent(
-          user.email
-        )}&filters[tipo][$eq]=${encodeURIComponent(currentTipo)}&populate=deep,3&sort[0]=id:desc`;
-
-        const headers = { "Content-Type": "application/json" };
-        if (process.env.REACT_APP_STRAPI_TOKEN) {
-          headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
-        }
-
-        const res = await fetch(url, { headers });
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(`Strapi error ${res.status}: ${txt}`);
-        }
-
-        const json = await res.json();
+        // Endpoint autenticado: solo los favoritos del usuario (token Auth0).
+        // Antes se pedía a la ruta core sin token -> 401 "Missing or invalid credentials".
+        const token = await getFavToken();
+        const json = await fetchFavoritos(token, { tipo: currentTipo, limit: 100 });
         const data = Array.isArray(json.data) ? json.data : [];
         setItems(data);
       } catch (err) {
@@ -138,7 +138,7 @@ const Favoritos = () => {
       }
     };
 
-    fetchFavoritos();
+    fetchFavoritosList();
   }, [user, isLoading, currentTipo]);
 
   // eliminar favorito
@@ -147,29 +147,12 @@ const Favoritos = () => {
     if (!ok) return;
 
     try {
-      const baseRaw = process.env.REACT_APP_STRAPI_URL || "";
-      const base = baseRaw.replace(/\/+$/, "");
-      if (!base) throw new Error("REACT_APP_STRAPI_URL no definido en .env");
-
-      const headers = { "Content-Type": "application/json" };
-      if (process.env.REACT_APP_STRAPI_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
-      }
-
-      const res = await fetch(`${base}/api/favoritos/${id}`, {
-        method: "DELETE",
-        headers,
-      });
-
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Error al eliminar: ${res.status} ${txt}`);
-      }
-
+      const token = await getFavToken();
+      await eliminarFavorito(id, token);
       setItems((prev) => prev.filter((it) => Number(it.id) !== Number(id)));
     } catch (err) {
       console.error(err);
-      alert("No se pudo quitar el favorito: " + (err.message || err));
+      if (toast?.error) toast.error("No se pudo quitar el favorito: " + (err.message || err));
     }
   };
 

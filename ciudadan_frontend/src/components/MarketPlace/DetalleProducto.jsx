@@ -24,6 +24,8 @@ import { useCart } from '../../Contexts/CartContext';
 import useFavoritos from '../../hooks/useFavoritos';
 import { useAuth0 } from '@auth0/auth0-react';
 
+const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+
 import '../../styles/DetalleProducto.css';
 import { esFavorito, toggleFavorito } from "../../services/favoritosService";
 import { useRoles } from '../../Contexts/RolesContext';
@@ -45,8 +47,20 @@ export default function DetalleProducto({
   const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, getAccessTokenSilently } = useAuth0();
   const { userData } = useRoles();
+
+  // Token Auth0 para los endpoints de favoritos (sin él Strapi responde 401).
+  const getFavToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
 
   /* -------------------- estados -------------------- */
   const [costoEnvio, setCostoEnvio] = useState('Calculando…');
@@ -63,10 +77,12 @@ export default function DetalleProducto({
     if (!isAuthenticated) return;
     setFavLoading(true);
     try {
+      const token = await getFavToken();
       const resultado = await esFavorito(
         userId,
         "producto",
-        productId
+        productId,
+        token
       );
 
       setFavorito(resultado.favorito);
@@ -161,12 +177,14 @@ export default function DetalleProducto({
     setFavLoading(true);
     try {
 
+      const token = await getFavToken();
       const resultado = await toggleFavorito({
         usuarioId: userData?.id,
         usuarioEmail: userData?.email,
         tipo: "producto",
         elementoId: producto?.id,
-        url: producto?.slug
+        url: producto?.slug,
+        token,
       });
 
       setFavorito(resultado.favorito);
