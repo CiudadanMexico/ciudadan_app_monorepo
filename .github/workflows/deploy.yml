@@ -213,7 +213,7 @@ jobs:
   deploy-polanco:
     name: FASE 9-12 — Pre-gate → Deploy Polanco → Healthchecks → Rollback
     runs-on: ubuntu-latest
-    needs: canary-daniel
+    needs: [canary-daniel, build-and-gate]
     timeout-minutes: 45
     steps:
       - name: Setup SSH (igual que build)
