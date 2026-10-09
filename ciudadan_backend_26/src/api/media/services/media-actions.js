@@ -448,6 +448,24 @@ async function artifactAccess(ctx) {
   };
 }
 
+// ---------- DELETE /api/media/jobs/:id/artifacts/:artifactId ----------
+async function deleteArtifact(ctx) {
+  const user = ctx.state.strapiUser;
+  if (!svc().rateLimit(user)) {
+    throw mediaErr(429, "MEDIA_LIMIT", "Demasiadas requests");
+  }
+  const job = await svc().findOwnedJob(user, ctx.params.id, { strapi });
+  if (!job.mediaJobId) throw mediaErr(404, "MEDIA_NOT_FOUND", "Sin artifact");
+  // mismo control que download/access: el artifact pertenece al job
+  const artsRes = await svc().apiClient.getArtifacts(job.mediaJobId).catch((e) => { throw svc().mapClientError(e); });
+  if (artsRes.status !== 200) throw svc().mapRemoteError(artsRes.status, artsRes.data);
+  const art = ((artsRes.data && artsRes.data.artifacts) || []).find((a) => a.id === ctx.params.artifactId);
+  if (!art) throw mediaErr(404, "MEDIA_NOT_FOUND", "Artifact no pertenece al job");
+  const del = await svc().apiClient.deleteArtifact(ctx.params.artifactId).catch((e) => { throw svc().mapClientError(e); });
+  if (del.status !== 200) throw svc().mapRemoteError(del.status, del.data);
+  return { deleted: true, id: ctx.params.artifactId };
+}
+
 // ---------- GET /api/media/artifact-access/:token ----------
 // SIN Bearer: consumido por <audio>/<video>/<img>/<a download>. Seguridad = grant firmado.
 async function artifactAccessConsume(ctx) {
@@ -480,4 +498,4 @@ async function artifactAccessConsume(ctx) {
   return undefined;
 }
 
-module.exports = { capabilities, upload, create, list, get, cancel, retry, artifacts, download, artifactAccess, artifactAccessConsume, sanitizeFilename, jobView, syncJob };
+module.exports = { capabilities, upload, create, list, get, cancel, retry, artifacts, download, artifactAccess, artifactAccessConsume, deleteArtifact, sanitizeFilename, jobView, syncJob };

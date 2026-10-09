@@ -114,6 +114,15 @@ export async function createArtifactAccess(token, jobId, artifactId, purpose) {
   return handle(res);
 }
 
+/** Borra un artifact propio en el servidor (irreversible). */
+export async function deleteMediaArtifact(token, jobId, artifactId) {
+  const res = await fetch(`${API_URL}/api/media/jobs/${jobId}/artifacts/${artifactId}`, {
+    method: "DELETE",
+    headers: getHeaders(token),
+  });
+  return handle(res);
+}
+
 export function getMediaArtifactDownloadUrl(id, artifactId) {
   return `${API_URL}/api/media/jobs/${id}/artifacts/${artifactId}/download`;
 }

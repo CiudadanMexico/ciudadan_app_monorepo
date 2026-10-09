@@ -30,6 +30,8 @@ const routes = [
     config: { auth: false, policies: ["global::is-authenticated-media"] } },
   { method: "GET", path: "/media/artifact-access/:token", handler: "media.artifactAccessConsume",
     config: { auth: false, policies: [] } },
+  { method: "DELETE", path: "/media/jobs/:id/artifacts/:artifactId", handler: "media.deleteArtifact",
+    config: { auth: false, policies: ["global::is-authenticated-media"] } },
 ];
 
 module.exports = { routes };

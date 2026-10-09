@@ -135,6 +135,11 @@ async function uploadStream(filepath, filename, sizeBytes, idempotencyKey) {
  * Download en STREAM con Range propagado (Paso 31/32). Devuelve la response
  * de axios con responseType stream (el service la pipa al cliente).
  */
+/** DELETE de un artifact (remueve registro + archivo en la Media API). */
+async function deleteArtifact(artifactId) {
+  return request("DELETE", "/v1/artifacts/" + encodeURIComponent(artifactId), { timeout: T.getStatus });
+}
+
 async function downloadArtifactStream(artifactId, rangeHeader) {
   const headers = {};
   if (rangeHeader) headers.Range = rangeHeader;
@@ -143,7 +148,7 @@ async function downloadArtifactStream(artifactId, rangeHeader) {
   });
 }
 
-module.exports = {
+module.exports = { deleteArtifact,
   MEDIA_API_URL,
   T,
   health, getCapabilities, getStatus, createJob, getJob, listJobs,

@@ -57,4 +57,7 @@ module.exports = {
   async artifactAccessConsume(ctx) {
     return handle(actions.artifactAccessConsume(ctx), ctx);
   },
+  async deleteArtifact(ctx) {
+    return handle(actions.deleteArtifact(ctx), ctx);
+  },
 };

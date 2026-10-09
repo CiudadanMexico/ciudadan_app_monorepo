@@ -28,6 +28,9 @@ import {
   FormControl,
   Grid,
   IconButton,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   InputLabel,
   MenuItem,
   Select,
@@ -41,6 +44,9 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import PlayCircleRoundedIcon from "@mui/icons-material/PlayCircleRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   getMediaCapabilities,
@@ -52,8 +58,9 @@ import {
   createArtifactAccess,
   getMediaArtifacts,
   getMediaArtifactDownloadUrl,
+  deleteMediaArtifact,
 } from "../../services/mediaService";
-import { getDefinition, UPLOAD_KIND_BY_PARAM } from "../../services/mediaJobDefinitions";
+import { getDefinition, mediaJobDefinitions, UPLOAD_KIND_BY_PARAM } from "../../services/mediaJobDefinitions";
 import {
   MediaSocketProvider,
   useMediaSocket,
@@ -133,12 +140,92 @@ function StateChip({ status }) {
   );
 }
 
+// ---------- guia de uso por operacion ----------
+function HelpBody({ d }) {
+  const h = d.help || {};
+  return (
+    <Box>
+      <Typography variant="body2" paragraph>{h.que || d.description}</Typography>
+      {h.requisitos && h.requisitos.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Qué necesitas</Typography>
+          <Box component="ul" sx={{ pl: 3, my: 0 }}>
+            {h.requisitos.map((r, i) => <Typography key={i} variant="body2" component="li">{r}</Typography>)}
+          </Box>
+        </Box>
+      )}
+      {h.pasos && h.pasos.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Pasos</Typography>
+          <Box component="ol" sx={{ pl: 3, my: 0 }}>
+            {h.pasos.map((p, i) => <Typography key={i} variant="body2" component="li">{p}</Typography>)}
+          </Box>
+        </Box>
+      )}
+      {h.resultado && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Resultado</Typography>
+          <Typography variant="body2">{h.resultado}</Typography>
+        </Box>
+      )}
+      {h.tiempo && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Tiempo estimado</Typography>
+          <Typography variant="body2">{h.tiempo}</Typography>
+        </Box>
+      )}
+      {h.tips && h.tips.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Consejos</Typography>
+          <Box component="ul" sx={{ pl: 3, my: 0 }}>
+            {h.tips.map((t, i) => <Typography key={i} variant="body2" component="li">{t}</Typography>)}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+function HelpDialog({ open, onClose, type }) {
+  const def = type ? getDefinition(type) : null;
+  const allTypes = Object.keys(mediaJobDefinitions);
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>{def ? `${def.label} — Guía de uso` : "Centro Multimedia — Guía de operaciones"}</DialogTitle>
+      <DialogContent>
+        {def && <HelpBody d={def} />}
+        {!def && (
+          <React.Fragment>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              Elige una operación en «Nuevo trabajo» y pulsa el botón de ayuda para ver su guía concreta, o despliega cualquiera aquí:
+            </Typography>
+            {allTypes.map((t) => {
+              const d = mediaJobDefinitions[t];
+              return (
+                <Accordion key={t}>
+                  <AccordionSummary expandIcon={<ExpandMoreRoundedIcon />}>
+                    <Typography variant="subtitle2">{d.label}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ maxHeight: "min(60vh, 450px)", overflowY: "auto" }}>
+                    <HelpBody d={d} />
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </React.Fragment>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ---------- panel de artifacts ----------
 function ArtifactPanel({ token, jobId, open, onClose }) {
   const [arts, setArts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null); // {art, url, text}
+  const [confirmDel, setConfirmDel] = useState(null); // artifact pendiente de borrar
 
   useEffect(() => {
     if (!open || !jobId || !token) return;
@@ -184,6 +271,19 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
     }
   };
 
+  const doDelete = async (art) => {
+    setError(null);
+    try {
+      await deleteMediaArtifact(token, jobId, art.id);
+      setArts((prev) => (prev || []).filter((x) => x.id !== art.id));
+      if (preview && preview.art && preview.art.id === art.id) setPreview(null);
+      setConfirmDel(null);
+    } catch (e) {
+      setError(errorToMessage(e) || e.message || "No se pudo borrar el artifact");
+      setConfirmDel(null);
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Artifacts del trabajo {jobId}</DialogTitle>
@@ -205,6 +305,11 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
                     <DownloadRoundedIcon />
                   </IconButton>
                 </Tooltip>
+                <Tooltip title="Borrar (se elimina del servidor)">
+                  <IconButton size="small" aria-label={`Borrar ${a.name}`} onClick={() => setConfirmDel(a)}>
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </Tooltip>
               </Stack>
             ))}
           </Stack>
@@ -222,6 +327,17 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
             )}
           </Box>
         )}
+        {confirmDel && (
+          <Box sx={{ mt: 2, p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+            <Typography variant="body2" gutterBottom>
+              ¿Borrar «{confirmDel.name}»? Se elimina del servidor y no se puede recuperar.
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Button size="small" color="error" variant="contained" onClick={() => doDelete(confirmDel)}>Borrar</Button>
+              <Button size="small" onClick={() => setConfirmDel(null)}>Cancelar</Button>
+            </Stack>
+          </Box>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -235,6 +351,7 @@ function NewJobPanel({ token, capabilities, onCreated }) {
   const [uploads, setUploads] = useState({}); // paramKey -> {id, name, sizeBytes, uploading, error}
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const def = type ? getDefinition(type) : null;
   const cap = type ? capabilities[type] : null;
@@ -314,7 +431,14 @@ function NewJobPanel({ token, capabilities, onCreated }) {
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>Nuevo trabajo</Typography>
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          <Typography variant="h6" gutterBottom>Nuevo trabajo</Typography>
+          <Tooltip title="Ayuda: guía de uso de las operaciones">
+            <IconButton size="small" aria-label="Ayuda" onClick={() => setHelpOpen(true)}>
+              <HelpOutlineRoundedIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth size="small">
@@ -335,7 +459,14 @@ function NewJobPanel({ token, capabilities, onCreated }) {
         </Grid>
         {def && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary" paragraph>{def.description}</Typography>
+            <Stack direction="row" spacing={0.5} alignItems="flex-start">
+              <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 0 }}>{def.description}</Typography>
+              <Tooltip title="Guía de uso de esta operación">
+                <IconButton size="small" aria-label={`Ayuda de ${def.label}`} onClick={() => setHelpOpen(true)}>
+                  <HelpOutlineRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
             {cap && cap.warning && <Alert severity="info" sx={{ mb: 1 }}>{cap.warning}</Alert>}
             {commercialBlocked && (
               <Alert severity="warning" sx={{ mb: 1 }}>
@@ -357,7 +488,7 @@ function NewJobPanel({ token, capabilities, onCreated }) {
                           type="file"
                           accept={(UPLOAD_KIND_BY_PARAM[f.key] || []).map((k) => ({ audio: "audio/*", video: "video/*", image: "image/*" }[k])).join(",")}
                           onChange={(e) => handleFile(f.key, e.target.files && e.target.files[0])}
-                          disabled={submitting || Boolean(commercialBlocked)}
+                          disabled={submitting}
                         />
                         {uploads[f.key] && (
                           <Typography variant="caption" color={uploads[f.key].error ? "error" : "text.secondary"}>
@@ -412,6 +543,7 @@ function NewJobPanel({ token, capabilities, onCreated }) {
                 {submitting ? <CircularProgress size={18} color="inherit" /> : "Crear trabajo"}
               </Button>
             </Box>
+            <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} type={type} />
           </Box>
         )}
       </CardContent>
