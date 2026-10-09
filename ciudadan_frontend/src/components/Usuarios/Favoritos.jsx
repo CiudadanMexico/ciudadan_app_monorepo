@@ -19,7 +19,9 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LoginIcon from "@mui/icons-material/Login";
 import { motion } from "framer-motion";
+import PurpleButton from "../common/PurpleButton.jsx";
 
 /**
  * Favoritos.jsx (usa Pestanas)
@@ -30,7 +32,7 @@ import { motion } from "framer-motion";
 
 const Favoritos = () => {
   const location = useLocation();
-  const { user, isLoading, isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { user, isLoading, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
   const { toast } = useNotifications() || {};
   const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
 
@@ -110,10 +112,11 @@ const Favoritos = () => {
 
   const currentTipo = useMemo(() => tabs[tabIndex]?.tipo || "producto", [tabIndex]);
 
-  // fetch cada vez que cambia tipo o usuario
+  // fetch cada vez que cambia tipo o usuario (solo con sesión: sin ella se
+  // muestra el gate de login y no se pega al backend -> evita el 403 Forbidden)
   useEffect(() => {
     if (isLoading) return;
-    if (!user || !user.email) {
+    if (!isAuthenticated || !user || !user.email) {
       setItems([]);
       return;
     }
@@ -139,7 +142,7 @@ const Favoritos = () => {
     };
 
     fetchFavoritosList();
-  }, [user, isLoading, currentTipo]);
+  }, [user, isLoading, isAuthenticated, currentTipo]);
 
   // eliminar favorito
   const handleRemove = async (id) => {
@@ -214,7 +217,23 @@ const Favoritos = () => {
         >
           <Divider sx={{ mb: 2 }} />
 
-          {loadingItems ? (
+          {!isLoading && !isAuthenticated ? (
+            <Box sx={{ py: 6, textAlign: "center" }}>
+              <Typography variant="h6" fontWeight={700} gutterBottom>
+                Tienes que iniciar sesión para poder agregar y visualizar favoritos
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Guarda productos, cursos, contenidos y clubs en un solo lugar.
+              </Typography>
+              <PurpleButton
+                startIcon={<LoginIcon />}
+                onClick={() => loginWithRedirect({ appState: { returnTo: location.pathname } })}
+                sx={{ px: 4, py: 1.2 }}
+              >
+                Iniciar sesión
+              </PurpleButton>
+            </Box>
+          ) : loadingItems ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
               <CircularProgress />
             </Box>
