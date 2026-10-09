@@ -385,4 +385,99 @@ async function download(ctx) {
   return undefined;
 }
 
-module.exports = { capabilities, upload, create, list, get, cancel, retry, artifacts, download, sanitizeFilename, jobView, syncJob };
+// ---------- access grant firmado (HMAC short-lived) ----------
+// <audio>/<video>/<img>/<a download> no pueden enviar Bearer; la seguridad
+// vive en un grant corto firmado scope a (user, job, artifact, purpose).
+const crypto = require("crypto");
+const ACCESS_TTL_SECONDS = Number(process.env.MEDIA_ARTIFACT_ACCESS_TTL_SECONDS || 300);
+const ACCESS_PURPOSES = new Set(["preview", "download"]);
+
+function accessSecret() {
+  return process.env.JWT_SECRET || process.env.API_TOKEN_SALT || "";
+}
+
+function b64u(buf) {
+  return Buffer.from(buf).toString("base64url");
+}
+
+function signAccess(payload) {
+  const body = b64u(JSON.stringify(payload));
+  const mac = crypto.createHmac("sha256", accessSecret()).update(body).digest("base64url");
+  return body + "." + mac;
+}
+
+function verifyAccess(token) {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 2) return null;
+  const [body, mac] = parts;
+  if (!body || !mac) return null;
+  const expected = crypto.createHmac("sha256", accessSecret()).update(body).digest("base64url");
+  const a = Buffer.from(mac);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  let payload;
+  try { payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")); } catch (e) { return null; }
+  if (!payload || !payload.a || !payload.e || Date.now() > Number(payload.e)) return null;
+  return payload;
+}
+
+// ---------- POST /api/media/jobs/:id/artifacts/:artifactId/access ----------
+async function artifactAccess(ctx) {
+  const user = ctx.state.strapiUser;
+  if (!svc().rateLimit(user)) {
+    throw mediaErr(429, "MEDIA_LIMIT", "Demasiadas requests");
+  }
+  const job = await svc().findOwnedJob(user, ctx.params.id, { strapi });
+  if (!job.mediaJobId) throw mediaErr(404, "MEDIA_NOT_FOUND", "Sin artifact");
+  // mismo control que download: el artifact pertenece al job
+  const artsRes = await svc().apiClient.getArtifacts(job.mediaJobId).catch((e) => { throw svc().mapClientError(e); });
+  if (artsRes.status !== 200) throw svc().mapRemoteError(artsRes.status, artsRes.data);
+  const art = ((artsRes.data && artsRes.data.artifacts) || []).find((a) => a.id === ctx.params.artifactId);
+  if (!art) throw mediaErr(404, "MEDIA_NOT_FOUND", "Artifact no pertenece al job");
+  const purpose = ACCESS_PURPOSES.has(ctx.request.body && ctx.request.body.purpose) ? ctx.request.body.purpose : "preview";
+  const payload = { a: ctx.params.artifactId, j: job.id, u: user.id, p: purpose, e: Date.now() + ACCESS_TTL_SECONDS * 1000 };
+  const proto = ctx.request.headers["x-forwarded-proto"] || "https";
+  const host = ctx.request.headers["x-forwarded-host"] || ctx.request.host;
+  const base = process.env.PUBLIC_MEDIA_BASE_URL || (proto + "://" + host);
+  const token = signAccess(payload);
+  return {
+    url: base + "/api/media/artifact-access/" + token,
+    expiresAt: new Date(Number(payload.e)).toISOString(),
+    disposition: purpose === "download" ? "attachment" : "inline",
+    purpose,
+  };
+}
+
+// ---------- GET /api/media/artifact-access/:token ----------
+// SIN Bearer: consumido por <audio>/<video>/<img>/<a download>. Seguridad = grant firmado.
+async function artifactAccessConsume(ctx) {
+  const payload = verifyAccess(ctx.params.token);
+  if (!payload) {
+    throw mediaErr(403, "MEDIA_ACCESS_INVALID", "Grant invalido o expirado");
+  }
+  const job = await strapi.db.query("api::media.media-job").findOne({ where: { id: payload.j } }).catch(() => null);
+  if (!job) throw mediaErr(404, "MEDIA_NOT_FOUND", "Job no encontrado");
+  if (!job.mediaJobId) throw mediaErr(404, "MEDIA_NOT_FOUND", "Sin artifact");
+  // el artifact sigue perteneciendo al job (revocacion efectiva si se borro/cambio)
+  const artsRes = await svc().apiClient.getArtifacts(job.mediaJobId).catch((e) => { throw svc().mapClientError(e); });
+  if (artsRes.status !== 200) throw svc().mapRemoteError(artsRes.status, artsRes.data);
+  const art = ((artsRes.data && artsRes.data.artifacts) || []).find((a) => a.id === payload.a);
+  if (!art) throw mediaErr(404, "MEDIA_NOT_FOUND", "Artifact no pertenece al job");
+  const range = ctx.request.headers.range;
+  const res = await svc().apiClient.downloadArtifactStream(payload.a, range).catch((e) => { throw svc().mapClientError(e); });
+  if (res.status !== 200 && res.status !== 206) throw svc().mapRemoteError(res.status, res.data);
+  const name = sanitizeFilename(art.name);
+  const mediaMime = /audio|video|image/.test(res.headers["content-type"] || "") || /audio|video|image/.test(art.mime_type || "");
+  ctx.set("Content-Type", res.headers["content-type"] || art.mime_type || "application/octet-stream");
+  ctx.set("Content-Disposition", ((payload.p === "download" || !mediaMime) ? "attachment" : "inline") + '; filename="' + name + '"');
+  ctx.set("Cache-Control", "private, no-store");
+  ctx.set("Referrer-Policy", "no-referrer");
+  if (res.headers["content-range"]) ctx.set("Content-Range", res.headers["content-range"]);
+  if (res.headers["accept-ranges"]) ctx.set("Accept-Ranges", res.headers["accept-ranges"]);
+  if (res.headers["content-length"]) ctx.set("Content-Length", res.headers["content-length"]);
+  ctx.status = res.status; // 200 o 206 (Range)
+  ctx.body = res.data; // stream
+  return undefined;
+}
+
+module.exports = { capabilities, upload, create, list, get, cancel, retry, artifacts, download, artifactAccess, artifactAccessConsume, sanitizeFilename, jobView, syncJob };

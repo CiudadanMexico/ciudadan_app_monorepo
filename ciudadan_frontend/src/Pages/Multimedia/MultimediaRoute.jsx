@@ -49,6 +49,7 @@ import {
   listMediaJobs,
   cancelMediaJob,
   retryMediaJob,
+  createArtifactAccess,
   getMediaArtifacts,
   getMediaArtifactDownloadUrl,
 } from "../../services/mediaService";
@@ -155,25 +156,31 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
 
   const doPreview = async (art) => {
     setError(null);
-    const url = getMediaArtifactDownloadUrl(jobId, art.id);
     const mime = art.mime || "";
-    if (/^image\/(jpeg|png|webp|gif)/.test(mime)) {
-      setPreview({ art, url, kind: "image" });
-    } else if (/^audio\//.test(mime)) {
-      setPreview({ art, url, kind: "audio" });
-    } else if (/^video\//.test(mime)) {
-      setPreview({ art, url, kind: "video" });
-    } else if (/^(text\/plain|text\/vtt|application\/json)/.test(mime) && (art.sizeBytes || 0) < 256 * 1024) {
-      try {
-        const res = await fetch(url);
+    const isText = /^(text\/plain|text\/vtt|application\/json)/.test(mime) && (art.sizeBytes || 0) < 256 * 1024;
+    try {
+      if (isText) {
+        // texto pequeno: fetch autenticado normal (Bearer) — streaming innecesario
+        const res = await fetch(getMediaArtifactDownloadUrl(jobId, art.id), { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) throw new Error("No se pudo cargar la vista previa");
         const text = await res.text();
-        setPreview({ art, url, kind: "text", text });
-      } catch (e) {
-        setError(e.message || "No se pudo cargar la vista previa");
+        setPreview({ art, kind: "text", text });
+        return;
       }
-    } else {
-      setError("Vista previa no disponible para este formato; usa descarga.");
+      // image/audio/video: URL temporal firmada (grant) para <img>/<audio>/<video> con Range
+      const grant = await createArtifactAccess(token, jobId, art.id, "preview");
+      if (!grant || !grant.url) throw new Error("No se pudo generar la vista previa");
+      if (/^image\/(jpeg|png|webp|gif)/.test(mime)) {
+        setPreview({ art, url: grant.url, kind: "image" });
+      } else if (/^audio\//.test(mime)) {
+        setPreview({ art, url: grant.url, kind: "audio" });
+      } else if (/^video\//.test(mime)) {
+        setPreview({ art, url: grant.url, kind: "video" });
+      } else {
+        setError("Vista previa no disponible para este formato; usa descarga.");
+      }
+    } catch (e) {
+      setError(errorToMessage(e) || e.message || "No se pudo cargar la vista previa");
     }
   };
 
@@ -193,8 +200,8 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
                 <Box sx={{ flexGrow: 1 }} />
                 <Tooltip title="Vista previa"><IconButton size="small" onClick={() => doPreview(a)} aria-label={`Vista previa de ${a.name}`}><PlayCircleRoundedIcon /></IconButton></Tooltip>
                 <Tooltip title="Descargar">
-                  <IconButton size="small" href={getMediaArtifactDownloadUrl(jobId, a.id)} aria-label={`Descargar ${a.name}`}
-                    onClick={(e) => { e.preventDefault(); const el = document.createElement("a"); el.href = getMediaArtifactDownloadUrl(jobId, a.id); el.setAttribute("download", a.name); document.body.appendChild(el); el.click(); el.remove(); }}>
+                  <IconButton size="small" aria-label={`Descargar ${a.name}`}
+                    onClick={async (e) => { e.preventDefault(); try { const grant = await createArtifactAccess(token, jobId, a.id, "download"); if (!grant || !grant.url) throw new Error("No se pudo generar la descarga"); const el = document.createElement("a"); el.href = grant.url; el.setAttribute("download", a.name); document.body.appendChild(el); el.click(); el.remove(); } catch (err) { setError(errorToMessage(err) || err.message || "No se pudo generar la descarga"); } }}>
                     <DownloadRoundedIcon />
                   </IconButton>
                 </Tooltip>
@@ -313,7 +320,8 @@ function NewJobPanel({ token, capabilities, onCreated }) {
             <FormControl fullWidth size="small">
               <InputLabel id="media-op-label">Operación</InputLabel>
               <Select labelId="media-op-label" label="Operación" value={type}
-                onChange={(e) => setType(e.target.value)}>
+                onChange={(e) => setType(e.target.value)}
+                MenuProps={{ sx: { zIndex: 1600 }, PaperProps: { sx: { maxHeight: "min(60vh, 450px)", overflowY: "auto" } }, marginThreshold: 8 }}>
                 {types.length === 0 && <MenuItem value="" disabled><em>Cargando capabilities…</em></MenuItem>}
                 {types.map((t) => {
                   const c = capabilities[t];
