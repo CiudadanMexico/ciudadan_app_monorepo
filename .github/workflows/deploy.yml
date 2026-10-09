@@ -122,11 +122,10 @@ jobs:
           cd ciudadan_backend_26/socket-service
           npm ci --legacy-peer-deps --no-audit --no-fund
           npm run build
-          # el tsc no copia assets estaticos: llevar los .sql del config al dist
+          # tsc no copia archivos no-TS: el runtime lee dist/config/schema.sql (ConfigDatabase)
           mkdir -p dist/config
-          cp config/*.sql dist/config/ 2>/dev/null || true
-          test -f dist/config/WikiRootProvider.js && echo "socket dist OK"
-          test -f dist/config/schema.sql && echo "schema.sql copiado" || echo "schema.sql ausente"
+          cp config/schema.sql dist/config/schema.sql
+          test -f dist/config/WikiRootProvider.js && test -f dist/config/schema.sql && echo "socket dist OK (con schema.sql)"
 
       - name: Build frontend (CRA/craco, 100% en runner)
         run: |
