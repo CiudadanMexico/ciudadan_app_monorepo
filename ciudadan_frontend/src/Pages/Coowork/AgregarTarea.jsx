@@ -163,7 +163,7 @@ export default function AgregarTarea() {
       try {
         setLoadingSkills(true);
         const res = await fetch(
-          `${STRAPI}/api/skills?populate[area]=*&pagination[limit]=1000&sort[0]=name:asc&filters[is_active][$ne]=false`
+          `${STRAPI}/api/skills?populate[areas]=*&pagination[limit]=1000&sort[0]=name:asc&filters[is_active][$ne]=false`
         );
         if (!res.ok) throw new Error(`No se pudieron cargar las especialidades (${res.status})`);
         const json = await res.json();

@@ -104,7 +104,7 @@ const SkillsManagement = () => {
         name: skill.attributes?.name || '',
         description: skill.attributes?.description || '',
         is_active: skill.attributes?.is_active !== false,
-        areas: areasIdOf(skill.attributes?.areas) || '',
+        area: areasIdOf(skill.attributes?.areas)[0] ?? '',
       },
     });
   };
@@ -126,8 +126,10 @@ const SkillsManagement = () => {
       return;
     }
     const payload = {
-      ...dialog.form,
-      area: dialog.form.area ? Number(dialog.form.area) : null,
+      name: dialog.form.name?.trim(),
+      description: dialog.form.description ?? '',
+      is_active: dialog.form.is_active !== false,
+      areas: dialog.form.area ? [Number(dialog.form.area)] : [],
     };
     setSaving(true);
     setActionError(null);

@@ -1307,6 +1307,11 @@ export interface ApiAreaArea extends Schema.CollectionType {
       'manyToMany',
       'plugin::users-permissions.user'
     >;
+    skills: Attribute.Relation<
+      'api::area.area',
+      'manyToMany',
+      'api::skill.skill'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5775,6 +5780,11 @@ export interface ApiSkillSkill extends Schema.CollectionType {
       'api::skill.skill',
       'manyToMany',
       'plugin::users-permissions.user'
+    >;
+    areas: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'api::area.area'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

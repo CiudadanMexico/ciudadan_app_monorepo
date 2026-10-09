@@ -1,6 +1,7 @@
 import {
   areaIdOf,
   areaOptions,
+  areasIdOf,
   areaPath,
   cadenaDeAreas,
   especialidadOptions,
@@ -27,7 +28,7 @@ const skillV4 = (id, name, areaId, is_active = true) => ({
   attributes: {
     name,
     is_active,
-    area: areaId ? { data: { id: areaId, attributes: { name: '' } } } : { data: null },
+    areas: areaId ? { data: [{ id: areaId, attributes: { name: '' } }] } : { data: [] },
   },
 });
 
@@ -96,6 +97,12 @@ describe('areaPath y cadenaDeAreas — árbol agnóstico al nivel', () => {
     expect(cadenaDeAreas(IMP, [ADM, CONT, IMP])).toEqual([1, 2, 3]);
     expect(cadenaDeAreas(ADM, [ADM])).toEqual([1]);
     expect(cadenaDeAreas(null, [])).toEqual([]);
+  });
+
+  it('areasIdOf acepta {data}, plano, array y null', () => {
+    expect(areasIdOf({ data: [{ id: 7 }, { id: 9 }] })).toEqual([7, 9]);
+    expect(areasIdOf([{ id: 7 }])).toEqual([7]);
+    expect(areasIdOf(null)).toEqual([]);
   });
 
   it('areaIdOf acepta {data}, plano, array y null', () => {
