@@ -1,0 +1,314 @@
+name: Deploy Ciudadan (monorepo → Daniel canary → Polanco)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Nota del deploy manual"
+        required: false
+        default: ""
+
+concurrency:
+  group: ciudadan-production
+  cancel-in-progress: false
+
+env:
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+  POLANCO_HOST: ${{ secrets.POLANCO_HOST }}
+  DANIEL_HOST: ${{ secrets.DANIEL_HOST }}
+  # Host-keys PUBLICOS pineados (no son secretos):
+  KH_LINES: |
+    ssh.ciudadan.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
+    [ssh.ciudadan.org]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
+    40.233.7.3 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
+    [40.233.7.3]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
+
+jobs:
+  build-and-gate:
+    name: Build + tests rápidos + migration gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+      deployed: ${{ steps.gate.outputs.deployed }}
+      gate: ${{ steps.gate.outputs.gate }}
+    steps:
+      - name: Checkout del SHA exacto
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Setup SSH (key + known_hosts + cloudflared)
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+          cat > ~/.ssh/config <<'EOF'
+          Host polanco-tunnel
+            HostName ssh.ciudadan.org
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          Host daniel-direct
+            HostName DANIELHOST
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
+          chmod 600 ~/.ssh/config
+          ssh -o BatchMode=yes polanco-tunnel true && echo "SSH polanco OK"
+
+      - name: Meta
+        id: meta
+        run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: FASE 7 — Migration gate (cambios de schema → aprobación manual)
+        id: gate
+        run: |
+          set -uo pipefail
+          DEPLOYED=$(ssh -o BatchMode=yes polanco-tunnel cat /var/www/releases/ciudadan_backend/CURRENT 2>/dev/null | tail -1)
+          if [ -z "$DEPLOYED" ]; then echo "No pude leer el SHA desplegado en Polanco — abortando"; exit 1; fi
+          echo "deployed=$DEPLOYED" >> "$GITHUB_OUTPUT"
+          if ! git cat-file -e "$DEPLOYED^{commit}" 2>/dev/null; then
+            echo "gate=BLOCKED_REQUIRES_MANUAL_APPROVAL" >> "$GITHUB_OUTPUT"
+            echo "::error::El SHA desplegado ($DEPLOYED) no existe en este repo (rebase/force-push?). Revisión manual requerida."
+            exit 1
+          fi
+          CHANGES=$(git diff --name-only "$DEPLOYED".."$GITHUB_SHA" -- 'ciudadan_backend_26/src/api/**/schema.json' 'ciudadan_backend_26/database/**' | head -50)
+          if [ -n "$CHANGES" ]; then
+            echo "gate=BLOCKED_REQUIRES_MANUAL_APPROVAL" >> "$GITHUB_OUTPUT"
+            echo "::error::CAMBIOS DE SCHEMA/DB DETECTADOS (Strapi auto-aplica DDL en arranque):"
+            echo "$CHANGES"
+            echo "::error::Deploy BLOQUEADO: BLOCKED_REQUIRES_MANUAL_APPROVAL. Revisa los cambios y, si son intencionales, despliega manualmente o ajusta este gate."
+            exit 1
+          fi
+          echo "gate=CLEAR" >> "$GITHUB_OUTPUT"
+          echo "Sin cambios de schema — gate CLEAR"
+
+      - name: Tests rápidos — sintaxis entrypoints
+        run: |
+          set -e
+          for f in ciudadan_backend_26/socket-service/server.js ciudadan_backend_26/middleware/src/index.js; do
+            [ -f "$f" ] && node --check "$f"
+          done
+          echo "sintaxis OK"
+
+      - name: Build backend (Strapi admin, precompilado en runner)
+        run: |
+          cd ciudadan_backend_26
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          npx strapi build
+          test -d build && echo "strapi build OK"
+
+      - name: Build socket-service (tsc → dist; requerido en runtime)
+        run: |
+          cd ciudadan_backend_26/socket-service
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          npm run build
+          test -f dist/config/WikiRootProvider.js && echo "socket dist OK"
+
+      - name: Build frontend (CRA/craco, 100% en runner)
+        run: |
+          cd ciudadan_frontend
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          CI=false npm run build
+          test -f build/index.html && echo "frontend build OK"
+
+      - name: Empaquetado + checksums + MANIFEST
+        run: |
+          set -euo pipefail
+          SHA=${GITHUB_SHA}
+          STAGE=$(mktemp -d)/ciudadan-release
+          mkdir -p "$STAGE"
+          tar -cf - \
+            --exclude='node_modules' \
+            --exclude='ciudadan_backend_26/.env' \
+            --exclude='ciudadan_backend_26/.strapi' \
+            --exclude='ciudadan_backend_26/.tmp' \
+            --exclude='*.log' --exclude='*.db' --exclude='*.sqlite*' \
+            --exclude='ciudadan_backend_26/public/uploads/*' \
+            -C . ciudadan_backend_26 \
+            -C ciudadan_frontend build \
+            | tar -xf - -C "$STAGE"
+          mv "$STAGE/build" "$STAGE/ciudadan_frontend_build"
+          cat > "$STAGE/MANIFEST.json" <<EOF
+          { "sha": "$SHA", "built": "$(date -u +%FT%TZ)", "actor": "${{ github.actor }}",
+            "run": "${{ github.run_id }}", "components": ["ciudadan_backend_26","ciudadan_frontend_build"] }
+          EOF
+          ( cd "$STAGE" && find . -type f ! -name checksums.sha256 ! -name yarn.lock -print0 | sort -z | xargs -0 sha256sum > checksums.sha256 )
+          tar -czf "ciudadan-$SHA.tar.gz" -C "$STAGE" .
+          sha256sum "ciudadan-$SHA.tar.gz"
+          echo "SIZE=$(du -h ciudadan-$SHA.tar.gz | cut -f1)" >> "$GITHUB_ENV"
+
+      - name: Guardar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ciudadan-release
+          path: ciudadan-${{ github.sha }}.tar.gz
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Subir tarball a servidores (pre-posición)
+        run: |
+          scp -o BatchMode=yes "ciudadan-${{ github.sha }}.tar.gz" "daniel-direct:/home/$DEPLOY_USER/uploads/"
+          scp -o BatchMode=yes "ciudadan-${{ github.sha }}.tar.gz" "polanco-tunnel:/home/$DEPLOY_USER/uploads/"
+
+  canary-daniel:
+    name: "FASE 6/8 — Daniel: install + canary estático (ARM64)"
+    runs-on: ubuntu-latest
+    needs: build-and-gate
+    timeout-minutes: 30
+    steps:
+      - name: Setup SSH (daniel directo, sin tunnel)
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host daniel-direct
+            HostName DANIELHOST
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Preflight standby Daniel (réplicas sanas)
+        run: ssh -o BatchMode=yes daniel-direct sudo -n /usr/local/bin/ciudadan-preflight | tee pref_daniel.txt && grep -q PREFLIGHT_OK pref_daniel.txt
+
+      - name: Canary estático (install ARM64, sin tocar servicios)
+        run: |
+          set -e
+          out=$(ssh -o BatchMode=yes daniel-direct \
+            "DEPLOY_ACTOR='${{ github.actor }}' /usr/local/bin/ciudadan-deploy install ${{ needs.build-and-gate.outputs.sha }} /home/$DEPLOY_USER/uploads/ciudadan-${{ needs.build-and-gate.outputs.sha }}.tar.gz")
+          echo "$out" | tee canary.txt
+          grep -q CANARY_OK canary.txt
+
+      - name: Reporte de canary
+        if: failure()
+        run: echo "::error::CANARY FALLÓ en Daniel — Polanco NO será tocado. Revisa los logs del paso anterior."
+
+  deploy-polanco:
+    name: FASE 9-12 — Pre-gate → Deploy Polanco → Healthchecks → Rollback
+    runs-on: ubuntu-latest
+    needs: canary-daniel
+    timeout-minutes: 45
+    steps:
+      - name: Setup SSH (igual que build)
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+          cat > ~/.ssh/config <<'EOF'
+          Host polanco-tunnel
+            HostName ssh.ciudadan.org
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          Host daniel-direct
+            HostName DANIELHOST
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: "FASE 9 — Pre-gate: healthchecks públicos (producción ya sana)"
+        run: |
+          set -uo pipefail
+          fail=0
+          check() {
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$1" || echo 000)
+            case "$code" in 2*|3*|404) echo "  ok  $1 ($code)" ;; *) echo "  FAIL $1 ($code)"; fail=1 ;; esac
+          }
+          check https://www.ciudadan.org
+          check https://back.ciudadan.org/admin
+          check https://back.marihuanas.club/admin
+          check https://socks.ciudadan.org/socket.io/?EIO=4\&transport=polling
+          check https://ecosistema.ciudadan.org
+          check https://civic-data.ciudadan.org
+          check https://back.independientes.mx
+          check https://elotromundial.com
+          if [ $fail -ne 0 ]; then echo "::error::Producción degradada ANTES del deploy — no se despliega."; exit 1; fi
+          echo "Pre-gate público: 8/8"
+
+      - name: "FASE 9 — Pre-gate: réplica sana desde Polanco"
+        run: ssh -o BatchMode=yes polanco-tunnel sudo -n /usr/local/bin/ciudadan-preflight | tee pre.txt && grep -q PREFLIGHT_OK pre.txt
+
+      - name: FASE 10 — Deploy Polanco (releases atómicos + restart afectados + 3 rondas + rollback auto)
+        id: deploy
+        run: |
+          set -o pipefail
+          out=$(ssh -o BatchMode=yes polanco-tunnel \
+            "DEPLOY_ACTOR='${{ github.actor }}' /usr/local/bin/ciudadan-deploy install ${{ needs.build-and-gate.outputs.sha }} /home/$DEPLOY_USER/uploads/ciudadan-${{ needs.build-and-gate.outputs.sha }}.tar.gz" 2>&1 | tee deploy.log)
+          echo "$out"
+          if grep -q "DEPLOY_OK" deploy.log; then
+            echo "result=DEPLOY_OK" >> "$GITHUB_OUTPUT"
+          elif grep -q "DEPLOY_FAILED_ROLLEDBACK" deploy.log; then
+            echo "result=ROLLEDBACK" >> "$GITHUB_OUTPUT"; exit 1
+          elif grep -q "DEPLOY_FAILED_ROLLBACK_ALSO_FAILED" deploy.log; then
+            echo "result=ROLLBACK_FAILED" >> "$GITHUB_OUTPUT"; exit 2
+          else
+            echo "result=UNKNOWN" >> "$GITHUB_OUTPUT"; exit 1
+          fi
+
+      - name: FASE 11 — Healthchecks post-deploy desde el runner (3 rondas)
+        run: |
+          set -uo pipefail
+          for r in 1 2 3; do
+            sleep 15
+            fail=0
+            for url in https://www.ciudadan.org https://back.ciudadan.org/admin https://socks.ciudadan.org/socket.io/?EIO=4\&transport=polling https://back.marihuanas.club/admin; do
+              code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$url" || echo 000)
+              case "$code" in 2*|3*) : ;; *) echo "ronda $r FAIL $url ($code)"; fail=1 ;; esac
+            done
+            [ $fail -eq 0 ] && echo "ronda $r: 4/4 ok" || { echo "ronda $r con fallos"; exit 1; }
+          done
+          echo "Post-deploy: 3 rondas verdes"
+
+  reporte:
+    name: FASE 14 — Observabilidad (summary)
+    runs-on: ubuntu-latest
+    needs: [build-and-gate, canary-daniel, deploy-polanco]
+    if: always()
+    steps:
+      - name: Resumen del deployment
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Deploy Ciudadan — resumen
+          | Campo | Valor |
+          |---|---|
+          | SHA | \`${{ needs.build-and-gate.outputs.sha }}\` |
+          | Anterior | \`${{ needs.build-and-gate.outputs.deployed }}\` |
+          | Gate migraciones | ${{ needs.build-and-gate.outputs.gate }} |
+          | Build | ${{ needs.build-and-gate.result }} |
+          | Canary Daniel (ARM64) | ${{ needs.canary-daniel.result }} |
+          | Deploy Polanco | ${{ needs.deploy-polanco.result }} |
+          | Actor | ${{ github.actor }} |
+          | Nota | ${{ github.event.inputs.note }} |
+          EOF
