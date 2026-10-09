@@ -265,22 +265,32 @@ jobs:
       - name: "FASE 9 — Pre-gate: réplica sana desde Polanco"
         run: ssh -o BatchMode=yes polanco-tunnel sudo -n /usr/local/bin/ciudadan-preflight | tee pre.txt && grep -q PREFLIGHT_OK pre.txt
 
-      - name: FASE 10 — Deploy Polanco (releases atómicos + restart afectados + 3 rondas + rollback auto)
+      - name: FASE 10 — Deploy Polanco (engine detached + polling; inmune a drops de ssh)
         id: deploy
+        timeout-minutes: 40
         run: |
           set -o pipefail
-          out=$(ssh -o BatchMode=yes polanco-tunnel \
-            "DEPLOY_ACTOR='${{ github.actor }}' /usr/local/bin/ciudadan-deploy install ${{ needs.build-and-gate.outputs.sha }} /home/$DEPLOY_USER/uploads/ciudadan-${{ needs.build-and-gate.outputs.sha }}.tar.gz" 2>&1 | tee deploy.log)
-          echo "$out"
-          if grep -q "DEPLOY_OK" deploy.log; then
-            echo "result=DEPLOY_OK" >> "$GITHUB_OUTPUT"
-          elif grep -q "DEPLOY_FAILED_ROLLEDBACK" deploy.log; then
-            echo "result=ROLLEDBACK" >> "$GITHUB_OUTPUT"; exit 1
-          elif grep -q "DEPLOY_FAILED_ROLLBACK_ALSO_FAILED" deploy.log; then
-            echo "result=ROLLBACK_FAILED" >> "$GITHUB_OUTPUT"; exit 2
-          else
-            echo "result=UNKNOWN" >> "$GITHUB_OUTPUT"; exit 1
-          fi
+          SHA="${{ needs.build-and-gate.outputs.sha }}"
+          # 1) lanzar el engine DETACHED en polanco (setsid+nohup: sobrevive a drops del tunel)
+          ssh -o BatchMode=yes -o ServerAliveInterval=30 polanco-tunnel \
+            "setsid nohup env DEPLOY_ACTOR='${{ github.actor }}' /usr/local/bin/ciudadan-deploy install $SHA /home/$DEPLOY_USER/uploads/ciudadan-$SHA.tar.gz > /home/$DEPLOY_USER/uploads/deploy-$SHA.log 2>&1 < /dev/null & echo LANZADO pid=\$!" || echo "(launch ssh dudoso — el poll decidira)"
+          # 2) poll del veredicto con sesiones ssh cortas (nada que se pueda cortar a mitad)
+          result=UNKNOWN
+          for i in $(seq 1 120); do
+            sleep 15
+            out=$(ssh -o BatchMode=yes -o ConnectTimeout=20 polanco-tunnel "cat /home/$DEPLOY_USER/uploads/deploy-$SHA.log 2>/dev/null" || true)
+            if   grep -q "DEPLOY_OK" <<<"$out"; then result=DEPLOY_OK; break
+            elif grep -q "DEPLOY_FAILED_ROLLBACK_ALSO_FAILED" <<<"$out"; then result=ROLLBACK_FAILED; break
+            elif grep -q "DEPLOY_FAILED_ROLLEDBACK" <<<"$out"; then result=ROLLEDBACK; break
+            fi
+          done
+          ssh -o BatchMode=yes -o ConnectTimeout=20 polanco-tunnel "tail -40 /home/$DEPLOY_USER/uploads/deploy-$SHA.log 2>/dev/null" || true
+          case "$result" in
+            DEPLOY_OK)       echo "result=DEPLOY_OK" >> "$GITHUB_OUTPUT" ;;
+            ROLLEDBACK)      echo "result=ROLLEDBACK" >> "$GITHUB_OUTPUT"; exit 1 ;;
+            ROLLBACK_FAILED) echo "result=ROLLBACK_FAILED" >> "$GITHUB_OUTPUT"; exit 2 ;;
+            *)               echo "result=UNKNOWN" >> "$GITHUB_OUTPUT"; exit 1 ;;
+          esac
 
       - name: FASE 11 — Healthchecks post-deploy desde el runner (3 rondas)
         run: |
