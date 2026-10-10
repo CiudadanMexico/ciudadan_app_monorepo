@@ -34,6 +34,8 @@ import BuildIcon from '@mui/icons-material/Build';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import PaidIcon from '@mui/icons-material/Paid';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import BookIcon from '@mui/icons-material/Book';
@@ -179,6 +181,7 @@ const CooWork = () => {
   // docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md: auditor es un rol
   // independiente del verificador — mismo patrón de acceso reducido.
   const soloAuditor = isAuditor() && !tienePermisoCRUD && !soloVerificador;
+  const [showSubbar, setShowSubbar] = useState(true); // barra de Herramientas del Socio/Admin: visible por defecto, se oculta/muestra volviendo a pulsar
   const [searchParams, setSearchParams] = useSearchParams();
   // Deep-link /coowork/especializadas/:areaSlug -> abre Tareas Especializadas
   // reutilizando el mismo componente de Coowork (sin una segunda pantalla).
@@ -225,7 +228,14 @@ const CooWork = () => {
     if (areaSlug) setTab('especializadas');
   }, [areaSlug]);
 
-  const handleTabChange = (event, newValue) => setTab(newValue);
+  const handleTabChange = (event, newValue) => {
+    // Volver a pulsar Admin/Socio alterna la barra de Herramientas
+    // (gris casi negra con Tareas/Herramientas/Bitácora/Historial).
+    if (newValue === 'socio' && tab === 'socio' && tienePermisoCRUD) {
+      setShowSubbar((prev) => !prev);
+    }
+    setTab(newValue);
+  };
   const handleSubTabChange = (event, newValue) => setSubTab(newValue);
 
   const fetchGeneralTodos = useCallback(async () => {
@@ -513,7 +523,21 @@ const CooWork = () => {
           boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
         }}
       >
-        <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+          {tab === 'socio' && tienePermisoCRUD && (
+            <Tooltip
+              title={showSubbar ? 'Ocultar barra de Herramientas' : 'Mostrar barra de Herramientas'}
+            >
+              <IconButton
+                size="small"
+                onClick={() => setShowSubbar((prev) => !prev)}
+                aria-label="Mostrar/Ocultar barra de Herramientas"
+                sx={{ position: 'absolute', right: 8, color: 'white' }}
+              >
+                {showSubbar ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Tooltip>
+          )}
           <StyledTabs
             value={tab}
             onChange={handleTabChange}
@@ -550,7 +574,7 @@ const CooWork = () => {
       </Box>
       {/* 💚 Sub-barra (solo en Socio) */}
       <AnimatePresence>
-        {tab === 'socio' && tienePermisoCRUD && (
+        {showSubbar && tab === 'socio' && tienePermisoCRUD && (
           <motion.div
             key="subbar"
             initial={{ opacity: 0, y: -10 }}
