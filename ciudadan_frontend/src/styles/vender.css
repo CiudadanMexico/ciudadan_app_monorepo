@@ -1,0 +1,23 @@
+/* Landing «Vende en Ciudadan» (/market/vender).
+   Complemento ligero a sx de MUI: anclas, movimiento reducido y editorial. */
+
+#vender-ciudadan {
+  scroll-behavior: smooth;
+}
+
+#vender-ciudadan section {
+  scroll-margin-top: 88px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #vender-ciudadan {
+    scroll-behavior: auto;
+  }
+  #vender-ciudadan *,
+  #vender-ciudadan *::before,
+  #vender-ciudadan *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
