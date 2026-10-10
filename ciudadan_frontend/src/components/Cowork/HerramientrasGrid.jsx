@@ -2,16 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FolderIcon from '@mui/icons-material/Folder';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
 const neonGreen = '#00ff99';
@@ -38,17 +35,16 @@ const ToolCard = styled(Paper)(({ theme }) => ({
 // en cada despliegue (había que sembrar esa coleccion a mano).
 // soloAdminSocio: true oculta la herramienta para usuarios sin permiso CRUD.
 // Las 5 de tareas viven agrupadas en la categoría "Tareas"
-// (/coowork/herramientas/tareas): el grid muestra la categoría y al darle
-// muestra todas esas opciones.
+// (/coowork/herramientas/tareas). "Mi Agencia" es una categoría (hub) que
+// contiene Agregar socio, Capital humano y Configuración — por eso
+// "Agregar Socio" NO está suelto aquí, vive dentro de Mi Agencia.
 const HERRAMIENTAS = [
   { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
-  { slug: 'agregar-socio', name: 'Agregar Socio', icon: <PersonAddIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'verificar-usuarios', name: 'Verificar Usuarios', icon: <VerifiedUserIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'carpetas-enlaces', name: 'Carpetas y Enlaces', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
-  { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
   // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
   { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
