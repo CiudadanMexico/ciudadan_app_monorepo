@@ -132,6 +132,13 @@ const UserMenu = ({
       )}
 
       {/* OPCIONES */}
+      {/* Anunciese — solo invitado: abre publia.mx/ciudadan en pestaña nueva. */}
+      <MenuItem
+        label="Anúnciese"
+        onClick={() => {
+          window.open('https://publia.mx/ciudadan', '_blank', 'noopener,noreferrer');
+        }}
+      />
       <MenuItem
         label={isActivaMembresia() ? "Mi Membresía" : "Membresías"}
         onClick={() => safeNavigate("/membresias")}
