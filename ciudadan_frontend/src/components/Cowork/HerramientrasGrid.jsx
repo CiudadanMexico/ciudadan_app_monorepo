@@ -38,13 +38,13 @@ const ToolCard = styled(Paper)(({ theme }) => ({
 // contiene Agregar socio, Capital humano y Configuración — por eso
 // "Agregar Socio" NO está suelto aquí, vive dentro de Mi Agencia.
 const HERRAMIENTAS = [
-  { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
+  { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
+  { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
   // Unidad de Disco Virtual: abre drive.ciudadan.org en una pestaña nueva
   // (external:true -> window.open en vez de navegación SPA interna).
   { slug: 'unidad-disco', name: 'Unidad de Disco Virtual', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false, external: true, link: 'https://drive.ciudadan.org' },
-  { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
   // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
   // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
   { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
