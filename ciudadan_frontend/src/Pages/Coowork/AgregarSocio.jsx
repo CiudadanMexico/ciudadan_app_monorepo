@@ -25,6 +25,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import { buscarSociosSinAgencia, getMiembrosAgencia } from '../../services/cowork/queryServices.js';
 import { agregarSocio, darDeBajaSocio } from '../../services/cowork/mutationsServices.js';
+import { getInvitaciones } from '../../services/cowork/candidatosService.js';
+import { Tabs, Tab } from '@mui/material';
 
 const MIN_QUERY_LENGTH = 4;
 const SEARCH_DEBOUNCE_MS = 350;
@@ -52,6 +54,11 @@ export default function AgregarSocio() {
   const [bajaTarget, setBajaTarget] = useState(null);
   const [bajaLoading, setBajaLoading] = useState(false);
   const [bajaError, setBajaError] = useState(null);
+
+  // Invitaciones (pendientes / rechazadas) con 2 tabs.
+  const [invitTab, setInvitTab] = useState(0); // 0 = pendientes, 1 = rechazadas
+  const [invitaciones, setInvitaciones] = useState([]);
+  const [loadingInvit, setLoadingInvit] = useState(true);
 
   const getToken = useCallback(async () => {
     try {
@@ -82,6 +89,36 @@ export default function AgregarSocio() {
   useEffect(() => {
     if (isAuthenticated) cargarMiembros();
   }, [isAuthenticated, cargarMiembros]);
+
+  const cargarInvitaciones = useCallback(
+    async (estado) => {
+      setLoadingInvit(true);
+      try {
+        const token = await getToken();
+        const json = await getInvitaciones(token, { estado });
+        const data = Array.isArray(json?.data) ? json.data : [];
+        setInvitaciones(
+          data.map((inv) => ({
+            id: inv.id,
+            email: inv.attributes?.email ?? inv.email,
+            nombre: inv.attributes?.nombre ?? inv.nombre,
+            estado: inv.attributes?.estado ?? inv.estado,
+            fecha: inv.attributes?.fecha_invitacion ?? inv.fecha_invitacion,
+          }))
+        );
+      } catch {
+        setInvitaciones([]);
+      } finally {
+        setLoadingInvit(false);
+      }
+    },
+    [getToken]
+  );
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    cargarInvitaciones(invitTab === 0 ? 'pendiente' : 'rechazada');
+  }, [isAuthenticated, invitTab, cargarInvitaciones]);
 
   // Buscador con debounce: no dispara hasta MIN_QUERY_LENGTH caracteres
   // (chat.md: "que no funcione desde las primeras letras").
@@ -312,6 +349,55 @@ export default function AgregarSocio() {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* 💌 Invitaciones (pendientes / rechazadas) */}
+      <Paper sx={{ p: 3, mt: 3 }}>
+        <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+          Invitaciones
+        </Typography>
+
+        <Tabs value={invitTab} onChange={(e, v) => setInvitTab(v)} sx={{ mb: 2 }}>
+          <Tab label="Pendientes" />
+          <Tab label="Rechazadas" />
+        </Tabs>
+
+        {loadingInvit ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : invitaciones.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            {invitTab === 0
+              ? 'No hay invitaciones pendientes.'
+              : 'No hay invitaciones rechazadas.'}
+          </Typography>
+        ) : (
+          <List dense>
+            {invitaciones.map((inv) => (
+              <ListItem
+                key={inv.id}
+                secondaryAction={
+                  <Chip
+                    size="small"
+                    label={inv.estado || 'pendiente'}
+                    color={inv.estado === 'rechazada' ? 'error' : 'default'}
+                  />
+                }
+              >
+                <ListItemText
+                  primary={inv.email}
+                  secondary={
+                    <>
+                      {inv.nombre ? `${inv.nombre} · ` : ''}
+                      {inv.fecha ? new Date(inv.fecha).toLocaleDateString() : ''}
+                    </>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Paper>
 
       <Dialog open={!!bajaTarget} onClose={() => setBajaTarget(null)}>
         <DialogTitle>Dar de baja</DialogTitle>

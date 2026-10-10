@@ -103,6 +103,10 @@ import Coowork from '../Pages/Coowork/Coowork.jsx';
 import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
+import MiAgencia from '../Pages/Coowork/MiAgencia.jsx';
+import CapitalHumano from '../Pages/Coowork/CapitalHumano.jsx';
+import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
+import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
 import Objetos from '../Pages/Objetos.jsx';
@@ -296,7 +300,7 @@ const HerramientaRedirect = () => {
 // herramienta (el slug manda; la categoría se usa en pasos posteriores para
 // organizarlas). Desconocido -> vuelve al grid de herramientas.
 const HERRAMIENTA_POR_SLUG = {
-  'mi-agencia': Agencia,
+  'mi-agencia': MiAgencia,
   'calificar-tarea': CalificarTarea,
   'corregir-tarea': CorregirTarea,
   'gestionar-tareas': GestionTareas,
@@ -786,7 +790,20 @@ const Rutas = () => {
         dentro de Coowork; estas páginas son la vista dedicada de cada una. */}
     <Route
       path='/coowork/herramientas/mi-agencia'
-      element={<Agencia />}
+      element={<MiAgencia />}
+    />
+    {/* Sub-secciones de Mi Agencia (antes que la genérica :categoria/:slug) */}
+    <Route
+      path='/coowork/herramientas/mi-agencia/agregar-socio'
+      element={<AgregarSocio />}
+    />
+    <Route
+      path='/coowork/herramientas/mi-agencia/capital-humano'
+      element={<CapitalHumano />}
+    />
+    <Route
+      path='/coowork/herramientas/mi-agencia/configuracion'
+      element={<ConfiguracionAgencia />}
     />
     <Route
       path='/coowork/herramientas/calificar-tarea'
@@ -1174,6 +1191,10 @@ const Rutas = () => {
     />
 
     {/* Misc / Tests */}
+    <Route
+      path='/candidatos'
+      element={<Candidatos />}
+    />
     <Route
       path='/notificationtester'
       element={<NotificationTester />}
