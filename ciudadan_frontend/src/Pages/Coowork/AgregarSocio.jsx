@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useAuth0 } from '@auth0/auth0-react';
+import useAuth0Token from '../../hooks/useAuth0Token';
 import {
   Box,
   Paper,
@@ -32,7 +32,7 @@ const MIN_QUERY_LENGTH = 4;
 const SEARCH_DEBOUNCE_MS = 350;
 
 export default function AgregarSocio() {
-  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+  const { getToken, tokenError, isAuthenticated, isLoading, reintentarSesion } = useAuth0Token();
   const navigate = useNavigate();
 
   const [query, setQuery] = useState('');
@@ -76,6 +76,12 @@ export default function AgregarSocio() {
     setMiembrosError(null);
     try {
       const token = await getToken();
+      // Sin token NO se llama a la API: antes se mandaba igual y el backend
+      // respondía 403 "Forbidden" sin más detalle.
+      if (!token) {
+        setMiembrosError('No pudimos validar tu sesión. Usa "Volver a iniciar sesión" para continuar.');
+        return;
+      }
       const res = await getMiembrosAgencia(token);
       setAgenciaNombre(res?.agencia?.nombre || null);
       setMiembros(Array.isArray(res?.data) ? res.data : []);
@@ -134,6 +140,11 @@ export default function AgregarSocio() {
     const timer = setTimeout(async () => {
       try {
         const token = await getToken();
+        if (!token) {
+          // El motivo ya queda visible en el Alert de tokenError.
+          if (!cancelado) setOpciones([]);
+          return;
+        }
         const res = await buscarSociosSinAgencia(query.trim(), token);
         if (cancelado) return;
         setOpciones(Array.isArray(res?.data) ? res.data : []);
@@ -170,6 +181,10 @@ export default function AgregarSocio() {
     setAddLoading(true);
     try {
       const token = await getToken();
+      if (!token) {
+        setAddError('No pudimos validar tu sesión. Vuelve a iniciar sesión para dar de alta socios.');
+        return;
+      }
       const res = await agregarSocio(
         { email, username: nombre.trim() || undefined, roles_extra: ['socio'] },
         token
@@ -193,6 +208,10 @@ export default function AgregarSocio() {
     setBajaError(null);
     try {
       const token = await getToken();
+      if (!token) {
+        setBajaError('No pudimos validar tu sesión. Vuelve a iniciar sesión.');
+        return;
+      }
       await darDeBajaSocio(bajaTarget.id, token);
       setBajaTarget(null);
       cargarMiembros();
@@ -212,6 +231,34 @@ export default function AgregarSocio() {
         Busca por email o nombre de usuario entre quienes no tienen agencia todavía.
         {agenciaNombre ? ` Se agregarán a tu agencia: ${agenciaNombre}.` : ''}
       </Typography>
+
+      {!isLoading && !isAuthenticated && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={reintentarSesion}>
+              Iniciar sesión
+            </Button>
+          }
+        >
+          Inicia sesión para ver y agregar socios de tu agencia.
+        </Alert>
+      )}
+      {tokenError && (
+        <Alert
+          severity="error"
+          role="alert"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={reintentarSesion}>
+              Volver a iniciar sesión
+            </Button>
+          }
+        >
+          {tokenError}
+        </Alert>
+      )}
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 6 }}>

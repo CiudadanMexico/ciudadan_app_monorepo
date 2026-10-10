@@ -70,13 +70,13 @@ export const transformImageStrapi = (object = {}) => {
   if (!data) return ({});
   const { id, attributes } = data;
   const { formats, name, width, height, hash, ext, mime, size, url } = attributes;
-  const { thumbnail, small, medium, large } = formats;
+  const { thumbnail, small, medium, large } = formats ?? {};
   const transformedFormats = {
     original: `${STRAPI_URL}${url}`,
-    thumbnail: thumbnail ? `${STRAPI_URL}${thumbnail.url}` : null,
-    small: small ? `${STRAPI_URL}${small.url}` : null,
-    medium: medium ? `${STRAPI_URL}${medium.url}` : null,
-    large: large ? `${STRAPI_URL}${large.url}` : null,
+    thumbnail: thumbnail && thumbnail?.url ? `${STRAPI_URL}${thumbnail.url}` : null,
+    small: small && small?.url ? `${STRAPI_URL}${small.url}` : null,
+    medium: medium && medium?.url ? `${STRAPI_URL}${medium.url}` : null,
+    large: large && large?.url ? `${STRAPI_URL}${large.url}` : null,
   };
   const auxObjet = {
     id,

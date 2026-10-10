@@ -9,6 +9,16 @@ const normalizarTelefono = value => {
   return /^\d{10}$/.test(digits) ? `+52${digits}` : null;
 };
 
+/**
+ * Normaliza y valida un correo. Devuelve null si no es utilizable, para que el
+ * caller pueda decidir si es error (formulario de Socio Estatal) o simplemente
+ * ausencia de dato (formulario genérico de prelanzamiento, que no lo captura).
+ */
+const normalizarEmail = value => {
+  const email = typeof value === 'string' ? value.trim().toLowerCase() : '';
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/.test(email) ? email : null;
+};
+
 function validarRegistro(input, now = Date.now()) {
   const errors = {};
   const data = {};
@@ -27,6 +37,13 @@ function validarRegistro(input, now = Date.now()) {
   texto('nombre', 3, 160);
   data.telefono = normalizarTelefono(input.telefono);
   if (!data.telefono) errors.telefono = 'Escribe un WhatsApp mexicano de 10 dígitos, con o sin +52.';
+  // El correo es opcional (el formulario genérico de prelanzamiento no lo pide),
+  // pero si viene debe ser válido: es el destino de la confirmación por correo.
+  const emailCapturado = typeof input.email === 'string' ? input.email.trim() : '';
+  if (emailCapturado) {
+    data.email = normalizarEmail(emailCapturado);
+    if (!data.email) errors.email = 'Escribe un correo electrónico válido.';
+  }
   opcion('estado', ESTADOS);
   texto('municipio');
   if (input.consentimiento !== true) errors.consentimiento = 'Debes aceptar el aviso de privacidad y autorizar el contacto.';
@@ -65,4 +82,4 @@ function validarRegistro(input, now = Date.now()) {
   data.seguimiento = 'pendiente';
   return { data, errors };
 }
-module.exports = { ESTADOS, CIERRE, normalizarTelefono, validarRegistro };
+module.exports = { ESTADOS, CIERRE, normalizarTelefono, normalizarEmail, validarRegistro };

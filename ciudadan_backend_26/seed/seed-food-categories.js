@@ -26,7 +26,7 @@
  * Las imágenes fuente NO se convierten ni se descargan: se usan los .avif
  * existentes del monorepo (la ruta se resuelve desde __dirname, no desde el
  * cwd, así funciona desde cualquier carpeta):
- *   ../ciudadan_frontend/media_seeds/ciudadan_food_categorias_sin_fondo/*.avif
+ *   ../../media_seeds/ciudadan_food_categorias_sin_fondo/*.avif
  *
  * Uso:
  *   node seed/seed-food-categories.js          (desde cualquier carpeta)
@@ -67,8 +67,8 @@ const slugify = require('slugify');
 const UID = 'api::food-categorie.food-categorie';
 const LABEL = 'Food';
 
-// Monorepo: ciudadan_backend_26/ y ciudadan_frontend/ son carpetas hermanas.
-const MEDIA_SEEDS_DIR = path.resolve(BACKEND_DIR, '..', 'ciudadan_frontend', 'media_seeds');
+// Monorepo: media_seeds/ vive en la raíz, hermana de ciudadan_backend_26/.
+const MEDIA_SEEDS_DIR = path.resolve(BACKEND_DIR, '..', 'media_seeds');
 const IMAGES_DIR = path.join(MEDIA_SEEDS_DIR, 'ciudadan_food_categorias_sin_fondo');
 // El seed de Marketplace usa la carpeta hermana; se valida que exista (spec 11).
 const SIBLING_IMAGES_DIR = path.join(MEDIA_SEEDS_DIR, 'ciudadan_categorias_sinfondo');

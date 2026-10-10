@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Drawer, Typography, CircularProgress, Tabs, Tab } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { wikiService } from '../../services/wikiService';
 import { TreeNodeDTO, DocumentResponseDTO } from '../../types/wiki';
 import WikiTreeView from './WikiTreeView';
@@ -15,28 +15,31 @@ const SECTION_LABEL: Record<WikiSection, string> = {
 };
 
 /**
- * Visor de la wiki organizado por sección. La sección se lee de la URL (/wiki/:section),
- * por lo que /wiki/main es la principal, /wiki/help la ayuda y /wiki/faq las preguntas.
+ * Visor de la wiki organizado por sección.
+ *
+ * La sección llega por PROP (`<WikiApp section="help" />`) desde las rutas
+ * (`/wiki/main`, `/wiki/help`, `/wiki/faq` en Routes). Antes se leía de
+ * `useParams()` esperando un `:section` que no existe en esas rutas literales,
+ * así que SIEMPRE caía a 'main' y las otras dos secciones mostraban el árbol
+ * de principal — ese era el bug.
  */
-export default function WikiApp() {
-  const { section: sectionParam } = useParams();
+export default function WikiApp({ section: sectionProp }: { section?: WikiSection } = {}) {
   const navigate = useNavigate();
 
-  // Normalizamos la sección de la URL a un valor válido (default: main)
-  const validSection = (SECTIONS as string[]).includes(sectionParam || '')
-    ? (sectionParam as WikiSection)
-    : 'main';
-  const [section, setSection] = useState<WikiSection>(validSection);
+  // Prop válida manda; si no viene (o es inválida), default: main.
+  const initialSection: WikiSection =
+    sectionProp && (SECTIONS as string[]).includes(sectionProp) ? sectionProp : 'main';
+  const [section, setSection] = useState<WikiSection>(initialSection);
 
   const [tree, setTree] = useState<TreeNodeDTO[]>([]);
   const [currentDoc, setCurrentDoc] = useState<DocumentResponseDTO | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Sincronizar el estado con la URL (si navegamos entre secciones)
+  // Si cambia la prop (navegación entre secciones), sincronizar y limpiar doc.
   useEffect(() => {
-    setSection(validSection);
+    setSection(initialSection);
     setCurrentDoc(null);
-  }, [sectionParam]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sectionProp]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 1. Cargamos el árbol de la sección seleccionada
   useEffect(() => {

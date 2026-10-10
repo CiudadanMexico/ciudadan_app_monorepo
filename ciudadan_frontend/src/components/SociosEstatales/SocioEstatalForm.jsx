@@ -52,6 +52,7 @@ export default function SocioEstatalForm({
   const [values, setValues] = useState({
     nombre: '',
     telefono: '',
+    email: '',
     estado: '',
     municipio: '',
     experiencia: '',
@@ -99,6 +100,7 @@ export default function SocioEstatalForm({
       helperText={errors[key] || extra.helperText}
       inputProps={{
         maxLength: key === 'experiencia' ? 2000 : key === 'telefono' ? 25 : 160,
+        ...(extra.inputProps || {}),
       }}
     >
       {options?.map((option) => {
@@ -129,7 +131,7 @@ export default function SocioEstatalForm({
       estadoSolicitado,
       tipo: 'socio-estatal',
     };
-    const validation = validarFormulario(payloadCheck, 'socio-estatal');
+    const validation = validarFormulario(payloadCheck, 'socio-estatal', { emailObligatorio: true });
     if (validation.estadoSolicitado === 'Completa este campo.') delete validation.estadoSolicitado;
     setErrors(validation);
     setError('');
@@ -182,6 +184,11 @@ export default function SocioEstatalForm({
         <Typography variant="body1" sx={{ color: '#a2c4b9', maxWidth: 640, mx: 'auto', mb: 1 }}>
           {CONFIRMACION_SOCIO}
         </Typography>
+        {values.email && (
+          <Typography variant="body2" sx={{ color: '#a2c4b9', mb: 1 }}>
+            Te enviamos la confirmación a <strong>{values.email}</strong>.
+          </Typography>
+        )}
         <Typography variant="body2" sx={{ color: '#a2c4b9', mb: 2 }}>
           No se realizó ningún cobro. La asignación del estado <strong>{estadoLabel}</strong> está
           sujeta al proceso de revisión del equipo.
@@ -236,6 +243,10 @@ export default function SocioEstatalForm({
           <Stack spacing={2} sx={{ mb: 2 }}>
             {field('nombre', 'Nombre completo', null, { helperText: 'Como aparece en tu identificación.' })}
             {field('telefono', 'WhatsApp (10 dígitos)', null, { inputMode: 'tel', helperText: 'Con o sin +52.' })}
+            {field('email', 'Correo electrónico', null, {
+              helperText: 'Ahí te enviamos la confirmación de tu postulación.',
+              inputProps: { type: 'email', autoComplete: 'email', inputMode: 'email' },
+            })}
             {field('estado', 'Estado donde vives actualmente', estadosResidencia)}
             {field('municipio', 'Municipio / Alcaldía', null)}
             {field('nodo', '¿Tienes espacio, Internet estable y respaldo eléctrico?', NODO_OPCIONES)}

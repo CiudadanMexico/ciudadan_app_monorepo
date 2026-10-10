@@ -7,6 +7,7 @@ import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
 import Probador from '../components/Testers/Probador.jsx';
+import MultimediaRoute from '../Pages/Multimedia/MultimediaRoute.jsx';
 
 // ---------- Páginas principales ----------
 import HomeRoute from '../Pages/HomeRoute.jsx';
@@ -67,6 +68,14 @@ import SkillsManagement from '../Pages/CoWork/Skills/SkillsManagement.jsx';
 import VerificarUsuarios from '../Pages/CoWork/Verificacion/VerificarUsuarios.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
+
+// ---------- Generación Fundadora 2026 ----------
+import GeneracionFundadoraPage from '../Pages/Generation/GeneracionFundadoraPage.jsx';
+import HackabotPage from '../Pages/Generation/HackabotPage.jsx';
+import VallecatnipPage from '../Pages/Generation/VallecatnipPage.jsx';
+import CreadoresPage from '../Pages/Generation/CreadoresPage.jsx';
+import AliadosPage from '../Pages/Generation/AliadosPage.jsx';
+import RegistroGeneracionPage from '../Pages/Generation/RegistroGeneracionPage.jsx';
 import RequisitosConductor from '../components/Taxiz/RequisitosConductor.jsx';
 import Academia from '../components/Academia/Academia.jsx';
 import LmAi from '../components/Asistente/LmAi.jsx';
@@ -256,29 +265,6 @@ const WikiWrapper = () => {
   return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
 };
 
-// Guía de usuario (ruta /wiki/ayuda): carga help/guia-usuario.md
-const WikiAyudaRoute = () => {
-  const navigate = useNavigate();
-  const [doc, setDoc] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    wikiService
-      .getDocument('wiki/help/guia-usuario.md')
-      .then((found) => { if (!cancelled) setDoc(found); })
-      .catch(() => { if (!cancelled) setDoc(null); });
-    return () => { cancelled = true; };
-  }, []);
-
-  const handleNavigateDocument = (path) => {
-    const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
-    const parts = normalized.split('/').filter(Boolean);
-    const last = parts.length ? parts[parts.length - 1] : normalized;
-    if (last) navigate(`/wiki/${last}`);
-  };
-
-  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
-};
 
 // Layout para Wiki
 const WikiLayout = ({ children }) => (
@@ -422,26 +408,58 @@ const Rutas = () => {
       path='/probador'
       element={<Probador />}
     />
+
+    {/* Multimedia (Bloque 5C) */}
+    <Route
+      path='/multimedia'
+      element={<MultimediaRoute />}
+    />
     <Route
       path='/registrar'
       element={<ReferirAlias />}
     />
 
-    {/* Callback / Auth */}
+    {/* Generación Fundadora 2026 */}
     <Route
-      path='/callback'
-      element={<CallbackPage />}
+      path='/generacion-fundadora'
+      element={<GeneracionFundadoraPage />}
+    />
+    <Route
+      path='/hackabot'
+      element={<HackabotPage />}
+    />
+    <Route
+      path='/vallecatnip'
+      element={<VallecatnipPage />}
+    />
+    <Route
+      path='/creadores'
+      element={<CreadoresPage />}
+    />
+    <Route
+      path='/aliados'
+      element={<AliadosPage />}
+    />
+    <Route
+      path='/generacion-fundadora/registro'
+      element={<RegistroGeneracionPage />}
     />
 
-    {/* Notificaciones */}
-    <Route
-      path='/notificaciones'
-      element={<AllNotificaciones />}
-    />
-    <Route
-      path='/notificacion/:id'
-      element={<Notificacion />}
-    />
+      {/* Callback / Auth */}
+      <Route
+        path='/callback'
+        element={<CallbackPage />}
+      />
+
+      {/* Notificaciones */}
+      <Route
+        path='/notificaciones'
+        element={<AllNotificaciones />}
+      />
+      <Route
+        path='/notificacion/:id'
+        element={<Notificacion />}
+      />
 
     {/* Gana / GanaRoute */}
     <Route
@@ -475,47 +493,47 @@ const Rutas = () => {
     {/* Taxis */}
 
 
-    {/* Taxis */}
-    <Route
-      path='/taxis'
-      element={<TaxisRoute />}
-    />
-    <Route
-      path='/taxis/conductor/registro'
-      element={<RedireccionPrelanzamiento tipo='conductor' />}
-    />
-    <Route
-      path='/taxis/conductor/preregistro'
-      element={<RedireccionPrelanzamiento tipo='conductor' />}
-    />
-    <Route
-      path='/taxis/conductor/esperando'
-      element={<Conductor />}
-    />
-    <Route
-      path='/taxis/conductor/requisitos'
-      element={<RequisitosConductor />}
-    />
-    <Route
-      path='/taxis/pasajero/registro'
-      element={<RegistroPasajero />}
-    />
-    <Route
-      path='/taxis/pasajero/viaje'
-      element={<Pasajero />}
-    />
-    <Route
-      path='/taxis/viajes/historial'
-      element={<HistorialViajes />}
-    />
-    <Route
-      path='/taxis/viaje/:travelId'
-      element={<TripViewRoute />}
-    />
-    <Route
-      path='/taxis/viaje-gratis'
-      element={<VerifyFreeTrip />}
-    />
+      {/* Taxis */}
+      <Route
+        path='/taxis'
+        element={<TaxisRoute />}
+      />
+      <Route
+        path='/taxis/conductor/registro'
+        element={<RedireccionPrelanzamiento tipo='conductor' />}
+      />
+      <Route
+        path='/taxis/conductor/preregistro'
+        element={<RedireccionPrelanzamiento tipo='conductor' />}
+      />
+      <Route
+        path='/taxis/conductor/esperando'
+        element={<Conductor />}
+      />
+      <Route
+        path='/taxis/conductor/requisitos'
+        element={<RequisitosConductor />}
+      />
+      <Route
+        path='/taxis/pasajero/registro'
+        element={<RegistroPasajero />}
+      />
+      <Route
+        path='/taxis/pasajero/viaje'
+        element={<Pasajero />}
+      />
+      <Route
+        path='/taxis/viajes/historial'
+        element={<HistorialViajes />}
+      />
+      <Route
+        path='/taxis/viaje/:travelId'
+        element={<TripViewRoute />}
+      />
+      <Route
+        path='/taxis/viaje-gratis'
+        element={<VerifyFreeTrip />}
+      />
 
     {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
         (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
@@ -533,39 +551,39 @@ const Rutas = () => {
       element={<DriverVerificationPage />}
     />
 
-    {/* Food / Restaurantes */}
-    <Route
-      path='/food'
-      element={<RestaurantesRoute />}
-    />
-    <Route
-      path='/comida'
-      element={<Food />}
-    />
-    <Route
-      path='/comida/afiliar-restaurante'
-      element={<RegistroRestaurante />}
-    />
-    <Route
-      path='/comida/restaurante/:slug/*'
-      element={<Restaurant />}
-    />
-    <Route
-      path='/comida/producto/:slug'
-      element={<ComidaProducto />}
-    />
-    <Route
-      path='/comida/comprar/:slug'
-      element={<ComprarFoodProduct />}
-    />
-    <Route
-      path='/comida/ofertas'
-      element={<ComidaOfertas />}
-    />
-    <Route
-      path='/restaurantes'
-      element={<RestaurantesRoute />}
-    />
+      {/* Food / Restaurantes */}
+      <Route
+        path='/food'
+        element={<RestaurantesRoute />}
+      />
+      <Route
+        path='/comida'
+        element={<Food />}
+      />
+      <Route
+        path='/comida/afiliar-restaurante'
+        element={<RegistroRestaurante />}
+      />
+      <Route
+        path='/comida/restaurante/:slug/*'
+        element={<Restaurant />}
+      />
+      <Route
+        path='/comida/producto/:slug'
+        element={<ComidaProducto />}
+      />
+      <Route
+        path='/comida/comprar/:slug'
+        element={<ComprarFoodProduct />}
+      />
+      <Route
+        path='/comida/ofertas'
+        element={<ComidaOfertas />}
+      />
+      <Route
+        path='/restaurantes'
+        element={<RestaurantesRoute />}
+      />
 
     {/* Market / Marketplace / MarketRoute */}
     <Route
@@ -674,36 +692,36 @@ const Rutas = () => {
       element={<FinalizarCompraProducto />}
     />
 
-    {/* Cartera / OpWallet */}
-    <Route
-      path='/cartera/itokens'
-      element={<ITokens />}
-    />
-    <Route
-      path='/cartera/FreeBoocks'
-      element={<Catalogo />}
-    />
-    <Route
-      path='/cartera/crear'
-      element={<CrearCarteraPage />}
-    />
-    <Route
-      path='/cartera/:moneda'
-      element={<OpWalletRoute />}
-    />
-    <Route
-      path='/cartera'
-      element={<OpWalletRoute />}
-    />
-    <Route
-      path='/comprar-tokens'
-      element={<OpWalletRoute />}
-    />
+      {/* Cartera / OpWallet */}
+      <Route
+        path='/cartera/itokens'
+        element={<ITokens />}
+      />
+      <Route
+        path='/cartera/FreeBoocks'
+        element={<Catalogo />}
+      />
+      <Route
+        path='/cartera/crear'
+        element={<CrearCarteraPage />}
+      />
+      <Route
+        path='/cartera/:moneda'
+        element={<OpWalletRoute />}
+      />
+      <Route
+        path='/cartera'
+        element={<OpWalletRoute />}
+      />
+      <Route
+        path='/comprar-tokens'
+        element={<OpWalletRoute />}
+      />
 
-    <Route
-      path='/taxis/preregistrar'
-      element={<PreRegistroConductor2 />}
-    />
+      <Route
+        path='/taxis/preregistrar'
+        element={<PreRegistroConductor2 />}
+      />
 
     {/* Academia / Coowork */}
     <Route
@@ -906,29 +924,29 @@ const Rutas = () => {
       element={<HerramientaRedirect />}
     />
 
-    {/* Perfil / Usuario */}
-    <Route
-      path='/perfil/:username'
-      element={<Perfil />}
-    />
-    <Route
-      path='/favoritos'
-      element={<Favoritos />}
-    />
-    <Route
-      path='/favoritos/*'
-      element={<Favoritos />}
-    />
-    <Route
-      path='/miqr'
-      element={<UsuarioPage />}
-    />
+      {/* Perfil / Usuario */}
+      <Route
+        path='/perfil/:username'
+        element={<Perfil />}
+      />
+      <Route
+        path='/favoritos'
+        element={<Favoritos />}
+      />
+      <Route
+        path='/favoritos/*'
+        element={<Favoritos />}
+      />
+      <Route
+        path='/miqr'
+        element={<UsuarioPage />}
+      />
 
-    {/* Ubicación */}
-    <Route
-      path='/ubicacion'
-      element={<MiUbicacion />}
-    />
+      {/* Ubicación */}
+      <Route
+        path='/ubicacion'
+        element={<MiUbicacion />}
+      />
 
     {/* Info / Wiki / Help */}
     {/* /wiki redirige a la wiki principal (main) */}
@@ -936,23 +954,24 @@ const Rutas = () => {
       path='/wiki'
       element={<Navigate to='/wiki/main' replace />}
     />
-    {/* Guía de usuario del sitio en /wiki/ayuda */}
+    {/* Guía de usuario del sitio en /wiki/ayuda: mismo visor con las 3
+        pestañas que /wiki/help (abierto en Ayuda), no solo la guía suelta. */}
     <Route
       path='/wiki/ayuda'
-      element={<WikiAyudaRoute />}
+      element={<WikiApp section='help' />}
     />
     {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
     <Route
       path='/wiki/main'
-      element={<WikiApp />}
+      element={<WikiApp section='main' />}
     />
     <Route
       path='/wiki/help'
-      element={<WikiApp />}
+      element={<WikiApp section='help' />}
     />
     <Route
       path='/wiki/faq'
-      element={<WikiApp />}
+      element={<WikiApp section='faq' />}
     />
     {/* Cualquier otro documento por slug */}
     <Route
@@ -984,63 +1003,63 @@ const Rutas = () => {
       element={<PreguntasFrecuentes />}
     />
 
-    {/* Eventos */}
-    <Route
-      path='/evento/:slug'
-      element={<Evento />}
-    />
-    <Route
-      path='/eventos/crear-evento'
-      element={<CrearEvento />}
-    />
-    <Route
-      path='/eventos'
-      element={<EventosPage />}
-    />
+      {/* Eventos */}
+      <Route
+        path='/evento/:slug'
+        element={<Evento />}
+      />
+      <Route
+        path='/eventos/crear-evento'
+        element={<CrearEvento />}
+      />
+      <Route
+        path='/eventos'
+        element={<EventosPage />}
+      />
 
-    {/* Clubs / Bitácoras */}
+      {/* Clubs / Bitácoras */}
 
-    {/* Contenidos / Cursos */}
-    <Route
-      path='/contenidos/agregar-contenido'
-      element={<AgregarContenido />}
-    />
-    <Route
-      path='/cursos/agregar-curso'
-      element={<AgregarCurso />}
-    />
-    <Route
-      path='/cursos/editar/:slug'
-      element={<EditarCursoWrapper />}
-    />
-    <Route
-      path='/cursos/eliminar/:slug'
-      element={<EliminarCursoWrapper />}
-    />
-    <Route
-      path='/cursos/*'
-      element={<CursosPage />}
-    />
-    <Route
-      path='/curso/:slug/*'
-      element={<Curso />}
-    />
-    <Route
-      path='/contenidos/editar/:slug'
-      element={<EditarContenidoWrapper />}
-    />
-    <Route
-      path='/contenidos/eliminar/:slug'
-      element={<EliminarContenidoWrapper />}
-    />
-    <Route
-      path='/contenidos/*'
-      element={<ContenidosPage />}
-    />
-    <Route
-      path='/contenido/:slug'
-      element={<Contenido />}
-    />
+      {/* Contenidos / Cursos */}
+      <Route
+        path='/contenidos/agregar-contenido'
+        element={<AgregarContenido />}
+      />
+      <Route
+        path='/cursos/agregar-curso'
+        element={<AgregarCurso />}
+      />
+      <Route
+        path='/cursos/editar/:slug'
+        element={<EditarCursoWrapper />}
+      />
+      <Route
+        path='/cursos/eliminar/:slug'
+        element={<EliminarCursoWrapper />}
+      />
+      <Route
+        path='/cursos/*'
+        element={<CursosPage />}
+      />
+      <Route
+        path='/curso/:slug/*'
+        element={<Curso />}
+      />
+      <Route
+        path='/contenidos/editar/:slug'
+        element={<EditarContenidoWrapper />}
+      />
+      <Route
+        path='/contenidos/eliminar/:slug'
+        element={<EliminarContenidoWrapper />}
+      />
+      <Route
+        path='/contenidos/*'
+        element={<ContenidosPage />}
+      />
+      <Route
+        path='/contenido/:slug'
+        element={<Contenido />}
+      />
 
     {/* Membresías */}
     <Route
@@ -1058,30 +1077,30 @@ const Rutas = () => {
       element={<SocioEstatalEstado />}
     />
 
-    <Route
-      path='/membresias/pagar/*'
-      element={<ProbarMembresia />}
-    />
-    <Route
-      path='/membresias/pago/plan/:planId'
-      element={<ProbarMembresia />}
-    />
-    <Route
-      path='/membresias/adquirir/*'
-      element={<MembershipCheckout />}
-    />
-    <Route
-      path='/membresias/retorno'
-      element={<MercadoPagoRetorno />}
-    />
-    <Route
-      path='/mi-membresia'
-      element={<MiMembresia />}
-    />
-    <Route
-      path='/activatumembresia'
-      element={<ActivaTuMembresia />}
-    />
+      <Route
+        path='/membresias/pagar/*'
+        element={<ProbarMembresia />}
+      />
+      <Route
+        path='/membresias/pago/plan/:planId'
+        element={<ProbarMembresia />}
+      />
+      <Route
+        path='/membresias/adquirir/*'
+        element={<MembershipCheckout />}
+      />
+      <Route
+        path='/membresias/retorno'
+        element={<MercadoPagoRetorno />}
+      />
+      <Route
+        path='/mi-membresia'
+        element={<MiMembresia />}
+      />
+      <Route
+        path='/activatumembresia'
+        element={<ActivaTuMembresia />}
+      />
 
     {/* Comunidad */}
     <Route
@@ -1208,11 +1227,11 @@ const Rutas = () => {
       element={<Prueba />}
     />
 
-    {/* Stripe success */}
-    <Route
-      path='/stripe-success/:slug'
-      element={<StripeSuccessRedirect />}
-    />
+      {/* Stripe success */}
+      <Route
+        path='/stripe-success/:slug'
+        element={<StripeSuccessRedirect />}
+      />
 
     {/* Fallbacks / aliases */}
     <Route
@@ -1234,11 +1253,11 @@ const Rutas = () => {
       />
     )}
 
-    <Route
-      path='/testoken'
-      element={<TestToken />}
-    />
-  </Routes>
+      <Route
+        path='/testoken'
+        element={<TestToken />}
+      />
+    </Routes>
   );
 };
 

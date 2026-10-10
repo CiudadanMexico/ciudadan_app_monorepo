@@ -18,11 +18,12 @@ const DEFAULT_YOUTUBE_URL = 'https://www.youtube.com/@ciudadanmx';
  * Nuevo mapa de items (tal como lo pediste)
  */
 const DEFAULT_ITEMS = [
+  { href: "/generacion-fundadora", img: ciudadanRosaImage, alt: "Generación Fundadora", label: "Generación Fundadora" },
   { href: "/", img: ciudadanRosaImage, alt: "Presentación", label: "Presentación" },
   { href: "/info/quienes", img: quienesImage, alt: "¿Quiénes Somos?", label: "¿Quiénes Somos?" },
   { href: "/wiki", img: wikiImage, alt: "Wiki Ciudadan.org", label: "Wiki", target: "_blank" },
-  { href: "/wiki/faq", img: faqImage, alt: "Preguntas Frecuentes", label: "Preguntas Frecuentes" },
-  { href: "/wiki/ayuda", img: ayudaImage, alt: "Ayuda", label: "Ayuda" },
+  { href: "/wiki/faq", img: faqImage, alt: "Preguntas Frecuentes", label: "Preguntas Frecuentes", target: "_blank" },
+  { href: "/wiki/ayuda", img: ayudaImage, alt: "Ayuda", label: "Ayuda", target: "_blank" },
   { href: "/contacto", img: contactoImage, alt: "Contacto", label: "Contacto" },
   { href: DEFAULT_YOUTUBE_URL, img: youtubeImage, alt: "Canal YT", label: "Canal YT", target: "_blank", siteKey: "social.youtube.url" },
 ];

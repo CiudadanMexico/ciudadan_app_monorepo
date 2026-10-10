@@ -7,6 +7,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import BuildCircleIcon from '@mui/icons-material/BuildCircle';
+import PermMediaIcon from '@mui/icons-material/PermMedia';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -50,6 +51,9 @@ const HERRAMIENTAS = [
   { slug: 'verificar-usuarios', name: 'Verificar Usuarios', icon: <VerifiedUserIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'carpetas-enlaces', name: 'Carpetas y Enlaces', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
+  // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
+  // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
+  { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
 ];
 
 const HerramientasGrid = () => {
@@ -58,7 +62,9 @@ const HerramientasGrid = () => {
   const tienePermisoCRUD = isAdmin() || isSocio();
 
   const herramientas = HERRAMIENTAS.filter((tool) => !tool.soloAdminSocio || tienePermisoCRUD).map(
-    (tool) => ({ ...tool, id: tool.slug, link: `/coowork/herramientas/${tool.slug}` })
+    // `link` explícito manda (Multimedia va a /multimedia raíz); el resto cae
+    // a la herramienta bajo /coowork/herramientas.
+    (tool) => ({ ...tool, id: tool.slug, link: tool.link || `/coowork/herramientas/${tool.slug}` })
   );
 
   return (

@@ -66,6 +66,7 @@ const { ConfigDatabase } = require('./dist/config/ConfigDatabase');
 const { DocumentRepositoryImpl } = require('./dist/repository/impl/DocumentRepositoryImpl');
 const { WikiService } = require('./dist/services/WikiService');
 const { WikiWatcherService } = require('./dist/services/WikiWatcherService');
+const { resolveActiveRoot } = require('./dist/config/WikiRootProvider');
 
 const WikiRouter = require("./dist/routes/WikiRouter");
 const { getUserRating } = require('./lib/calcRating');
@@ -137,8 +138,46 @@ const wikiService = new WikiService(documentRepository);
 app.use("/wiki", WikiRouter);
 
 // Iniciar watcher de archivos .md
-const wikiWatcher = new WikiWatcherService(wikiService);
-wikiWatcher.start();
+// La raíz se resuelve ANTES de indexar: precedencia site-setting.wikis_path
+// (Strapi) → WIKI_ROOT_PATH (.env) → default de plataforma. Ver
+// socket-service/config/WikiRootProvider.ts.
+let wikiWatcher = null;
+
+async function arrancarWiki() {
+  console.log('🧭 [Wiki] arrancarWiki: iniciando (STRAPI_URL =', (process.env.STRAPI_URL || '(vacío)') + ')');
+  try {
+    const { root, source } = await resolveActiveRoot();
+    console.log(`🗺️ [Wiki] Raíz activa: ${root} (origen: ${source})`);
+    wikiWatcher = new WikiWatcherService(wikiService, root);
+  } catch (err) {
+    console.error(
+      '🛑 [Wiki] No se pudo resolver wikis_path; se usa la raíz activa por defecto:',
+      err && err.message ? err.message : err
+    );
+    wikiWatcher = new WikiWatcherService(wikiService);
+  }
+  wikiWatcher.start();
+}
+
+// Re-chequeo: si `wikis_path` cambia en Strapi (tras expirar el TTL) se
+// re-apunta el watcher en caliente sin reiniciar el proceso.
+const WIKI_RECHECK_MS = Number(process.env.WIKI_CONFIG_TTL_MS) || 60000;
+arrancarWiki().finally(() => {
+  let ultimoOrigen = null;
+  setInterval(async () => {
+    if (!wikiWatcher) return;
+    try {
+      const { root, source } = await resolveActiveRoot();
+      if (source !== ultimoOrigen) {
+        ultimoOrigen = source;
+        console.log(`🗺️ [Wiki] Re-chequeo: raíz ${root} (origen: ${source})`);
+      }
+      await wikiWatcher.switchRoot(root); // no hace nada si no cambió
+    } catch (err) {
+      console.error('🛑 [Wiki] Error re-chequeando wikis_path:', err && err.message ? err.message : err);
+    }
+  }, WIKI_RECHECK_MS);
+});
 
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);

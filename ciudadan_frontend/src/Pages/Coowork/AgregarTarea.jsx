@@ -1,20 +1,3 @@
-// src/Pages/Coowork/AgregarTarea.jsx
-//
-// Formulario de creación de tareas del módulo CoWork.
-//
-// Rediseño (2026-10-08):
-//  - Estética alineada con el resto del módulo: Paper oscuro con borde neón,
-//    inputs con outline que brilla al hover/focus, secciones con subtítulos
-//    neón y botón amarillo `#f5c400` (mismo patrón que DeclararAreaForm).
-//  - Nivel «Especialidad» muestra DOS selects: **Área** y **Especialidad**
-//    (skills activas del catálogo filtradas por el área elegida — relación
-//    `skill.area`). Ambos obligatorios.
-//  - `general`/`becario` ya NO exigen elegir área (spec: sólo requieren
-//    usuario verificado); `experto`/`personalizada` sólo piden área.
-//  - La lógica pura (visibilidad por nivel, opciones, validación, cadenas de
-//    ancestros) vive en `src/utils/agregarTarea.helpers.js` con tests.
-//  - Sin console.log de producción y con `res.ok` + estados de carga al traer
-//    áreas y skills.
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {
@@ -133,6 +116,8 @@ export default function AgregarTarea() {
   const [creando, setCreando] = useState(false);
 
   // --------------------- CARGAR AREAS (lectura pública) ---------------------
+  // Los catálogos (áreas/skills) son de lectura pública: NO requieren token.
+  // Antes se exigía token aquí y, si fallaba, dejaba el formulario vacío.
   useEffect(() => {
     let vivo = true;
     (async () => {
