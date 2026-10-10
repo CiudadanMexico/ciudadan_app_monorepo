@@ -22,9 +22,21 @@ const inputSx = {
     '&.Mui-focused fieldset': { borderColor: GEN_COLORS.verde },
     '&.Mui-error fieldset': { borderColor: '#ef5350' },
   },
+  // Estado deshabilitado (email de Auth0): sobre fondo oscuro el gris
+  // por defecto de MUI no contrasta. Forzamos texto legible y borde visible.
+  '& .MuiOutlinedInput-root.Mui-disabled': {
+    bgcolor: 'rgba(255,255,255,0.08)',
+    '& fieldset': { borderColor: 'rgba(255,255,255,0.28)' },
+  },
   '& .MuiInputLabel-root': { color: GEN_COLORS.textoSecundario },
   '& .MuiInputLabel-root.Mui-focused': { color: GEN_COLORS.verde },
+  '& .MuiInputLabel-root.Mui-disabled': { color: GEN_COLORS.textoSecundario },
   '& .MuiInputBase-input': { color: GEN_COLORS.texto },
+  '& .MuiInputBase-input.Mui-disabled': {
+    color: GEN_COLORS.texto,
+    WebkitTextFillColor: GEN_COLORS.texto,
+    opacity: 1,
+  },
   '& .MuiSvgIcon-root': { color: GEN_COLORS.textoSecundario },
 };
 
