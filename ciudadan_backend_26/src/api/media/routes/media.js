@@ -26,6 +26,12 @@ const routes = [
     config: { auth: false, policies: ["global::is-authenticated-media"] } },
   { method: "GET", path: "/media/jobs/:id/artifacts/:artifactId/download", handler: "media.download",
     config: { auth: false, policies: ["global::is-authenticated-media"] } },
+  { method: "POST", path: "/media/jobs/:id/artifacts/:artifactId/access", handler: "media.artifactAccess",
+    config: { auth: false, policies: ["global::is-authenticated-media"] } },
+  { method: "GET", path: "/media/artifact-access/:token", handler: "media.artifactAccessConsume",
+    config: { auth: false, policies: [] } },
+  { method: "DELETE", path: "/media/jobs/:id/artifacts/:artifactId", handler: "media.deleteArtifact",
+    config: { auth: false, policies: ["global::is-authenticated-media"] } },
 ];
 
 module.exports = { routes };

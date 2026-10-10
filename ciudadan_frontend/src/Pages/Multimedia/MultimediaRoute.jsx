@@ -28,6 +28,9 @@ import {
   FormControl,
   Grid,
   IconButton,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   InputLabel,
   MenuItem,
   Select,
@@ -41,6 +44,9 @@ import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import PlayCircleRoundedIcon from "@mui/icons-material/PlayCircleRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
+import HelpOutlineRoundedIcon from "@mui/icons-material/HelpOutlineRounded";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   getMediaCapabilities,
@@ -49,10 +55,12 @@ import {
   listMediaJobs,
   cancelMediaJob,
   retryMediaJob,
+  createArtifactAccess,
   getMediaArtifacts,
   getMediaArtifactDownloadUrl,
+  deleteMediaArtifact,
 } from "../../services/mediaService";
-import { getDefinition, UPLOAD_KIND_BY_PARAM } from "../../services/mediaJobDefinitions";
+import { getDefinition, mediaJobDefinitions, UPLOAD_KIND_BY_PARAM } from "../../services/mediaJobDefinitions";
 import {
   MediaSocketProvider,
   useMediaSocket,
@@ -132,12 +140,92 @@ function StateChip({ status }) {
   );
 }
 
+// ---------- guia de uso por operacion ----------
+function HelpBody({ d }) {
+  const h = d.help || {};
+  return (
+    <Box>
+      <Typography variant="body2" paragraph>{h.que || d.description}</Typography>
+      {h.requisitos && h.requisitos.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Qué necesitas</Typography>
+          <Box component="ul" sx={{ pl: 3, my: 0 }}>
+            {h.requisitos.map((r, i) => <Typography key={i} variant="body2" component="li">{r}</Typography>)}
+          </Box>
+        </Box>
+      )}
+      {h.pasos && h.pasos.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Pasos</Typography>
+          <Box component="ol" sx={{ pl: 3, my: 0 }}>
+            {h.pasos.map((p, i) => <Typography key={i} variant="body2" component="li">{p}</Typography>)}
+          </Box>
+        </Box>
+      )}
+      {h.resultado && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Resultado</Typography>
+          <Typography variant="body2">{h.resultado}</Typography>
+        </Box>
+      )}
+      {h.tiempo && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Tiempo estimado</Typography>
+          <Typography variant="body2">{h.tiempo}</Typography>
+        </Box>
+      )}
+      {h.tips && h.tips.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>Consejos</Typography>
+          <Box component="ul" sx={{ pl: 3, my: 0 }}>
+            {h.tips.map((t, i) => <Typography key={i} variant="body2" component="li">{t}</Typography>)}
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+function HelpDialog({ open, onClose, type }) {
+  const def = type ? getDefinition(type) : null;
+  const allTypes = Object.keys(mediaJobDefinitions);
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>{def ? `${def.label} — Guía de uso` : "Centro Multimedia — Guía de operaciones"}</DialogTitle>
+      <DialogContent>
+        {def && <HelpBody d={def} />}
+        {!def && (
+          <React.Fragment>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              Elige una operación en «Nuevo trabajo» y pulsa el botón de ayuda para ver su guía concreta, o despliega cualquiera aquí:
+            </Typography>
+            {allTypes.map((t) => {
+              const d = mediaJobDefinitions[t];
+              return (
+                <Accordion key={t}>
+                  <AccordionSummary expandIcon={<ExpandMoreRoundedIcon />}>
+                    <Typography variant="subtitle2">{d.label}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ maxHeight: "min(60vh, 450px)", overflowY: "auto" }}>
+                    <HelpBody d={d} />
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
+          </React.Fragment>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ---------- panel de artifacts ----------
 function ArtifactPanel({ token, jobId, open, onClose }) {
   const [arts, setArts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [preview, setPreview] = useState(null); // {art, url, text}
+  const [confirmDel, setConfirmDel] = useState(null); // artifact pendiente de borrar
 
   useEffect(() => {
     if (!open || !jobId || !token) return;
@@ -155,25 +243,44 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
 
   const doPreview = async (art) => {
     setError(null);
-    const url = getMediaArtifactDownloadUrl(jobId, art.id);
     const mime = art.mime || "";
-    if (/^image\/(jpeg|png|webp|gif)/.test(mime)) {
-      setPreview({ art, url, kind: "image" });
-    } else if (/^audio\//.test(mime)) {
-      setPreview({ art, url, kind: "audio" });
-    } else if (/^video\//.test(mime)) {
-      setPreview({ art, url, kind: "video" });
-    } else if (/^(text\/plain|text\/vtt|application\/json)/.test(mime) && (art.sizeBytes || 0) < 256 * 1024) {
-      try {
-        const res = await fetch(url);
+    const isText = /^(text\/plain|text\/vtt|application\/json)/.test(mime) && (art.sizeBytes || 0) < 256 * 1024;
+    try {
+      if (isText) {
+        // texto pequeno: fetch autenticado normal (Bearer) — streaming innecesario
+        const res = await fetch(getMediaArtifactDownloadUrl(jobId, art.id), { headers: { Authorization: `Bearer ${token}` } });
         if (!res.ok) throw new Error("No se pudo cargar la vista previa");
         const text = await res.text();
-        setPreview({ art, url, kind: "text", text });
-      } catch (e) {
-        setError(e.message || "No se pudo cargar la vista previa");
+        setPreview({ art, kind: "text", text });
+        return;
       }
-    } else {
-      setError("Vista previa no disponible para este formato; usa descarga.");
+      // image/audio/video: URL temporal firmada (grant) para <img>/<audio>/<video> con Range
+      const grant = await createArtifactAccess(token, jobId, art.id, "preview");
+      if (!grant || !grant.url) throw new Error("No se pudo generar la vista previa");
+      if (/^image\/(jpeg|png|webp|gif)/.test(mime)) {
+        setPreview({ art, url: grant.url, kind: "image" });
+      } else if (/^audio\//.test(mime)) {
+        setPreview({ art, url: grant.url, kind: "audio" });
+      } else if (/^video\//.test(mime)) {
+        setPreview({ art, url: grant.url, kind: "video" });
+      } else {
+        setError("Vista previa no disponible para este formato; usa descarga.");
+      }
+    } catch (e) {
+      setError(errorToMessage(e) || e.message || "No se pudo cargar la vista previa");
+    }
+  };
+
+  const doDelete = async (art) => {
+    setError(null);
+    try {
+      await deleteMediaArtifact(token, jobId, art.id);
+      setArts((prev) => (prev || []).filter((x) => x.id !== art.id));
+      if (preview && preview.art && preview.art.id === art.id) setPreview(null);
+      setConfirmDel(null);
+    } catch (e) {
+      setError(errorToMessage(e) || e.message || "No se pudo borrar el artifact");
+      setConfirmDel(null);
     }
   };
 
@@ -193,9 +300,14 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
                 <Box sx={{ flexGrow: 1 }} />
                 <Tooltip title="Vista previa"><IconButton size="small" onClick={() => doPreview(a)} aria-label={`Vista previa de ${a.name}`}><PlayCircleRoundedIcon /></IconButton></Tooltip>
                 <Tooltip title="Descargar">
-                  <IconButton size="small" href={getMediaArtifactDownloadUrl(jobId, a.id)} aria-label={`Descargar ${a.name}`}
-                    onClick={(e) => { e.preventDefault(); const el = document.createElement("a"); el.href = getMediaArtifactDownloadUrl(jobId, a.id); el.setAttribute("download", a.name); document.body.appendChild(el); el.click(); el.remove(); }}>
+                  <IconButton size="small" aria-label={`Descargar ${a.name}`}
+                    onClick={async (e) => { e.preventDefault(); try { const grant = await createArtifactAccess(token, jobId, a.id, "download"); if (!grant || !grant.url) throw new Error("No se pudo generar la descarga"); const el = document.createElement("a"); el.href = grant.url; el.setAttribute("download", a.name); document.body.appendChild(el); el.click(); el.remove(); } catch (err) { setError(errorToMessage(err) || err.message || "No se pudo generar la descarga"); } }}>
                     <DownloadRoundedIcon />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Borrar (se elimina del servidor)">
+                  <IconButton size="small" aria-label={`Borrar ${a.name}`} onClick={() => setConfirmDel(a)}>
+                    <DeleteOutlineIcon />
                   </IconButton>
                 </Tooltip>
               </Stack>
@@ -215,6 +327,17 @@ function ArtifactPanel({ token, jobId, open, onClose }) {
             )}
           </Box>
         )}
+        {confirmDel && (
+          <Box sx={{ mt: 2, p: 1.5, border: "1px solid", borderColor: "divider", borderRadius: 1 }}>
+            <Typography variant="body2" gutterBottom>
+              ¿Borrar «{confirmDel.name}»? Se elimina del servidor y no se puede recuperar.
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <Button size="small" color="error" variant="contained" onClick={() => doDelete(confirmDel)}>Borrar</Button>
+              <Button size="small" onClick={() => setConfirmDel(null)}>Cancelar</Button>
+            </Stack>
+          </Box>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -228,6 +351,7 @@ function NewJobPanel({ token, capabilities, onCreated }) {
   const [uploads, setUploads] = useState({}); // paramKey -> {id, name, sizeBytes, uploading, error}
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const def = type ? getDefinition(type) : null;
   const cap = type ? capabilities[type] : null;
@@ -307,13 +431,21 @@ function NewJobPanel({ token, capabilities, onCreated }) {
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant="h6" gutterBottom>Nuevo trabajo</Typography>
+        <Stack direction="row" spacing={0.5} alignItems="center">
+          <Typography variant="h6" gutterBottom>Nuevo trabajo</Typography>
+          <Tooltip title="Ayuda: guía de uso de las operaciones">
+            <IconButton size="small" aria-label="Ayuda" onClick={() => setHelpOpen(true)}>
+              <HelpOutlineRoundedIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth size="small">
               <InputLabel id="media-op-label">Operación</InputLabel>
               <Select labelId="media-op-label" label="Operación" value={type}
-                onChange={(e) => setType(e.target.value)}>
+                onChange={(e) => setType(e.target.value)}
+                MenuProps={{ sx: { zIndex: 1600 }, PaperProps: { sx: { maxHeight: "min(60vh, 450px)", overflowY: "auto" } }, marginThreshold: 8 }}>
                 {types.length === 0 && <MenuItem value="" disabled><em>Cargando capabilities…</em></MenuItem>}
                 {types.map((t) => {
                   const c = capabilities[t];
@@ -327,7 +459,14 @@ function NewJobPanel({ token, capabilities, onCreated }) {
         </Grid>
         {def && (
           <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary" paragraph>{def.description}</Typography>
+            <Stack direction="row" spacing={0.5} alignItems="flex-start">
+              <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 0 }}>{def.description}</Typography>
+              <Tooltip title="Guía de uso de esta operación">
+                <IconButton size="small" aria-label={`Ayuda de ${def.label}`} onClick={() => setHelpOpen(true)}>
+                  <HelpOutlineRoundedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
             {cap && cap.warning && <Alert severity="info" sx={{ mb: 1 }}>{cap.warning}</Alert>}
             {commercialBlocked && (
               <Alert severity="warning" sx={{ mb: 1 }}>
@@ -349,7 +488,7 @@ function NewJobPanel({ token, capabilities, onCreated }) {
                           type="file"
                           accept={(UPLOAD_KIND_BY_PARAM[f.key] || []).map((k) => ({ audio: "audio/*", video: "video/*", image: "image/*" }[k])).join(",")}
                           onChange={(e) => handleFile(f.key, e.target.files && e.target.files[0])}
-                          disabled={submitting || Boolean(commercialBlocked)}
+                          disabled={submitting}
                         />
                         {uploads[f.key] && (
                           <Typography variant="caption" color={uploads[f.key].error ? "error" : "text.secondary"}>
@@ -404,6 +543,7 @@ function NewJobPanel({ token, capabilities, onCreated }) {
                 {submitting ? <CircularProgress size={18} color="inherit" /> : "Crear trabajo"}
               </Button>
             </Box>
+            <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} type={type} />
           </Box>
         )}
       </CardContent>
@@ -506,6 +646,7 @@ function CentroMultimedia() {
   const [artifactsJob, setArtifactsJob] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
   const jobsRef = useRef([]);
+  const [capsTick, setCapsTick] = useState(0); // retry manual de capabilities
 
   useEffect(() => {
     let cancelled = false;
@@ -532,15 +673,26 @@ function CentroMultimedia() {
 
   useEffect(() => { refreshJobs(); }, [refreshJobs]);
 
-  // cargar capabilities dinámicas (una vez con token)
+  // cargar capabilities dinamicas (con reintentos automaticos ante fallos transitorios:
+  // la Media API puede tardar > timeout tras un idle del tailnet o un deploy en curso)
   useEffect(() => {
-    if (!token) return;
+    if (!token) return undefined;
     let cancelled = false;
-    getMediaCapabilities(token)
-      .then((data) => { if (!cancelled) setCapabilities((data && data.capabilities) || {}); })
-      .catch((e) => { if (!cancelled) setError(e); });
+    let attempt = 0;
+    const load = async () => {
+      attempt += 1;
+      try {
+        const data = await getMediaCapabilities(token);
+        if (!cancelled) { setCapabilities((data && data.capabilities) || {}); setError(null); }
+      } catch (e) {
+        if (cancelled) return;
+        if (attempt < 3) { setTimeout(load, attempt * 2000); return; }
+        setError(e);
+      }
+    };
+    load();
     return () => { cancelled = true; };
-  }, [token]);
+  }, [token, capsTick]);
 
   // realtime: actualizar SOLO el job afectado; REST refetch al (re)conectar
   useEffect(() => {
@@ -588,6 +740,9 @@ function CentroMultimedia() {
       </Stack>
       {lastRefresh && <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>Última actualización: {fmtDate(lastRefresh)}{activeCount > 0 ? ` · ${activeCount} activo(s)` : ""}</Typography>}
       {error && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setError(null)}>{errorToMessage(error)}</Alert>}
+      {error && !capabilities && (
+        <Button size="small" variant="outlined" sx={{ mb: 2 }} onClick={() => { setError(null); setCapsTick((t) => t + 1); }}>Reintentar capabilities</Button>
+      )}
       {!token && <Alert severity="info" sx={{ mb: 2 }}>Inicia sesión para usar el Centro Multimedia.</Alert>}
       <NewJobPanel token={token} capabilities={capabilities || {}} onCreated={refreshJobs} />
       <Typography variant="h6" gutterBottom>Mis trabajos</Typography>

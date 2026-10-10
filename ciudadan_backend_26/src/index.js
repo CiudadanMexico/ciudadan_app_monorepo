@@ -14,6 +14,13 @@ module.exports = {
     initMediaSocket(strapi);
     startMediaSyncPoller(strapi);
 
+    // Warming de la Media API al boot: despertar el tailnet/conn para que la
+    // primera request del usuario no pague el timeout de arranque. Fire-and-forget.
+    try {
+      const { health } = require("./api/media/services/media-api-client");
+      health().catch(() => {});
+    } catch (e) { /* el fallo del warming no bloquea el boot */ }
+
     if (!strapi.dirs?.static?.public) {
       const appDir = strapi.dirs?.app?.root || process.cwd();
       strapi.dirs.static = strapi.dirs.static || {};

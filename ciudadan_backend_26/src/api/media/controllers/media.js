@@ -51,4 +51,13 @@ module.exports = {
   async download(ctx) {
     return handle(actions.download(ctx), ctx);
   },
+  async artifactAccess(ctx) {
+    return handle(actions.artifactAccess(ctx), ctx);
+  },
+  async artifactAccessConsume(ctx) {
+    return handle(actions.artifactAccessConsume(ctx), ctx);
+  },
+  async deleteArtifact(ctx) {
+    return handle(actions.deleteArtifact(ctx), ctx);
+  },
 };

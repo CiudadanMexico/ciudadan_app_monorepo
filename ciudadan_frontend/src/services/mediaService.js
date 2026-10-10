@@ -104,6 +104,25 @@ export async function getMediaArtifacts(token, id) {
 }
 
 /** URL de descarga (Range/206 lo maneja el backend) — para <audio>/<video>. */
+/** Solicita URL temporal firmada de un artifact (purpose: preview|download). */
+export async function createArtifactAccess(token, jobId, artifactId, purpose) {
+  const res = await fetch(`${API_URL}/api/media/jobs/${jobId}/artifacts/${artifactId}/access`, {
+    method: "POST",
+    headers: getHeaders(token, { "Content-Type": "application/json" }),
+    body: JSON.stringify({ purpose: purpose || "preview" }),
+  });
+  return handle(res);
+}
+
+/** Borra un artifact propio en el servidor (irreversible). */
+export async function deleteMediaArtifact(token, jobId, artifactId) {
+  const res = await fetch(`${API_URL}/api/media/jobs/${jobId}/artifacts/${artifactId}`, {
+    method: "DELETE",
+    headers: getHeaders(token),
+  });
+  return handle(res);
+}
+
 export function getMediaArtifactDownloadUrl(id, artifactId) {
   return `${API_URL}/api/media/jobs/${id}/artifacts/${artifactId}/download`;
 }
