@@ -1,11 +1,27 @@
 import React, { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useLocation } from "react-router-dom";
 import { Box, Button, Alert, CircularProgress, Typography, Stack } from "@mui/material";
 
 export default function MercadoPagoBoton({ order, subtypeKey = null, email, precioMostrado }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const location = useLocation();
 
   const socketUrl = (process.env.REACT_APP_SOCKET_URL || "http://localhost:33035").replace(/\/$/, "");
+
+  const handleClick = () => {
+    // Sin sesión (o sin email): en vez de dejar el botón muerto, mandar a
+    // iniciar sesión y regresar a esta misma pantalla al terminar.
+    if (!isAuthenticated || !email) {
+      loginWithRedirect({
+        appState: { returnTo: location.pathname + location.search },
+      });
+      return;
+    }
+    irAMercadoPago();
+  };
 
   const irAMercadoPago = async () => {
     setError(null);
@@ -52,8 +68,8 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
         <Button
           fullWidth
           variant="contained"
-          onClick={irAMercadoPago}
-          disabled={loading || !email}
+          onClick={handleClick}
+          disabled={loading}
           sx={{
             backgroundColor: "#009EE3",
             color: "#fff",
