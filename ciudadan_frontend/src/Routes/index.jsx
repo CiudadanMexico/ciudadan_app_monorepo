@@ -392,6 +392,11 @@ const Rutas = () => {
       path='/hackabot'
       element={<HackabotPage />}
     />
+    {/* Legacy: el concepto interhackaton se reemplaza totalmente por hackabot */}
+    <Route
+      path='/interhackaton'
+      element={<Navigate to='/hackabot' replace />}
+    />
     <Route
       path='/vallecatnip'
       element={<VallecatnipPage />}
