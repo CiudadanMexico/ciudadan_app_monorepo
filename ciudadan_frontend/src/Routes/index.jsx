@@ -715,62 +715,37 @@ const Rutas = () => {
       element={<Academia />}
     />
     {/* ================= Coowork: enrutamiento profundo =================
-        Cada vista tiene su URL (la URL manda: Coowork deriva tab/subTab de
-        ella). Orden: específicas antes que genéricas. Las /herramientas/*
-        viejas quedan como redirects a /coowork/herramientas/* (compat). */}
+        La URL manda: Coowork deriva tab/subTab de ella. :vista pasa el
+        segmento a useParams (paths fijos NO pasan params: ese fue el bug
+        que dejaba el contenido congelado). Las /herramientas/* viejas
+        quedan como redirects a /coowork/herramientas/* (compat). */}
     <Route
       path='/coowork'
       element={<Coowork />}
     />
-    <Route
-      path='/coowork/tareas-generales'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/especializadas'
-      element={<Coowork />}
-    />
-    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia */}
+    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia
+        (antes que :vista para que no la capture la genérica) */}
     <Route
       path='/coowork/especializadas/:areaSlug'
       element={<Coowork />}
     />
-    <Route
-      path='/coowork/tareas-socio'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/herramientas'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/bitacora'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/pagos'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/verificar-conductores'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/auditorias'
-      element={<Coowork />}
-    />
-    <Route
-      path='/coowork/mis-tareas'
-      element={<Coowork />}
-    />
     {/* Herramientas: forma actual (raíz) y forma futura (con categoría).
-        /coowork/herramientas/:slug  hoy;  /coowork/herramientas/:categoria/:slug  mañana. */}
+        /coowork/herramientas/:slug  hoy;  /coowork/herramientas/:categoria/:slug  mañana.
+        OJO: estas renderizan la página dedicada (HerramientaDedicada), NO <Coowork/>;
+        el grid de Herramientas vive dentro de Coowork en /coowork/herramientas.
+        Van ANTES que /coowork/:vista para que el slug no caiga en `vista`. */}
     <Route
       path='/coowork/herramientas/:slug'
-      element={<Coowork />}
+      element={<HerramientaDedicada />}
     />
     <Route
       path='/coowork/herramientas/:categoria/:slug'
+      element={<HerramientaDedicada />}
+    />
+    {/* Todas las vistas: tareas-generales|especializadas|tareas-socio|
+        herramientas|bitacora|pagos|verificar-conductores|auditorias|mis-tareas */}
+    <Route
+      path='/coowork/:vista'
       element={<Coowork />}
     />
     {/* Masters Ciudadan (vista previa) */}

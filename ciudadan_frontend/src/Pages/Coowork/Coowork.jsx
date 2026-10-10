@@ -270,8 +270,11 @@ const CooWork = () => {
   const navigate = useNavigate();
   // Deep-link /coowork/especializadas/:areaSlug -> abre Tareas Especializadas
   // reutilizando el mismo componente de Coowork (sin una segunda pantalla).
-  // `vista` = primer segmento tras /coowork; `resto` = resto (herramientas).
-  const { vista = null, '*': resto = null, areaSlug = null } = useParams();
+  // `vista` = primer segmento tras /coowork (ruta /coowork/:vista); `resto`
+  // quedó para compat (ya no se usa: herramientas dedicadas van a
+  // HerramientaDedicada, no a Coowork).
+  const { vista = null, areaSlug = null } = useParams();
+  const resto = null;
 
   // URL manda: tab/subTab se derivan de la ruta (nunca al revés).
   const ruta = tabDeRuta({ vista, resto, areaSlugParam: areaSlug, searchParams });
