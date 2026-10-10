@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -53,10 +54,11 @@ const HERRAMIENTAS = [
 
 const HerramientasGrid = () => {
   const { isAdmin, isSocio } = useRoles();
+  const navigate = useNavigate();
   const tienePermisoCRUD = isAdmin() || isSocio();
 
   const herramientas = HERRAMIENTAS.filter((tool) => !tool.soloAdminSocio || tienePermisoCRUD).map(
-    (tool) => ({ ...tool, id: tool.slug, link: `/herramientas/${tool.slug}` })
+    (tool) => ({ ...tool, id: tool.slug, link: `/coowork/herramientas/${tool.slug}` })
   );
 
   return (
@@ -68,15 +70,9 @@ const HerramientasGrid = () => {
       ) : (
         <Grid container spacing={2}>
           {herramientas.map((tool) => {
-            const onClick = (e) => {
-              if (!tool.link) return;
-              e.preventDefault();
-              window.history.pushState({}, '', tool.link);
-              window.dispatchEvent(new PopStateEvent('popstate'));
-            };
             return (
               <Grid item xs={6} sm={3} key={tool.id}>
-                <ToolCard onClick={onClick}>
+                <ToolCard onClick={() => navigate(tool.link)}>
                   <Box sx={{ mb: 1 }}>{tool.icon}</Box>
                   <Typography variant="subtitle1" fontWeight={600}>
                     {tool.name}
