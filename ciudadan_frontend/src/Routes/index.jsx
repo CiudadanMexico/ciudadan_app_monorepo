@@ -118,6 +118,7 @@ import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
 import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
 import HabilidadesHub from '../Pages/Coowork/HabilidadesHub.jsx';
 import Clientes from '../Pages/Coowork/Clientes.jsx';
+import Agentes from '../Pages/Coowork/Agentes.jsx';
 import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
@@ -300,6 +301,7 @@ const HERRAMIENTA_POR_SLUG = {
   'gestionar-habilidades': HabilidadesHub,
   'verificar-usuarios': VerificarUsuarios,
   'conductores': ConductoresAgencia,
+  'agentes': Agentes,
 };
 const HerramientaDedicada = () => {
   const { slug = '' } = useParams();

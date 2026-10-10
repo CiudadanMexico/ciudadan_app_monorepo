@@ -9,6 +9,7 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import GroupIcon from '@mui/icons-material/Group';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
 const neonGreen = '#00ff99';
@@ -50,6 +51,8 @@ const HERRAMIENTAS = [
   // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
   // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
   { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
+  // Agentes: vivienda/agentes de campo, puntera del programa de agentes de la agencia.
+  { slug: 'agentes', name: 'Agentes', icon: <GroupIcon fontSize="large" />, soloAdminSocio: false },
 ];
 
 const HerramientasGrid = () => {
