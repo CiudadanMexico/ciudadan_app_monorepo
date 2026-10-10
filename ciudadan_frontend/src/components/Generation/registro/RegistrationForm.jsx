@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
-import { Grid, Box, Button, Typography, Stack, Alert } from '@mui/material';
+import { Grid2 as Grid, Box, Button, Typography, Stack, Alert } from '@mui/material';
 import TaskAltRounded from '@mui/icons-material/TaskAltRounded';
 import RegistrationField from './RegistrationField';
 import { REGISTRATION, GENERATION_ROUTES } from '../../../config/generationFounderConfig';

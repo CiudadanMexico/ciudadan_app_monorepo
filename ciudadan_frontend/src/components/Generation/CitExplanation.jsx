@@ -5,7 +5,7 @@
  *  - variant="compact": definición + reglas esenciales.
  * Nunca presenta CIT como dinero líquido garantizado.
  */
-import { Box, Typography, Grid, Stack } from '@mui/material';
+import { Box, Typography, Grid2 as Grid, Stack } from '@mui/material';
 import CitVestingTimeline from './CitVestingTimeline';
 import { GEN_COLORS, GEN_FONTS } from './GenerationTheme';
 

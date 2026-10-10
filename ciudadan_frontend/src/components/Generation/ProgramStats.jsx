@@ -1,7 +1,7 @@
 /**
  * ProgramStats — fila de métricas del programa (grid de ImpactMetric).
  */
-import { Grid } from '@mui/material';
+import { Grid2 as Grid } from '@mui/material';
 import ImpactMetric from './ImpactMetric';
 
 const ProgramStats = ({ stats, accentColor }) => (
