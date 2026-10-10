@@ -4,6 +4,7 @@
 import React from 'react';
 import { Box, Paper, Typography, Button } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import RobotIcon from '@mui/icons-material/Robot';
 import { useNavigate } from 'react-router-dom';
 
 const MORADO = '#8A5CF5';
@@ -60,7 +61,7 @@ export default function Agentes() {
               fontSize: 34,
             }}
           >
-            👥
+            <RobotIcon fontSize="large" />
           </Box>
 
           <Typography variant="h4" fontWeight={900} gutterBottom sx={{ fontFamily: fontStack }}>
