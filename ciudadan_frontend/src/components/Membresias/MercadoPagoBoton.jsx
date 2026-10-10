@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation } from "react-router-dom";
 import { Box, Button, Alert, CircularProgress, Typography, Stack } from "@mui/material";
@@ -8,6 +8,21 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
   const [error, setError] = useState(null);
   const { isAuthenticated, loginWithRedirect } = useAuth0();
   const location = useLocation();
+
+  // Si el usuario vuelve con el botón "atrás" del navegador (Chrome
+  // restaura la página desde bfcache con el estado previo: el botón seguía
+  // en "Redirigiendo a Mercado Pago..." y deshabilitado). Con `pageshow`
+  // con persisted=true reseteamos el estado a listo.
+  useEffect(() => {
+    const resetOnShow = (event) => {
+      if (event.persisted) {
+        setLoading(false);
+        setError(null);
+      }
+    };
+    window.addEventListener("pageshow", resetOnShow);
+    return () => window.removeEventListener("pageshow", resetOnShow);
+  }, []);
 
   const socketUrl = (process.env.REACT_APP_SOCKET_URL || "http://localhost:33035").replace(/\/$/, "");
 
@@ -87,7 +102,7 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
               Redirigiendo a Mercado Pago...
             </>
           ) : (
-            `Pagar con Mercado Pago${precioMostrado ? ` · ${precioMostrado}` : ""}`
+            `Adquirir Ahora${precioMostrado ? ` · ${precioMostrado}` : ""}`
           )}
         </Button>
 
