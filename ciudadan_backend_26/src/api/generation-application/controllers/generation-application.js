@@ -40,10 +40,14 @@ module.exports = createCoreController('api::generation-application.generation-ap
     const common = body.common && typeof body.common === 'object' ? body.common : {};
     const tracking = body.tracking && typeof body.tracking === 'object' ? body.tracking : {};
 
-    // --- Validación mínima: nombre + email válidos + consentimiento ---
-    const name = cleanString(common.nombre, 160);
+    // --- Validación mínima: nombre + apellidos + email + consentimiento ---
+    const nombre = cleanString(common.nombre, 80);
+    const apellidos = cleanString(common.apellidos, 80);
     const email = cleanString(common.email, 160)?.toLowerCase() || null;
-    if (!name) return ctx.badRequest('El nombre es obligatorio.');
+    if (!nombre) return ctx.badRequest('El nombre es obligatorio.');
+    if (!apellidos) return ctx.badRequest('Los apellidos son obligatorios.');
+    // Nombre completo = nombre + apellidos (el frontend ya no manda el username de Auth0).
+    const name = `${nombre} ${apellidos}`.slice(0, 160);
     if (!email || !EMAIL_RE.test(email)) {
       return ctx.badRequest('Un correo electrónico válido es obligatorio.');
     }
@@ -81,6 +85,10 @@ module.exports = createCoreController('api::generation-application.generation-ap
     if (typeof common.descripcion === 'string' && common.descripcion.trim()) {
       answers.descripcion = common.descripcion.trim().slice(0, MAX_TEXT);
     }
+    // Guardamos nombre y apellidos por separado en answers para no perderlos
+    // (la columna `name` guarda el nombre completo concatenado).
+    if (nombre) answers.nombre = nombre;
+    if (apellidos) answers.apellidos = apellidos;
     answers.consentimiento = true;
     if (body.answers && typeof body.answers === 'object' && !Array.isArray(body.answers)) {
       for (const [key, value] of Object.entries(body.answers)) {

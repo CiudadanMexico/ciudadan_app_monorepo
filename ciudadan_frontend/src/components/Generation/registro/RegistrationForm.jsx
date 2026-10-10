@@ -56,12 +56,12 @@ const RegistrationForm = () => {
     captureTrackingParams();
   }, [via]);
 
-  // Prefill desde Auth0: no pedir dos veces la misma información
+  // Prefill desde Auth0: sólo el email. El nombre NO se toma del username
+  // de Auth0 (spec: nombre completo obligatorio, lo captura el usuario).
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     setValues((prev) => ({
       ...prev,
-      nombre: prev.nombre || user.name || user.nickname || '',
       email: prev.email || user.email || '',
     }));
   }, [isAuthenticated, user]);
@@ -88,6 +88,18 @@ const RegistrationForm = () => {
       }
       if (field.type === 'email' && value && !EMAIL_RE.test(value)) {
         next[field.name] = 'Escribe un correo electrónico válido.';
+      }
+      // Nombre y apellidos: al menos 2 letras reales (admite acentos, ñ,
+      // apóstrofes, guiones y espacios internos). Rechaza números y símbolos.
+      if (field.validate === 'name' && value) {
+        const trimmed = String(value).trim();
+        if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ'’\- ]+$/.test(trimmed)) {
+          next[field.name] = 'Usa sólo letras, espacios, guiones o apóstrofes.';
+        } else if (trimmed.replace(/[\s'’\-]+/g, '').length < 2) {
+          next[field.name] = 'Escribe al menos 2 letras.';
+        } else if (trimmed.length > 60) {
+          next[field.name] = 'Máximo 60 caracteres.';
+        }
       }
     });
     setErrors(next);
@@ -216,7 +228,7 @@ const RegistrationForm = () => {
         field={field}
         value={values[field.name]}
         error={errors[field.name]}
-        disabled={isAuthenticated && (field.name === 'nombre' || field.name === 'email')}
+        disabled={isAuthenticated && field.name === 'email'}
         onChange={handleChange}
       />
     </Grid>
@@ -268,8 +280,8 @@ const RegistrationForm = () => {
             '& .MuiAlert-message': { fontSize: '0.9rem' },
           }}
         >
-          Estás usando tu cuenta Ciudadan (<strong>{user?.email}</strong>): nombre y
-          correo ya están prellenados.
+          Estás usando tu cuenta Ciudadan (<strong>{user?.email}</strong>): tu correo ya
+          está confirmado. Escribe tu nombre y apellidos tal como deben aparecer.
         </Alert>
       )}
 
