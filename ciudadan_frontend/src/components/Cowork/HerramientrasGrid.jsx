@@ -4,6 +4,7 @@ import { Box, Typography, Grid, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import FolderIcon from '@mui/icons-material/Folder';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import GroupsIcon from '@mui/icons-material/Groups';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
@@ -39,6 +40,7 @@ const ToolCard = styled(Paper)(({ theme }) => ({
 // "Agregar Socio" NO está suelto aquí, vive dentro de Mi Agencia.
 const HERRAMIENTAS = [
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
+  { slug: 'clientes', name: 'Clientes', icon: <GroupsIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },

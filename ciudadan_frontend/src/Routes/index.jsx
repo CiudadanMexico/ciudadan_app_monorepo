@@ -117,6 +117,7 @@ import CapitalHumano from '../Pages/Coowork/CapitalHumano.jsx';
 import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
 import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
 import HabilidadesHub from '../Pages/Coowork/HabilidadesHub.jsx';
+import Clientes from '../Pages/Coowork/Clientes.jsx';
 import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
@@ -827,6 +828,10 @@ const Rutas = () => {
     />
     {/* Categoría "Tareas": hub que agrupa las 5 herramientas de tareas.
         Va antes de la ruta genérica /coowork/herramientas/:slug. */}
+    <Route
+      path='/coowork/herramientas/clientes'
+      element={<Clientes />}
+    />
     <Route
       path='/coowork/herramientas/tareas'
       element={<TareasHerramientas />}
