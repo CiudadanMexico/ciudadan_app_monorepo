@@ -115,6 +115,7 @@ import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
 import MiAgencia from '../Pages/Coowork/MiAgencia.jsx';
 import CapitalHumano from '../Pages/Coowork/CapitalHumano.jsx';
 import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
+import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
 import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
@@ -823,17 +824,23 @@ const Rutas = () => {
       path='/coowork/herramientas/mi-agencia/configuracion'
       element={<ConfiguracionAgencia />}
     />
+    {/* Categoría "Tareas": hub que agrupa las 5 herramientas de tareas.
+        Va antes de la ruta genérica /coowork/herramientas/:slug. */}
+    <Route
+      path='/coowork/herramientas/tareas'
+      element={<TareasHerramientas />}
+    />
     <Route
       path='/coowork/herramientas/calificar-tarea'
-      element={<CalificarTarea />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/calificar-tarea' />}
     />
     <Route
       path='/coowork/herramientas/corregir-tarea'
-      element={<CorregirTarea />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/corregir-tarea' />}
     />
     <Route
       path='/coowork/herramientas/gestionar-tareas'
-      element={<GestionTareas />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/gestionar-tareas' />}
     />
     <Route
       path='/coowork/herramientas/resolver-apelaciones'
@@ -841,11 +848,11 @@ const Rutas = () => {
     />
     <Route
       path='/coowork/herramientas/agregar-tarea'
-      element={<AgregarTarea />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/agregar-tarea' />}
     />
     <Route
       path='/coowork/herramientas/asignar-tarea'
-      element={<AsignarTareaPage />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/asignar-tarea' />}
     />
     <Route
       path='/coowork/herramientas/agregar-socio'
@@ -879,15 +886,15 @@ const Rutas = () => {
     />
     <Route
       path='/herramientas/calificar-tarea'
-      element={<Navigate replace to='/coowork/herramientas/calificar-tarea' />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/calificar-tarea' />}
     />
     <Route
       path='/herramientas/corregir-tarea'
-      element={<Navigate replace to='/coowork/herramientas/corregir-tarea' />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/corregir-tarea' />}
     />
     <Route
       path='/herramientas/gestionar-tareas'
-      element={<Navigate replace to='/coowork/herramientas/gestionar-tareas' />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/gestionar-tareas' />}
     />
     <Route
       path='/herramientas/resolver-apelaciones'
@@ -895,12 +902,12 @@ const Rutas = () => {
     />
     <Route
       path='/herramientas/agregar-tarea'
-      element={<Navigate replace to='/coowork/herramientas/agregar-tarea' />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/agregar-tarea' />}
     />
 
     <Route
       path='/herramientas/asignar-tarea'
-      element={<Navigate replace to='/coowork/herramientas/asignar-tarea' />}
+      element={<Navigate replace to='/coowork/herramientas/tareas/asignar-tarea' />}
     />
     <Route
       path='/herramientas/agregar-socio'

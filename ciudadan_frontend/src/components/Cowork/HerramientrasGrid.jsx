@@ -5,12 +5,10 @@ import { styled } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FolderIcon from '@mui/icons-material/Folder';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import BuildCircleIcon from '@mui/icons-material/BuildCircle';
-import PermMediaIcon from '@mui/icons-material/PermMedia';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import AddTaskIcon from '@mui/icons-material/AddTask';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PermMediaIcon from '@mui/icons-material/PermMedia';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
@@ -39,18 +37,18 @@ const ToolCard = styled(Paper)(({ theme }) => ({
 // esa consulta no aportaba nada y complicaba montar el proyecto desde cero
 // en cada despliegue (había que sembrar esa coleccion a mano).
 // soloAdminSocio: true oculta la herramienta para usuarios sin permiso CRUD.
+// Las 5 de tareas viven agrupadas en la categoría "Tareas"
+// (/coowork/herramientas/tareas): el grid muestra la categoría y al darle
+// muestra todas esas opciones.
 const HERRAMIENTAS = [
-  { slug: 'calificar-tarea', name: 'Calificar Tarea', icon: <CheckCircleIcon fontSize="large" />, soloAdminSocio: true },
-  { slug: 'corregir-tarea', name: 'Corregir Tarea', icon: <BuildCircleIcon fontSize="large" />, soloAdminSocio: true },
-  { slug: 'gestionar-tareas', name: 'Gestionar Tareas', icon: <ListAltIcon fontSize="large" />, soloAdminSocio: true },
+  { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
-  { slug: 'agregar-tarea', name: 'Agregar Tarea', icon: <AddTaskIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'agregar-socio', name: 'Agregar Socio', icon: <PersonAddIcon fontSize="large" />, soloAdminSocio: true },
-  { slug: 'asignar-tarea', name: 'Asignar Tarea', icon: <AssignmentIndIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'verificar-usuarios', name: 'Verificar Usuarios', icon: <VerifiedUserIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'carpetas-enlaces', name: 'Carpetas y Enlaces', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
+  { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
   // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
   { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
