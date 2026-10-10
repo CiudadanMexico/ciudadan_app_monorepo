@@ -116,6 +116,7 @@ import MiAgencia from '../Pages/Coowork/MiAgencia.jsx';
 import CapitalHumano from '../Pages/Coowork/CapitalHumano.jsx';
 import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
 import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
+import HabilidadesHub from '../Pages/Coowork/HabilidadesHub.jsx';
 import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
@@ -295,7 +296,7 @@ const HERRAMIENTA_POR_SLUG = {
   'agregar-tarea': AgregarTarea,
   'asignar-tarea': AsignarTareaPage,
   'agregar-socio': AgregarSocio,
-  'gestionar-habilidades': SkillsManagement,
+  'gestionar-habilidades': HabilidadesHub,
   'verificar-usuarios': VerificarUsuarios,
   'conductores': ConductoresAgencia,
 };
@@ -860,11 +861,22 @@ const Rutas = () => {
     />
     <Route
       path='/coowork/herramientas/gestionar-habilidades'
+      element={<HabilidadesHub />}
+    />
+    {/* Sub-opciones de Gestionar Habilidades:
+        - agregar   -> SkillsManagement (lista actual + nueva habilidad)
+        - verificar -> VerificarUsuarios (verificar habilidades de usuario) */}
+    <Route
+      path='/coowork/herramientas/habilidades/agregar'
       element={<SkillsManagement />}
     />
     <Route
-      path='/coowork/herramientas/verificar-usuarios'
+      path='/coowork/herramientas/habilidades/verificar'
       element={<VerificarUsuarios />}
+    />
+    <Route
+      path='/coowork/herramientas/verificar-usuarios'
+      element={<Navigate replace to='/coowork/herramientas/habilidades/verificar' />}
     />
     <Route
       path='/coowork/herramientas/conductores'

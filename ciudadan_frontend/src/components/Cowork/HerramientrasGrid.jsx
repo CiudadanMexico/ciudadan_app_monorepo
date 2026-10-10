@@ -8,7 +8,6 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
 import PsychologyIcon from '@mui/icons-material/Psychology';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
 const neonGreen = '#00ff99';
@@ -42,7 +41,6 @@ const HERRAMIENTAS = [
   { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
-  { slug: 'verificar-usuarios', name: 'Verificar Usuarios', icon: <VerifiedUserIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'carpetas-enlaces', name: 'Carpetas y Enlaces', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
   // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
