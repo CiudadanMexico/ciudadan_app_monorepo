@@ -1,6 +1,6 @@
 // src/Pages/MarketPlace/MarketPlace.jsx
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Buscador from '../../components/MarketPlace/Buscador.jsx';
 import ProductoCard from '../../components/MarketPlace/ProductoCard.jsx';
 import CategoriasSlider from '../../components/MarketPlace/CategoriasSlider.jsx';
@@ -16,7 +16,6 @@ import useProductos from '../../hooks/useProductos.jsx';
 
 import {
   Box,
-  Button,
   Grid,
   Container,
   Typography,
@@ -313,35 +312,6 @@ export default function MarketPage() {
         />
       </Box>
       <Container maxWidth="lg" sx={{ mt: 2, mb: 2 }}>
-        {/* Acceso contextual a la landing comercial «Vende en Ciudadan». */}
-        <Box
-          display="flex"
-          flexDirection={{ xs: 'column', sm: 'row' }}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          justifyContent="space-between"
-          gap={1.5}
-          sx={{
-            mb: 2,
-            p: 2,
-            borderRadius: 3,
-            border: '1px solid',
-            borderColor: 'divider',
-            bgcolor: 'background.paper',
-          }}
-        >
-          <Typography variant="body1" fontWeight={700}>
-            ¿Tienes un negocio? Vende sin comisiones de Ciudadan.
-          </Typography>
-          <Button
-            component={Link}
-            to="/market/vender"
-            variant="outlined"
-            color="success"
-            sx={{ fontWeight: 700, borderRadius: 3, whiteSpace: 'nowrap' }}
-          >
-            Vende en Ciudadan
-          </Button>
-        </Box>
         {/* mt: 2.5 compensa el `top: -20px` de .pestanas-bar para que no solape el Buscador */}
         <Box display="flex" alignItems="center" mb={2}>
           <Box sx={{ flex: 1, mr: 1 }}>
