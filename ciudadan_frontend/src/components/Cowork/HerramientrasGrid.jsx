@@ -41,7 +41,9 @@ const HERRAMIENTAS = [
   { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
-  { slug: 'carpetas-enlaces', name: 'Carpetas y Enlaces', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false },
+  // Unidad de Disco Virtual: abre drive.ciudadan.org en una pestaña nueva
+  // (external:true -> window.open en vez de navegación SPA interna).
+  { slug: 'unidad-disco', name: 'Unidad de Disco Virtual', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false, external: true, link: 'https://drive.ciudadan.org' },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
   // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
   // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
@@ -70,7 +72,13 @@ const HerramientasGrid = () => {
           {herramientas.map((tool) => {
             return (
               <Grid item xs={6} sm={3} key={tool.id}>
-                <ToolCard onClick={() => navigate(tool.link)}>
+                <ToolCard
+                  onClick={() =>
+                    tool.external
+                      ? window.open(tool.link, '_blank', 'noopener,noreferrer')
+                      : navigate(tool.link)
+                  }
+                >
                   <Box sx={{ mb: 1 }}>{tool.icon}</Box>
                   <Typography variant="subtitle1" fontWeight={600}>
                     {tool.name}
