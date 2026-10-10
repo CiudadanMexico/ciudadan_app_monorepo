@@ -60,17 +60,6 @@ export default function AgregarSocio() {
   const [invitaciones, setInvitaciones] = useState([]);
   const [loadingInvit, setLoadingInvit] = useState(true);
 
-  const getToken = useCallback(async () => {
-    try {
-      return await getAccessTokenSilently({
-        authorizationParams: { audience: 'https://api.ciudadan.org' },
-      });
-    } catch (e) {
-      console.warn('No se pudo obtener token Auth0:', e.message);
-      return null;
-    }
-  }, [getAccessTokenSilently]);
-
   const cargarMiembros = useCallback(async () => {
     setLoadingMiembros(true);
     setMiembrosError(null);
