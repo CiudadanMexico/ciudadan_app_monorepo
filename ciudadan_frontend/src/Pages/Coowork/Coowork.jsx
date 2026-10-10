@@ -39,6 +39,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import BookIcon from '@mui/icons-material/Book';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useAuth0 } from '@auth0/auth0-react';
 import Tareas, { TareaCard } from './../../components/Cowork/Tareas.jsx';
 import TareasEspecializadas, { EmptyState } from './../../components/Cowork/TareasEspecializadas.jsx';
@@ -396,7 +397,7 @@ const CooWork = () => {
   }, [getAccessTokenSilently]);
 
   useEffect(() => {
-    if (tab === 'socio' && subTab === 3) fetchCartera();
+    if (tab === 'socio' && subTab === 4) fetchCartera();
   }, [tab, subTab, fetchCartera]);
 
   const handleEditGeneral = useCallback((todo) => {
@@ -717,6 +718,7 @@ const CooWork = () => {
                   <SubTab icon={<AssignmentIcon />} label="Tareas" />
                   <SubTab icon={<BuildIcon />} label="Herramientas" />
                   <SubTab icon={<BookIcon />} label="Bitácora" />
+                  <SubTab icon={<TrendingUpIcon />} label="Avance" />
                   <SubTab icon={<PaidIcon />} label="Historial de Pagos" />
                 </SubTabs>
               </Container>
@@ -737,6 +739,16 @@ const CooWork = () => {
             {subTab === 1 && <HerramientrasGrid />}
             {subTab === 2 && <EventosGrid />}
             {subTab === 3 && (
+              <>
+                <Typography variant="h5" fontWeight={700} gutterBottom color="white">
+                  📈 Avance
+                </Typography>
+                <Typography color="#ccc" sx={{ mb: 3 }}>
+                  Aquí verás tu avance y progreso dentro de la agencia.
+                </Typography>
+              </>
+            )}
+            {subTab === 4 && (
               <>
                 <Typography variant="h5" fontWeight={700} gutterBottom color="white">
                   💸 Historial de Pagos

@@ -15,7 +15,8 @@ const rutaDeTab = (tabValue, subTabValue = 0, areaSlugValue = null) => {
     case 'socio':
       if (subTabValue === 1) return '/coowork/herramientas';
       if (subTabValue === 2) return '/coowork/bitacora';
-      if (subTabValue === 3) return '/coowork/pagos';
+      if (subTabValue === 3) return '/coowork/avance';
+      if (subTabValue === 4) return '/coowork/pagos';
       return '/coowork/tareas-socio';
     case 'conductores':
       return '/coowork/verificar-conductores';
@@ -50,8 +51,10 @@ const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchPar
       return { tab: 'socio', subTab: 1 };
     case 'bitacora':
       return { tab: 'socio', subTab: 2 };
-    case 'pagos':
+    case 'avance':
       return { tab: 'socio', subTab: 3 };
+    case 'pagos':
+      return { tab: 'socio', subTab: 4 };
     case 'verificar-conductores':
       return { tab: 'conductores', subTab: 0 };
     case 'auditorias':
