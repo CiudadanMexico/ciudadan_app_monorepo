@@ -1,43 +1,5 @@
 import type { Schema, Attribute } from '@strapi/strapi';
 
-export interface OffersOfferItem extends Schema.Component {
-  collectionName: 'components_offers_offer_items';
-  info: {
-    displayName: 'Offer Item';
-    icon: 'restaurant';
-    description: '';
-  };
-  attributes: {
-    product: Attribute.Relation<
-      'offers.offer-item',
-      'oneToOne',
-      'api::food-product.food-product'
-    >;
-    cantidad: Attribute.Integer &
-      Attribute.Required &
-      Attribute.SetMinMax<
-        {
-          min: 1;
-        },
-        number
-      > &
-      Attribute.DefaultTo<1>;
-    precio: Attribute.Decimal &
-      Attribute.Required &
-      Attribute.SetMinMax<
-        {
-          min: 0;
-        },
-        number
-      >;
-    food_modifiers: Attribute.Relation<
-      'offers.offer-item',
-      'oneToMany',
-      'api::food-modifier.food-modifier'
-    >;
-  };
-}
-
 export interface OrdersProductsOrder extends Schema.Component {
   collectionName: 'components_orders_products_orders';
   info: {
@@ -73,6 +35,44 @@ export interface OrdersProductsOrder extends Schema.Component {
       'api::food-product-variant.food-product-variant'
     >;
     modifiers: Attribute.JSON;
+  };
+}
+
+export interface OffersOfferItem extends Schema.Component {
+  collectionName: 'components_offers_offer_items';
+  info: {
+    displayName: 'Offer Item';
+    icon: 'restaurant';
+    description: '';
+  };
+  attributes: {
+    product: Attribute.Relation<
+      'offers.offer-item',
+      'oneToOne',
+      'api::food-product.food-product'
+    >;
+    cantidad: Attribute.Integer &
+      Attribute.Required &
+      Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
+      Attribute.DefaultTo<1>;
+    precio: Attribute.Decimal &
+      Attribute.Required &
+      Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
+    food_modifiers: Attribute.Relation<
+      'offers.offer-item',
+      'oneToMany',
+      'api::food-modifier.food-modifier'
+    >;
   };
 }
 
@@ -155,8 +155,8 @@ export interface CarritosProductoEnCarrito extends Schema.Component {
 declare module '@strapi/types' {
   export module Shared {
     export interface Components {
-      'offers.offer-item': OffersOfferItem;
       'orders.products-order': OrdersProductsOrder;
+      'offers.offer-item': OffersOfferItem;
       'food-cart.food-cart-item': FoodCartFoodCartItem;
       'carritos.producto-en-carrito': CarritosProductoEnCarrito;
     }

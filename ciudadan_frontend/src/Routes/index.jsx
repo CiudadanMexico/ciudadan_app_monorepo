@@ -160,6 +160,7 @@ import Compras from '../Pages/MarketPlace/Compras.jsx';
 import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
+import ExpedienteConductor from '../components/Taxiz/ExpedienteConductor.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
 import TestToken from '../components/TestToken.jsx';
@@ -460,49 +461,50 @@ const Rutas = () => {
       element={<RedireccionPrelanzamiento tipo='lider' />}
     />
     {/* Taxis */}
-
-
-      {/* Taxis */}
-      <Route
-        path='/taxis'
-        element={<TaxisRoute />}
-      />
-      <Route
-        path='/taxis/conductor/registro'
-        element={<RedireccionPrelanzamiento tipo='conductor' />}
-      />
-      <Route
-        path='/taxis/conductor/preregistro'
-        element={<RedireccionPrelanzamiento tipo='conductor' />}
-      />
-      <Route
-        path='/taxis/conductor/esperando'
-        element={<Conductor />}
-      />
-      <Route
-        path='/taxis/conductor/requisitos'
-        element={<RequisitosConductor />}
-      />
-      <Route
-        path='/taxis/pasajero/registro'
-        element={<RegistroPasajero />}
-      />
-      <Route
-        path='/taxis/pasajero/viaje'
-        element={<Pasajero />}
-      />
-      <Route
-        path='/taxis/viajes/historial'
-        element={<HistorialViajes />}
-      />
-      <Route
-        path='/taxis/viaje/:travelId'
-        element={<TripViewRoute />}
-      />
-      <Route
-        path='/taxis/viaje-gratis'
-        element={<VerifyFreeTrip />}
-      />
+    <Route
+      path='/taxis'
+      element={<TaxisRoute />}
+    />
+    <Route
+      path='/taxis/conductor/registro'
+      element={<PreRegistroConductor2 />}
+    />
+    <Route
+      path='/taxis/conductor/preregistro'
+      element={<PreRegistroConductor2 />}
+    />
+    <Route
+      path='/taxis/conductor/esperando'
+      element={<Conductor />}
+    />
+    <Route
+      path='/taxis/conductor/requisitos'
+      element={<RequisitosConductor />}
+    />
+    <Route
+      path='/taxis/conductor/expediente'
+      element={<ExpedienteConductor />}
+    />
+    <Route
+      path='/taxis/pasajero/registro'
+      element={<RegistroPasajero />}
+    />
+    <Route
+      path='/taxis/pasajero/viaje'
+      element={<Pasajero />}
+    />
+    <Route
+      path='/taxis/viajes/historial'
+      element={<HistorialViajes />}
+    />
+    <Route
+      path='/taxis/viaje/:travelId'
+      element={<TripViewRoute />}
+    />
+    <Route
+      path='/taxis/viaje-gratis'
+      element={<VerifyFreeTrip />}
+    />
 
     {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
         (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
