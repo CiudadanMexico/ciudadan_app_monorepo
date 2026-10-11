@@ -3,7 +3,7 @@
  * Creadores Fundadores: documentar la construcción, no publicar un anuncio.
  */
 import { useEffect } from 'react';
-import { Box, Chip, Grid, Stack, Typography } from '@mui/material';
+import { Box, Chip, Grid2 as Grid, Stack, Typography } from '@mui/material';
 import GenerationHero from '../../components/Generation/GenerationHero';
 import SectionHeader from '../../components/Generation/SectionHeader';
 import RegistrationCTA from '../../components/Generation/RegistrationCTA';

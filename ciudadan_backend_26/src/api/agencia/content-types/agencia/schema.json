@@ -59,6 +59,12 @@
       "target": "plugin::users-permissions.user",
       "mappedBy": "agencia"
     },
+    "postulaciones": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::postulacion-socio.postulacion-socio",
+      "mappedBy": "agencia"
+    },
     "total_verifications": {
       "type": "integer",
       "default": 0,

@@ -2,7 +2,7 @@
  * HackabotStage1 — fechas de Etapa 1 (spec 7.4) y lugares (spec 7.5).
  * Todos los números provienen de HACKABOT.stage1 / HACKABOT.stage1Spots.
  */
-import { Box, Typography, Stack, Grid } from '@mui/material';
+import { Box, Typography, Stack, Grid2 as Grid } from '@mui/material';
 import SectionHeader from '../SectionHeader';
 import Timeline from '../Timeline';
 import { GEN_COLORS, GEN_FONTS, sectionSx } from '../GenerationTheme';

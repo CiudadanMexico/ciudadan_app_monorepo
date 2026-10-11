@@ -4,7 +4,7 @@
  * oscuro; TODO el texto (fechas, meta, mecánica, pool) es HTML encima.
  * Incluye la elegibilidad con sus dos ejemplos acumulables.
  */
-import { Box, Typography, Grid, Stack } from '@mui/material';
+import { Box, Typography, Grid2 as Grid, Stack } from '@mui/material';
 import ResponsiveHero from '../ResponsiveHero';
 import SectionHeader from '../SectionHeader';
 import { GEN_COLORS, GEN_FONTS, sectionSx } from '../GenerationTheme';

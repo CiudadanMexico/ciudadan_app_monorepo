@@ -119,6 +119,7 @@ import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
 import HabilidadesHub from '../Pages/Coowork/HabilidadesHub.jsx';
 import Clientes from '../Pages/Coowork/Clientes.jsx';
 import Agentes from '../Pages/Coowork/Agentes.jsx';
+import Postulaciones from '../Pages/Coowork/Postulaciones.jsx';
 import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
@@ -168,6 +169,7 @@ import Compras from '../Pages/MarketPlace/Compras.jsx';
 import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
+import ExpedienteConductor from '../components/Taxiz/ExpedienteConductor.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
 import TestToken from '../components/TestToken.jsx';
@@ -434,6 +436,17 @@ const Rutas = () => {
       path='/hackabot'
       element={<HackabotPage />}
     />
+    {/* Legacy: el concepto interhackaton se reemplaza totalmente por hackabot */}
+    <Route
+      path='/interhackaton'
+      element={<Navigate to='/hackabot' replace />}
+    />
+
+    {/* Postulación pública a socio de una agencia (Coowork) */}
+    <Route
+      path='/candidatos'
+      element={<Candidatos />}
+    />
     <Route
       path='/vallecatnip'
       element={<VallecatnipPage />}
@@ -497,49 +510,50 @@ const Rutas = () => {
       element={<RedireccionPrelanzamiento tipo='lider' />}
     />
     {/* Taxis */}
-
-
-      {/* Taxis */}
-      <Route
-        path='/taxis'
-        element={<TaxisRoute />}
-      />
-      <Route
-        path='/taxis/conductor/registro'
-        element={<RedireccionPrelanzamiento tipo='conductor' />}
-      />
-      <Route
-        path='/taxis/conductor/preregistro'
-        element={<RedireccionPrelanzamiento tipo='conductor' />}
-      />
-      <Route
-        path='/taxis/conductor/esperando'
-        element={<Conductor />}
-      />
-      <Route
-        path='/taxis/conductor/requisitos'
-        element={<RequisitosConductor />}
-      />
-      <Route
-        path='/taxis/pasajero/registro'
-        element={<RegistroPasajero />}
-      />
-      <Route
-        path='/taxis/pasajero/viaje'
-        element={<Pasajero />}
-      />
-      <Route
-        path='/taxis/viajes/historial'
-        element={<HistorialViajes />}
-      />
-      <Route
-        path='/taxis/viaje/:travelId'
-        element={<TripViewRoute />}
-      />
-      <Route
-        path='/taxis/viaje-gratis'
-        element={<VerifyFreeTrip />}
-      />
+    <Route
+      path='/taxis'
+      element={<TaxisRoute />}
+    />
+    <Route
+      path='/taxis/conductor/registro'
+      element={<PreRegistroConductor2 />}
+    />
+    <Route
+      path='/taxis/conductor/preregistro'
+      element={<PreRegistroConductor2 />}
+    />
+    <Route
+      path='/taxis/conductor/esperando'
+      element={<Conductor />}
+    />
+    <Route
+      path='/taxis/conductor/requisitos'
+      element={<RequisitosConductor />}
+    />
+    <Route
+      path='/taxis/conductor/expediente'
+      element={<ExpedienteConductor />}
+    />
+    <Route
+      path='/taxis/pasajero/registro'
+      element={<RegistroPasajero />}
+    />
+    <Route
+      path='/taxis/pasajero/viaje'
+      element={<Pasajero />}
+    />
+    <Route
+      path='/taxis/viajes/historial'
+      element={<HistorialViajes />}
+    />
+    <Route
+      path='/taxis/viaje/:travelId'
+      element={<TripViewRoute />}
+    />
+    <Route
+      path='/taxis/viaje-gratis'
+      element={<VerifyFreeTrip />}
+    />
 
     {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
         (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
@@ -945,6 +959,10 @@ const Rutas = () => {
       path='/herramientas/verificar-usuarios'
       element={<Navigate replace to='/coowork/herramientas/verificar-usuarios' />}
     />
+    <Route
+      path='/herramientas/postulaciones'
+      element={<Postulaciones />}
+    />
     {/* Conductores y resto de herramientas legacy -> prefijo /coowork */}
     <Route
       path='/herramientas/:slug'
@@ -954,7 +972,6 @@ const Rutas = () => {
       path='/herramientas/:categoria/:slug'
       element={<HerramientaRedirect />}
     />
-
       {/* Perfil / Usuario */}
       <Route
         path='/perfil/:username'

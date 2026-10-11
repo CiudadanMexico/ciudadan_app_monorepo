@@ -3,7 +3,7 @@
  * Vertical con línea conectora; en desktop se distribuye en 3 columnas
  * manteniendo el orden visual por número.
  */
-import { Box, Typography, Grid } from '@mui/material';
+import { Box, Typography, Grid2 as Grid } from '@mui/material';
 import { GEN_COLORS, GEN_FONTS } from './GenerationTheme';
 
 const Step = ({ label, index }) => (

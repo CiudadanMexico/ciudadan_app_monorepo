@@ -13,6 +13,7 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { CartProvider } from './Contexts/CartContext';
 import NavBar from './components/NavBar/NavBar.jsx';
 import Rutas from './Routes/index.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 import Asistente from './components/Asistente/Asistente';
 import { SnackbarProvider } from 'notistack';
 import { NOTIF_TOAST_COMPONENTS } from './components/common/NotifToast.jsx';
@@ -66,7 +67,7 @@ const AppWrapper = () => {
   if (isDomainPrelanzamiento) {
     // Si viene por subdominio, forzamos la vista de Prelanzamiento
     // pero mantenemos el wrapper para consistencia de Providers si fuera necesario
-    return <Rutas />; 
+    return (<><ScrollToTop /><Rutas /></>);
     // Nota: Rutas ya maneja la lógica de <Route path='/prelanzamiento' element={<Prelanzamiento />} />
     // pero para que el subdominio muestre Prelanzamiento sin que el usuario escriba /prelanzamiento,
     // necesitamos que Rutas sepa que debe renderizar Prelanzamiento.
@@ -158,6 +159,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 const appElement = auth0ConfigValida() ? (
   <React.StrictMode>
     <Router>
+      <ScrollToTop />
       <Auth0ProviderWithNavigate>
         <AuthProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">

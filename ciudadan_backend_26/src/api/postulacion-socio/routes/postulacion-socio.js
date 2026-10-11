@@ -18,6 +18,18 @@ module.exports = {
       handler: 'postulacion-socio.create',
       config: { auth: false },
     },
+    {
+      method: 'GET',
+      path: '/postulacion-socios/mi-agencia',
+      handler: 'postulacion-socio.miAgencia',
+      config: { policies: ['global::is-admin-socio-or-root'] },
+    },
+    {
+      method: 'PATCH',
+      path: '/postulacion-socios/:id/estado',
+      handler: 'postulacion-socio.resolver',
+      config: { policies: ['global::is-admin-socio-or-root'] },
+    },
   ],
 };
 

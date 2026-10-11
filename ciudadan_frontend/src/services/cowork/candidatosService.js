@@ -1,16 +1,15 @@
 // src/services/cowork/candidatosService.js
 //
-// Candidatos (/candidatos) e invitaciones de agencia.
-// - crearPostulacionSocio: POST público a /api/postulacion-socios (la ruta es
-//   auth:false en el backend; no requiere token). Guarda el CV como base64 en
-//   el mismo POST (igual que subirEvidencia) — la columna `cv` es media.
-// - getInvitaciones: lista de invitaciones de la agencia (pendientes por
-//   defecto; filtrable por estado) para el tab de Agregar Socio.
+// Candidatos (/candidatos) y gestión de postulaciones a socio en Coowork.
+// - crearPostulacionSocio: POST público a /api/postulacion-socios (auth:false,
+//   no requiere token). Envía la data + el CV como `files.cv` en FormData.
+// - getMisPostulaciones: GET admin/socio/root — postulaciones de la agencia
+//   del usuario (root ve todas).
+// - resolverPostulacion: PATCH admin/socio/root — cambia estado + notas.
 
 import { fetchJson, STRAPI_URL } from '../../utils/request.utils';
 
 const BASE = `${STRAPI_URL}/api/postulacion-socios`;
-const INV_BASE = `${STRAPI_URL}/api/invitaciones`;
 
 /**
  * Crea una postulación de candidato a socio.
@@ -24,6 +23,7 @@ export async function crearPostulacionSocio(data, token = null) {
       telefono: data.telefono,
       codigo_pais: data.codigo_pais,
       area: data.area || null,
+      agencia: data.agencia || null,
       descripcion: data.descripcion || '',
       estado: 'pendiente',
       fecha_solicitud: new Date().toISOString(),
@@ -54,22 +54,32 @@ export async function crearPostulacionSocio(data, token = null) {
   return json;
 }
 
-/** Lista invitaciones de la agencia autenticada (pendientes por defecto). */
-export const getInvitaciones = (token = null, { estado = 'pendiente', limit = 100 } = {}) => {
-  const params = new URLSearchParams();
-  if (estado) params.set('filters[estado][$eq]', estado);
-  params.set('pagination[limit]', String(limit));
-  params.set('sort[0]', 'fecha_invitacion:desc');
-  return fetchJson(
-    `${INV_BASE}?${params.toString()}`,
+/** Postulaciones de la agencia del usuario autenticado (root: todas). */
+export const getMisPostulaciones = (token = null) =>
+  fetchJson(
+    `${BASE}/mi-agencia`,
     {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     },
-    'No se pudieron cargar las invitaciones'
+    'No se pudieron cargar las postulaciones'
   );
-};
 
-export default { crearPostulacionSocio, getInvitaciones };
+/** Cambia el estado de una postulación (revisada/contactada/aceptada/rechazada). */
+export const resolverPostulacion = (id, { estado, notas } = {}, token = null) =>
+  fetchJson(
+    `${BASE}/${id}/estado`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ estado, notas }),
+    },
+    'No se pudo actualizar la postulación'
+  );
+
+export default { crearPostulacionSocio, getMisPostulaciones, resolverPostulacion };

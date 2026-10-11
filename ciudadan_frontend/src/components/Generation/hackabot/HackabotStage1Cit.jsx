@@ -2,7 +2,7 @@
  * HackabotStage1Cit — CIT de Etapa 1 (spec 7.6) y consolidación (spec 7.7).
  * Los números provienen de HACKABOT.stage1Cit y CIT (config central).
  */
-import { Box, Typography, Stack, Grid } from '@mui/material';
+import { Box, Typography, Stack, Grid2 as Grid } from '@mui/material';
 import SectionHeader from '../SectionHeader';
 import ProgramStats from '../ProgramStats';
 import CitExplanation from '../CitExplanation';

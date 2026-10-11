@@ -41,6 +41,49 @@ img, svg, video, canvas, iframe {
   overflow-x: clip;
   overflow-y: visible;
 }
+
+/* ============================================================
+   Blindaje anti-encimado GLOBAL (todas las páginas del sitio).
+   Causa raíz: varios módulos usan <Grid size={...}> (sintaxis MUI v7)
+   con @mui/material v6 instalada, donde ese prop se ignora y el item
+   pierde su ancho; en pantallas angostas los bloques se montan.
+   Estas reglas NO cambian layout ni colores: solo permiten que flex/grid
+   encojan a sus hijos y que el texto largo se parta en vez de desbordar
+   o encimarse. No tocan position:sticky ni absolute decorativos.
+   ============================================================ */
+#ciudadan-app p,
+#ciudadan-app h1,
+#ciudadan-app h2,
+#ciudadan-app h3,
+#ciudadan-app h4,
+#ciudadan-app h5,
+#ciudadan-app h6,
+#ciudadan-app li,
+#ciudadan-app span {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* flex/grid children: sin min-width:0 el hijo no puede encoger y el
+   texto se sale del contenedor aunque tenga wrap (classic flexbug). */
+#ciudadan-app .MuiGrid-container,
+#ciudadan-app .MuiGrid-item,
+#ciudadan-app .MuiGrid2-root {
+  min-width: 0;
+}
+
+#ciudadan-app .MuiGrid-item,
+#ciudadan-app .MuiGrid2-root {
+  overflow-wrap: anywhere;
+}
+
+/* Grid v6 con sintaxis v7 (size=...) ignorada: el item queda sin ancho.
+   Esto lo fuerza a comportarse como columna full-width apilada en vez
+   de montarse sobre el vecino. Cuando se migre a Grid2/item xs=, sobra. */
+#ciudadan-app .MuiGrid-root:not(.MuiGrid-container):not([class*="MuiGrid-grid-xs"]):not([class*="MuiGrid-item"]) {
+  width: 100%;
+  max-width: 100%;
+}
   
   .home {
     width: 100%;

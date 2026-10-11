@@ -29,6 +29,12 @@
       "relation": "manyToOne",
       "target": "api::area.area"
     },
+    "agencia": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agencia.agencia",
+      "inversedBy": "postulaciones"
+    },
     "cv": {
       "allowedTypes": [
         "images",
@@ -47,10 +53,22 @@
       "enum": [
         "pendiente",
         "revisada",
+        "contactada",
         "aceptada",
         "rechazada"
       ],
       "default": "pendiente"
+    },
+    "notas": {
+      "type": "text"
+    },
+    "revisado_por": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "fecha_resolucion": {
+      "type": "datetime"
     },
     "fecha_solicitud": {
       "type": "datetime"
