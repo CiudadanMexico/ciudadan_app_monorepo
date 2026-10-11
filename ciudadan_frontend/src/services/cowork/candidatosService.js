@@ -10,6 +10,7 @@
 import { fetchJson, STRAPI_URL } from '../../utils/request.utils';
 
 const BASE = `${STRAPI_URL}/api/postulacion-socios`;
+const INV_BASE = `${STRAPI_URL}/api/invitaciones`;
 
 /**
  * Crea una postulación de candidato a socio.
@@ -67,6 +68,24 @@ export const getMisPostulaciones = (token = null) =>
     'No se pudieron cargar las postulaciones'
   );
 
+/** Lista invitaciones de la agencia autenticada (pendientes por defecto). */
+export const getInvitaciones = (token = null, { estado = 'pendiente', limit = 100 } = {}) => {
+  const params = new URLSearchParams();
+  if (estado) params.set('filters[estado][$eq]', estado);
+  params.set('pagination[limit]', String(limit));
+  params.set('sort[0]', 'fecha_invitacion:desc');
+  return fetchJson(
+    `${INV_BASE}?${params.toString()}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    },
+    'No se pudieron cargar las invitaciones'
+  );
+};
+
 /** Cambia el estado de una postulación (revisada/contactada/aceptada/rechazada). */
 export const resolverPostulacion = (id, { estado, notas } = {}, token = null) =>
   fetchJson(
@@ -82,4 +101,4 @@ export const resolverPostulacion = (id, { estado, notas } = {}, token = null) =>
     'No se pudo actualizar la postulación'
   );
 
-export default { crearPostulacionSocio, getMisPostulaciones, resolverPostulacion };
+export default { crearPostulacionSocio, getMisPostulaciones, resolverPostulacion, getInvitaciones };
