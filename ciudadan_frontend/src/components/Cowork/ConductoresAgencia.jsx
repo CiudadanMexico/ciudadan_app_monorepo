@@ -20,22 +20,27 @@ import {
   getAgendaEstadoLabel,
 } from '../../constants/agendaEstado';
 
-const neonGreen = '#00ff99';
-const darkGray = '#1a1a1a';
+const MORADO = '#8A5CF5';
+const MORADO_OSCURO = '#6A3FCB';
+const fondo = '#0d0b1a';
+const cardBg = 'rgba(138,92,245,0.06)';
+const cardBorder = 'rgba(138,92,245,0.28)';
+const fontStack = '"Space Grotesk", "Poppins", system-ui, sans-serif';
 
 const RowCard = styled(Paper)(({ theme }) => ({
-  backgroundColor: darkGray,
+  backgroundColor: cardBg,
   color: 'white',
   padding: theme.spacing(2),
-  border: `1px solid ${neonGreen}`,
-  borderRadius: 8,
-  transition: 'all 0.25s ease',
+  border: `1px solid ${cardBorder}`,
+  borderRadius: 12,
+  transition: 'box-shadow .25s ease, transform .15s ease, border-color .25s ease',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(2),
   '&:hover': {
-    boxShadow: `0 0 12px ${neonGreen}`,
+    boxShadow: '0 0 18px rgba(138,92,245,0.45)',
+    borderColor: MORADO,
     transform: 'translateY(-2px)',
   },
 }));
@@ -131,15 +136,16 @@ const ConductoresAgencia = () => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
+        <CircularProgress sx={{ color: MORADO }} />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ mt: 2 }}>
-      <Typography variant="h6" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
-        Conductores pendientes
+    <Box sx={{ minHeight: '100vh', bgcolor: fondo, py: { xs: 3, md: 5 }, px: 2, fontFamily: fontStack }}>
+      <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+      <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: '#fff', fontFamily: fontStack }}>
+        <span style={{ color: MORADO }}>Conductores</span> pendientes
       </Typography>
 
       <Grid container spacing={2}>
@@ -149,25 +155,25 @@ const ConductoresAgencia = () => {
           return (
             <Grid size={12} key={item.id}>
               <RowCard onClick={() => goToDetalle(item.id)}>
-                <DirectionsCarIcon sx={{ color: neonGreen }} />
+                <DirectionsCarIcon sx={{ color: MORADO }} />
 
                 <Box sx={{ flexGrow: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography fontWeight={600}>{a.titulo || 'Sin título'}</Typography>
+                    <Typography fontWeight={600} sx={{ color: '#fff', fontFamily: fontStack }}>{a.titulo || 'Sin título'}</Typography>
                     <Chip size="small" {...getAgendaEstadoChipProps(a.estado)} />
                   </Stack>
 
-                  <Typography variant="body2" sx={{ opacity: 0.7 }}>
+                  <Typography variant="body2" sx={{ opacity: 0.8, color: '#d8d8ea', fontFamily: fontStack }}>
                     {a.ciudad} {a.estado ? `• ${getAgendaEstadoLabel(a.estado)}` : ''}
                   </Typography>
 
                   {a.estado === AGENDA_ESTADO.RESUBIR_ARCHIVOS && (
-                    <Typography variant="body2" sx={{ opacity: 0.7, mt: 0.5, color: '#f59e0b' }}>
+                    <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5, color: '#f59e0b', fontFamily: fontStack }}>
                       Vuelve al preregistro para reenviar los archivos faltantes.
                     </Typography>
                   )}
 
-                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.6 }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.75, color: '#cfcfe6', fontFamily: fontStack }}>
                     {a.descripcion}
                   </Typography>
                 </Box>
@@ -175,7 +181,7 @@ const ConductoresAgencia = () => {
                 <Box
                   sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}
                 >
-                  <Typography variant="caption" sx={{ color: neonGreen, fontWeight: 600 }}>
+                  <Typography variant="caption" sx={{ color: MORADO, fontWeight: 700, fontFamily: fontStack }}>
                     Ver →
                   </Typography>
                   <Button
@@ -187,12 +193,13 @@ const ConductoresAgencia = () => {
                       goToVerification(item);
                     }}
                     sx={{
-                      color: neonGreen,
-                      borderColor: neonGreen,
+                      color: MORADO,
+                      borderColor: MORADO,
                       textTransform: 'none',
+                      fontFamily: fontStack,
                       '&:hover': {
-                        borderColor: neonGreen,
-                        bgcolor: 'rgba(0,255,153,0.08)',
+                        borderColor: MORADO_OSCURO,
+                        bgcolor: 'rgba(138,92,245,0.12)',
                       },
                     }}
                   >
@@ -206,8 +213,24 @@ const ConductoresAgencia = () => {
       </Grid>
 
       {data.length === 0 && (
-        <Typography sx={{ mt: 3, opacity: 0.6 }}>No hay conductores pendientes</Typography>
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 3,
+            p: 4,
+            textAlign: 'center',
+            borderRadius: 3,
+            bgcolor: cardBg,
+            border: `1px solid ${cardBorder}`,
+          }}
+        >
+          <DirectionsCarIcon sx={{ fontSize: 44, color: MORADO, mb: 1 }} />
+          <Typography sx={{ color: '#d8d8ea', fontFamily: fontStack }}>
+            No hay conductores pendientes
+          </Typography>
+        </Paper>
       )}
+      </Box>
     </Box>
   );
 };

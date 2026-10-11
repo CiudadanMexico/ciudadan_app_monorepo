@@ -148,7 +148,7 @@ export default function AgregarTarea() {
       try {
         setLoadingSkills(true);
         const res = await fetch(
-          `${STRAPI}/api/skills?populate[area]=*&pagination[limit]=1000&sort[0]=name:asc&filters[is_active][$ne]=false`
+          `${STRAPI}/api/skills?populate[areas]=*&pagination[limit]=1000&sort[0]=name:asc&filters[is_active][$ne]=false`
         );
         if (!res.ok) throw new Error(`No se pudieron cargar las especialidades (${res.status})`);
         const json = await res.json();
@@ -253,7 +253,7 @@ export default function AgregarTarea() {
       // La tarea recién publicada vive en su pestaña: las especializadas van
       // a "especializadas" (donde se verá su chip/tareas), el resto a
       // "generales".
-      navigate(esEspecializada ? '/coowork?tab=especializadas' : '/coowork?tab=generales');
+      navigate(esEspecializada ? '/coowork/especializadas' : '/coowork/tareas-generales');
     } catch (err) {
       console.error('Error creando tarea:', err);
       setError(err.message || 'No se pudo crear la tarea');

@@ -998,7 +998,7 @@ const TareasEspecializadas = ({ initialAreaSlug = null }) => {
                 variant="outlined"
                 onClick={() => {
                   setSlugNoDisponible(null);
-                  navigate('/coowork?tab=especializadas');
+                  navigate('/coowork/especializadas');
                 }}
                 sx={{
                   color: '#fff',

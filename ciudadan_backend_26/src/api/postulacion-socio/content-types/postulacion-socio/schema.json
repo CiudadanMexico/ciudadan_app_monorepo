@@ -1,0 +1,62 @@
+{
+  "kind": "collectionType",
+  "collectionName": "postulacion_socios",
+  "info": {
+    "singularName": "postulacion-socio",
+    "pluralName": "postulacion-socios",
+    "displayName": "PostulacionSocio",
+    "description": "Candidatos que se postulan para ser socios de una agencia (/candidatos)."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nombre_completo": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "codigo_pais": {
+      "type": "string"
+    },
+    "area": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::area.area"
+    },
+    "cv": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    },
+    "descripcion": {
+      "type": "text"
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": [
+        "pendiente",
+        "revisada",
+        "aceptada",
+        "rechazada"
+      ],
+      "default": "pendiente"
+    },
+    "fecha_solicitud": {
+      "type": "datetime"
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

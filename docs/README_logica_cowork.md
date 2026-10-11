@@ -221,12 +221,17 @@ catálogo filtradas por esa área). `Experto`/`Personalizada` piden sólo Área
 `Becario` **no piden área** (spec: sólo requieren usuario verificado — antes
 el formulario la exigía siempre y bloqueaba crear tareas generales).
 
-**Modelo.** `skill.area` (manyToOne → `api::area.area`) es lo que permite
-filtrar especialidades por área: sin esa relación era imposible. Al crearla en
-«Gestión de habilidades» el **área padre es requerida** (validación de UI; la
-relación en Strapi 4 no admite `required`, así que las skills previas quedan
-pendientes de editar). Toda skill cuelga de un área — como mínimo un área
-superior con el skill debajo.
+**Modelo.** `skill.areas` (manyToMany ↔ `api::area.area` ↔ `area.skills`) es
+lo que permite filtrar especialidades por área. Antes hubo una relación
+`skill.area` (manyToOne, apuntando al mismo target): con las dos coexistiendo
+hubo DOS tablas join (`skills_area_links` y `skills_areas_links`, ambas
+vacías) y el `populate` del lado skill era inestable — **se eliminó `area`**
+(`2026-10-09`) y `areas` quedó como relación canónica única.
+Al crear en «Gestión de habilidades» el **área es requerida** (validación de
+UI: el diálogo unifica el form con la clave `form.area` pero el PUT/POPULATE
+usan `areas: [id]` — una skill se vincula a un área; el helper `areasIdOf`
+soporta el plural para leer). Las skills huérfanas quedan pendientes de
+editar.
 
 **Niveles del árbol.** El modelo ya soporta N niveles (`parent_area`/
 `subareas` + `level`); la lógica nueva (`src/utils/agregarTarea.helpers.js`)
@@ -243,3 +248,17 @@ si el nivel es especializado.
 
 **Tests**: `src/utils/agregarTarea.helpers.test.js` (15: reglas por nivel,
 opciones filtradas, rutas de 3 niveles, validación del submit).
+
+**Nota 2026-10-09 — «No hay áreas disponibles para este nivel».** El bug tenía
+una causa real y una que lo enmascaraba:
+1. **Causa real (backend):** la ruta pública `GET /api/skills` no incluía
+   `global::allow-public-relations` (las rutas de todo/tarea/area sí). Con
+   `auth: false`, `ctx.state.auth` queda `undefined` y el sanitizador de
+   Strapi (`remove-restricted-relations`) BORRA en silencio cualquier relación
+   poblada. Por eso `populate[areas]` nunca llegaba al frontend aunque la
+   relación existiera en la DB (y `area.skills` inversa sí respondía).
+   Fix: `src/api/skill/routes/skill.js` suma la policy a `find`/`findOne`.
+2. **Nombre viejo (frontend):** `AgregarTarea.jsx` pedía `populate[area]`
+   (singular, relation eliminada) → ahora `populate[areas]=*`; `useSkills.js`
+   ya no pide el populate viejo; el diálogo de Gestión de habilidades envía
+   `areas: [id]`.

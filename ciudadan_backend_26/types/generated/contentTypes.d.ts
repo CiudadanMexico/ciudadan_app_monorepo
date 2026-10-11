@@ -1307,6 +1307,11 @@ export interface ApiAreaArea extends Schema.CollectionType {
       'manyToMany',
       'plugin::users-permissions.user'
     >;
+    skills: Attribute.Relation<
+      'api::area.area',
+      'manyToMany',
+      'api::skill.skill'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4141,6 +4146,48 @@ export interface ApiGenerationApplicationGenerationApplication
   };
 }
 
+export interface ApiInvitacionInvitacion extends Schema.CollectionType {
+  collectionName: 'invitaciones';
+  info: {
+    singularName: 'invitacion';
+    pluralName: 'invitaciones';
+    displayName: 'Invitacion';
+    description: 'Invitaciones de una agencia a un candidato/socio (pendientes / rechazadas).';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    email: Attribute.Email;
+    nombre: Attribute.String;
+    estado: Attribute.Enumeration<['pendiente', 'rechazada', 'aceptada']> &
+      Attribute.DefaultTo<'pendiente'>;
+    agencia: Attribute.Relation<
+      'api::invitacion.invitacion',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    fecha_invitacion: Attribute.DateTime;
+    fecha_respuesta: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::invitacion.invitacion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::invitacion.invitacion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiKitjardineroKitjardinero extends Schema.CollectionType {
   collectionName: 'kitjardineros';
   info: {
@@ -5144,6 +5191,54 @@ export interface ApiPostulacionPostulacion extends Schema.CollectionType {
   };
 }
 
+export interface ApiPostulacionSocioPostulacionSocio
+  extends Schema.CollectionType {
+  collectionName: 'postulacion_socios';
+  info: {
+    singularName: 'postulacion-socio';
+    pluralName: 'postulacion-socios';
+    displayName: 'PostulacionSocio';
+    description: 'Candidatos que se postulan para ser socios de una agencia (/candidatos).';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre_completo: Attribute.String;
+    email: Attribute.Email;
+    telefono: Attribute.String;
+    codigo_pais: Attribute.String;
+    area: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'api::area.area'
+    >;
+    cv: Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    descripcion: Attribute.Text;
+    estado: Attribute.Enumeration<
+      ['pendiente', 'revisada', 'aceptada', 'rechazada']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    fecha_solicitud: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiPreguntaProductoPreguntaProducto
   extends Schema.CollectionType {
   collectionName: 'preguntas_productos';
@@ -5929,7 +6024,6 @@ export interface ApiSkillSkill extends Schema.CollectionType {
     name: Attribute.String & Attribute.Required;
     description: Attribute.Text;
     is_active: Attribute.Boolean & Attribute.DefaultTo<true>;
-    area: Attribute.Relation<'api::skill.skill', 'manyToOne', 'api::area.area'>;
     todos: Attribute.Relation<
       'api::skill.skill',
       'manyToMany',
@@ -5939,6 +6033,11 @@ export interface ApiSkillSkill extends Schema.CollectionType {
       'api::skill.skill',
       'manyToMany',
       'plugin::users-permissions.user'
+    >;
+    areas: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'api::area.area'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -7084,6 +7183,7 @@ declare module '@strapi/types' {
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::generation-application.generation-application': ApiGenerationApplicationGenerationApplication;
+      'api::invitacion.invitacion': ApiInvitacionInvitacion;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::license-catalog.license-catalog': ApiLicenseCatalogLicenseCatalog;
@@ -7102,6 +7202,7 @@ declare module '@strapi/types' {
       'api::pedido.pedido': ApiPedidoPedido;
       'api::planta.planta': ApiPlantaPlanta;
       'api::postulacion.postulacion': ApiPostulacionPostulacion;
+      'api::postulacion-socio.postulacion-socio': ApiPostulacionSocioPostulacionSocio;
       'api::pregunta-producto.pregunta-producto': ApiPreguntaProductoPreguntaProducto;
       'api::producto.producto': ApiProductoProducto;
       'api::publicacion.publicacion': ApiPublicacionPublicacion;

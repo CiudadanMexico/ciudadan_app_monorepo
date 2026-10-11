@@ -23,11 +23,6 @@
       "type": "boolean",
       "default": true
     },
-    "area": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::area.area"
-    },
     "todos": {
       "type": "relation",
       "relation": "manyToMany",
@@ -39,6 +34,12 @@
       "relation": "manyToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "skills"
+    },
+    "areas": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::area.area",
+      "inversedBy": "skills"
     }
   }
 }

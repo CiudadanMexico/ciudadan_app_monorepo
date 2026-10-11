@@ -24,6 +24,21 @@ export const areaIdOf = (rel) => {
   return value.id ?? value.attributes?.id ?? null;
 };
 
+/** Ids (array) de una relación a-N — es la forma de `skill.areas`. */
+export const areasIdOf = (rel) => {
+  if (rel === null || rel === undefined) return [];
+  const value = rel?.data ?? rel;
+  const items = Array.isArray(value) ? value : [value];
+  return items
+    .map((item) =>
+      item === null || item === undefined || typeof item !== 'object'
+        ? Number(item) || null
+        : item.id ?? item.attributes?.id ?? null
+    )
+    .filter((id) => id !== null && id !== undefined)
+    .map(Number);
+};
+
 export const areaName = (area) => getAttr(area).name || getAttr(area).nombre || '';
 
 /** id del área padre de un área (o null si es raíz / no viene poblado). */
@@ -33,7 +48,10 @@ export const isActiveArea = (area) => (getAttr(area).is_active ?? getAttr(area).
 
 export const isActiveSkill = (skill) => (getAttr(skill).is_active ?? true) !== false;
 
-export const skillAreaId = (skill) => areaIdOf(getAttr(skill).area);
+export const skillAreaIds = (skill) => areasIdOf(getAttr(skill).areas);
+
+/** Primera área (compatibilidad: las helpers de "una sola" área). */
+export const skillAreaId = (skill) => skillAreaIds(skill)[0] ?? null;
 
 /** "Administrativo › Contabilidad" — cadena hasta la raíz (máx. 10 saltos). */
 export const areaPath = (area, allAreas = []) => {
@@ -71,7 +89,11 @@ export const areaOptions = (areas = [], skills = [], nivel) => {
   const activas = areas.filter(isActiveArea);
   if (!requiereEspecialidad(nivel)) return activas;
   const conSkill = new Set(
-    skills.filter(isActiveSkill).map((s) => skillAreaId(s)).filter(Boolean).map(Number)
+    skills
+      .filter(isActiveSkill)
+      .flatMap((s) => skillAreaIds(s))
+      .filter(Boolean)
+      .map(Number)
   );
   return activas.filter((a) => conSkill.has(Number(areaIdOf(a) ?? getAttr(a).id)));
 };
@@ -81,7 +103,7 @@ export const especialidadOptions = (skills = [], areaId) => {
   if (!areaId) return [];
   return skills
     .filter(isActiveSkill)
-    .filter((s) => Number(skillAreaId(s)) === Number(areaId))
+    .filter((s) => skillAreaIds(s).map(Number).includes(Number(areaId)))
     .slice()
     .sort((a, b) => String(getAttr(a).name || '').localeCompare(String(getAttr(b).name || '')));
 };

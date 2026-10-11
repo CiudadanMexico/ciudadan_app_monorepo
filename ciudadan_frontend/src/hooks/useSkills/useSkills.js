@@ -52,7 +52,7 @@ export function useSkills() {
     setError(null);
     try {
       const token = await getToken();
-      const res = await fetch(`${STRAPI_BASE}/api/skills?populate=*`, {
+      const res = await fetch(`${STRAPI_BASE}/api/skills?populate[areas]=*`, {
         headers: buildHeaders(token),
       });
       

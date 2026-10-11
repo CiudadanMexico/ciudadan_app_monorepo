@@ -112,6 +112,14 @@ import Coowork from '../Pages/Coowork/Coowork.jsx';
 import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
+import MiAgencia from '../Pages/Coowork/MiAgencia.jsx';
+import CapitalHumano from '../Pages/Coowork/CapitalHumano.jsx';
+import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
+import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
+import HabilidadesHub from '../Pages/Coowork/HabilidadesHub.jsx';
+import Clientes from '../Pages/Coowork/Clientes.jsx';
+import Agentes from '../Pages/Coowork/Agentes.jsx';
+import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
 import Objetos from '../Pages/Objetos.jsx';
@@ -269,6 +277,39 @@ const WikiLayout = ({ children }) => (
     <div style={{ paddingTop: '64px' }}>{children}</div>
   </>
 );
+
+// Redirect legacy /herramientas/* -> /coowork/herramientas/* (enrutamiento profundo Coowork).
+const HerramientaRedirect = () => {
+  const { slug = '', categoria = null } = useParams();
+  const destino = categoria
+    ? `/coowork/herramientas/${categoria}/${slug}`
+    : `/coowork/herramientas/${slug}`;
+  return <Navigate replace to={destino} />;
+};
+
+// Resuelve /coowork/herramientas/:categoria/:slug a la página dedicada de la
+// herramienta (el slug manda; la categoría se usa en pasos posteriores para
+// organizarlas). Desconocido -> vuelve al grid de herramientas.
+const HERRAMIENTA_POR_SLUG = {
+  'mi-agencia': MiAgencia,
+  'calificar-tarea': CalificarTarea,
+  'corregir-tarea': CorregirTarea,
+  'gestionar-tareas': GestionTareas,
+  'resolver-apelaciones': ResolverApelaciones,
+  'agregar-tarea': AgregarTarea,
+  'asignar-tarea': AsignarTareaPage,
+  'agregar-socio': AgregarSocio,
+  'gestionar-habilidades': HabilidadesHub,
+  'verificar-usuarios': VerificarUsuarios,
+  'conductores': ConductoresAgencia,
+  'agentes': Agentes,
+};
+const HerramientaDedicada = () => {
+  const { slug = '' } = useParams();
+  const Pagina = HERRAMIENTA_POR_SLUG[String(slug)];
+  if (!Pagina) return <Navigate replace to='/coowork/herramientas' />;
+  return <Pagina />;
+};
 
 const TripViewRoute = () => {
   const { user } = useAuth0();
@@ -705,13 +746,38 @@ const Rutas = () => {
       path='/academia/taxis'
       element={<Academia />}
     />
+    {/* ================= Coowork: enrutamiento profundo =================
+        La URL manda: Coowork deriva tab/subTab de ella. :vista pasa el
+        segmento a useParams (paths fijos NO pasan params: ese fue el bug
+        que dejaba el contenido congelado). Las /herramientas/* viejas
+        quedan como redirects a /coowork/herramientas/* (compat). */}
     <Route
       path='/coowork'
       element={<Coowork />}
     />
-    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia */}
+    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia
+        (antes que :vista para que no la capture la genérica) */}
     <Route
       path='/coowork/especializadas/:areaSlug'
+      element={<Coowork />}
+    />
+    {/* Herramientas: forma actual (raíz) y forma futura (con categoría).
+        /coowork/herramientas/:slug  hoy;  /coowork/herramientas/:categoria/:slug  mañana.
+        OJO: estas renderizan la página dedicada (HerramientaDedicada), NO <Coowork/>;
+        el grid de Herramientas vive dentro de Coowork en /coowork/herramientas.
+        Van ANTES que /coowork/:vista para que el slug no caiga en `vista`. */}
+    <Route
+      path='/coowork/herramientas/:slug'
+      element={<HerramientaDedicada />}
+    />
+    <Route
+      path='/coowork/herramientas/:categoria/:slug'
+      element={<HerramientaDedicada />}
+    />
+    {/* Todas las vistas: tareas-generales|especializadas|tareas-socio|
+        herramientas|bitacora|pagos|verificar-conductores|auditorias|mis-tareas */}
+    <Route
+      path='/coowork/:vista'
       element={<Coowork />}
     />
     {/* Masters Ciudadan (vista previa) */}
@@ -719,10 +785,10 @@ const Rutas = () => {
       path='/coowork/profesores'
       element={<ProfesoresPage />}
     />
-    {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
+    {/* Alias legacy: /coowork/socio -> /coowork/tareas-socio */}
     <Route
       path='/coowork/socio'
-      element={<Coowork />}
+      element={<Navigate replace to='/coowork/tareas-socio' />}
     />
     {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
     <Route
@@ -730,64 +796,164 @@ const Rutas = () => {
       element={<MiAgenciaTareas />}
     />
 
-      {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
-      <Route
-        path='/identidad'
-        element={<Identidad />}
-      />
-      <Route
-        path='/votaciones'
-        element={<Votaciones />}
-      />
-      <Route
-        path='/objetos'
-        element={<Objetos />}
-      />
-      <Route
-        path='/asignar-tarea'
-        element={<AsignarTareaPage />}
-      />
-      <Route
-        path='/herramientas/mi-agencia'
-        element={<Agencia />}
-      />
-      <Route
-        path='/herramientas/calificar-tarea'
-        element={<CalificarTarea />}
-      />
-      <Route
-        path='/herramientas/corregir-tarea'
-        element={<CorregirTarea />}
-      />
-      <Route
-        path='/herramientas/gestionar-tareas'
-        element={<GestionTareas />}
-      />
-      <Route
-        path='/herramientas/resolver-apelaciones'
-        element={<ResolverApelaciones />}
-      />
-      <Route
-        path='/herramientas/agregar-tarea'
-        element={<AgregarTarea />}
-      />
+    {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
+    <Route
+      path='/identidad'
+      element={<Identidad />}
+    />
+    <Route
+      path='/votaciones'
+      element={<Votaciones />}
+    />
+    <Route
+      path='/objetos'
+      element={<Objetos />}
+    />
+    <Route
+      path='/asignar-tarea'
+      element={<AsignarTareaPage />}
+    />
+    {/* Herramientas dedicadas bajo /coowork/herramientas/:slug (y futura
+        /coowork/herramientas/:categoria/:slug). El grid de Herramientas vive
+        dentro de Coowork; estas páginas son la vista dedicada de cada una. */}
+    <Route
+      path='/coowork/herramientas/mi-agencia'
+      element={<MiAgencia />}
+    />
+    {/* Sub-secciones de Mi Agencia (antes que la genérica :categoria/:slug) */}
+    <Route
+      path='/coowork/herramientas/mi-agencia/agregar-socio'
+      element={<AgregarSocio />}
+    />
+    <Route
+      path='/coowork/herramientas/mi-agencia/capital-humano'
+      element={<CapitalHumano />}
+    />
+    <Route
+      path='/coowork/herramientas/mi-agencia/configuracion'
+      element={<ConfiguracionAgencia />}
+    />
+    {/* Categoría "Tareas": hub que agrupa las 5 herramientas de tareas.
+        Va antes de la ruta genérica /coowork/herramientas/:slug. */}
+    <Route
+      path='/coowork/herramientas/clientes'
+      element={<Clientes />}
+    />
+    <Route
+      path='/coowork/herramientas/tareas'
+      element={<TareasHerramientas />}
+    />
+    <Route
+      path='/coowork/herramientas/calificar-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/calificar-tarea' />}
+    />
+    <Route
+      path='/coowork/herramientas/corregir-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/corregir-tarea' />}
+    />
+    <Route
+      path='/coowork/herramientas/gestionar-tareas'
+      element={<Navigate replace to='/coowork/herramientas/tareas/gestionar-tareas' />}
+    />
+    <Route
+      path='/coowork/herramientas/resolver-apelaciones'
+      element={<ResolverApelaciones />}
+    />
+    <Route
+      path='/coowork/herramientas/agregar-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/agregar-tarea' />}
+    />
+    <Route
+      path='/coowork/herramientas/asignar-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/asignar-tarea' />}
+    />
+    <Route
+      path='/coowork/herramientas/agregar-socio'
+      element={<AgregarSocio />}
+    />
+    <Route
+      path='/coowork/herramientas/gestionar-habilidades'
+      element={<HabilidadesHub />}
+    />
+    {/* Sub-opciones de Gestionar Habilidades:
+        - agregar   -> SkillsManagement (lista actual + nueva habilidad)
+        - verificar -> VerificarUsuarios (verificar habilidades de usuario) */}
+    <Route
+      path='/coowork/herramientas/habilidades/agregar'
+      element={<SkillsManagement />}
+    />
+    <Route
+      path='/coowork/herramientas/habilidades/verificar'
+      element={<VerificarUsuarios />}
+    />
+    <Route
+      path='/coowork/herramientas/verificar-usuarios'
+      element={<Navigate replace to='/coowork/herramientas/habilidades/verificar' />}
+    />
+    <Route
+      path='/coowork/herramientas/conductores'
+      element={<ConductoresAgencia />}
+    />
+    <Route
+      path='/coowork/herramientas/agencia/conductores'
+      element={<ConductoresAgencia />}
+    />
+    {/* Forma futura con categoría: hoy resuelve a la misma página dedicada
+        (el slug manda; la categoría se ignora hasta organizarlas). */}
+    <Route
+      path='/coowork/herramientas/:categoria/:slug'
+      element={<HerramientaDedicada />}
+    />
+    <Route
+      path='/herramientas/mi-agencia'
+      element={<Navigate replace to='/coowork/herramientas/mi-agencia' />}
+    />
+    <Route
+      path='/herramientas/calificar-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/calificar-tarea' />}
+    />
+    <Route
+      path='/herramientas/corregir-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/corregir-tarea' />}
+    />
+    <Route
+      path='/herramientas/gestionar-tareas'
+      element={<Navigate replace to='/coowork/herramientas/tareas/gestionar-tareas' />}
+    />
+    <Route
+      path='/herramientas/resolver-apelaciones'
+      element={<Navigate replace to='/coowork/herramientas/resolver-apelaciones' />}
+    />
+    <Route
+      path='/herramientas/agregar-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/agregar-tarea' />}
+    />
 
-      <Route
-        path='/herramientas/asignar-tarea'
-        element={<AsignarTareaPage />}
-      />
-      <Route
-        path='/herramientas/agregar-socio'
-        element={<AgregarSocio />}
-      />
-      <Route
-        path='/herramientas/gestionar-habilidades'
-        element={<SkillsManagement />}
-      />
-      <Route
-        path='/herramientas/verificar-usuarios'
-        element={<VerificarUsuarios />}
-      />
+    <Route
+      path='/herramientas/asignar-tarea'
+      element={<Navigate replace to='/coowork/herramientas/tareas/asignar-tarea' />}
+    />
+    <Route
+      path='/herramientas/agregar-socio'
+      element={<Navigate replace to='/coowork/herramientas/agregar-socio' />}
+    />
+    <Route
+      path='/herramientas/gestionar-habilidades'
+      element={<Navigate replace to='/coowork/herramientas/gestionar-habilidades' />}
+    />
+    <Route
+      path='/herramientas/verificar-usuarios'
+      element={<Navigate replace to='/coowork/herramientas/verificar-usuarios' />}
+    />
+    {/* Conductores y resto de herramientas legacy -> prefijo /coowork */}
+    <Route
+      path='/herramientas/:slug'
+      element={<HerramientaRedirect />}
+    />
+    <Route
+      path='/herramientas/:categoria/:slug'
+      element={<HerramientaRedirect />}
+    />
 
       {/* Perfil / Usuario */}
       <Route
@@ -1080,19 +1246,23 @@ const Rutas = () => {
       element={<Referir />}
     />
 
-      {/* Misc / Tests */}
-      <Route
-        path='/notificationtester'
-        element={<NotificationTester />}
-      />
-      <Route
-        path='/precargador'
-        element={<PreCargador />}
-      />
-      <Route
-        path='/prueba'
-        element={<Prueba />}
-      />
+    {/* Misc / Tests */}
+    <Route
+      path='/candidatos'
+      element={<Candidatos />}
+    />
+    <Route
+      path='/notificationtester'
+      element={<NotificationTester />}
+    />
+    <Route
+      path='/precargador'
+      element={<PreCargador />}
+    />
+    <Route
+      path='/prueba'
+      element={<Prueba />}
+    />
 
       {/* Stripe success */}
       <Route
