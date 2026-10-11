@@ -9,7 +9,6 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
 import PsychologyIcon from '@mui/icons-material/Psychology';
-import GroupIcon from '@mui/icons-material/Group';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
 const neonGreen = '#00ff99';
@@ -30,15 +29,21 @@ const ToolCard = styled(Paper)(({ theme }) => ({
   },
 }));
 
-// Herramientas fijas del panel: son enlaces a componentes a cargar, no datos
-// dinámicos, así que ya no se traen de Strapi (categorias-herramientas) —
-// esa consulta no aportaba nada y complicaba montar el proyecto desde cero
-// en cada despliegue (había que sembrar esa coleccion a mano).
-// soloAdminSocio: true oculta la herramienta para usuarios sin permiso CRUD.
-// Las 5 de tareas viven agrupadas en la categoría "Tareas"
-// (/coowork/herramientas/tareas). "Mi Agencia" es una categoría (hub) que
-// contiene Agregar socio, Capital humano y Configuración — por eso
-// "Agregar Socio" NO está suelto aquí, vive dentro de Mi Agencia.
+const RobotIcon = ({ fontSize = 'medium' }) => {
+  // Tamaños aproximados de MUI (small 20 / medium 24 / large 28 píxeles).
+  const size = fontSize === 'large' ? 28 : fontSize === 'medium' ? 24 : 20;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="3.5" r="1.6" fill="#8A5CF5" />
+      <line x1="12" y1="5.1" x2="12" y2="7.2" stroke="#8A5CF5" strokeWidth="1.4" strokeLinecap="round" />
+      <rect x="4.2" y="7.2" width="15.6" height="13" rx="3" fill="#fff" />
+      <circle cx="8.4" cy="11.2" r="1.7" fill="#8A5CF5" />
+      <circle cx="15.6" cy="11.2" r="1.7" fill="#8A5CF5" />
+      <rect x="9" y="14.5" width="6" height="1.8" rx="0.9" fill="#8A5CF5" />
+    </svg>
+  );
+};
+
 const HERRAMIENTAS = [
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'clientes', name: 'Clientes', icon: <GroupsIcon fontSize="large" />, soloAdminSocio: false },
@@ -52,7 +57,7 @@ const HERRAMIENTAS = [
   // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
   { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
   // Agentes: vivienda/agentes de campo, puntera del programa de agentes de la agencia.
-  { slug: 'agentes', name: 'Agentes', icon: <GroupIcon fontSize="large" />, soloAdminSocio: false },
+  { slug: 'agentes', name: 'Agentes', icon: <RobotIcon fontSize="large" />, soloAdminSocio: false },
 ];
 
 const HerramientasGrid = () => {
@@ -61,8 +66,6 @@ const HerramientasGrid = () => {
   const tienePermisoCRUD = isAdmin() || isSocio();
 
   const herramientas = HERRAMIENTAS.filter((tool) => !tool.soloAdminSocio || tienePermisoCRUD).map(
-    // `link` explícito manda (Multimedia va a /multimedia raíz); el resto cae
-    // a la herramienta bajo /coowork/herramientas.
     (tool) => ({ ...tool, id: tool.slug, link: tool.link || `/coowork/herramientas/${tool.slug}` })
   );
 
