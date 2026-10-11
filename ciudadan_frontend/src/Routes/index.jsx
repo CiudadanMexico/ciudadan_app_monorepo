@@ -32,6 +32,7 @@ import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
+import MembresiasDetalles from '../Pages/MembresiasDetalles.jsx';
 import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
 import SociosEstatalesPage from '../Pages/SociosEstatales/SociosEstatalesPage.jsx';
 import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx';
@@ -1110,6 +1111,10 @@ const Rutas = () => {
       />
 
     {/* Membresías */}
+    <Route
+      path='/membresias/detalles'
+      element={<MembresiasDetalles />}
+    />
     <Route
       path='/membresias'
       element={<Membresias />}

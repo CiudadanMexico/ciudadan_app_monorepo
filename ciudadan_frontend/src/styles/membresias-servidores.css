@@ -1,0 +1,95 @@
+/* ============================================================
+   Experiencia comercial: Membresías y Servidores (púrpura)
+   ============================================================ */
+.ms-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(124, 58, 237, 0.25), transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, rgba(167, 139, 250, 0.18), transparent 55%),
+    linear-gradient(180deg, #1b0b3a 0%, #2a0f5c 45%, #150628 100%);
+  color: #f3f0ff;
+}
+
+.ms-hero-title {
+  font-weight: 900 !important;
+  background: linear-gradient(90deg, #c4b5fd, #a78bfa 45%, #e9d5ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.ms-subtitle {
+  color: #cfc4f0 !important;
+}
+
+/* Tarjeta base */
+.ms-card {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(167, 139, 250, 0.35) !important;
+  border-radius: 22px !important;
+  backdrop-filter: blur(6px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.ms-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(196, 181, 253, 0.7) !important;
+  box-shadow: 0 18px 50px rgba(124, 58, 237, 0.35);
+}
+
+/* Bloque destacado con borde que recorre el perímetro */
+.ms-glow {
+  position: relative;
+  border-radius: 22px;
+  isolation: isolate;
+}
+.ms-glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 24px;
+  padding: 2px;
+  background: conic-gradient(from 0deg, #7c3aed, #a78bfa, #e9d5ff, #7c3aed);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: ms-glow-spin 4s linear infinite;
+  z-index: -1;
+}
+@keyframes ms-glow-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* Imagen ilustrativa del servidor (slot listo para PNG) */
+.ms-server-img {
+  width: 100%;
+  border-radius: 18px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(30, 10, 60, 0.6));
+}
+
+.ms-chip {
+  border: 1px solid rgba(196, 181, 253, 0.5) !important;
+  color: #ddd6fe !important;
+  background: rgba(124, 58, 237, 0.18) !important;
+}
+
+.ms-divider {
+  border-color: rgba(167, 139, 250, 0.25) !important;
+}
+
+/* Respeta movimiento reducido: desactiva animaciones decorativas */
+@media (prefers-reduced-motion: reduce) {
+  .ms-glow::before {
+    animation: none;
+  }
+  .ms-card {
+    transition: none;
+  }
+  .ms-card:hover {
+    transform: none;
+  }
+}
