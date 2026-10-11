@@ -165,6 +165,7 @@ import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
+import VenderPage from '../Pages/MarketPlace/VenderPage.jsx';
 import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
 import Restaurant from '../Pages/Food/Restaurant.jsx';
 import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
@@ -551,6 +552,10 @@ const Rutas = () => {
 
     {/* Market / Marketplace / MarketRoute */}
     <Route
+      path='/market/vender'
+      element={<VenderPage />}
+    />
+    <Route
       path='/market'
       element={<MarketPage />}
     />
@@ -924,6 +929,12 @@ const Rutas = () => {
     {/* Membresías */}
     <Route
       path='/membresias'
+      element={<Membresias />}
+    />
+    {/* Alias obligatorio de la landing «Vende en Ciudadan»: reutiliza la pagina real
+        de membresias sin inventar precios ni paquetes. */}
+    <Route
+      path='/membresias/negocios'
       element={<Membresias />}
     />
 

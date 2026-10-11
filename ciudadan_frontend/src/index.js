@@ -20,6 +20,7 @@ import { NotificationsProvider } from './Contexts/NotificationsContext';
 import './styles/index.css';
 
 import AuthGate from './components/AuthGate.jsx';
+import ErrorConfigAuth0, { auth0ConfigValida } from './components/ErrorConfigAuth0.jsx';
 import { Capacitor } from '@capacitor/core';
 import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
 
@@ -151,7 +152,10 @@ const Auth0ProviderWithNavigate = ({ children }) => {
 // ==============================
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-root.render(
+// Si la configuracion de Auth0 esta incompleta, no montamos Auth0Provider:
+// mostraria una redireccion rota a https://authorize/?client_id=...
+// En su lugar se muestra un error de configuracion accionable.
+const appElement = auth0ConfigValida() ? (
   <React.StrictMode>
     <Router>
       <Auth0ProviderWithNavigate>
@@ -182,4 +186,8 @@ root.render(
       </Auth0ProviderWithNavigate>
     </Router>
   </React.StrictMode>
+) : (
+  <ErrorConfigAuth0 />
 );
+
+root.render(appElement);
