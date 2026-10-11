@@ -3,7 +3,14 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation } from "react-router-dom";
 import { Box, Button, Alert, CircularProgress, Typography, Stack } from "@mui/material";
 
-export default function MercadoPagoBoton({ order, subtypeKey = null, email, precioMostrado }) {
+export default function MercadoPagoBoton({
+  order,
+  subtypeKey = null,
+  email,
+  precioMostrado,
+  label = "Adquirir Ahora",
+  labelCargando = "Redirigiendo a Mercado Pago...",
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { isAuthenticated, loginWithRedirect } = useAuth0();
@@ -31,7 +38,8 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
     // iniciar sesión y regresar a esta misma pantalla al terminar.
     if (!isAuthenticated || !email) {
       loginWithRedirect({
-        appState: { returnTo: location.pathname + location.search },
+        // Conserva la opción elegida: ruta + query + ancla de la sección.
+        appState: { returnTo: location.pathname + location.search + location.hash },
       });
       return;
     }
@@ -99,10 +107,10 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
           {loading ? (
             <>
               <CircularProgress size={18} sx={{ mr: 1, color: "#fff" }} />
-              Redirigiendo a Mercado Pago...
+              {labelCargando}
             </>
           ) : (
-            `Adquirir Ahora${precioMostrado ? ` · ${precioMostrado}` : ""}`
+            `${label}${precioMostrado ? ` · ${precioMostrado}` : ""}`
           )}
         </Button>
 

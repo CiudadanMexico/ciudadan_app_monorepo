@@ -365,7 +365,7 @@ const Membresias = () => {
                       <Button
                         fullWidth
                         variant="text"
-                        onClick={handleMembresiaClick(plan)}
+                        onClick={() => navigate('/membresias/detalles')}
                         sx={{
                           mt: 1,
                           color: "#64748B",
