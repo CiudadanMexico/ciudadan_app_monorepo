@@ -1,12 +1,13 @@
-// SECCION 8 — CTA final (fondo CSS, sin fotografia).
+// SECCION 8 — CTA final (fondo purpura CSS, sin fotografia) + entrada FM.
 import React from 'react';
-import { Box, Button, Container, Typography, useTheme } from '@mui/material';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Box, Button, Container, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { VENDER_RUTAS } from './venderLanding.rutas';
+import { VENDER_PREMIUM } from './venderPremium.tokens';
 
 export default function VenderCtaFinal() {
-  const theme = useTheme();
-  const oscuro = theme.palette.mode === 'dark';
+  const reduceMotion = useReducedMotion();
   return (
     <Box
       component="section"
@@ -14,28 +15,40 @@ export default function VenderCtaFinal() {
       sx={{
         py: { xs: 6, md: 8 },
         color: '#fff',
-        background: oscuro
-          ? 'linear-gradient(135deg, #0b3d2e 0%, #14532d 55%, #22c55e 130%)'
-          : 'linear-gradient(135deg, #0e5c3f 0%, #15803d 55%, #4ade80 130%)',
+        position: 'relative',
+        overflow: 'hidden',
+        background: VENDER_PREMIUM.fondoOficial,
       }}
     >
-      <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-        <Typography id="vender-cta-titulo" component="h2" variant="h4" fontWeight={800} gutterBottom>
-          Tu negocio merece crecer sin pagar comisiones por vender.
-        </Typography>
-        <Typography variant="body1" sx={{ mb: 3, opacity: 0.94, lineHeight: 1.8 }}>
-          Abre tu tienda en Ciudadan, recibe tus pagos directamente y descubre nuevas
-          oportunidades en la economia cooperativa.
-        </Typography>
-        <Button
-          component={RouterLink}
-          to={VENDER_RUTAS.registroVendedor}
-          variant="contained"
-          size="large"
-          sx={{ fontWeight: 800, borderRadius: 3, px: 5, bgcolor: '#fff', color: '#14532d', '&:hover': { bgcolor: '#f0fdf4' } }}
+      <Box aria-hidden="true" sx={{ position: 'absolute', width: 460, height: 460, borderRadius: '50%', top: -160, right: '-10%', background: `radial-gradient(circle, ${VENDER_PREMIUM.rosaNeon}33 0%, transparent 70%)`, filter: 'blur(50px)', pointerEvents: 'none' }} />
+      <Container maxWidth="md" sx={{ textAlign: 'center', position: 'relative' }}>
+        <motion.div
+          initial={reduceMotion ? {} : { opacity: 0, y: 22 }}
+          whileInView={reduceMotion ? {} : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
         >
-          Crear mi tienda gratis
-        </Button>
+          <Typography id="vender-cta-titulo" component="h2" variant="h4" fontWeight={800} gutterBottom>
+            Tu negocio merece crecer sin pagar comisiones por vender.
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 3, opacity: 0.94, lineHeight: 1.8 }}>
+            Abre tu tienda en Ciudadan, recibe tus pagos directamente y descubre nuevas
+            oportunidades en la economia cooperativa.
+          </Typography>
+          <Button
+            component={RouterLink}
+            to={VENDER_RUTAS.registroVendedor}
+            variant="contained"
+            size="large"
+            sx={{
+              fontWeight: 800, borderRadius: 3, px: 5, bgcolor: '#fff', color: VENDER_PREMIUM.moradoProfundo,
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              '&:hover': { transform: 'translateY(-2px)', boxShadow: `0 12px 30px ${VENDER_PREMIUM.rosaNeon}55`, bgcolor: '#fff' },
+            }}
+          >
+            Crear mi tienda gratis
+          </Button>
+        </motion.div>
       </Container>
     </Box>
   );

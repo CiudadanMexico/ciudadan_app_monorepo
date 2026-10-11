@@ -9,6 +9,8 @@
   scroll-margin-top: 88px;
 }
 
+@keyframes neon-recorrido { from { stroke-dashoffset: 300; } to { stroke-dashoffset: 0; } }
+
 @media (prefers-reduced-motion: reduce) {
   #vender-ciudadan {
     scroll-behavior: auto;
