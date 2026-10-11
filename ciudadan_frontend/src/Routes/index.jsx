@@ -112,6 +112,8 @@ import Coowork from '../Pages/Coowork/Coowork.jsx';
 import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
 import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
+import Postulaciones from '../Pages/Coowork/Postulaciones.jsx';
+import Candidatos from '../Pages/Candidatos.jsx';
 import Identidad from '../Pages/Identidad.jsx';
 import Votaciones from '../Pages/Votaciones.jsx';
 import Objetos from '../Pages/Objetos.jsx';
@@ -397,6 +399,12 @@ const Rutas = () => {
     <Route
       path='/interhackaton'
       element={<Navigate to='/hackabot' replace />}
+    />
+
+    {/* Postulación pública a socio de una agencia (Coowork) */}
+    <Route
+      path='/candidatos'
+      element={<Candidatos />}
     />
     <Route
       path='/vallecatnip'
@@ -789,6 +797,10 @@ const Rutas = () => {
       <Route
         path='/herramientas/verificar-usuarios'
         element={<VerificarUsuarios />}
+      />
+      <Route
+        path='/herramientas/postulaciones'
+        element={<Postulaciones />}
       />
 
       {/* Perfil / Usuario */}

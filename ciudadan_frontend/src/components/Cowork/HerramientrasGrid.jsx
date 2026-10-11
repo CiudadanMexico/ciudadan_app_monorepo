@@ -12,6 +12,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
 const neonGreen = '#00ff99';
@@ -44,6 +45,7 @@ const HERRAMIENTAS = [
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'agregar-tarea', name: 'Agregar Tarea', icon: <AddTaskIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'agregar-socio', name: 'Agregar Socio', icon: <PersonAddIcon fontSize="large" />, soloAdminSocio: true },
+  { slug: 'postulaciones', name: 'Postulaciones', icon: <HowToRegIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'asignar-tarea', name: 'Asignar Tarea', icon: <AssignmentIndIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
   { slug: 'verificar-usuarios', name: 'Verificar Usuarios', icon: <VerifiedUserIcon fontSize="large" />, soloAdminSocio: false },

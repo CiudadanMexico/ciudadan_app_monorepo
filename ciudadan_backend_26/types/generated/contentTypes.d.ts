@@ -1148,6 +1148,11 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'oneToMany',
       'plugin::users-permissions.user'
     >;
+    postulaciones: Attribute.Relation<
+      'api::agencia.agencia',
+      'oneToMany',
+      'api::postulacion-socio.postulacion-socio'
+    >;
     total_verifications: Attribute.Integer &
       Attribute.SetMinMax<
         {
@@ -2998,6 +3003,11 @@ export interface ApiDriverDriver extends Schema.CollectionType {
     promo_source: Attribute.String;
     promo_granted_at: Attribute.DateTime;
     promo_expires_at: Attribute.DateTime;
+    vehicle: Attribute.Relation<
+      'api::driver.driver',
+      'oneToOne',
+      'api::vehicle.vehicle'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5144,6 +5154,66 @@ export interface ApiPostulacionPostulacion extends Schema.CollectionType {
   };
 }
 
+export interface ApiPostulacionSocioPostulacionSocio
+  extends Schema.CollectionType {
+  collectionName: 'postulacion_socios';
+  info: {
+    singularName: 'postulacion-socio';
+    pluralName: 'postulacion-socios';
+    displayName: 'PostulacionSocio';
+    description: 'Candidatos que se postulan para ser socios de una agencia (/candidatos).';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre_completo: Attribute.String;
+    email: Attribute.Email;
+    telefono: Attribute.String;
+    codigo_pais: Attribute.String;
+    area: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'api::area.area'
+    >;
+    agencia: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    cv: Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    descripcion: Attribute.Text;
+    estado: Attribute.Enumeration<
+      ['pendiente', 'revisada', 'contactada', 'aceptada', 'rechazada']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    notas: Attribute.Text;
+    revisado_por: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    fecha_resolucion: Attribute.DateTime;
+    fecha_solicitud: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiPreguntaProductoPreguntaProducto
   extends Schema.CollectionType {
   collectionName: 'preguntas_productos';
@@ -7200,6 +7270,7 @@ declare module '@strapi/types' {
       'api::pedido.pedido': ApiPedidoPedido;
       'api::planta.planta': ApiPlantaPlanta;
       'api::postulacion.postulacion': ApiPostulacionPostulacion;
+      'api::postulacion-socio.postulacion-socio': ApiPostulacionSocioPostulacionSocio;
       'api::pregunta-producto.pregunta-producto': ApiPreguntaProductoPreguntaProducto;
       'api::producto.producto': ApiProductoProducto;
       'api::publicacion.publicacion': ApiPublicacionPublicacion;
