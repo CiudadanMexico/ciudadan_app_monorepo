@@ -1,95 +1,168 @@
 /* ============================================================
-   Experiencia comercial: Membresías y Servidores (púrpura)
+   Servidores — estilos de la experiencia de membresías.
+   Depende de los tokens de membresias.css (--mg-*).
    ============================================================ */
-.ms-page {
-  min-height: 100vh;
-  background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(124, 58, 237, 0.25), transparent 60%),
-    radial-gradient(1000px 500px at 110% 10%, rgba(167, 139, 250, 0.18), transparent 55%),
-    linear-gradient(180deg, #3B0764 0%, #6A1B9A 55%, #4A148C 100%);
-  color: #f3f0ff;
-}
 
-.ms-hero-title {
-  font-weight: 900 !important;
-  background: linear-gradient(90deg, #c4b5fd, #a78bfa 45%, #e9d5ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-
-.ms-subtitle {
-  color: #cfc4f0 !important;
-}
-
-/* Tarjeta base */
-.ms-card {
-  background: rgba(255, 255, 255, 0.04) !important;
-  border: 1px solid rgba(167, 139, 250, 0.35) !important;
-  border-radius: 22px !important;
-  backdrop-filter: blur(6px);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.ms-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(196, 181, 253, 0.7) !important;
-  box-shadow: 0 18px 50px rgba(124, 58, 237, 0.35);
-}
-
-/* Bloque destacado con borde que recorre el perímetro */
-.ms-glow {
+/* --- Slot de imagen de servidor (protagonista) ---
+   Mantiene proporción natural; si el PNG real llega, se pinta encima
+   con object-fit: cover sin estirar. */
+.mg-serv-imagen {
   position: relative;
-  border-radius: 22px;
-  isolation: isolate;
-}
-.ms-glow::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: 24px;
-  padding: 2px;
-  background: conic-gradient(from 0deg, #9C27B0, #CE93D8, #F3E8FF, #9C27B0);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: ms-glow-spin 4s linear infinite;
-  z-index: -1;
-}
-@keyframes ms-glow-spin {
-  to {
-    transform: rotate(1turn);
-  }
-}
-
-/* Imagen ilustrativa del servidor (slot listo para PNG) */
-.ms-server-img {
   width: 100%;
-  border-radius: 18px;
   aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(420px 240px at 70% 20%, rgba(206, 147, 216, 0.35) 0%, transparent 65%),
+    linear-gradient(160deg, #4A148C 0%, #2A0B4D 100%);
+  border: 1px solid var(--mg-borde);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mg-serv-imagen img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(30, 10, 60, 0.6));
+  display: block;
+}
+.mg-serv-imagen__icono {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--mg-lila);
+  text-align: center;
+  padding: 16px;
+}
+.mg-serv-imagen__icono svg { font-size: 64px; opacity: 0.9; }
+.mg-serv-imagen__icono span { font-size: 0.8rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--mg-lavanda); }
+
+/* --- Comparativa responsive --- */
+.mg-comparativa {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--mg-borde);
+  background: rgba(52, 17, 96, 0.45);
+}
+.mg-comparativa th, .mg-comparativa td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--mg-borde);
+}
+.mg-comparativa thead th {
+  background: rgba(74, 20, 140, 0.75);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.4px;
+}
+.mg-comparativa tbody th {
+  color: var(--mg-lila-claro);
+  font-weight: 700;
+  width: 30%;
+}
+.mg-comparativa tbody td { color: var(--mg-lavanda); }
+.mg-comparativa tbody tr:last-child th,
+.mg-comparativa tbody tr:last-child td { border-bottom: none; }
+.mg-comparativa tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.025); }
+
+/* En móvil: cada fila se convierte en tarjeta con etiquetas explícitas
+   para que nunca se pierda qué modalidad es cuál (sin scroll horizontal). */
+@media (max-width: 720px) {
+  .mg-comparativa, .mg-comparativa tbody, .mg-comparativa tr, .mg-comparativa td, .mg-comparativa th { display: block; width: auto; }
+  .mg-comparativa thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .mg-comparativa tr {
+    border: 1px solid var(--mg-borde);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    background: rgba(52, 17, 96, 0.5);
+    padding: 6px 4px;
+  }
+  .mg-comparativa tbody th {
+    border-bottom: 1px solid var(--mg-borde);
+    padding-bottom: 8px;
+    font-size: 1rem;
+  }
+  .mg-comparativa td {
+    border-bottom: none;
+    padding: 8px 14px;
+    position: relative;
+    padding-left: 108px;
+  }
+  .mg-comparativa td::before {
+    content: attr(data-etiqueta);
+    position: absolute;
+    left: 14px;
+    top: 8px;
+    width: 86px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--mg-lila);
+  }
 }
 
-.ms-chip {
-  border: 1px solid rgba(196, 181, 253, 0.5) !important;
-  color: #ddd6fe !important;
-  background: rgba(124, 58, 237, 0.18) !important;
+/* --- Toggle de modalidad (compartido/privado) --- */
+.mg-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(42, 11, 77, 0.7);
+  border: 1px solid var(--mg-borde);
 }
+.mg-toggle button {
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  background: transparent;
+  color: var(--mg-lavanda);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.mg-toggle button[aria-pressed='true'] {
+  background: linear-gradient(135deg, var(--mg-amarillo), var(--mg-amarillo-hover));
+  color: var(--mg-berenjena);
+}
+.mg-toggle button:focus-visible { outline: 3px solid var(--mg-amarillo); outline-offset: 2px; }
 
-.ms-divider {
-  border-color: rgba(167, 139, 250, 0.25) !important;
+/* --- Ficha técnica compacta --- */
+.mg-specs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
+.mg-specs li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--mg-borde);
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: var(--mg-lila-claro);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.mg-specs li svg { color: var(--mg-lila); font-size: 18px; flex-shrink: 0; }
 
-/* Respeta movimiento reducido: desactiva animaciones decorativas */
-@media (prefers-reduced-motion: reduce) {
-  .ms-glow::before {
-    animation: none;
-  }
-  .ms-card {
-    transition: none;
-  }
-  .ms-card:hover {
-    transform: none;
-  }
+/* --- Bloque de renta (dato principal + equivalencia secundaria) --- */
+.mg-renta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
 }
+.mg-renta__principal { color: var(--mg-amarillo); font-weight: 900; font-size: 1.6rem; }
+.mg-renta__referencia { color: var(--mg-lavanda); font-size: 0.92rem; }

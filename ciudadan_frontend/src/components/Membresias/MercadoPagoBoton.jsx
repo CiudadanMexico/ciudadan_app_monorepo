@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation } from "react-router-dom";
 import { Box, Button, Alert, CircularProgress, Typography, Stack } from "@mui/material";
+import "../../styles/membresias.css";
 
 export default function MercadoPagoBoton({
   order,
@@ -91,22 +92,15 @@ export default function MercadoPagoBoton({
         <Button
           fullWidth
           variant="contained"
+          className="mg-btn"
           onClick={handleClick}
           disabled={loading}
-          sx={{
-            backgroundColor: "#FFE04A",
-            color: "#fff",
-            py: 1.4,
-            borderRadius: "14px",
-            fontWeight: 800,
-            textTransform: "none",
-            fontSize: "1rem",
-            "&:hover": { backgroundColor: "#F5C400" },
-          }}
+          aria-busy={loading || undefined}
+          sx={{ py: 1.45, fontSize: "1rem" }}
         >
           {loading ? (
             <>
-              <CircularProgress size={18} sx={{ mr: 1, color: "#1A1A1A" }} />
+              <CircularProgress size={18} sx={{ mr: 1, color: "var(--mg-berenjena, #2A0B4D)" }} />
               {labelCargando}
             </>
           ) : (
@@ -114,14 +108,14 @@ export default function MercadoPagoBoton({
           )}
         </Button>
 
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" sx={{ color: "var(--mg-lila, #CE93D8)", fontSize: "0.82rem", lineHeight: 1.55 }}>
           Te llevaremos al sitio seguro de Mercado Pago para completar el pago. Puedes pagar con
           tarjeta, efectivo en tiendas, transferencia SPEI o saldo en tu cuenta. Al terminar
           regresarás automáticamente a Ciudadan.
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ whiteSpace: "pre-wrap" }}>
+          <Alert severity="error" sx={{ whiteSpace: "pre-wrap", bgcolor: "rgba(124, 29, 40, 0.35)", color: "#FFDAD6" }}>
             {error}
           </Alert>
         )}
