@@ -20,8 +20,6 @@ const UserMenu = ({
     isEditor,
     isRoot,
     isActivaMembresia,
-    isClub,
-    haveClub,
     userData
   } = useRoles();
 
@@ -146,17 +144,6 @@ const UserMenu = ({
 
       {isAuthenticated && (
         <>
-          <MenuItem
-            label="Tu Club"
-            onClick={() =>
-              safeNavigate(
-                isClub() || haveClub()
-                  ? "/clubs/miclub/info"
-                  : "/clubs"
-              )
-            }
-          />
-
           <MenuItem
             label="Tus Anuncios"
             onClick={() =>
