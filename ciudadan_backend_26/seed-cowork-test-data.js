@@ -79,7 +79,15 @@ const NUEVOS_USUARIOS = [
 
     // --- 4. Agencia federal (además de la local existente) ---
     const agencias = await app.entityService.findMany('api::agencia.agencia', { fields: ['id', 'nombre', 'tipo'] });
-    let agenciaLocal = agencias.find((a) => a.tipo === 'local') || agencias[0];
+    let agenciaLocal = agencias.find((a) => a.tipo === 'local');
+    // BD fresca: si no hay ninguna agencia, crear también la local (idempotente)
+    // para no quedar con agenciaLocal=undefined y crashear en agenciaLocal.id.
+    if (!agenciaLocal) {
+      agenciaLocal = await app.entityService.create('api::agencia.agencia', {
+        data: { nombre: 'Agencia Local Ciudadan', tipo: 'local', localidad: { country: 'Mexico', locality: 'CDMX' } },
+      });
+      console.log(`Agencia local creada: #${agenciaLocal.id}`);
+    }
     let agenciaFederal = agencias.find((a) => a.tipo === 'federal');
     if (!agenciaFederal) {
       agenciaFederal = await app.entityService.create('api::agencia.agencia', {
