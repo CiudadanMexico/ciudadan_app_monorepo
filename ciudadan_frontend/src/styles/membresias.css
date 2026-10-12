@@ -37,14 +37,14 @@ button {
 
 .membresias-container {
   padding: 2rem;
-  background: #edf7f1;
+  background: radial-gradient(circle at 20% 15%, #9C27B0 0%, #7B1FA2 55%, #4A148C 100%);
   min-height: 100vh;
 }
 
 .membresias-titulo {
   font-family: 'Righteous', cursive !important;
   font-weight: 900;
-  color: #1b5e20; /* verde oscuro base */
+  color: #ffffff; /* blanco púrpura profundo */
   letter-spacing: 3.3px !important;
   text-align: center;
   display: block;
@@ -166,18 +166,19 @@ button {
 
 .membresias-subtitulo {
   margin-bottom: 2rem;
-  color: #4A148C;
+  color: #E9D5FF;
 }
 
 .membresia-card {
   border-radius: 1.5rem;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 14px 30px rgba(156, 39, 176, 0.40);
+  border: 1px solid rgba(156, 39, 176, 0.55);
   transition: transform 0.3s ease-in-out;
   position: relative;
 }
 
 .membresia-card:hover {
-  transform: scale(1.05);
+  transform: scale(1.045);
 }
 
 .membresia-chip {
@@ -194,13 +195,13 @@ button {
 
 .membresia-nombre {
   font-weight: bold;
-  color: #2e7d32;
+  color: #FFE04A;
 }
 
 .membresia-precio {
   font-weight: bold;
   margin-bottom: 1.5rem;
-  color: #1b5e20;
+  color: #FFE04A;
 }
 
 .membresia-beneficios {
@@ -212,7 +213,7 @@ button {
 
 .membresia-beneficio {
   margin-bottom: 0.5rem;
-  color: #333;
+  color: #ede9fe;
 }
 
 .membresia-check-icon {

@@ -6,7 +6,7 @@
   background:
     radial-gradient(1200px 600px at 10% -10%, rgba(124, 58, 237, 0.25), transparent 60%),
     radial-gradient(1000px 500px at 110% 10%, rgba(167, 139, 250, 0.18), transparent 55%),
-    linear-gradient(180deg, #1b0b3a 0%, #2a0f5c 45%, #150628 100%);
+    linear-gradient(180deg, #3B0764 0%, #6A1B9A 55%, #4A148C 100%);
   color: #f3f0ff;
 }
 
@@ -49,7 +49,7 @@
   inset: -2px;
   border-radius: 24px;
   padding: 2px;
-  background: conic-gradient(from 0deg, #7c3aed, #a78bfa, #e9d5ff, #7c3aed);
+  background: conic-gradient(from 0deg, #9C27B0, #CE93D8, #F3E8FF, #9C27B0);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
