@@ -2,7 +2,7 @@
  * HackabotAreas — las 5 áreas generales de Hackabot (spec 7.3)
  * con sus 3 lugares por área en Etapa 1 (spec 7.5).
  */
-import { Box, Grid } from '@mui/material';
+import { Box, Grid2 as Grid } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import BuildIcon from '@mui/icons-material/Build';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';

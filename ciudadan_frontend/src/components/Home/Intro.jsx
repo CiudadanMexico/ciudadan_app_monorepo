@@ -130,7 +130,7 @@ export default function Intro() {
 
           <Button
             component={Link}
-            to="/interhackaton"
+            to="/hackabot"
             sx={{
               background: "linear-gradient(90deg,var(--neon-pink),var(--neon-green))",
               color: "#04110a",
@@ -141,7 +141,7 @@ export default function Intro() {
               fontSize: isMobile ? 16 : 20,
             }}
           >
-            Bases / Registro
+            Hackabot / Registro
           </Button>
         </div>
       </div>
@@ -283,7 +283,7 @@ export default function Intro() {
                 }}
                 className="neon-sub"
               >
-                GRAN HACKATON INTERUNIVERSITARIO !!
+                HACKABOT UNIVERSITARIO !!
               </Typography>
 
               <div style={{ marginTop: 10 }}>
@@ -295,7 +295,7 @@ export default function Intro() {
                   }}
                   className="neon-title"
                 >
-                  Construyendo Juntos &nbsp;
+                  Tus agentes trabajando por ti &nbsp;
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={rotatingInner[indexInner]}
@@ -357,7 +357,7 @@ export default function Intro() {
                 }}
                 className="neon-sub"
               >
-                GRAN HACKATON INTERUNIVERSITARIO !!
+                HACKABOT UNIVERSITARIO !!
               </Typography>
 
               <div style={{ marginTop: 10 }}>
@@ -369,7 +369,7 @@ export default function Intro() {
                   }}
                   className="neon-title"
                 >
-                  Construyendo Juntos &nbsp;
+                  Tus agentes trabajando por ti &nbsp;
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={rotatingInner[indexInner]}

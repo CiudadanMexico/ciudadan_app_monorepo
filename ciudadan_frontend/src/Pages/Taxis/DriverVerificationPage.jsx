@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
   Paper,
   Snackbar,
@@ -20,9 +21,15 @@ import {
   OperativeChecklist,
   ReviewerObservations,
   RiskAssessmentPanel,
+  VehicleDataCard,
   VerificationHeader,
   VerificationSidebar,
 } from '../../components/Taxis/driver-verification';
+import {
+  closeVehicleReview,
+  getVehicleCard,
+  openVehicleReview,
+} from '../../services/vehicleExpedienteService';
 import { getValidationReviewBundle } from '../../services/driverVerification/getters';
 import {
   completeValidation,
@@ -80,6 +87,11 @@ const DriverVerificationPage = () => {
   const [liveCaptureOpen, setLiveCaptureOpen] = useState(false);
   const [liveCaptureSessionId] = useState(() => crypto.randomUUID());
   const [externalVerificationOpen, setExternalVerificationOpen] = useState(false);
+  // Expediente vehicular (modelo vehicle): tarjeta de circulación + transición
+  // de estado documento_completo → en_revision → aprobado/suspenso. Se lee
+  // con GET /api/vehicle/card/:id (policy is-verificador).
+  const [vehicleCard, setVehicleCard] = useState(null);
+  const [vehicleCardState, setVehicleCardState] = useState('idle');
 
   const showFeedback = useCallback((message, severity = 'success') => {
     setFeedback({ open: true, message, severity });
@@ -190,6 +202,67 @@ const DriverVerificationPage = () => {
       showFeedback('Observaciones guardadas.');
     } catch (saveError) {
       showFeedback(saveError?.message || 'No se pudieron guardar las observaciones.', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ---- Expediente vehicular (modelo vehicle) ----
+  // El driverId del expediente de validación se usa como vehicleId: el
+  // expediente se crea 1:1 con el driver en el pre-registro.
+  const driverVehicleId = viewModel?.driver?.id || null;
+
+  const loadVehicleCard = useCallback(async () => {
+    if (!driverVehicleId) return;
+    setVehicleCardState('loading');
+    try {
+      const token = await getToken();
+      const card = await getVehicleCard(driverVehicleId, token);
+      setVehicleCard(card);
+      setVehicleCardState(card?.status === 'preregistrado' ? 'not-ready' : 'ready');
+    } catch {
+      setVehicleCard(null);
+      setVehicleCardState('error');
+    }
+  }, [driverVehicleId, getToken]);
+
+  useEffect(() => {
+    if (viewModel) loadVehicleCard();
+  }, [viewModel, loadVehicleCard]);
+
+  const handleVehicleOpenReview = async () => {
+    if (!driverVehicleId) return;
+    try {
+      setActionLoading(true);
+      const token = await getToken();
+      const updated = await openVehicleReview(driverVehicleId, { observation: observations }, token);
+      setVehicleCard(updated);
+      showFeedback('Expediente vehicular en revisión (documento_completo → en_revision).');
+    } catch (err) {
+      showFeedback(err?.message || 'No se pudo abrir la revisión vehicular.', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleVehicleCloseReview = async (outcome) => {
+    if (!driverVehicleId) return;
+    try {
+      setActionLoading(true);
+      const token = await getToken();
+      const updated = await closeVehicleReview(
+        driverVehicleId,
+        { outcome, observation: observations },
+        token,
+      );
+      setVehicleCard(updated);
+      showFeedback(
+        outcome === 'aprobado'
+          ? 'Expediente vehicular aprobado.'
+          : 'Expediente vehicular suspendido.',
+      );
+    } catch (err) {
+      showFeedback(err?.message || 'No se pudo cerrar la revisión vehicular.', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -359,6 +432,90 @@ const DriverVerificationPage = () => {
                 Motor de riesgo
               </Typography>
               <RiskAssessmentPanel validationId={validationId} getToken={getToken} />
+            </Paper>
+
+            <Paper variant="outlined" sx={{ p: 1.5 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                Expediente vehicular — tarjeta de circulación
+              </Typography>
+              {vehicleCardState === 'loading' ? (
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CircularProgress size={18} />
+                  <Typography variant="body2" color="text.secondary">
+                    Leyendo expediente (GET /api/vehicle/card/:id)…
+                  </Typography>
+                </Stack>
+              ) : vehicleCard ? (
+                <Stack spacing={1}>
+                  <VehicleDataCard
+                    vehicle={{
+                      brand: vehicleCard.brand,
+                      model: vehicleCard.model,
+                      year: vehicleCard.year,
+                      plates: vehicleCard.plates,
+                      color: vehicleCard.color,
+                      vin: vehicleCard.vin_number,
+                    }}
+                  />
+                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                    <Chip
+                      size="small"
+                      label={`Expediente: ${vehicleCard.status || '—'}`}
+                      color={
+                        vehicleCard.status === 'aprobado'
+                          ? 'success'
+                          : vehicleCard.status === 'en_revision'
+                            ? 'warning'
+                            : 'info'
+                      }
+                    />
+                    <Button size="small" variant="text" onClick={loadVehicleCard} disabled={actionLoading}>
+                      Releer tarjeta
+                    </Button>
+                  </Stack>
+                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={handleVehicleOpenReview}
+                      disabled={isClosed || vehicleCard.status !== 'documento_completo'}
+                    >
+                      Abrir revisión vehicular
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="success"
+                      onClick={() => handleVehicleCloseReview('aprobado')}
+                      disabled={isClosed || vehicleCard.status !== 'en_revision'}
+                    >
+                      Aprobar vehículo
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleVehicleCloseReview('suspenso')}
+                      disabled={isClosed || vehicleCard.status !== 'en_revision'}
+                    >
+                      Suspender vehículo
+                    </Button>
+                  </Stack>
+                </Stack>
+              ) : (
+                <Stack spacing={1}>
+                  <Typography variant="body2" color="text.secondary">
+                    {vehicleCardState === 'error'
+                      ? 'Sin expediente vehicular auditable (aún en preregistrado o sin vehículo vinculado).'
+                      : 'El expediente vehicular aparecerá en cuanto esté listo para auditar.'}
+                  </Typography>
+                  <Box>
+                    <Button size="small" variant="text" onClick={loadVehicleCard} disabled={actionLoading}>
+                      Reintentar lectura
+                    </Button>
+                  </Box>
+                </Stack>
+              )}
             </Paper>
 
             <Paper variant="outlined" sx={{ p: 1.5 }}>

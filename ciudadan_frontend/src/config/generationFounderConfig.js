@@ -530,9 +530,12 @@ export const REGISTRATION = {
   },
 
   // Campos comunes a todas las vías (spec 11.1).
-  // Si el usuario ya está autenticado (Auth0), email y nombre se prellenan y se marcan como sólo lectura.
+  // Si el usuario ya está autenticado (Auth0), sólo el email se prellena y se
+  // marca como sólo lectura. El nombre NO se toma del username de Auth0:
+  // nombre y apellidos los captura el usuario (obligatorios, con validador).
   commonFields: [
-    { name: 'nombre', label: 'Nombre completo', type: 'text', required: true, half: true },
+    { name: 'nombre', label: 'Nombre', type: 'text', required: true, half: true, validate: 'name' },
+    { name: 'apellidos', label: 'Apellidos', type: 'text', required: true, half: true, validate: 'name' },
     { name: 'email', label: 'Correo electrónico', type: 'email', required: true, half: true },
     { name: 'telefono', label: 'Teléfono', type: 'tel', half: true },
     { name: 'estado', label: 'Estado', type: 'text', half: true },

@@ -28,7 +28,7 @@ const COLLECTION_ENDPOINT = "membresias-tipos";
 const Membresias = () => {
   const chargeText = 'Cargando Membresías';
   const { isActivaMembresia } = useRoles();
-  const { user, isAuthenticated } = useAuth0();
+  const { user, isAuthenticated, loginWithRedirect } = useAuth0();
 
   const [planes, setPlanes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,14 @@ const Membresias = () => {
   const handleMembresiaClick = (plan) => (e) => {
     e.preventDefault();
     const order = plan?.order || plan?.id;
-    navigate(`/membresias/pagar/order/${order}`);
+    const destino = `/membresias/pagar/order/${order}`;
+    // Sin sesión: en vez de error/deshabilitar, mandar a iniciar sesión y
+    // volver a esta misma página de pago al terminar (appState.returnTo).
+    if (!isAuthenticated) {
+      loginWithRedirect({ appState: { returnTo: destino } });
+      return;
+    }
+    navigate(destino);
   };
 
   useEffect(() => {

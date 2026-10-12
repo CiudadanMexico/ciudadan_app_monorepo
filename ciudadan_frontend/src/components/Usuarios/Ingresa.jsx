@@ -47,7 +47,7 @@ const Ingresa = () => {
               fontWeight: "bold",
             }}
           >
-            Ir a Iniciar Sesión
+            Iniciar Sesión
           </Button>
       </CardContent>
     </Card>

@@ -26,9 +26,61 @@ env:
     [40.233.7.3]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
 
 jobs:
+  p4-arbiter-gate:
+    name: "P4 — Gate: árbol estable (failover/failback)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      p4_state: ${{ steps.p4.outputs.state }}
+      gate: ${{ steps.p4.outputs.gate }}
+    steps:
+      - name: Setup SSH (daniel directo, sin tunnel)
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host daniel-direct
+            HostName DANIELHOST
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: "Consultar árbol P4 (canal oficial: executor en Daniel, read-only)"
+        id: p4
+        run: |
+          set -uo pipefail
+          out=$(ssh -o BatchMode=yes -o ConnectTimeout=20 daniel-direct "sudo -n /usr/local/sbin/p4-executor status" 2>&1) || out="SSH_FAIL: $out"
+          STATE=$(sed -n 's/.*arbol: state=\([A-Z_]*\).*/\1/p' <<<"$out" | head -1)
+          echo "state=${STATE:-UNREACHABLE}" >> "$GITHUB_OUTPUT"
+          echo "::group::p4-executor status (Daniel, /prod)"
+          echo "$out"
+          echo "::endgroup::"
+          case "${STATE:-}" in
+            PRIMARY_POLANCO)
+              echo "gate=ALLOW" >> "$GITHUB_OUTPUT"
+              echo "::notice::P4 PRIMARY_POLANCO — deploy permitido (pipeline normal)" ;;
+            PROMOTING_DANIEL|FAILBACK_PREP|FAILBACK_FREEZE|PROMOTING_POLANCO|ABORTED_SPLIT_RISK)
+              echo "gate=BLOCKED_P4_TRANSITION" >> "$GITHUB_OUTPUT"
+              echo "::error::DEPLOY BLOQUEADO: P4 en transición de primary ($STATE). Reintentar cuando el árbol vuelva a estable." >&2
+              exit 1 ;;
+            *)
+              echo "gate=BLOCKED_P4_UNREADABLE" >> "$GITHUB_OUTPUT"
+              echo "::error::P4 ilegible/inaccesible o estado no contemplado (${STATE:-UNREACHABLE}) — fail-closed: deploy estático NO permitido (PRIMARY_DANIEL = deployment dinámico diferido)." >&2
+              exit 1 ;;
+          esac
+
   build-and-gate:
     name: Build + tests rápidos + migration gate
     runs-on: ubuntu-latest
+    needs: p4-arbiter-gate
     timeout-minutes: 40
     outputs:
       sha: ${{ steps.meta.outputs.sha }}
@@ -246,6 +298,18 @@ jobs:
           sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
           chmod 600 ~/.ssh/config
 
+      - name: "P4 — Re-gate: el árbol sigue estable antes de mutar producción"
+        run: |
+          set -uo pipefail
+          out=$(ssh -o BatchMode=yes -o ConnectTimeout=20 daniel-direct "sudo -n /usr/local/sbin/p4-executor status" 2>&1) || out="SSH_FAIL"
+          STATE=$(sed -n 's/.*arbol: state=\([A-Z_]*\).*/\1/p' <<<"$out" | head -1)
+          echo "Re-gate P4: ${STATE:-UNREACHABLE}"
+          if [ "${STATE:-}" != "PRIMARY_POLANCO" ]; then
+            echo "::error::Re-gate: P4 ya no es PRIMARY_POLANCO (${STATE:-UNREACHABLE}) — transición iniciada durante el build. Deploy abortado ANTES de tocar producción." >&2
+            exit 1
+          fi
+          echo "Re-gate OK: P4 PRIMARY_POLANCO"
+
       - name: "FASE 9 — Pre-gate: healthchecks públicos (producción ya sana)"
         run: |
           set -uo pipefail
@@ -312,7 +376,7 @@ jobs:
   reporte:
     name: FASE 14 — Observabilidad (summary)
     runs-on: ubuntu-latest
-    needs: [build-and-gate, canary-daniel, deploy-polanco]
+    needs: [p4-arbiter-gate, build-and-gate, canary-daniel, deploy-polanco]
     if: always()
     steps:
       - name: Resumen del deployment
@@ -323,6 +387,7 @@ jobs:
           |---|---|
           | SHA | \`${{ needs.build-and-gate.outputs.sha }}\` |
           | Anterior | \`${{ needs.build-and-gate.outputs.deployed }}\` |
+          | Gate P4 | ${{ needs.p4-arbiter-gate.outputs.gate }} (${{ needs.p4-arbiter-gate.outputs.p4_state }}) |
           | Gate migraciones | ${{ needs.build-and-gate.outputs.gate }} |
           | Build | ${{ needs.build-and-gate.result }} |
           | Canary Daniel (ARM64) | ${{ needs.canary-daniel.result }} |

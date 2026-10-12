@@ -11,7 +11,10 @@ const BotonVender = () => {
   const [checking, setChecking] = useState(false);
 
   const handleVender = async () => {
-    if (!isAuthenticated || isLoading) return;
+    if (!isAuthenticated || isLoading) {
+      navigate('/market/vender');
+      return;
+    }
 
     setChecking(true);
     try {
@@ -21,11 +24,11 @@ const BotonVender = () => {
         const slug = stores[0].attributes.slug;
         navigate(`/market/store/${slug}`);
       } else {
-        navigate('/registro-vendedor');
+        navigate('/market/vender');
       }
     } catch (err) {
       console.error('Error al verificar tienda:', err);
-      navigate('/registro-vendedor');
+      navigate('/market/vender');
     } finally {
       setChecking(false);
     }

@@ -26,7 +26,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import PurpleButton from '../components/common/PurpleButton.jsx';
 import paises from '../assets/paises.json';
-import { getAvailableRootAreas } from '../services/cowork/queryServices.js';
+import { getAvailableRootAreas, getAgencias } from '../services/cowork/queryServices.js';
 import { crearPostulacionSocio } from '../services/cowork/candidatosService.js';
 
 const MORADO = '#8A5CF5';
@@ -55,10 +55,12 @@ export default function Candidatos() {
     codigo_pais: '+52',
     telefono: '',
     area: '',
+    agencia: '',
     descripcion: '',
   });
   const [cv, setCv] = useState(null);
   const [areas, setAreas] = useState([]);
+  const [agencias, setAgencias] = useState([]);
   const [loadingAreas, setLoadingAreas] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
@@ -72,17 +74,30 @@ export default function Candidatos() {
       setLoadingAreas(true);
       try {
         const token = await getToken();
-        const json = await getAvailableRootAreas(token);
+        const [jsonAreas, jsonAgencias] = await Promise.all([
+          getAvailableRootAreas(token),
+          getAgencias(token),
+        ]);
         if (cancelado) return;
-        const data = Array.isArray(json?.data) ? json.data : [];
+        const data = Array.isArray(jsonAreas?.data) ? jsonAreas.data : [];
         setAreas(
           data.map((a) => ({
             id: a.id,
             nombre: a.attributes?.name ?? a.name ?? `Área ${a.id}`,
           }))
         );
+        const ag = Array.isArray(jsonAgencias?.data) ? jsonAgencias.data : [];
+        setAgencias(
+          ag.map((g) => ({
+            id: g.id,
+            nombre: g.attributes?.nombre ?? g.nombre ?? `Agencia ${g.id}`,
+          }))
+        );
       } catch {
-        if (!cancelado) setAreas([]);
+        if (!cancelado) {
+          setAreas([]);
+          setAgencias([]);
+        }
       } finally {
         if (!cancelado) setLoadingAreas(false);
       }
@@ -101,6 +116,7 @@ export default function Candidatos() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Correo no válido';
     if (!form.telefono.trim()) e.telefono = 'Escribe tu teléfono';
     if (!form.area) e.area = 'Selecciona un área';
+    if (!form.agencia) e.agencia = 'Selecciona una agencia';
     return e;
   }, [form]);
 
@@ -118,6 +134,7 @@ export default function Candidatos() {
         codigo_pais: form.codigo_pais,
         telefono: form.telefono.trim(),
         area: form.area,
+        agencia: form.agencia,
         descripcion: form.descripcion.trim(),
         cv,
         metadata: { origen: 'web-candidatos' },
@@ -282,6 +299,29 @@ export default function Candidatos() {
               {errores.area && (
                 <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
                   {errores.area}
+                </Typography>
+              )}
+            </FormControl>
+
+            <FormControl fullWidth error={!!errores.agencia} sx={inputSx}>
+              <InputLabel sx={{ color: '#cfcfe6' }}>Agencia a la que te postulas</InputLabel>
+              <Select
+                label="Agencia a la que te postulas"
+                value={form.agencia}
+                onChange={set('agencia')}
+                endAdornment={
+                  loadingAreas ? <CircularProgress size={18} sx={{ mr: 3, color: MORADO }} /> : null
+                }
+              >
+                {agencias.map((g) => (
+                  <MenuItem key={g.id} value={String(g.id)}>
+                    {g.nombre}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errores.agencia && (
+                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                  {errores.agencia}
                 </Typography>
               )}
             </FormControl>

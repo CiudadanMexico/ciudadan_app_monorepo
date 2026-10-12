@@ -959,6 +959,46 @@ export default function Perfil() {
               )}
             </Paper>
 
+            {/* ===================== Conductor: mi expediente ===================== */}
+            {/* Enlace al expediente del conductor (vehículo + tarjeta de
+                circulación). Solo se muestra el acceso; el alta real vive en
+                /taxis/conductor/expediente. */}
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 3,
+                p: 2,
+                borderRadius: 2,
+                background: "linear-gradient(90deg, rgba(37,99,235,0.05), rgba(255,242,0,0.03))",
+                border: "1px solid rgba(0,0,0,0.06)",
+              }}
+            >
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: "#051322", mb: 1 }}>
+                Conductor: mi expediente
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#6d6e71", mb: 2 }}>
+                Sube tu tarjeta de circulación y sigue el avance de tu expediente
+                (preregistrado → documento completo → revisión → aprobado).
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => window.location.assign("/taxis/conductor/expediente")}
+                  sx={{ background: "#2563eb", color: "#fff", "&:hover": { background: "#1d4ed8" } }}
+                >
+                  Mi expediente de conductor
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => window.location.assign("/taxis/conductor/esperando")}
+                >
+                  Panel del conductor
+                </Button>
+              </Box>
+            </Paper>
+
             <Typography sx={{ mt: 2, fontSize: 13, color: "text.secondary", wordBreak: "break-all" }}>
               Enlace de perfil:
               <Box component="span" sx={{ display: "block", mt: 0.5 }}>

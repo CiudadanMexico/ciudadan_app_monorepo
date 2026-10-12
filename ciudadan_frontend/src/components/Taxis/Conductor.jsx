@@ -11,6 +11,7 @@ import taxiIcon from '../../assets/taxi_marker.png'; // si está en otra ruta aj
 import userIcon from '../../assets/user_marker.png'; // si está en otra ruta ajusta
 import { isWithinDistanceKm } from '../../utils/geo';
 import FreeTripConductor from './FreeTripsConductor.jsx';
+import { resolveTripEligibility } from '../../services/vehicleExpedienteService.js';
 // NOTA: asegúrate de tener REACT_APP_GOOGLE_MAPS_API_KEY y REACT_APP_SOCKET_URL en .env
 
 const ZOCALO = { lat: 19.432607, lng: -99.133209 };
@@ -846,6 +847,19 @@ const Conductor = ({
     if (!travel)
       return console.error('No hay viaje para aceptar en index', idx);
 
+    // Gate de elegibilidad: driver aprobado + vehículo aprobado. Sin esto la
+    // verificación sería decorativa (cualquiera en preregistrado aceptaría).
+    try {
+      const gate = await resolveTripEligibility({ driver, token: strapiToken });
+      if (!gate.eligible) {
+        console.warn('[Conductor] viaje bloqueado por expediente incompleto:', gate);
+        alert(gate.reason || 'Tu expediente aún no está aprobado para recibir viajes.');
+        return;
+      }
+    } catch (gateErr) {
+      console.warn('[Conductor] no se pudo verificar elegibilidad:', gateErr);
+    }
+
     // Emitir oferta via socket
     try {
       if (socketRef.current && socketRef.current.connected) {
@@ -896,6 +910,10 @@ const Conductor = ({
 
   const handleOpenRecentTrips = () => {
     navigate('/taxis/viajes/historial', { state: { role: 'conductor' } });
+  };
+
+  const handleOpenExpediente = () => {
+    navigate('/taxis/conductor/expediente');
   };
 
   const ElapsedTimer = ({ startTime }) => {
@@ -978,6 +996,27 @@ const Conductor = ({
         }}
       >
         Mis viajes (conductor)
+      </Button>
+
+      <Button
+        variant='contained'
+        onClick={handleOpenExpediente}
+        sx={{
+          position: 'fixed',
+          right: 24,
+          bottom: 220,
+          zIndex: 2000,
+          borderRadius: '999px',
+          backgroundColor: '#ffffff',
+          color: '#111',
+          boxShadow: '0 10px 24px rgba(0,0,0,0.18)',
+          textTransform: 'none',
+          fontWeight: 700,
+          px: 2,
+          py: 1,
+        }}
+      >
+        Ver mi expediente
       </Button>
     </>
   );

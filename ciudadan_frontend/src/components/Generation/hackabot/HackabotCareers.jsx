@@ -4,7 +4,7 @@
  * IMPORTANTE: CIT ganado ≠ incorporación extraordinaria; no se regalan CIT
  * por votación.
  */
-import { Box, Typography, Grid, Stack } from '@mui/material';
+import { Box, Typography, Grid2 as Grid, Stack } from '@mui/material';
 import SectionHeader from '../SectionHeader';
 import ImpactMetric from '../ImpactMetric';
 import { GEN_COLORS, GEN_FONTS, sectionSx } from '../GenerationTheme';

@@ -119,6 +119,45 @@ Notas operativas:
   (usa la misma precedencia Strapi → `.env` → default; ver `wikiseed/README.md`).
 - Endpoint de diagnóstico: `GET /api/wiki/public-config` → `{ wikisPath }`.
 
+### 2.2 Membresías con MercadoPago (socket-service)
+
+Las pasarelas de membresías (MercadoPago + fallback OpenPay) viven en
+`socket-service/routes/mercadopago.js` (montado bajo `/api`):
+
+| Variable | Descripción |
+|---|---|
+| `MP_ACCESS_TOKEN` | Token de la cuenta MP (prod `APP_USR-…`, sandbox `TEST-…`). |
+| `MP_CURRENCY` | Moneda (`MXN`). |
+| `MP_BACK_URL_BASE` | URL pública del **frontend** (ej. `https://frontend-adrian1.ciudadan.org`) — base de `back_urls` de retorno. |
+| `MP_NOTIFICATION_URL` | URL pública que llega al **socket-service** (ej. `https://socket-adrian1.ciudadan.org`); el código agrega `/api/mp/webhook`. |
+| `MP_WEBHOOK_SECRET` | Secreto del panel MP para validar `x-signature` (HMAC-SHA256). **Si falta, el webhook NO valida firma** — solo aceptable en dev/pruebas. |
+
+Flujo:
+1. `POST /api/mp/checkout` (frontend `MercadoPagoBoton`) → lee el plan de
+   Strapi `membresias-tipos?filters[order]=…` → crea preference (`unico`) o
+   preapproval (recurrente) en MP → registra membresía **pendiente** en Strapi
+   (`membresias.observaciones` guarda el `external_reference`) → devuelve
+   `init_point`.
+2. MP llama a `POST /api/mp/webhook` (firma HMAC) → consulta el pago
+   `/v1/payments/:id` → mapea estados (`approved→pagado`, `pending→pendiente`,
+   `rejected→rechazado`, …) → `PUT` en Strapi (`activa`, `status`,
+   `monto_pagado`). Idempotente con webhooks duplicados.
+3. Retorno: `/membresias/retorno` hace polling a `GET /api/mp/estado/:ref`
+   (10×2 s) hasta confirmar.
+
+**Planes**: se crean en el content-type `membresias-tipos` (columna `order`
+= id lógico enviado por el frontend; `json` = `{nombre, precio, cobro,
+beneficios, color, destacado, subtypes[]}`). Cada subtype
+`{key, nombre, precio, cobro, duracion_meses}` define un período
+(`mensual`, `anual`, …). **Promociones/descuentos** = agregar un subtype con
+el precio promo (ej. `key: "anual-promo", precio: 2700`) y enviar
+`subtypeKey` desde el checkout; no requiere cambios de código.
+
+⚠️ El socket-service necesita un API token de Strapi (`STRAPI_API_TOKEN`) con
+acceso a `membresias`, `membresias-tipos` y `users` (se creó
+`socket-service-sistema`, full-access, id=1 en `strapi_api_tokens`).
+Sin token, `/api/mp/checkout` responde 401 contra Strapi.
+
 ## 3. Frontend (`ciudadan_frontend/.env`)
 
 | Variable | Descripción |
