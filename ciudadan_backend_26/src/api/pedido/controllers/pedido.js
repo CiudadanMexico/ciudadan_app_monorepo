@@ -482,4 +482,151 @@ module.exports = createCoreController(PEDIDO_UID, ({ strapi }) => ({
       }, ctx.status);
     }
   },
+
+  /**
+   * GET /api/pedidos/store-mine?storeId=X - pedidos de una tienda del
+   * vendedor autenticado (Auth0). Valida ownership server-side: si la tienda
+   * no pertenece al usuario del token, 403 (antes el front filtraba por un
+   * storeId que el cliente podía falsear). Filtra los estados que muestra
+   * la pantalla de entregados: recibido/cancelado/devuelto.
+   */
+  async storeMine(ctx) {
+    const user = ctx.state.strapiUser;
+    if (!user) return ctx.unauthorized('No autenticado');
+
+    try {
+      const storeId = Number(ctx.query?.storeId);
+      if (!Number.isInteger(storeId) || storeId <= 0) {
+        return ctx.badRequest('storeId inválido');
+      }
+
+      const store = await strapi.db.query('api::store.store').findOne({
+        where: { id: storeId, users_permissions_user: { id: user.id } },
+      });
+      if (!store) return ctx.forbidden('La tienda no pertenece al usuario');
+
+      const page = Math.max(1, parseInt(ctx.query?.page, 10) || 1);
+      const pageSize = Math.max(1, parseInt(ctx.query?.pageSize, 10) || 25);
+
+      const where = {
+        store: { id: storeId },
+        status: { $in: ['recibido', 'cancelado', 'devuelto'] },
+      };
+
+      const total = await strapi.db.query(PEDIDO_UID).count({ where });
+      const rows = await strapi.db.query(PEDIDO_UID).findMany({
+        where,
+        populate: { item: { populate: { imagen_predeterminada: true } } },
+        orderBy: { timestamp_creacion: 'desc' },
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+      });
+
+      const data = rows.map((r) => ({ id: r.id, attributes: r }));
+      const pageCount = Math.max(1, Math.ceil(total / pageSize));
+      return ctx.send({ data, meta: { pagination: { page, pageSize, pageCount, total } } });
+    } catch (error) {
+      strapi.log.error('Error listando pedidos de la tienda (auth0):', error);
+      return ctx.internalServerError('No fue posible listar los pedidos');
+    }
+  },
+
+  /**
+   * GET /api/pedidos/mine - pedidos del usuario autenticado (Auth0).
+   * No depende de los permisos del rol publico sobre `pedido` (que causaban
+   * el 401 en "Tus Compras"); la policy is-authenticated-auth0 pone el
+   * usuario en ctx.state.strapiUser y aqui filtramos server-side.
+   * Query opcional: scope=pendientes|por-calificar|historial, page, pageSize.
+   * Respuesta en formato Strapi v4 { data, meta.pagination }.
+   */
+  async mine(ctx) {
+    const user = ctx.state.strapiUser;
+    if (!user) return ctx.unauthorized('No autenticado');
+
+    try {
+      const { scope = null } = ctx.query;
+      const page = Math.max(1, parseInt(ctx.query?.page, 10) || 1);
+      const pageSize = Math.max(1, parseInt(ctx.query?.pageSize, 10) || 10);
+
+      // Dueno: relation usuario O metadata.usuario_email (donde el checkout
+      // guarda al comprador). Un $or cubre pedidos viejos sin relation.
+      const where = {
+        $or: [
+          { usuario: { id: user.id } },
+          { metadata: { usuario_email: user.email } },
+        ],
+      };
+
+      if (scope === 'por-calificar') {
+        where.finalizado = true;
+        where.calificado = false;
+      } else if (scope === 'historial') {
+        where.finalizado = true;
+        where.calificado = true;
+      } else if (scope === 'pendientes') {
+        where.$and = [
+          { $or: [{ finalizado: { $null: true } }, { finalizado: false }] },
+        ];
+      }
+
+      const total = await strapi.db.query(PEDIDO_UID).count({ where });
+
+      const rows = await strapi.db.query(PEDIDO_UID).findMany({
+        where,
+        populate: { item: true },
+        orderBy: { id: 'desc' },
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+      });
+
+      const data = rows.map((r) => ({ id: r.id, attributes: r }));
+      const pageCount = Math.max(1, Math.ceil(total / pageSize));
+
+      return ctx.send({
+        data,
+        meta: { pagination: { page, pageSize, pageCount, total } },
+      });
+    } catch (error) {
+      strapi.log.error('Error listando pedidos del usuario:', error);
+      return ctx.internalServerError('No fue posible listar los pedidos');
+    }
+  },
+
+  /**
+   * GET /api/pedidos/by-id/:id - un pedido del usuario autenticado (Auth0).
+   * 404 si no existe o no pertenece al usuario (evita enumerar por id).
+   */
+  async byId(ctx) {
+    const user = ctx.state.strapiUser;
+    if (!user) return ctx.unauthorized('No autenticado');
+
+    try {
+      const pedidoId = Number(ctx.params.id);
+      if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
+        return ctx.badRequest('id de pedido invalido');
+      }
+
+      const pedido = await strapi.db.query(PEDIDO_UID).findOne({
+        where: {
+          id: pedidoId,
+          $or: [
+            { usuario: { id: user.id } },
+            { metadata: { usuario_email: user.email } },
+          ],
+        },
+        populate: {
+          item: { populate: { producto: { populate: ['imagenes'] } } },
+          pago_id: { populate: { comprobante: true } },
+          store: true,
+        },
+      });
+
+      if (!pedido) return ctx.notFound('Pedido no encontrado');
+
+      return ctx.send({ data: { id: pedido.id, attributes: pedido } });
+    } catch (error) {
+      strapi.log.error('Error consultando pedido por id (auth0):', error);
+      return ctx.internalServerError('No fue posible consultar el pedido');
+    }
+  },
 }));

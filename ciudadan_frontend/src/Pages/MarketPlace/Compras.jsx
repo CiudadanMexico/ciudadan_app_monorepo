@@ -76,11 +76,8 @@ function useUserPedidos(user, isLoadingAuth) {
     setError(null);
 
     try {
-      const userFilter = `filters[metadata][usuario_email][$eq]=${encodeURIComponent(user_email)}`;
-      const filterState = 'filters[$or][0][finalizado][$null]=true&filters[$or][1][finalizado][$eq]=false';
-      const populateStr = 'populate=item';
-      const paginationStr = `pagination[page]=${page}&pagination[pageSize]=${pageSize}`;
-      const url = `${PEDIDOS_URL}?${userFilter}&${filterState}&${populateStr}&${paginationStr}&sort[0]=id:desc`;
+      // Backend filtra por el usuario del token (scope server-side).
+      const url = `${PEDIDOS_URL}/mine?scope=pendientes&page=${page}&pageSize=${pageSize}`;
 
       const token = await getToken();
       const headers = { "Content-Type": "application/json" };
@@ -109,10 +106,7 @@ function useUserPedidos(user, isLoadingAuth) {
     setError(null);
 
     try {
-      const userFilter = `filters[metadata][usuario_email][$eq]=${encodeURIComponent(user_email)}`;
-      const filterState = 'filters[finalizado][$eq]=true&filters[calificado]=false';
-      const populateStr = 'populate=item';
-      const url = `${PEDIDOS_URL}?${userFilter}&${filterState}&${populateStr}&sort[0]=id:desc`;
+      const url = `${PEDIDOS_URL}/mine?scope=por-calificar&page=${page}&pageSize=${pageSize}`;
 
       const token = await getToken();
       const headers = { "Content-Type": "application/json" };
@@ -142,10 +136,7 @@ function useUserPedidos(user, isLoadingAuth) {
     setError(null);
 
     try {
-      const userFilter = `filters[metadata][usuario_email][$eq]=${encodeURIComponent(user_email)}`;
-      const filterState = 'filters[finalizado][$eq]=true&filters[calificado]=true';
-      const populateStr = 'populate=item';
-      const url = `${PEDIDOS_URL}?${userFilter}&${filterState}&${populateStr}&sort[0]=id:desc`;
+      const url = `${PEDIDOS_URL}/mine?scope=historial&page=${page}&pageSize=${pageSize}`;
 
       const token = await getToken();
       const headers = { "Content-Type": "application/json" };
@@ -178,9 +169,9 @@ function useUserPedidos(user, isLoadingAuth) {
     try {
       const base = (process.env.REACT_APP_STRAPI_URL || "").replace(/\/+$/, "");
       if (!base) throw new Error("REACT_APP_STRAPI_URL no definido");
-      //Obtener pedido por id, con filtro para incluir item con store, producto e imagenes de producto
-      const populateStr = `populate[item][populate][store]=*&populate[item][populate][producto][populate]=imagenes&populate[pago_id][populate][comprobante]=*`;
-      const url = `${base}/api/pedidos/${pedidoId}?${populateStr}`;
+      // Ruta auth0 propia: el backend popula item/producto/store/comprobante
+      // y valida que el pedido sea del usuario del token (404 si no lo es).
+      const url = `${base}/api/pedidos/by-id/${pedidoId}`;
       const token = await getToken();
       const headers = { "Content-Type": "application/json" };
       if (token) {
@@ -213,10 +204,10 @@ function useUserPedidos(user, isLoadingAuth) {
 
   const getOrdenesComida = async (user_id) => {
     const populateStr = "populate[restaurant]=true&populate[items][populate][product][populate][imagen_predeterminada]=true&populate[items][populate][modifiers][populate][imagen]=true&populate[direccion_destino]=true&populate[direccion_origen]=true&populate[pago][populate][comprobante]=true";
-    const sortStr = "sort[0]=fecha_creacion:desc"
+    // Ruta auth0 propia: filtra por el usuario del token (no confiamos en user_id del cliente).
     const token = await getToken();
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await fetch(`${STRAPI_URL}/api/food-orders?filters[user][id][$eq]=${user_id}&${populateStr}&${sortStr}`, { headers });
+    const response = await fetch(`${STRAPI_URL}/api/food-orders/mine`, { headers });
     if (!response.ok) {
       throw new Error("Error al obtener los pedidos");
     }

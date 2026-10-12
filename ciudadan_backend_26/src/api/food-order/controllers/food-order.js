@@ -57,5 +57,40 @@ module.exports = createCoreController(
       }
     },
 
+    /**
+     * GET /api/food-orders/mine - órdenes de comida del usuario autenticado
+     * (Auth0). Igual que pedidos: evita el 401 del rol público y filtra
+     * server-side por ctx.state.strapiUser (relation `user`).
+     */
+    async mine(ctx) {
+      const user = ctx.state.strapiUser;
+      if (!user) return ctx.unauthorized('No autenticado');
+
+      try {
+        const rows = await strapi.db.query('api::food-order.food-order').findMany({
+          where: { user: { id: user.id } },
+          populate: {
+            restaurant: true,
+            items: {
+              populate: {
+                product: { populate: { imagen_predeterminada: true } },
+                modifiers: { populate: { imagen: true } },
+              },
+            },
+            direccion_destino: true,
+            direccion_origen: true,
+            pago: { populate: { comprobante: true } },
+          },
+          orderBy: { fecha_creacion: 'desc' },
+        });
+
+        const data = rows.map((r) => ({ id: r.id, attributes: r }));
+        return ctx.send({ data, meta: { pagination: { page: 1, pageSize: data.length, pageCount: 1, total: data.length } } });
+      } catch (error) {
+        strapi.log.error('[food-order] mine error', error);
+        return ctx.internalServerError('No fue posible listar las órdenes de comida');
+      }
+    },
+
   })
 );

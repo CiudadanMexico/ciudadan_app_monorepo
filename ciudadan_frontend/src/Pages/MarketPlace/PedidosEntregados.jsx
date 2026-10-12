@@ -119,27 +119,14 @@ const PedidosEntregados = ({ storeId = 227, initialPageSize = 25 }) => {
       setCargando(true);
 
       try {
-        // Armamos params con la forma correcta que Strapi espera para $in (array indexed)
-        // y filtramos por store id.
+        // Ruta auth0 propia: el backend valida ownership de la tienda y
+        // filtra estados (recibido/cancelado/devuelto) + populate de item.
         const params = new URLSearchParams();
+        params.append('storeId', String(storeId));
+        params.append('page', String(page));
+        params.append('pageSize', String(pageSize));
 
-        // filters[store][id][$eq]=<storeId>
-        params.append('filters[store][id][$eq]', String(storeId));
-
-        // filters[status][$in][0]=recibido ...
-        params.append('filters[status][$in][0]', 'recibido');
-        params.append('filters[status][$in][1]', 'cancelado');
-        params.append('filters[status][$in][2]', 'devuelto');
-
-        // populate para traer imagen de item
-        params.append('populate', 'item.imagen_predeterminada');
-
-        // pagination + sort
-        params.append('pagination[page]', String(page));
-        params.append('pagination[pageSize]', String(pageSize));
-        params.append('sort', 'timestamp_creacion:desc');
-
-        const url = `${STRAPI_URL}/api/pedidos?${params.toString()}`;
+        const url = `${STRAPI_URL}/api/pedidos/store-mine?${params.toString()}`;
 
         const token = await getToken();
         const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
