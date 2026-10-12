@@ -94,14 +94,14 @@ export default function MercadoPagoBoton({
           onClick={handleClick}
           disabled={loading}
           sx={{
-            backgroundColor: "#7C3AED",
+            backgroundColor: "#8A5CF5",
             color: "#fff",
             py: 1.4,
             borderRadius: "14px",
             fontWeight: 800,
             textTransform: "none",
             fontSize: "1rem",
-            "&:hover": { backgroundColor: "#6D28D9" },
+            "&:hover": { backgroundColor: "#6A3FCB" },
           }}
         >
           {loading ? (

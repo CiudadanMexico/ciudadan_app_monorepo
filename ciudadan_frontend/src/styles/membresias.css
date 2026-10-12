@@ -37,7 +37,7 @@ button {
 
 .membresias-container {
   padding: 2rem;
-  background: radial-gradient(circle at 20% 15%, #4a048c 0%, #2e0a5c 55%, #1e0644 100%);
+  background: radial-gradient(circle at 20% 15%, #8A5CF5 0%, #6A3FCB 55%, #4C1D95 100%);
   min-height: 100vh;
 }
 
@@ -171,8 +171,8 @@ button {
 
 .membresia-card {
   border-radius: 1.5rem;
-  box-shadow: 0 14px 30px rgba(80, 20, 160, 0.45);
-  border: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 14px 30px rgba(138, 92, 245, 0.40);
+  border: 1px solid rgba(138, 92, 245, 0.55);
   transition: transform 0.3s ease-in-out;
   position: relative;
 }
@@ -195,13 +195,13 @@ button {
 
 .membresia-nombre {
   font-weight: bold;
-  color: #fde68a;
+  color: #FFE04A;
 }
 
 .membresia-precio {
   font-weight: bold;
   margin-bottom: 1.5rem;
-  color: #fcd34d;
+  color: #FFE04A;
 }
 
 .membresia-beneficios {

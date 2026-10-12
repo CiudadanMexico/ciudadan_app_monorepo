@@ -22,6 +22,7 @@ import MiMembresia from '../components/Membresias/MiMembresia.jsx';
 import MercadoPagoBoton from '../components/Membresias/MercadoPagoBoton.jsx';
 import { useNavigate } from 'react-router-dom';
 import PreLoader from '../components/PreLoader.jsx';
+import { MORADO, MORADO_OSCURO } from '../components/common/PurpleButton.jsx';
 
 const COLLECTION_ENDPOINT = "membresias-tipos";
 
@@ -100,7 +101,7 @@ const Membresias = () => {
             nombre: tomar("nombre", "Membresía"),
             precio: tomar("precio", 0),
             beneficios: tomar("beneficios", []),
-            color: tomar("color", "#7C3AED"),
+            color: tomar("color", MORADO),
             destacado: tomar("destacado", false),
             cobro: tomar("cobro", "unico"),
             picUrl,
@@ -141,7 +142,7 @@ const Membresias = () => {
         px: 2,
         py: 5,
         background:
-          "linear-gradient(180deg, #2e0a5c 0%, #4a048c 55%, #7c3aed 100%)",
+          `linear-gradient(180deg, #4C1D95 0%, ${MORADO_OSCURO} 55%, ${MORADO} 100%)`,
         minHeight: "100vh"
       }}
     >
@@ -204,13 +205,13 @@ const Membresias = () => {
                     borderRadius: "24px",
                     overflow: "hidden",
                     position: "relative",
-                    background: `linear-gradient(160deg, #31257a 0%, #24165e 60%, #170d42 100%)`,
+                    background: `linear-gradient(160deg, #3B1E7A 0%, #2D1466 60%, #23104F 100%)`,
                     border: plan.destacado
                       ? `3px solid ${plan.color}`
-                      : "1px solid rgba(168, 85, 247, 0.35)",
+                      : "1px solid rgba(138, 92, 245, 0.55)",
                     boxShadow: plan.destacado
                       ? `0 0 25px ${plan.color}55`
-                      : "0 14px 30px rgba(80, 20, 160, 0.45)",
+                      : "0 14px 30px rgba(138, 92, 245, 0.40)",
                     transition: "0.3s",
                     '&:hover': {
                       transform: "translateY(-6px)"
@@ -273,7 +274,7 @@ const Membresias = () => {
                         variant="h3"
                         sx={{
                           fontWeight: 900,
-                          color: "#FCD34D",
+                          color: "#FFE04A",
                           mb: 3
                         }}
                       >
@@ -312,7 +313,7 @@ const Membresias = () => {
                           <span
                             className="material-icons"
                             style={{
-                              color: "#FCD34D",
+                              color: "#FFE04A",
                               marginRight: 10
                             }}
                           >
