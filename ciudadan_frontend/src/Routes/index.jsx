@@ -398,6 +398,7 @@ const Rutas = () => {
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
       <Route path='/descargar' element={<DescargarConductores />} />
       <Route path='/descargar-conductores' element={<DescargarConductores />} />
+    </Routes>
 
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
     {/* RUTAS NORMALES */}
