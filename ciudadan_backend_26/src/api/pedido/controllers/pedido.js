@@ -548,40 +548,40 @@ module.exports = createCoreController(PEDIDO_UID, ({ strapi }) => ({
       const page = Math.max(1, parseInt(ctx.query?.page, 10) || 1);
       const pageSize = Math.max(1, parseInt(ctx.query?.pageSize, 10) || 10);
 
-      // Dueno: relation usuario O metadata.usuario_email (donde el checkout
-      // guarda al comprador). Un $or cubre pedidos viejos sin relation.
-      const where = {
-        $or: [
-          { usuario: { id: user.id } },
-          { metadata: { usuario_email: user.email } },
-        ],
-      };
-
+      // Dueno: relation `usuario` (canonica). NO se puede mezclar relation +
+      // JSON en un $or con db.query ("Undefined attribute level operator
+      // usuario_email"), asi que consultamos por relation y, en 2a query, por
+      // metadata (fallback pedidos viejos sin relation) y unimos por id.
+      const scopeWhere = {};
       if (scope === 'por-calificar') {
-        where.finalizado = true;
-        where.calificado = false;
+        scopeWhere.finalizado = true;
+        scopeWhere.calificado = false;
       } else if (scope === 'historial') {
-        where.finalizado = true;
-        where.calificado = true;
+        scopeWhere.finalizado = true;
+        scopeWhere.calificado = true;
       } else if (scope === 'pendientes') {
-        where.$and = [
-          { $or: [{ finalizado: { $null: true } }, { finalizado: false }] },
-        ];
+        scopeWhere.$or = [{ finalizado: { $null: true } }, { finalizado: false }];
       }
 
-      const total = await strapi.db.query(PEDIDO_UID).count({ where });
+      const opts = { populate: { item: true }, orderBy: { id: 'desc' } };
+      const [byRel, byMeta] = await Promise.all([
+        strapi.db.query(PEDIDO_UID).findMany({ where: { usuario: user.id, ...scopeWhere }, ...opts }),
+        strapi.db.query(PEDIDO_UID).findMany({ where: { metadata: { $contains: user.email }, ...scopeWhere }, ...opts }).catch(() => []),
+      ]);
 
-      const rows = await strapi.db.query(PEDIDO_UID).findMany({
-        where,
-        populate: { item: true },
-        orderBy: { id: 'desc' },
-        limit: pageSize,
-        offset: (page - 1) * pageSize,
-      });
+      const seen = new Set();
+      const merged = [];
+      for (const r of [...byRel, ...byMeta]) {
+        if (!seen.has(r.id)) { seen.add(r.id); merged.push(r); }
+      }
+      merged.sort((a, b) => b.id - a.id);
 
-      const data = rows.map((r) => ({ id: r.id, attributes: r }));
+      const total = merged.length;
+      const start = (page - 1) * pageSize;
+      const rows = merged.slice(start, start + pageSize);
       const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
+      const data = rows.map((r) => ({ id: r.id, attributes: r }));
       return ctx.send({
         data,
         meta: { pagination: { page, pageSize, pageCount, total } },
@@ -606,15 +606,13 @@ module.exports = createCoreController(PEDIDO_UID, ({ strapi }) => ({
         return ctx.badRequest('id de pedido invalido');
       }
 
+      // Traer por id con populate y validar dueño en memoria (relation
+      // `usuario` poblada o metadata.usuario_email). Filtrar relation dentro
+      // del where de db.query aquí rompe con JSON mezclado; validamos aparte.
       const pedido = await strapi.db.query(PEDIDO_UID).findOne({
-        where: {
-          id: pedidoId,
-          $or: [
-            { usuario: { id: user.id } },
-            { metadata: { usuario_email: user.email } },
-          ],
-        },
+        where: { id: pedidoId },
         populate: {
+          usuario: true,
           item: { populate: { producto: { populate: ['imagenes'] } } },
           pago_id: { populate: { comprobante: true } },
           store: true,
@@ -622,6 +620,14 @@ module.exports = createCoreController(PEDIDO_UID, ({ strapi }) => ({
       });
 
       if (!pedido) return ctx.notFound('Pedido no encontrado');
+
+      const ownerRelId = pedido.usuario?.id ?? pedido.usuario ?? null;
+      const ownerEmail = pedido.metadata?.usuario_email ?? null;
+      const esMio =
+        (ownerRelId && Number(ownerRelId) === Number(user.id)) ||
+        (ownerEmail && String(ownerEmail).toLowerCase() === String(user.email).toLowerCase());
+
+      if (!esMio) return ctx.notFound('Pedido no encontrado');
 
       return ctx.send({ data: { id: pedido.id, attributes: pedido } });
     } catch (error) {
