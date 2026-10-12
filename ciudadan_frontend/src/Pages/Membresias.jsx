@@ -22,7 +22,6 @@ import MiMembresia from '../components/Membresias/MiMembresia.jsx';
 import MercadoPagoBoton from '../components/Membresias/MercadoPagoBoton.jsx';
 import { useNavigate } from 'react-router-dom';
 import PreLoader from '../components/PreLoader.jsx';
-import { MORADO, MORADO_OSCURO } from '../components/common/PurpleButton.jsx';
 
 const COLLECTION_ENDPOINT = "membresias-tipos";
 
@@ -101,7 +100,7 @@ const Membresias = () => {
             nombre: tomar("nombre", "Membresía"),
             precio: tomar("precio", 0),
             beneficios: tomar("beneficios", []),
-            color: tomar("color", MORADO),
+            color: tomar("color", "#9C27B0"),
             destacado: tomar("destacado", false),
             cobro: tomar("cobro", "unico"),
             picUrl,
@@ -142,7 +141,7 @@ const Membresias = () => {
         px: 2,
         py: 5,
         background:
-          `linear-gradient(180deg, #4C1D95 0%, ${MORADO_OSCURO} 55%, ${MORADO} 100%)`,
+          "linear-gradient(180deg, #3B0764 0%, #6A1B9A 55%, #9C27B0 100%)",
         minHeight: "100vh"
       }}
     >
@@ -166,7 +165,7 @@ const Membresias = () => {
           maxWidth: 900,
           mx: "auto",
           mb: 6,
-          color: "#c4b5fd"
+          color: "#E9D5FF"
         }}
       >
         Forma parte de una red de cooperación productiva,
@@ -205,9 +204,9 @@ const Membresias = () => {
                     borderRadius: "24px",
                     overflow: "hidden",
                     position: "relative",
-                    background: `linear-gradient(160deg, #3B1E7A 0%, #2D1466 60%, #23104F 100%)`,
+                    background: `linear-gradient(160deg, #3B0764 0%, #2E0658 60%, #24034A 100%)`,
                     border: plan.destacado
-                      ? `3px solid ${plan.color}`
+                      ? `3px solid #FFD600`
                       : "1px solid rgba(138, 92, 245, 0.55)",
                     boxShadow: plan.destacado
                       ? `0 0 25px ${plan.color}55`
@@ -226,8 +225,8 @@ const Membresias = () => {
                         position: "absolute",
                         top: 14,
                         right: 14,
-                        background: plan.color,
-                        color: "#fff",
+                        background: "#FFE04A",
+                        color: "#1A1A1A",
                         fontWeight: 700
                       }}
                     />
@@ -347,15 +346,15 @@ const Membresias = () => {
                           variant="contained"
                           onClick={handleMembresiaClick(plan)}
                           sx={{
-                            backgroundColor: plan.color,
-                            color: "#fff",
+                            backgroundColor: "#FFE04A",
+                            color: "#1A1A1A",
                             py: 1.4,
                             borderRadius: "14px",
                             fontWeight: 800,
                             textTransform: "none",
                             fontSize: "1rem",
                             '&:hover': {
-                              backgroundColor: plan.color
+                              backgroundColor: "#F5C400"
                             }
                           }}
                         >
@@ -369,12 +368,12 @@ const Membresias = () => {
                         onClick={() => navigate('/membresias/detalles')}
                         sx={{
                           mt: 1,
-                          color: "#C4B5FD",
+                          color: "#E9D5FF",
                           textTransform: "none",
                           fontSize: "0.85rem"
                         }}
                       >
-                        Ver detalles y otras formas de pago
+                        Ver detalles
                       </Button>
 
                     </Box>
