@@ -33,6 +33,9 @@ import GroupIcon from '@mui/icons-material/Group';
 import BuildIcon from '@mui/icons-material/Build';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import GroupsIcon from '@mui/icons-material/Groups';
+import SchoolIcon from '@mui/icons-material/School';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import PaidIcon from '@mui/icons-material/Paid';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -44,14 +47,14 @@ import { useAuth0 } from '@auth0/auth0-react';
 import Tareas, { TareaCard } from './../../components/Cowork/Tareas.jsx';
 import TareasEspecializadas, { EmptyState } from './../../components/Cowork/TareasEspecializadas.jsx';
 import EventosGrid from './../Eventos/EventosGrid.jsx';
-import HerramientrasGrid from './../../components/Cowork/HerramientrasGrid.jsx';
+import HerramientasGrid from './../../components/Cowork/HerramientasGrid.jsx';
 import ConductoresAgencia from './../../components/Cowork/ConductoresAgencia.jsx';
 import Auditorias from './../../components/Cowork/Auditorias.jsx';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
 import { resolverTarea, completarTarea, subirEvidencia } from '../../services/cowork/mutationsServices.js';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
@@ -100,8 +103,8 @@ const getTabFromSearchParams = (searchParams) => {
 // Cada vista de Coowork tiene su URL. La URL es la fuente de verdad: tab y
 // subTab se derivan de ella, y cambiar de tab hace navigate() (así el
 // atrás/adelante del navegador funciona). Las herramientas aceptan desde ya
-// la forma futura con categoría (/coowork/herramientas/:categoria/:slug);
-// hoy todas viven en raíz (/coowork/herramientas/:slug).
+// la forma futura con categoría (/coowork/admin/herramientas/:categoria/:slug);
+// hoy todas viven en raíz (/coowork/admin/herramientas/:slug).
 // ---------------------------------------------------------------------------
 
 /** tab/subTab -> ruta canónica. */
@@ -115,7 +118,7 @@ const rutaDeTab = (tabValue, subTabValue = 0, areaSlugValue = null) => {
     case 'especializadas':
       return '/coowork/especializadas';
     case 'socio':
-      if (subTabValue === 1) return '/coowork/herramientas';
+      if (subTabValue === 1) return '/coowork/admin/herramientas';
       if (subTabValue === 2) return '/coowork/bitacora';
       if (subTabValue === 3) return '/coowork/pagos';
       return '/coowork/tareas-socio';
@@ -139,7 +142,18 @@ const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchPar
   if (vista === 'especializadas' && areaSlugParam) {
     return { tab: 'especializadas', subTab: 0, areaSlug: areaSlugParam };
   }
-  // Herramientas: /coowork/herramientas/:slug  o  /coowork/herramientas/:categoria/:slug
+  // Herramientas: /coowork/admin/herramientas/:slug  o  /coowork/admin/herramientas/:categoria/:slug
+  if (vista === 'admin' && String(resto || '').split('/').filter(Boolean)[0] === 'herramientas') {
+    const sinPrefijo = String(resto).split('/').filter(Boolean).slice(1).join('/');
+    const partesAdmin = sinPrefijo.split('/').filter(Boolean);
+    if (partesAdmin.length >= 2) {
+      return { tab: 'socio', subTab: 1, herramienta: partesAdmin[1], categoria: partesAdmin[0] };
+    }
+    if (partesAdmin.length === 1) {
+      return { tab: 'socio', subTab: 1, herramienta: partesAdmin[0], categoria: null };
+    }
+    return { tab: 'socio', subTab: 1 };
+  }
   if (vista === 'herramientas' && resto) {
     const partes = String(resto).split('/').filter(Boolean);
     if (partes.length >= 2) {
@@ -155,6 +169,8 @@ const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchPar
     case 'tareas-socio':
       return { tab: 'socio', subTab: 0 };
     case 'herramientas':
+      return { tab: 'socio', subTab: 1 };
+    case 'admin':
       return { tab: 'socio', subTab: 1 };
     case 'bitacora':
       return { tab: 'socio', subTab: 2 };
@@ -258,8 +274,21 @@ const SubTabs = styled((props) => (
 });
 
 const CooWork = () => {
-  const { userData, isAdmin, isSocio, isVerificador, isAuditor } = useRoles();
-  const tienePermisoCRUD = isAdmin() || isSocio();
+  const {
+    userData,
+    isAdmin,
+    isRoot,
+    isSocio,
+    isColaborador,
+    isBecario,
+    isAdminLike,
+    isSocioLike,
+    rolEquipo,
+    isVerificador,
+    isAuditor,
+  } = useRoles();
+  const tienePermisoCRUD = isAdminLike() || isSocioLike();
+  const equipoRol = rolEquipo();
   // chat.md: verificador (sin admin/socio) NO ve "Herramientas" ni el resto
   // del tab Socio — solo le aparece "Verificar Conductores", nada más.
   const soloVerificador = isVerificador() && !tienePermisoCRUD;
@@ -275,10 +304,27 @@ const CooWork = () => {
   // quedó para compat (ya no se usa: herramientas dedicadas van a
   // HerramientaDedicada, no a Coowork).
   const { vista = null, areaSlug = null } = useParams();
-  const resto = null;
+  const location = useLocation();
+  // /coowork/admin/herramientas[/...] no cabe en /coowork/:vista (un solo
+  // segmento): derivar vista/resto del pathname para el deep-link a la tab.
+  // - /coowork/admin/herramientas[...] -> vista='admin', resto='herramientas[...]'
+  // - resto de rutas -> vista de useParams, resto null (compat).
+  const resto = (() => {
+    const partes = String(location.pathname || '').split('/').filter(Boolean);
+    // partes[0] = 'coowork'
+    if (partes[1] === 'admin') {
+      return partes.slice(2).join('/') || null;
+    }
+    return null;
+  })();
+  const vistaEfectiva = (() => {
+    const partes = String(location.pathname || '').split('/').filter(Boolean);
+    if (partes[1] === 'admin') return 'admin';
+    return vista;
+  })();
 
   // URL manda: tab/subTab se derivan de la ruta (nunca al revés).
-  const ruta = tabDeRuta({ vista, resto, areaSlugParam: areaSlug, searchParams });
+  const ruta = tabDeRuta({ vista: vistaEfectiva, resto, areaSlugParam: areaSlug, searchParams });
   const tab = ruta.tab || (tienePermisoCRUD ? 'socio' : 'generales');
   const subTab = ruta.subTab ?? 0;
   const herramientaSlug = ruta.herramienta ?? null;
@@ -664,8 +710,22 @@ const CooWork = () => {
             {tienePermisoCRUD && (
               <StyledTab
                 value="socio"
-                icon={isAdmin() ? <AdminPanelSettingsIcon /> : <GroupIcon />}
-                label={isAdmin() ? 'Admin' : 'Socio'}
+                icon={
+                  equipoRol === 'admin' ? <AdminPanelSettingsIcon />
+                  : equipoRol === 'root' ? <SupervisorAccountIcon />
+                  : equipoRol === 'socio' ? <GroupIcon />
+                  : equipoRol === 'colaborador' ? <AssignmentIndIcon />
+                  : equipoRol === 'becario' ? <SchoolIcon />
+                  : <GroupIcon />
+                }
+                label={
+                  equipoRol === 'admin' ? 'Admin'
+                  : equipoRol === 'root' ? 'Root'
+                  : equipoRol === 'socio' ? 'Socio'
+                  : equipoRol === 'colaborador' ? 'Colaborador'
+                  : equipoRol === 'becario' ? 'Becario'
+                  : isAdminLike() ? 'Admin' : 'Socio'
+                }
               />
             )}
             <StyledTab value="generales" icon={<WorkOutlineIcon />} label="Tareas Generales" />
@@ -736,7 +796,7 @@ const CooWork = () => {
             transition={{ duration: 0.4 }}
           >
             {subTab === 0 && <Tareas userId={userData?.id} subTab={subTab} />}
-            {subTab === 1 && <HerramientrasGrid />}
+            {subTab === 1 && <HerramientasGrid />}
             {subTab === 2 && <EventosGrid />}
             {subTab === 3 && (
               <>

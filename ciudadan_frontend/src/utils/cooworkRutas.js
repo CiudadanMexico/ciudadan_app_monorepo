@@ -13,7 +13,7 @@ const rutaDeTab = (tabValue, subTabValue = 0, areaSlugValue = null) => {
     case 'especializadas':
       return '/coowork/especializadas';
     case 'socio':
-      if (subTabValue === 1) return '/coowork/herramientas';
+      if (subTabValue === 1) return '/coowork/admin/herramientas';
       if (subTabValue === 2) return '/coowork/bitacora';
       if (subTabValue === 3) return '/coowork/avance';
       if (subTabValue === 4) return '/coowork/pagos';
@@ -33,6 +33,17 @@ const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchPar
   if (vista === 'especializadas' && areaSlugParam) {
     return { tab: 'especializadas', subTab: 0, areaSlug: areaSlugParam };
   }
+  if (vista === 'admin' && String(resto || '').split('/').filter(Boolean)[0] === 'herramientas') {
+    const sinPrefijo = String(resto).split('/').filter(Boolean).slice(1).join('/');
+    const partes = sinPrefijo.split('/').filter(Boolean);
+    if (partes.length >= 2) {
+      return { tab: 'socio', subTab: 1, herramienta: partes[1], categoria: partes[0] };
+    }
+    if (partes.length === 1) {
+      return { tab: 'socio', subTab: 1, herramienta: partes[0], categoria: null };
+    }
+    return { tab: 'socio', subTab: 1 };
+  }
   if (vista === 'herramientas' && resto) {
     const partes = String(resto).split('/').filter(Boolean);
     if (partes.length >= 2) {
@@ -48,6 +59,8 @@ const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchPar
     case 'tareas-socio':
       return { tab: 'socio', subTab: 0 };
     case 'herramientas':
+      return { tab: 'socio', subTab: 1 };
+    case 'admin':
       return { tab: 'socio', subTab: 1 };
     case 'bitacora':
       return { tab: 'socio', subTab: 2 };

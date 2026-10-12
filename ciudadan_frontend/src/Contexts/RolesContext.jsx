@@ -376,6 +376,38 @@ export const RolesProvider = ({ children }) => {
     return hasExtra('socio');
   }, [isAuthenticated, userData, hasExtra]);
 
+  const isColaborador = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('colaborador');
+  }, [isAuthenticated, userData, hasExtra]);
+
+  const isBecario = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('becario');
+  }, [isAuthenticated, userData, hasExtra]);
+
+  // Grupos de equivalencia: admin/root comparten permisos CRUD de agencia;
+  // socio/colaborador/becario comparten el resto del flujo de agencia.
+  const isAdminLike = useCallback(
+    () => isAdmin() || isRoot(),
+    [isAdmin, isRoot]
+  );
+
+  const isSocioLike = useCallback(
+    () => isSocio() || isColaborador() || isBecario(),
+    [isSocio, isColaborador, isBecario]
+  );
+
+  // Rol efectivo del equipo Coowork: admin > root > socio > colaborador > becario.
+  const rolEquipo = useCallback(() => {
+    if (isAdmin()) return 'admin';
+    if (isRoot()) return 'root';
+    if (isSocio()) return 'socio';
+    if (isColaborador()) return 'colaborador';
+    if (isBecario()) return 'becario';
+    return null;
+  }, [isAdmin, isRoot, isSocio, isColaborador, isBecario]);
+
   const isVerificador = useCallback(() => {
     if (!isAuthenticated || !userData) return false;
     return hasExtra('verificador');
@@ -540,6 +572,11 @@ export const RolesProvider = ({ children }) => {
         isAdmin,
         isRoot,
         isSocio,
+        isColaborador,
+        isBecario,
+        isAdminLike,
+        isSocioLike,
+        rolEquipo,
         isVerificador,
         isAuditor,
         isJardinero,

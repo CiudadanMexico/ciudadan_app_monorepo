@@ -93,7 +93,7 @@ export default function TareasHerramientas() {
                 }}
               >
                 <CardActionArea
-                  onClick={() => navigate(`/coowork/herramientas/tareas/${t.slug}`)}
+                  onClick={() => navigate(`/coowork/admin/herramientas/tareas/${t.slug}`)}
                   sx={{ height: '100%', p: 3 }}
                 >
                   <CardContent sx={{ p: 0 }}>
