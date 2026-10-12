@@ -100,7 +100,7 @@ const Membresias = () => {
             nombre: tomar("nombre", "Membresía"),
             precio: tomar("precio", 0),
             beneficios: tomar("beneficios", []),
-            color: tomar("color", "#4F46E5"),
+            color: tomar("color", "#7C3AED"),
             destacado: tomar("destacado", false),
             cobro: tomar("cobro", "unico"),
             picUrl,
@@ -141,7 +141,7 @@ const Membresias = () => {
         px: 2,
         py: 5,
         background:
-          "linear-gradient(180deg, #f5f7ff 0%, #ffffff 100%)",
+          "linear-gradient(180deg, #2e0a5c 0%, #4a048c 55%, #7c3aed 100%)",
         minHeight: "100vh"
       }}
     >
@@ -152,7 +152,7 @@ const Membresias = () => {
         gutterBottom
         sx={{
           fontWeight: 800,
-          color: "#1E293B"
+          color: "#ffffff"
         }}
       >
         Membresías Ciudadan
@@ -165,7 +165,7 @@ const Membresias = () => {
           maxWidth: 900,
           mx: "auto",
           mb: 6,
-          color: "#475569"
+          color: "#c4b5fd"
         }}
       >
         Forma parte de una red de cooperación productiva,
@@ -204,13 +204,13 @@ const Membresias = () => {
                     borderRadius: "24px",
                     overflow: "hidden",
                     position: "relative",
-                    background: `linear-gradient(135deg, ${plan.color}20, white)`,
+                    background: `linear-gradient(160deg, #31257a 0%, #24165e 60%, #170d42 100%)`,
                     border: plan.destacado
                       ? `3px solid ${plan.color}`
-                      : "1px solid #e5e7eb",
+                      : "1px solid rgba(168, 85, 247, 0.35)",
                     boxShadow: plan.destacado
                       ? `0 0 25px ${plan.color}55`
-                      : "0 10px 30px rgba(0,0,0,0.06)",
+                      : "0 14px 30px rgba(80, 20, 160, 0.45)",
                     transition: "0.3s",
                     '&:hover': {
                       transform: "translateY(-6px)"
@@ -262,7 +262,7 @@ const Membresias = () => {
                         variant="h5"
                         sx={{
                           fontWeight: 800,
-                          color: "#0F172A",
+                          color: "#F3E8FF",
                           mb: 1
                         }}
                       >
@@ -273,7 +273,7 @@ const Membresias = () => {
                         variant="h3"
                         sx={{
                           fontWeight: 900,
-                          color: plan.color,
+                          color: "#FCD34D",
                           mb: 3
                         }}
                       >
@@ -312,7 +312,7 @@ const Membresias = () => {
                           <span
                             className="material-icons"
                             style={{
-                              color: plan.color,
+                              color: "#FCD34D",
                               marginRight: 10
                             }}
                           >
@@ -322,7 +322,7 @@ const Membresias = () => {
                           <Typography
                             variant="body1"
                             sx={{
-                              color: "#334155"
+                              color: "#F3E8FF"
                             }}
                           >
                             {beneficio}
@@ -368,7 +368,7 @@ const Membresias = () => {
                         onClick={() => navigate('/membresias/detalles')}
                         sx={{
                           mt: 1,
-                          color: "#64748B",
+                          color: "#C4B5FD",
                           textTransform: "none",
                           fontSize: "0.85rem"
                         }}
