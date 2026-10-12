@@ -28,6 +28,7 @@ entorno y despliegue.
 | **[`11-Guia-Usuario-Referidos.md`](11-Guia-Usuario-Referidos.md)** | Guía de usuario: **referidos e invitaciones** (enlace personal, comisiones, clubs) |
 | **[`12-Guia-Usuario-Publicaciones.md`](12-Guia-Usuario-Publicaciones.md)** | Guía de usuario: **publicaciones, comentarios y reacciones** (red social) |
 | **[`13-Guia-Usuario-Wiki-Ayuda.md`](13-Guia-Usuario-Wiki-Ayuda.md)** | Guía de usuario: **wiki y ayuda** (visor, guías por módulo, preguntas frecuentes) |
+| **[`COMPRAS-AUTH0.md`](COMPRAS-AUTH0.md)** | **Compras/Marketplace**: endpoints `/pedidos/mine`, `/by-id/:id`, `/store-mine`, `/food-orders/mine` con Auth0 (fix 401/500 en "Tus Compras") |
 
 ---
 
