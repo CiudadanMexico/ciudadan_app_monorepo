@@ -188,6 +188,14 @@
       },
       "type": "boolean",
       "default": false
+    },
+    "descripcion": {
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "type": "text"
     }
   }
 }

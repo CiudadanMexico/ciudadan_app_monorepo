@@ -21,12 +21,32 @@ Carpeta: `ciudadan_backend_26/seed/plaza-tecnologia/`
 - Estas fotos NO van a `src/assets`: las subirá el seeder al upload plugin de Strapi
   y las enlazará con `imagenes` e `imagen_predeterminada`.
 
-## Uso
+## Bloque 2 — tienda oficial + seed de productos
+
+- Tienda: `La plaza de la tecnología a tu casa` (slug `la-plaza-de-la-tecnologia-a-tu-casa`, `isOfficial: true`).
+- `catalogo-productos.json`: 30 SKU con nombre/costo MXN/categoría/stock proveedor (costos observados
+  en cyberpuerta.mx 2026-10-12, IVA incl.). Precio = `redondear(costo*1.05, 2)`.
+- `seed-plaza-tecnologia.js`: valida local sin BD; con `--apply` resuelve/crea la tienda por slug
+  (conflicto → reporta, no duplica), actualiza solo campos administrados, crea dirección comercial
+  solo si no existe (texto conocido, sin inventar número/CP/coords), reutiliza categorías
+  `computacion` y `electronica-y-tecnologia`, sube medios por nombre (reutiliza), `imagenes` +
+  `imagen_predeterminada=[portada]`, borrador por defecto y `--publish` explícito, sin reponer stock
+  ni tocar productos ajenos. Owner/email por env (no desvincula tiendas ajenas).
+- `revalidar.py`: revalida precio/disponibilidad antes de activar (reporta cambios/agotados).
+- Schemas: `store.descripcion` (text, i18n); `producto.store` y `producto.store_category` a manyToOne.
+- Controlador store: `isOfficial` solo lo fija admin (403 al vendedor común que lo envíe).
+- Frontend `Tienda.jsx`: populate + render de `descripcion`.
+
 ```bash
-cd ciudadan_backend_26/seed/plaza-tecnologia
-./download-images.sh            # descarga + valida (idempotente)
-node seed-plaza.cjs             # valida datos localmente (sin --apply)
+cd ciudadan_backend_26
+node seed/plaza-tecnologia/seed-plaza-tecnologia.js            # validar local
+python3 seed/plaza-tecnologia/revalidar.py                    # revalidar proveedor
+PLAZA_STORE_EMAIL=tienda@ciudadan.org node seed/plaza-tecnologia/seed-plaza-tecnologia.js --apply                 # crear/cargar (borradores)
+PLAZA_STORE_EMAIL=tienda@ciudadan.org node seed/plaza-tecnologia/seed-plaza-tecnologia.js --apply --publish       # + publicar listos
 ```
+
+Vars: `PLAZA_STORE_OWNER_ID` (opcional), `PLAZA_STORE_EMAIL` (operativo verificado).
+Pendiente operativo: email/ID del propietario real y dirección precisa de despacho (configurables, no bloquean código).
 
 ## Base de revisión
 - Rama base: `main`, commit `956c504259c06962afad78edb74c21c4f0975b44`.

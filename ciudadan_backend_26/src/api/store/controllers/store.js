@@ -7,6 +7,32 @@ const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 module.exports = createCoreController('api::store.store', ({ strapi }) => ({
+  /**
+   * isOfficial solo lo fija un admin (roles.extra incluye 'admin' o role.name
+   * es 'Admin', mismo patrón que viaje/pagar y cartera). Un vendedor común
+   * que lo envíe en create/update recibe 403 y el campo se ignora.
+   */
+  async create(ctx) {
+    const data = ctx.request.body?.data;
+    if (data && Object.prototype.hasOwnProperty.call(data, 'isOfficial')) {
+      const u = ctx.state.strapiUser;
+      const roles = u?.roles?.extra || [];
+      const esAdmin = roles.includes('admin') || u?.role?.name === 'Admin';
+      if (!esAdmin) return ctx.forbidden('Solo un administrador puede marcar una tienda como oficial');
+    }
+    return await super.create(ctx);
+  },
+
+  async update(ctx) {
+    const data = ctx.request.body?.data;
+    if (data && Object.prototype.hasOwnProperty.call(data, 'isOfficial')) {
+      const u = ctx.state.strapiUser;
+      const roles = u?.roles?.extra || [];
+      const esAdmin = roles.includes('admin') || u?.role?.name === 'Admin';
+      if (!esAdmin) return ctx.forbidden('Solo un administrador puede marcar una tienda como oficial');
+    }
+    return await super.update(ctx);
+  },
 
   async updateStripeStatus(ctx) {
     const { accountId } = ctx.request.body;

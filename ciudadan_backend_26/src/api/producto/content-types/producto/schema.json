@@ -26,7 +26,7 @@
     },
     "store_category": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::store-categorie.store-categorie"
     },
     "imagenes": {
@@ -67,7 +67,7 @@
     },
     "store": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::store.store"
     },
     "stripe_product_id": {

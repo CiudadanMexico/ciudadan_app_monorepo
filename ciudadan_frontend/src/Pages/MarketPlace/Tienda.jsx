@@ -69,7 +69,7 @@ const Tienda = () => {
     const fetchStoreData = async () => {
       try {
         const baseUrl = process.env.REACT_APP_STRAPI_URL.replace(/\/$/, '');
-        const res = await axios.get(`${baseUrl}/api/stores?filters[slug][$eq]=${slug}&populate=imagen`);
+        const res = await axios.get(`${baseUrl}/api/stores?filters[slug][$eq]=${slug}&populate=imagen&populate=descripcion`);
         console.log('📦 Respuesta de tienda:', res.data);
 
         const tienda = res.data.data[0];
@@ -189,6 +189,11 @@ const Tienda = () => {
           <Typography component="span" sx={{ ml: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>325 calificaciones</Typography>
         </Box>
         <Typography sx={{ mt: 1, fontSize: { xs: '0.85rem', sm: '1rem' } }}>201 reseñas</Typography>
+        {storeData?.attributes?.descripcion && (
+          <Typography sx={{ mt: 1.5, fontSize: { xs: '0.85rem', sm: '0.95rem' }, color: 'text.secondary', textAlign: 'left' }}>
+            {storeData.attributes.descripcion}
+          </Typography>
+        )}
         <Typography sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' }, wordBreak: 'break-word' }}>
           Usuario Auth0: {user.email}
         </Typography>
