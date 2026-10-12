@@ -22,6 +22,7 @@ import MiMembresia from '../components/Membresias/MiMembresia.jsx';
 import MercadoPagoBoton from '../components/Membresias/MercadoPagoBoton.jsx';
 import { useNavigate } from 'react-router-dom';
 import PreLoader from '../components/PreLoader.jsx';
+import { MORADO, MORADO_OSCURO } from '../components/common/PurpleButton.jsx';
 
 const COLLECTION_ENDPOINT = "membresias-tipos";
 
@@ -100,7 +101,7 @@ const Membresias = () => {
             nombre: tomar("nombre", "Membresía"),
             precio: tomar("precio", 0),
             beneficios: tomar("beneficios", []),
-            color: tomar("color", "#4F46E5"),
+            color: tomar("color", MORADO),
             destacado: tomar("destacado", false),
             cobro: tomar("cobro", "unico"),
             picUrl,
@@ -141,7 +142,7 @@ const Membresias = () => {
         px: 2,
         py: 5,
         background:
-          "linear-gradient(180deg, #f5f7ff 0%, #ffffff 100%)",
+          `linear-gradient(180deg, #4C1D95 0%, ${MORADO_OSCURO} 55%, ${MORADO} 100%)`,
         minHeight: "100vh"
       }}
     >
@@ -152,7 +153,7 @@ const Membresias = () => {
         gutterBottom
         sx={{
           fontWeight: 800,
-          color: "#1E293B"
+          color: "#ffffff"
         }}
       >
         Membresías Ciudadan
@@ -165,7 +166,7 @@ const Membresias = () => {
           maxWidth: 900,
           mx: "auto",
           mb: 6,
-          color: "#475569"
+          color: "#c4b5fd"
         }}
       >
         Forma parte de una red de cooperación productiva,
@@ -204,13 +205,13 @@ const Membresias = () => {
                     borderRadius: "24px",
                     overflow: "hidden",
                     position: "relative",
-                    background: `linear-gradient(135deg, ${plan.color}20, white)`,
+                    background: `linear-gradient(160deg, #3B1E7A 0%, #2D1466 60%, #23104F 100%)`,
                     border: plan.destacado
                       ? `3px solid ${plan.color}`
-                      : "1px solid #e5e7eb",
+                      : "1px solid rgba(138, 92, 245, 0.55)",
                     boxShadow: plan.destacado
                       ? `0 0 25px ${plan.color}55`
-                      : "0 10px 30px rgba(0,0,0,0.06)",
+                      : "0 14px 30px rgba(138, 92, 245, 0.40)",
                     transition: "0.3s",
                     '&:hover': {
                       transform: "translateY(-6px)"
@@ -262,7 +263,7 @@ const Membresias = () => {
                         variant="h5"
                         sx={{
                           fontWeight: 800,
-                          color: "#0F172A",
+                          color: "#F3E8FF",
                           mb: 1
                         }}
                       >
@@ -273,7 +274,7 @@ const Membresias = () => {
                         variant="h3"
                         sx={{
                           fontWeight: 900,
-                          color: plan.color,
+                          color: "#FFE04A",
                           mb: 3
                         }}
                       >
@@ -312,7 +313,7 @@ const Membresias = () => {
                           <span
                             className="material-icons"
                             style={{
-                              color: plan.color,
+                              color: "#FFE04A",
                               marginRight: 10
                             }}
                           >
@@ -322,7 +323,7 @@ const Membresias = () => {
                           <Typography
                             variant="body1"
                             sx={{
-                              color: "#334155"
+                              color: "#F3E8FF"
                             }}
                           >
                             {beneficio}
@@ -368,7 +369,7 @@ const Membresias = () => {
                         onClick={() => navigate('/membresias/detalles')}
                         sx={{
                           mt: 1,
-                          color: "#64748B",
+                          color: "#C4B5FD",
                           textTransform: "none",
                           fontSize: "0.85rem"
                         }}
