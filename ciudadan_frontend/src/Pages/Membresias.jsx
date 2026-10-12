@@ -30,6 +30,8 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useRoles } from '../Contexts/RolesContext';
 import MiMembresia from '../components/Membresias/MiMembresia.jsx';
 import MercadoPagoBoton from '../components/Membresias/MercadoPagoBoton.jsx';
+import heroMembresias from '../assets/heromembresias.png';
+import imgServidorCompartido from '../assets/ciudadan_servidor_compartido.png';
 import { useNavigate } from 'react-router-dom';
 import PreLoader from '../components/PreLoader.jsx';
 import { HERO, PLANES_ORDER, PLANES_COPY } from '../config/membresiasContenido';
@@ -177,6 +179,10 @@ const Membresias = () => {
         }}
       >
         <motion.div {...entrada(0)}>
+          <Box className="mg-hero-banner" sx={{ mb: 3 }}>
+            <img src={heroMembresias} alt="Ilustración de membresías Ciudadan" fetchPriority="high" />
+            <Box className="mg-hero-banner__velo" />
+          </Box>
           <Typography variant="overline" className="mg-kicker">
             {HERO.kicker}
           </Typography>
@@ -324,11 +330,7 @@ const Membresias = () => {
             <Grid container>
               <Grid item xs={12} md={5}>
                 <Box className="mg-serv-imagen" sx={{ borderRadius: 0, height: "100%", minHeight: { xs: 220, md: "100%" } }}>
-                  {/* Slot de imagen: ciudadan_servidor_compartido.png / _privado.png */}
-                  <Box className="mg-serv-imagen__icono">
-                    <MemoryIcon />
-                    <span>Infraestructura Ciudadan</span>
-                  </Box>
+                  <img src={imgServidorCompartido} alt="Servidor compartido Ciudadan" loading="lazy" decoding="async" />
                 </Box>
               </Grid>
               <Grid item xs={12} md={7}>

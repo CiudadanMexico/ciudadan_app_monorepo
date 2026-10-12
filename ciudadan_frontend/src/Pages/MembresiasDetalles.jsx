@@ -30,6 +30,8 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 import MercadoPagoBoton from "../components/Membresias/MercadoPagoBoton";
+import imgCompartido from "../assets/ciudadan_servidor_compartido.png";
+import imgPrivado from "../assets/ciudadan_servidor_privado.png";
 import { sendToWhatsApp } from "../utils/sendToWhatsApp";
 import {
   HERO_DETALLES,
@@ -128,12 +130,13 @@ function ModalidadServidor({ data, email, precioServidor }) {
           <Typography variant="h5" className="mg-titulo-marca">{data.nombre}</Typography>
         </Box>
 
-        {/* Slot de imagen protagonista: cityan_servidor_{compartido|privado}.png */}
         <Box className="mg-serv-imagen" sx={{ mb: 2.5 }}>
-          <Box className="mg-serv-imagen__icono">
-            <Icono />
-            <span>{data.nombre}</span>
-          </Box>
+          <img
+            src={data.id === "privado" ? imgPrivado : imgCompartido}
+            alt={data.id === "privado" ? "Chica de cabello morado junto al servidor privado" : "Equipos conectados de la modalidad de servidor compartido"}
+            loading="lazy"
+            decoding="async"
+          />
         </Box>
 
         <Beneficios items={data.puntos} />
