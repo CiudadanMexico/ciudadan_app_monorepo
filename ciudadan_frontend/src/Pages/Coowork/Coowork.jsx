@@ -566,12 +566,12 @@ const CooWork = () => {
         setResolverDialog({ open: false, todo: null, notes: '', enlaces: [''] });
         setArchivosResolver([]);
 
-        // Llevar al usuario a donde puede ver el resultado de su entrega.
+        // Llevar al usuario a donde puede ver el resultado de su entrega
+        // (enrutamiento profundo: la URL manda, no el estado local).
         if (tienePermisoCRUD) {
-          setTab('socio');
-          setSubTab(0);
+          navigate(rutaDeTab('socio', 0));
         } else {
-          setTab('mistareas');
+          navigate(rutaDeTab('mistareas', 0));
         }
       } catch (err) {
         console.error('Error resolviendo tarea general:', err);
@@ -580,7 +580,7 @@ const CooWork = () => {
         setResolvingGeneralId(null);
       }
     },
-    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD]
+    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD, navigate]
   );
 
   // ---------------------------
