@@ -18,6 +18,7 @@ import {
   Stack,
 } from '@mui/material';
 import productoImg from '../../assets/placeholders/producto.png';
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Configuración de estados con iconos
 const statusConfig = {
@@ -45,6 +46,20 @@ const PedidosEntregados = ({ storeId = 227, initialPageSize = 25 }) => {
   const [pageSize, setPageSize] = useState(initialPageSize);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+
+  // JWT Auth0 para /api/pedidos (sin el: 401 Missing or invalid credentials).
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const getToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
 
   // Normaliza cualquier formato de item que Strapi puede devolver
   const normalizeItems = (raw) => {
@@ -126,7 +141,8 @@ const PedidosEntregados = ({ storeId = 227, initialPageSize = 25 }) => {
 
         const url = `${STRAPI_URL}/api/pedidos?${params.toString()}`;
 
-        const res = await fetch(url);
+        const token = await getToken();
+        const res = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
         const json = await res.json();
 
         // Strapi v4: { data: [...], meta: { pagination: { page, pageSize, pageCount, total } } }

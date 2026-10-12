@@ -56,6 +56,21 @@ function useUserPedidos(user, isLoadingAuth) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
+  // JWT Auth0 del usuario para los endpoints (el API token estatico no es
+  // aceptado por el backend: responde 401 Missing or invalid credentials).
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const getToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
+
   const getPedidosPendientes = async (user_email = '') => {
     setLoadingItems(true);
     setError(null);
@@ -67,9 +82,10 @@ function useUserPedidos(user, isLoadingAuth) {
       const paginationStr = `pagination[page]=${page}&pagination[pageSize]=${pageSize}`;
       const url = `${PEDIDOS_URL}?${userFilter}&${filterState}&${populateStr}&${paginationStr}&sort[0]=id:desc`;
 
+      const token = await getToken();
       const headers = { "Content-Type": "application/json" };
-      if (process.env.REACT_APP_STRAPI_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const res = await fetch(url, { headers });
@@ -98,9 +114,10 @@ function useUserPedidos(user, isLoadingAuth) {
       const populateStr = 'populate=item';
       const url = `${PEDIDOS_URL}?${userFilter}&${filterState}&${populateStr}&sort[0]=id:desc`;
 
+      const token = await getToken();
       const headers = { "Content-Type": "application/json" };
-      if (process.env.REACT_APP_STRAPI_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const res = await fetch(url, { headers });
@@ -130,9 +147,10 @@ function useUserPedidos(user, isLoadingAuth) {
       const populateStr = 'populate=item';
       const url = `${PEDIDOS_URL}?${userFilter}&${filterState}&${populateStr}&sort[0]=id:desc`;
 
+      const token = await getToken();
       const headers = { "Content-Type": "application/json" };
-      if (process.env.REACT_APP_STRAPI_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
 
       const res = await fetch(url, { headers });
@@ -163,9 +181,10 @@ function useUserPedidos(user, isLoadingAuth) {
       //Obtener pedido por id, con filtro para incluir item con store, producto e imagenes de producto
       const populateStr = `populate[item][populate][store]=*&populate[item][populate][producto][populate]=imagenes&populate[pago_id][populate][comprobante]=*`;
       const url = `${base}/api/pedidos/${pedidoId}?${populateStr}`;
+      const token = await getToken();
       const headers = { "Content-Type": "application/json" };
-      if (process.env.REACT_APP_STRAPI_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
       const res = await fetch(url, { headers });
       if (!res.ok) {
@@ -195,7 +214,9 @@ function useUserPedidos(user, isLoadingAuth) {
   const getOrdenesComida = async (user_id) => {
     const populateStr = "populate[restaurant]=true&populate[items][populate][product][populate][imagen_predeterminada]=true&populate[items][populate][modifiers][populate][imagen]=true&populate[direccion_destino]=true&populate[direccion_origen]=true&populate[pago][populate][comprobante]=true";
     const sortStr = "sort[0]=fecha_creacion:desc"
-    const response = await fetch(`${STRAPI_URL}/api/food-orders?filters[user][id][$eq]=${user_id}&${populateStr}&${sortStr}`);
+    const token = await getToken();
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await fetch(`${STRAPI_URL}/api/food-orders?filters[user][id][$eq]=${user_id}&${populateStr}&${sortStr}`, { headers });
     if (!response.ok) {
       throw new Error("Error al obtener los pedidos");
     }
@@ -432,7 +453,13 @@ const Compras = () => {
               <CircularProgress />
             </Box>
           ) : error && (
-            <Typography color="error">{error}</Typography>
+            String(error).includes('401') ? (
+              <Typography align="center" color="text.secondary" sx={{ py: 2 }}>
+                Tu sesión expiró. Vuelve a iniciar sesión para ver tus compras.
+              </Typography>
+            ) : (
+              <Typography color="error">{error}</Typography>
+            )
           )}
 
           {
