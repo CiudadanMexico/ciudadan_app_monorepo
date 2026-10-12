@@ -58,8 +58,6 @@ export default function FoodCategorias({ categorias = [], loading = false, onSel
       <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
         <Chip label="Entrega rápida" icon={<AccessTimeIcon />} sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
         <Chip label="Pago justo" icon={<MonetizationOnIcon />} sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-        <Chip label="Vegano" sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-        <Chip label="Sin contacto" sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
       </Box>
 
       <Box sx={{ bgcolor: 'transparent', p: 1, borderRadius: 2 }}>

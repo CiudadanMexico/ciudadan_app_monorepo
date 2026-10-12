@@ -103,7 +103,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
     if (!slug) return;
     navigate(`/productos/busqueda/${slug}`);
   };
-  const handleCategoriaClick = (slug) => navigate(`/productos/categoria/${slug}`);
+  const handleCategoriaClick = (slug) => setSelectedCategory(slug);
   const handleOfertas = () => navigate('/comida/ofertas');
   const handleEnvios = () => navigate('/comida/envios');
 
