@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { useRoles } from "../../Contexts/RolesContext";
 import { useStores } from "../../hooks/useStores";
-import { irALogin, salir } from "../../utils/authRedirect";
+import { irALogin } from "../../utils/authRedirect";
 
 const MENU_WIDTH = 320;
 
@@ -209,7 +209,9 @@ const UserMenu = ({
       {isAuthenticated ? (
         <MenuItem
           label="Salir"
-          onClick={() => salir(logout)}
+          onClick={() =>
+            logout({ logoutParams: { returnTo: window.location.origin } })
+          }
         />
       ) : (
         <MenuItem

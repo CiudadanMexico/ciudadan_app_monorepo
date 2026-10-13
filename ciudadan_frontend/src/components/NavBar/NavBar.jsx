@@ -18,7 +18,7 @@ import {
 import { BsBriefcaseFill } from "react-icons/bs";
 import { AiOutlineApartment } from "react-icons/ai";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { irALogin, salir } from '../../utils/authRedirect';
+import { irALogin } from '../../utils/authRedirect';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import ForumIcon from '@mui/icons-material/Forum';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -274,14 +274,16 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     handleUserRegistration();
   }, [isAuthenticated, user]);
 
-  // Login / Logout: vuelven a la página donde estabas (ruta, query, hash)
+  // Login: vuelve a la página donde estabas. Logout: igual que siempre,
+  // vuelve a la raíz (origen) — comportamiento original sin cambios.
   const handleLogin = () => {
     irALogin(loginWithRedirect);
     setIsMenuOpen(false);
   };
 
   const handleLogout = () => {
-    salir(logout);
+    document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    logout({ logoutParams: { returnTo: window.location.origin } });
     setIsMenuOpen(false);
   };
 

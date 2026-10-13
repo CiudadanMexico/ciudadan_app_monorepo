@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import '../../styles/AccountMenuInfo.css';
 import UserMenu from './UserMenu';
-import { irALogin, salir } from '../../utils/authRedirect';
+import { irALogin } from '../../utils/authRedirect';
 
 const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handleLinkClick, defaultProfileImage, guestImage, containerRef }) => {
   //const containerRef = useRef(null);
@@ -63,7 +63,7 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogoutWithLog = () => {
-    salir(logout);
+    logout({ logoutParams: { returnTo: window.location.origin } });
     setIsProfileMenuOpen(false);
   };
 
