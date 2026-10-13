@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "media_uploads",
+  "info": {
+    "singularName": "media-upload",
+    "pluralName": "media-uploads",
+    "displayName": "MediaUpload",
+    "description": "Referencia de upload hacia la Media API (Bloque 5B). Ownership del archivo."
+  },
+  "options": { "draftAndPublish": false },
+  "attributes": {
+    "user": { "type": "relation", "relation": "oneToOne", "target": "plugin::users-permissions.user" },
+    "uploadId": { "type": "string", "required": true },
+    "storedPath": { "type": "string", "private": true },
+    "originalName": { "type": "string" },
+    "mimeType": { "type": "string" },
+    "sizeBytes": { "type": "integer" },
+    "sha256": { "type": "string" },
+    "kind": { "type": "string" }
+  }
+}

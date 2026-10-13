@@ -1,11 +1,50 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useLocation } from "react-router-dom";
 import { Box, Button, Alert, CircularProgress, Typography, Stack } from "@mui/material";
 
-export default function MercadoPagoBoton({ order, subtypeKey = null, email, precioMostrado }) {
+export default function MercadoPagoBoton({
+  order,
+  subtypeKey = null,
+  email,
+  precioMostrado,
+  label = "Adquirir Ahora",
+  labelCargando = "Redirigiendo a Mercado Pago...",
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
+  const location = useLocation();
+
+  // Si el usuario vuelve con el botón "atrás" del navegador (Chrome
+  // restaura la página desde bfcache con el estado previo: el botón seguía
+  // en "Redirigiendo a Mercado Pago..." y deshabilitado). Con `pageshow`
+  // con persisted=true reseteamos el estado a listo.
+  useEffect(() => {
+    const resetOnShow = (event) => {
+      if (event.persisted) {
+        setLoading(false);
+        setError(null);
+      }
+    };
+    window.addEventListener("pageshow", resetOnShow);
+    return () => window.removeEventListener("pageshow", resetOnShow);
+  }, []);
 
   const socketUrl = (process.env.REACT_APP_SOCKET_URL || "http://localhost:33035").replace(/\/$/, "");
+
+  const handleClick = () => {
+    // Sin sesión (o sin email): en vez de dejar el botón muerto, mandar a
+    // iniciar sesión y regresar a esta misma pantalla al terminar.
+    if (!isAuthenticated || !email) {
+      loginWithRedirect({
+        // Conserva la opción elegida: ruta + query + ancla de la sección.
+        appState: { returnTo: location.pathname + location.search + location.hash },
+      });
+      return;
+    }
+    irAMercadoPago();
+  };
 
   const irAMercadoPago = async () => {
     setError(null);
@@ -52,8 +91,8 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
         <Button
           fullWidth
           variant="contained"
-          onClick={irAMercadoPago}
-          disabled={loading || !email}
+          onClick={handleClick}
+          disabled={loading}
           sx={{
             backgroundColor: "#009EE3",
             color: "#fff",
@@ -68,10 +107,10 @@ export default function MercadoPagoBoton({ order, subtypeKey = null, email, prec
           {loading ? (
             <>
               <CircularProgress size={18} sx={{ mr: 1, color: "#fff" }} />
-              Redirigiendo a Mercado Pago...
+              {labelCargando}
             </>
           ) : (
-            `Pagar con Mercado Pago${precioMostrado ? ` · ${precioMostrado}` : ""}`
+            `${label}${precioMostrado ? ` · ${precioMostrado}` : ""}`
           )}
         </Button>
 

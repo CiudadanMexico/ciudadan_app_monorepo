@@ -34,9 +34,12 @@ import BuildIcon from '@mui/icons-material/Build';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import PaidIcon from '@mui/icons-material/Paid';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import BookIcon from '@mui/icons-material/Book';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { useAuth0 } from '@auth0/auth0-react';
 import Tareas, { TareaCard } from './../../components/Cowork/Tareas.jsx';
 import TareasEspecializadas, { EmptyState } from './../../components/Cowork/TareasEspecializadas.jsx';
@@ -48,7 +51,7 @@ import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
 import { resolverTarea, completarTarea, subirEvidencia } from '../../services/cowork/mutationsServices.js';
 import { useRecurrenciaValidation } from '../../hooks/useRecurrenciaValidation.jsx';
@@ -89,6 +92,90 @@ const getTabFromSearchParams = (searchParams) => {
     return tabParam;
   }
   return null;
+};
+
+// ---------------------------------------------------------------------------
+// Enrutamiento profundo de Coowork (fase 1: URLs explícitas, mismo contenido).
+//
+// Cada vista de Coowork tiene su URL. La URL es la fuente de verdad: tab y
+// subTab se derivan de ella, y cambiar de tab hace navigate() (así el
+// atrás/adelante del navegador funciona). Las herramientas aceptan desde ya
+// la forma futura con categoría (/coowork/herramientas/:categoria/:slug);
+// hoy todas viven en raíz (/coowork/herramientas/:slug).
+// ---------------------------------------------------------------------------
+
+/** tab/subTab -> ruta canónica. */
+const rutaDeTab = (tabValue, subTabValue = 0, areaSlugValue = null) => {
+  if (areaSlugValue && tabValue === 'especializadas') {
+    return `/coowork/especializadas/${areaSlugValue}`;
+  }
+  switch (tabValue) {
+    case 'generales':
+      return '/coowork/tareas-generales';
+    case 'especializadas':
+      return '/coowork/especializadas';
+    case 'socio':
+      if (subTabValue === 1) return '/coowork/herramientas';
+      if (subTabValue === 2) return '/coowork/bitacora';
+      if (subTabValue === 3) return '/coowork/pagos';
+      return '/coowork/tareas-socio';
+    case 'conductores':
+      return '/coowork/verificar-conductores';
+    case 'auditorias':
+      return '/coowork/auditorias';
+    case 'mistareas':
+      return '/coowork/mis-tareas';
+    default:
+      return '/coowork';
+  }
+};
+
+/**
+ * Params de ruta + query legacy -> { tab, subTab, herramienta, categoria }.
+ * `vista` es el primer segmento tras /coowork (o null en /coowork pelado).
+ */
+const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchParams = null } = {}) => {
+  // Deep-link existente: /coowork/especializadas/:areaSlug
+  if (vista === 'especializadas' && areaSlugParam) {
+    return { tab: 'especializadas', subTab: 0, areaSlug: areaSlugParam };
+  }
+  // Herramientas: /coowork/herramientas/:slug  o  /coowork/herramientas/:categoria/:slug
+  if (vista === 'herramientas' && resto) {
+    const partes = String(resto).split('/').filter(Boolean);
+    if (partes.length >= 2) {
+      return { tab: 'socio', subTab: 1, herramienta: partes[1], categoria: partes[0] };
+    }
+    return { tab: 'socio', subTab: 1, herramienta: partes[0], categoria: null };
+  }
+  switch (vista) {
+    case 'tareas-generales':
+      return { tab: 'generales', subTab: 0 };
+    case 'especializadas':
+      return { tab: 'especializadas', subTab: 0 };
+    case 'tareas-socio':
+      return { tab: 'socio', subTab: 0 };
+    case 'herramientas':
+      return { tab: 'socio', subTab: 1 };
+    case 'bitacora':
+      return { tab: 'socio', subTab: 2 };
+    case 'pagos':
+      return { tab: 'socio', subTab: 3 };
+    case 'verificar-conductores':
+      return { tab: 'conductores', subTab: 0 };
+    case 'auditorias':
+      return { tab: 'auditorias', subTab: 0 };
+    case 'mis-tareas':
+      return { tab: 'mistareas', subTab: 0 };
+    default:
+      break;
+  }
+  // Query legacy ?tab= (redirects la convierten en URL canónica).
+  if (searchParams) {
+    const legacy = getTabFromSearchParams(searchParams);
+    if (legacy === 'socio') return { tab: 'socio', subTab: 0 };
+    if (legacy) return { tab: legacy, subTab: 0 };
+  }
+  return { tab: null, subTab: 0 };
 };
 
 // 🔹 Tabs principales (barra amarilla)
@@ -179,15 +266,23 @@ const CooWork = () => {
   // docs/COWORK-VERIFICACION-CONDUCTORES-FASES.md: auditor es un rol
   // independiente del verificador — mismo patrón de acceso reducido.
   const soloAuditor = isAuditor() && !tienePermisoCRUD && !soloVerificador;
+  const [showSubbar, setShowSubbar] = useState(true); // barra de Herramientas del Socio/Admin: visible por defecto, se oculta/muestra volviendo a pulsar
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   // Deep-link /coowork/especializadas/:areaSlug -> abre Tareas Especializadas
   // reutilizando el mismo componente de Coowork (sin una segunda pantalla).
-  const { areaSlug } = useParams();
-  const [tab, setTab] = useState(() => {
-    if (areaSlug) return 'especializadas';
-    return getTabFromSearchParams(searchParams) || (tienePermisoCRUD ? 'socio' : 'generales');
-  });
-  const [subTab, setSubTab] = useState(0);
+  // `vista` = primer segmento tras /coowork (ruta /coowork/:vista); `resto`
+  // quedó para compat (ya no se usa: herramientas dedicadas van a
+  // HerramientaDedicada, no a Coowork).
+  const { vista = null, areaSlug = null } = useParams();
+  const resto = null;
+
+  // URL manda: tab/subTab se derivan de la ruta (nunca al revés).
+  const ruta = tabDeRuta({ vista, resto, areaSlugParam: areaSlug, searchParams });
+  const tab = ruta.tab || (tienePermisoCRUD ? 'socio' : 'generales');
+  const subTab = ruta.subTab ?? 0;
+  const herramientaSlug = ruta.herramienta ?? null;
+  const herramientaCategoria = ruta.categoria ?? null;
   const [generalTodos, setGeneralTodos] = useState([]);
   const [loadingGeneral, setLoadingGeneral] = useState(false);
   const [resolvingGeneralId, setResolvingGeneralId] = useState(null);
@@ -214,19 +309,49 @@ const CooWork = () => {
 
   useEffect(() => {
     if (!searchParams.get('tab')) return;
-    const parsed = getTabFromSearchParams(searchParams);
-    if (parsed) setTab(parsed);
-    setSearchParams({}, { replace: true });
-  }, [searchParams, setSearchParams]);
+    // Compat: ?tab= redirige a la URL canónica (replace, sin ensuciar historial).
+    const parsed = tabDeRuta({ searchParams });
+    if (parsed.tab) {
+      navigate(rutaDeTab(parsed.tab, parsed.subTab ?? 0), { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams, navigate]);
 
-  // Si se entra por deep-link (con :areaSlug) se mantiene la pestaña de
-  // Tareas Especializadas, incluso si el usuario cambia de tab y vuelve.
+  // Guardas de rol por URL: sin permiso CRUD las vistas socio redirigen a
+  // tareas-generales; verificador/auditor fuera de su ruta, igual.
+  // (Antes los tabs se ocultaban; ahora la URL también lo garantiza.)
   useEffect(() => {
-    if (areaSlug) setTab('especializadas');
-  }, [areaSlug]);
+    if (['socio'].includes(tab) && !tienePermisoCRUD) {
+      navigate('/coowork/tareas-generales', { replace: true });
+      return;
+    }
+    if (tab === 'conductores' && !soloVerificador) {
+      navigate(tienePermisoCRUD ? '/coowork/tareas-socio' : '/coowork/tareas-generales', { replace: true });
+      return;
+    }
+    if (tab === 'auditorias' && !soloAuditor) {
+      navigate(tienePermisoCRUD ? '/coowork/tareas-socio' : '/coowork/tareas-generales', { replace: true });
+    }
+  }, [tab, tienePermisoCRUD, soloVerificador, soloAuditor, navigate]);
 
-  const handleTabChange = (event, newValue) => setTab(newValue);
-  const handleSubTabChange = (event, newValue) => setSubTab(newValue);
+  const handleTabChange = (event, newValue) => {
+    // Volver a pulsar Admin/Socio alterna la barra de Herramientas
+    // (gris casi negra con Tareas/Herramientas/Bitácora/Historial).
+    if (newValue === 'socio' && tab === 'socio' && tienePermisoCRUD) {
+      setShowSubbar((prev) => !prev);
+      return;
+    }
+    // Cambiar de tab = navegar (la URL actualiza tab/subTab sola).
+    if (newValue === 'socio') {
+      navigate('/coowork/tareas-socio');
+    } else {
+      navigate(rutaDeTab(newValue, 0, newValue === 'especializadas' ? areaSlug : null));
+    }
+  };
+  const handleSubTabChange = (event, newValue) => {
+    navigate(rutaDeTab('socio', newValue));
+  };
 
   const fetchGeneralTodos = useCallback(async () => {
     try {
@@ -272,7 +397,7 @@ const CooWork = () => {
   }, [getAccessTokenSilently]);
 
   useEffect(() => {
-    if (tab === 'socio' && subTab === 3) fetchCartera();
+    if (tab === 'socio' && subTab === 4) fetchCartera();
   }, [tab, subTab, fetchCartera]);
 
   const handleEditGeneral = useCallback((todo) => {
@@ -513,7 +638,21 @@ const CooWork = () => {
           boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
         }}
       >
-        <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center' }}>
+        <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+          {tab === 'socio' && tienePermisoCRUD && (
+            <Tooltip
+              title={showSubbar ? 'Ocultar barra de Herramientas' : 'Mostrar barra de Herramientas'}
+            >
+              <IconButton
+                size="small"
+                onClick={() => setShowSubbar((prev) => !prev)}
+                aria-label="Mostrar/Ocultar barra de Herramientas"
+                sx={{ position: 'absolute', right: 8, color: 'white' }}
+              >
+                {showSubbar ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            </Tooltip>
+          )}
           <StyledTabs
             value={tab}
             onChange={handleTabChange}
@@ -550,7 +689,7 @@ const CooWork = () => {
       </Box>
       {/* 💚 Sub-barra (solo en Socio) */}
       <AnimatePresence>
-        {tab === 'socio' && tienePermisoCRUD && (
+        {showSubbar && tab === 'socio' && tienePermisoCRUD && (
           <motion.div
             key="subbar"
             initial={{ opacity: 0, y: -10 }}
@@ -579,6 +718,7 @@ const CooWork = () => {
                   <SubTab icon={<AssignmentIcon />} label="Tareas" />
                   <SubTab icon={<BuildIcon />} label="Herramientas" />
                   <SubTab icon={<BookIcon />} label="Bitácora" />
+                  <SubTab icon={<TrendingUpIcon />} label="Avance" />
                   <SubTab icon={<PaidIcon />} label="Historial de Pagos" />
                 </SubTabs>
               </Container>
@@ -599,6 +739,16 @@ const CooWork = () => {
             {subTab === 1 && <HerramientrasGrid />}
             {subTab === 2 && <EventosGrid />}
             {subTab === 3 && (
+              <>
+                <Typography variant="h5" fontWeight={700} gutterBottom color="white">
+                  📈 Avance
+                </Typography>
+                <Typography color="#ccc" sx={{ mb: 3 }}>
+                  Aquí verás tu avance y progreso dentro de la agencia.
+                </Typography>
+              </>
+            )}
+            {subTab === 4 && (
               <>
                 <Typography variant="h5" fontWeight={700} gutterBottom color="white">
                   💸 Historial de Pagos

@@ -1,0 +1,134 @@
+{
+  "kind": "collectionType",
+  "collectionName": "vehicles",
+  "info": {
+    "singularName": "vehicle",
+    "pluralName": "vehicles",
+    "displayName": "Vehicle",
+    "name": "Vehicle",
+    "description": "Vehículo operativo de un conductor. Agrupa los datos básicos de la unidad y la documentación vinculada (tarjeta de circulación, seguro y fotos de la unidad). La documentación se mantiene privada; el acceso se regula por roles de verificación.",
+    "display": "Vehículo"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "agency": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::agencia.agencia"
+    },
+    "driver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver.driver",
+      "mappedBy": "vehicle"
+    },
+    "concession_holder": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "plates": {
+      "type": "string",
+      "required": false
+    },
+    "vin_number": {
+      "type": "string",
+      "required": false,
+      "unique": true
+    },
+    "brand": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "year": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "vehicle_type": {
+      "type": "string"
+    },
+    "passenger_capacity": {
+      "type": "string"
+    },
+    "registration_card": {
+      "type": "media",
+      "multiple": true,
+      "required": false
+    },
+    "insurance_document": {
+      "type": "media",
+      "multiple": true,
+      "required": false
+    },
+    "vehicle_front_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false
+    },
+    "vehicle_side_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false
+    },
+    "vehicle_back_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false
+    },
+    "vehicle_interior_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false
+    },
+    "concession_reference": {
+      "type": "string",
+      "required": false,
+      "maxLength": 500
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "preregistrado",
+        "documento_completo",
+        "en_revision",
+        "aprobado",
+        "suspenso",
+        "reevaluacion"
+      ],
+      "required": false,
+      "default": "preregistrado"
+    },
+    "validated_by": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "validated_at": {
+      "type": "datetime"
+    },
+    "observation": {
+      "type": "text"
+    },
+    "created_by": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "updated_by": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

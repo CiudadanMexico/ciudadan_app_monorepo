@@ -18,6 +18,7 @@ import {
 import { BsBriefcaseFill } from "react-icons/bs";
 import { AiOutlineApartment } from "react-icons/ai";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { irALogin } from '../../utils/authRedirect';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import ForumIcon from '@mui/icons-material/Forum';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -273,15 +274,10 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     handleUserRegistration();
   }, [isAuthenticated, user]);
 
-  // Login / Logout: guardamos returnTo en cookie (ruta, query, hash)
+  // Login: vuelve a la página donde estabas. Logout: igual que siempre,
+  // vuelve a la raíz (origen) — comportamiento original sin cambios.
   const handleLogin = () => {
-    const currentUrl = window.location.pathname + window.location.search + window.location.hash;
-    document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
-    loginWithRedirect({
-      appState: {
-        returnTo: location.pathname + location.search,
-      },
-    });
+    irALogin(loginWithRedirect);
     setIsMenuOpen(false);
   };
 

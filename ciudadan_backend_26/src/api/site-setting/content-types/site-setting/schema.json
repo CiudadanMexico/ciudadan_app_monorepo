@@ -29,6 +29,10 @@
       "type": "string",
       "comment": "URL del grupo de WhatsApp de candidatos a Líder Verificador (la usa la landing)"
     },
+    "wikis_path": {
+      "type": "string",
+      "comment": "Ruta física ABSOLUTA en el servidor donde viven los .md de la wiki (carpetas main, help, faq). La usa el socket-service; no es relativa al proyecto."
+    },
     "whatsapp_number": {
       "type": "string"
     }

@@ -18,9 +18,12 @@
     "user_email": {
       "type": "string"
     },
+    "titulo": {
+      "type": "string"
+    },
     "usuario": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
     },
     "timestamp": {
@@ -55,6 +58,9 @@
     },
     "icono": {
       "type": "string"
+    },
+    "meta": {
+      "type": "json"
     }
   }
 }

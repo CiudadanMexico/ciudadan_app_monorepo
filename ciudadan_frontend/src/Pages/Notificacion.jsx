@@ -16,46 +16,22 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
 import { useNotifications } from "../Contexts/NotificationsContext";
 
-const extractPlainText = (value) => {
-  if (!value) return "";
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) {
-    return value
-      .map((block) =>
-        block?.children?.map((child) => child?.text || "").join("")
-      )
-      .join(" ");
-  }
-  if (typeof value === "object" && value.children) {
-    return value.children.map((child) => child?.text || "").join("");
-  }
-  return "";
-};
-
 const Notificacion = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const ctx = useNotifications() || {};
-  const notificaciones = ctx.notificaciones ?? [];
-  const fetchById = ctx.fetchNotificationById ?? ctx.fetchById ?? null;
-  const markAsRead = ctx.markAsRead ?? null;
-
-  const user =
-    ctx.user ??
-    ctx.me ??
-    ctx.currentUser ??
-    ctx.authUser ??
-    null;
+  // API única (§3): la notificación llega normalizada (§12).
+  const { notifications, fetchById, markAsRead } = useNotifications() || {};
 
   const [notif, setNotif] = useState(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   // buscar notificación local primero
   const localNotif = useMemo(() => {
-    return notificaciones.find((n) => String(n.id) === String(id));
-  }, [notificaciones, id]);
+    return (notifications || []).find((n) => String(n.id) === String(id));
+  }, [notifications, id]);
 
   useEffect(() => {
     let mounted = true;
@@ -64,51 +40,30 @@ const Notificacion = () => {
       try {
         setLoading(true);
 
+        // 1) estado local primero, 2) si no está, backend (§16)
         let data = localNotif;
-
         if (!data && typeof fetchById === "function") {
           data = await fetchById(id);
         }
 
         if (!data) {
-          alert(`valio benyi ${id}`);
-          setForbidden(true);
-          return;
-        }
-
-        const attrs = data.attributes ?? data;
-
-        // validar pertenencia al usuario
-        const notifUserId =
-          attrs?.user?.id ??
-          attrs?.usuario?.id ??
-          attrs?.userId ??
-          attrs?.usuarioId ??
-          null;
-
-        const currentUserId =
-          user?.id ??
-          user?._id ??
-          null;
-
-        if (notifUserId && currentUserId && String(notifUserId) !== String(currentUserId)) {
+          // Sin alert() del navegador (§17): se muestra el estado en la UI.
+          setErrorMsg("No se pudo cargar la notificación");
           setForbidden(true);
           return;
         }
 
         setNotif(data);
 
-        // marcar como leída
-        const isRead =
-          attrs?.leida === true ||
-          attrs?.read === true ||
-          attrs?.leida === "true";
-
-        if (!isRead && typeof markAsRead === "function") {
+        // Marcar como leída (optimista e idempotente dentro del context).
+        // La pertenencia al usuario la garantiza el backend: /mine/:id sólo
+        // devuelve notificaciones propias (404 para el resto).
+        if (!data.read && typeof markAsRead === "function") {
           markAsRead(data.id).catch(() => {});
         }
       } catch (e) {
         console.error("Error cargando notificación", e);
+        setErrorMsg("Ocurrió un error al cargar la notificación");
         setForbidden(true);
       } finally {
         if (mounted) setLoading(false);
@@ -119,7 +74,7 @@ const Notificacion = () => {
     return () => {
       mounted = false;
     };
-  }, [id, localNotif, fetchById, markAsRead, user]);
+  }, [id, localNotif, fetchById, markAsRead]);
 
   // ---------------- RENDER ----------------
 
@@ -148,7 +103,7 @@ const Notificacion = () => {
             Notificación no disponible
           </Typography>
           <Typography variant="body2" color="text.secondary" mb={2}>
-            Esta notificación no existe o no te pertenece.
+            {errorMsg || "Esta notificación no existe o no te pertenece."}
           </Typography>
           <Button
             variant="contained"
@@ -161,19 +116,9 @@ const Notificacion = () => {
     );
   }
 
-  const attrs = notif.attributes ?? notif;
-
-  const title =
-    attrs?.titulo ??
-    attrs?.title ??
-    "Notificación";
-
-  const body =
-    extractPlainText(attrs?.mensaje ?? attrs?.cuerpo);
-
-  const dateText = new Date(
-    attrs?.createdAt ?? attrs?.created_at ?? Date.now()
-  ).toLocaleString();
+  const title = notif.title || "Notificación";
+  const body = notif.message || "";
+  const dateText = new Date(notif.createdAt ?? Date.now()).toLocaleString();
 
   return (
     <Box px={{ xs: 1, sm: 2 }} py={3} display="flex" justifyContent="center">

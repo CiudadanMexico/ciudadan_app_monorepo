@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Pestanas from "../../components/Pestanas.jsx";
 import { useLocation } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import { fetchFavoritos, eliminarFavorito } from "../../services/favoritosService";
+import { useNotifications } from "../../Contexts/NotificationsContext";
 import {
   Box,
   Typography,
@@ -17,7 +19,9 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import LoginIcon from "@mui/icons-material/Login";
 import { motion } from "framer-motion";
+import PurpleButton from "../common/PurpleButton.jsx";
 
 /**
  * Favoritos.jsx (usa Pestanas)
@@ -28,7 +32,21 @@ import { motion } from "framer-motion";
 
 const Favoritos = () => {
   const location = useLocation();
-  const { user, isLoading } = useAuth0();
+  const { user, isLoading, isAuthenticated, getAccessTokenSilently, loginWithRedirect } = useAuth0();
+  const { toast } = useNotifications() || {};
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+
+  // Token Auth0 para los endpoints de favoritos (sin él Strapi responde 401).
+  const getFavToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
 
   const [tabIndex, setTabIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(
@@ -94,39 +112,24 @@ const Favoritos = () => {
 
   const currentTipo = useMemo(() => tabs[tabIndex]?.tipo || "producto", [tabIndex]);
 
-  // fetch cada vez que cambia tipo o usuario
+  // fetch cada vez que cambia tipo o usuario (solo con sesión: sin ella se
+  // muestra el gate de login y no se pega al backend -> evita el 403 Forbidden)
   useEffect(() => {
     if (isLoading) return;
-    if (!user || !user.email) {
+    if (!isAuthenticated || !user || !user.email) {
       setItems([]);
       return;
     }
 
-    const fetchFavoritos = async () => {
+    const fetchFavoritosList = async () => {
       setLoadingItems(true);
       setError(null);
 
       try {
-        const baseRaw = process.env.REACT_APP_STRAPI_URL || "";
-        const base = baseRaw.replace(/\/+$/, "");
-        if (!base) throw new Error("REACT_APP_STRAPI_URL no definido en .env");
-
-        const url = `${base}/api/favoritos?filters[usuario_email][$eq]=${encodeURIComponent(
-          user.email
-        )}&filters[tipo][$eq]=${encodeURIComponent(currentTipo)}&populate=deep,3&sort[0]=id:desc`;
-
-        const headers = { "Content-Type": "application/json" };
-        if (process.env.REACT_APP_STRAPI_TOKEN) {
-          headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
-        }
-
-        const res = await fetch(url, { headers });
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(`Strapi error ${res.status}: ${txt}`);
-        }
-
-        const json = await res.json();
+        // Endpoint autenticado: solo los favoritos del usuario (token Auth0).
+        // Antes se pedía a la ruta core sin token -> 401 "Missing or invalid credentials".
+        const token = await getFavToken();
+        const json = await fetchFavoritos(token, { tipo: currentTipo, limit: 100 });
         const data = Array.isArray(json.data) ? json.data : [];
         setItems(data);
       } catch (err) {
@@ -138,8 +141,8 @@ const Favoritos = () => {
       }
     };
 
-    fetchFavoritos();
-  }, [user, isLoading, currentTipo]);
+    fetchFavoritosList();
+  }, [user, isLoading, isAuthenticated, currentTipo]);
 
   // eliminar favorito
   const handleRemove = async (id) => {
@@ -147,29 +150,12 @@ const Favoritos = () => {
     if (!ok) return;
 
     try {
-      const baseRaw = process.env.REACT_APP_STRAPI_URL || "";
-      const base = baseRaw.replace(/\/+$/, "");
-      if (!base) throw new Error("REACT_APP_STRAPI_URL no definido en .env");
-
-      const headers = { "Content-Type": "application/json" };
-      if (process.env.REACT_APP_STRAPI_TOKEN) {
-        headers.Authorization = `Bearer ${process.env.REACT_APP_STRAPI_TOKEN}`;
-      }
-
-      const res = await fetch(`${base}/api/favoritos/${id}`, {
-        method: "DELETE",
-        headers,
-      });
-
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Error al eliminar: ${res.status} ${txt}`);
-      }
-
+      const token = await getFavToken();
+      await eliminarFavorito(id, token);
       setItems((prev) => prev.filter((it) => Number(it.id) !== Number(id)));
     } catch (err) {
       console.error(err);
-      alert("No se pudo quitar el favorito: " + (err.message || err));
+      if (toast?.error) toast.error("No se pudo quitar el favorito: " + (err.message || err));
     }
   };
 
@@ -231,7 +217,23 @@ const Favoritos = () => {
         >
           <Divider sx={{ mb: 2 }} />
 
-          {loadingItems ? (
+          {!isLoading && !isAuthenticated ? (
+            <Box sx={{ py: 6, textAlign: "center" }}>
+              <Typography variant="h6" fontWeight={700} gutterBottom>
+                Tienes que iniciar sesión para poder agregar y visualizar favoritos
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Guarda productos, cursos, contenidos y clubs en un solo lugar.
+              </Typography>
+              <PurpleButton
+                startIcon={<LoginIcon />}
+                onClick={() => loginWithRedirect({ appState: { returnTo: location.pathname } })}
+                sx={{ px: 4, py: 1.2 }}
+              >
+                Iniciar sesión
+              </PurpleButton>
+            </Box>
+          ) : loadingItems ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
               <CircularProgress />
             </Box>

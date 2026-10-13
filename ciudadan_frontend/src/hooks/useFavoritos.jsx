@@ -1,13 +1,13 @@
 import { useState } from 'react';
-
-const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
+import { fetchFavoritos, toggleFavorito as toggleFavoritoService } from '../services/favoritosService';
 
 export default function useFavoritos({ token, user }) {
+  void user;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   /**
-   * Agregar favorito
+   * Agregar favorito (vía toggle: si ya existe no lo duplica).
    * @param {Object} params
    * @param {'producto'|'curso'|'contenido'|'club'} params.tipo
    * @param {number} params.id  -> id del producto / curso / contenido / club
@@ -26,36 +26,16 @@ export default function useFavoritos({ token, user }) {
         throw new Error('ID requerido para guardar favorito');
       }
 
-      // Base del payload
-      const data = {
+      // Endpoint autenticado con el token Auth0 que recibe el hook
+      // (antes hacía POST a la ruta core sin auth -> 401).
+      const resultado = await toggleFavoritoService({
         tipo,
-        usuario: user?.id,
-        usuario_email: user?.email,
+        elementoId: id,
         url,
-        producto: null,
-        curso: null,
-        contenido: null,
-        club: null,
-      };
-
-      // Asignar SOLO la relación correspondiente
-      data[tipo] = id;
-
-      const res = await fetch(`${STRAPI_URL}/api/favoritos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ data }),
+        token,
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw err;
-      }
-
-      return await res.json();
+      return resultado;
     } catch (err) {
       console.error('Error al guardar favorito:', err);
       setError(err);
@@ -65,8 +45,27 @@ export default function useFavoritos({ token, user }) {
     }
   };
 
+  /**
+   * ¿Este elemento ya es favorito del usuario autenticado?
+   * (Antes no existía: DetalleFoodProduct lo desestructuraba y recibía
+   * `undefined`, por eso el check inicial estaba comentado.)
+   */
+  const existeFavorito = async ({ tipo, id }) => {
+    if (!['producto', 'curso', 'contenido', 'club'].includes(tipo)) return false;
+    if (!id) return false;
+
+    const data = await fetchFavoritos(token, { tipo, limit: 100 });
+    const list = Array.isArray(data?.data) ? data.data : [];
+    return list.some((fav) => {
+      const rel = fav?.attributes?.[tipo]?.data ?? fav?.[tipo];
+      const relId = rel?.id ?? rel;
+      return String(relId) === String(id);
+    });
+  };
+
   return {
     addFavorito,
+    existeFavorito,
     loading,
     error,
   };

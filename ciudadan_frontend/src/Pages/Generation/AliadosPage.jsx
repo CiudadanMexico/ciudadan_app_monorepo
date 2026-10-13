@@ -3,7 +3,7 @@
  * Aliados Fundadores: construir juntos, no sólo patrocinar.
  */
 import { useEffect } from 'react';
-import { Box, Chip, Grid, Typography } from '@mui/material';
+import { Box, Chip, Grid2 as Grid, Typography } from '@mui/material';
 import SchoolRounded from '@mui/icons-material/SchoolRounded';
 import FactoryRounded from '@mui/icons-material/FactoryRounded';
 import TerrainRounded from '@mui/icons-material/TerrainRounded';

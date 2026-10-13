@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { TreeNodeDTO, DocumentResponseDTO } from '../types/wiki';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:33035/wiki';
+// Base del socket-service (host del WikiRouter). Se usa REACT_APP_SOCKET_URL
+// (la variable que sí existe en .env); el default local solo aplica en dev.
+const API_BASE_URL = `${(process.env.REACT_APP_SOCKET_URL || 'http://localhost:33035').replace(/\/$/, '')}/wiki`;
 
 export const wikiService = {
   // Método nuevo adaptado para pedir la sección dinámicamente

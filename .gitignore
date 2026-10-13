@@ -20,3 +20,6 @@ package-lock.json
 ciudadan_frontend/ssl/
 ciudadan_frontend/.env
 ciudadan_backend_26/.env
+
+# Wiki: los .md viven FUERA del repo (ver site-setting.wikis_path)
+ciudadan_backend_26/socket-service/wiki/

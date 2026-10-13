@@ -22,6 +22,9 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PlaceIcon from '@mui/icons-material/Place';
 import productoImg from '../../assets/placeholders/producto.png';
 import { esFavorito, toggleFavorito } from "../../services/favoritosService";
+import { useAuth0 } from "@auth0/auth0-react";
+
+const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
 
 // Componente ProductoCard
 // Props esperadas:
@@ -68,9 +71,22 @@ export default function ProductoCard({
 }) {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [favLoading, setFavLoading] = useState(false);
   const [favorito, setFavorito] = useState(false);
   const [favoritoId, setFavoritoId] = useState(null);
+
+  // Token Auth0 para los endpoints de favoritos (sin él Strapi responde 401).
+  const getFavToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
 
   // determinar productId real (acepta varias formas)
   const productId = productoId || id || null;
@@ -114,12 +130,14 @@ export default function ProductoCard({
     setFavLoading(true);
     try {
 
+      const token = await getFavToken();
       const resultado = await toggleFavorito({
         usuarioId: currentUserId,
         usuarioEmail: user_email,
         tipo: "producto",
         elementoId: productId,
-        url: slug
+        url: slug,
+        token,
       });
 
       setFavorito(resultado.favorito);
@@ -143,12 +161,15 @@ export default function ProductoCard({
 
   const verificarFavorito = async (userId, productId) => {
     if (!productId) return;
+    if (!isAuthenticated) return;
     setFavLoading(true);
     try {
+      const token = await getFavToken();
       const resultado = await esFavorito(
         userId,
         "producto",
-        productId
+        productId,
+        token
       );
 
       setFavorito(resultado.favorito);

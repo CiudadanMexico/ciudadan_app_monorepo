@@ -238,7 +238,11 @@ export default function MembershipCheckout({
     setMessage(null);
 
     if (!isAuthenticated || !usuarioEmail) {
-      setMessage({ type: "error", text: "Debes iniciar sesión con Auth0 antes de pagar." });
+      // Sin sesión: mandar a iniciar sesión y volver aquí al terminar
+      // (la guarda de render ya muestra <Ingresa/>, esto cubre el resto).
+      loginWithRedirect({
+        appState: { returnTo: window.location.pathname + window.location.search },
+      });
       return;
     }
 

@@ -5,44 +5,62 @@ const express = require("express");
 const router = express.Router();
 
 /**
- * POST /
- * Body esperado (ejemplo):
+ * POST /notifica  — emisión en tiempo real SOLO al destinatario.
+ *
+ * Cuerpo del nuevo contrato (lo llama Strapi desde notificacion service):
  * {
- *   "title": "Nueva notificación",
- *   "body": "Tienes un nuevo mensaje",
- *   "email": "usuario@ejemplo.com", // opcional: si se provee, emitimos también solo a esa room
- *   "meta": { ... } // opcional
+ *   "email": "usuario@ejemplo.com",
+ *   "notification": { "id": 1, "attributes": { ... } },   // forma Strapi
+ *   "broadcast": false
  * }
+ *
+ * RETRO-COMPATIBILIDAD: si no llega `notification`, todo el body se emite
+ * (así funcionan llamadas antiguas tipo { title, body, email, meta }).
+ *
+ * CRÍTICO: NUNCA se emite en global por defecto. Un `io.emit` indiscriminado
+ * hacía que TODOS los usuarios conectados recibieran notificaciones privadas
+ * de terceros. El broadcast global exige `broadcast: true` explícito.
  */
 router.post("/", (req, res) => {
   try {
     const io = req.app.get("io");
-    const payload = req.body;
-
-    console.log("➡️ /notifica POST recibido, payload:", payload);
-
-    if (!payload || Object.keys(payload).length === 0) {
-      console.warn("❗ /notifica: payload vacío");
-      return res.status(400).json({ ok: false, error: "payload vacío" });
-    }
+    const body = req.body || {};
 
     if (!io) {
       console.error("❌ /notifica: no se encontró io en app (socket no inicializado)");
       return res.status(500).json({ ok: false, error: "socket no inicializado en el servidor" });
     }
 
-    // Emit global para que todos los clientes escuchen (tu cliente debe escuchar 'notification')
-    io.emit("notification", payload);
-    console.log("🔔 /notifica: emisión global 'notification' realizada:", payload);
+    const email = String(body.email || body.to || "").trim();
+    const broadcast = body.broadcast === true;
 
-    // Si mandan email en el payload, intentamos emitir también a la room con ese email
-    if (payload.email) {
-      const room = String(payload.email);
-      io.to(room).emit("notification", payload);
-      console.log(`🔔 /notifica: emisión dirigida a room ${room}`);
+    if (!broadcast && !email) {
+      console.warn("❗ /notifica: sin destinatario y sin broadcast explícito -> rechazado");
+      return res
+        .status(400)
+        .json({ ok: false, error: 'Falta "email" (destinatario). El broadcast global requiere broadcast: true' });
     }
 
-    return res.status(200).json({ ok: true, sentTo: payload.email ? ["global", payload.email] : ["global"] });
+    // Compatibilidad: si no traen `notification`, todo el body es la notificación.
+    const notification =
+      body.notification !== undefined && body.notification !== null
+        ? body.notification
+        : body;
+
+    const payload = broadcast ? { ...notification, broadcast: true } : notification;
+
+    if (broadcast) {
+      // Sólo explícito y deliberado (nunca es el comportamiento por defecto).
+      io.emit("notification", payload);
+      console.warn("⚠️ /notifica: BROADCAST GLOBAL explícito solicitado");
+      return res.status(200).json({ ok: true, sentTo: ["broadcast"] });
+    }
+
+    const room = String(email);
+    io.to(room).emit("notification", payload);
+    console.log(`🔔 /notifica: emitido al room ${room}`);
+
+    return res.status(200).json({ ok: true, sentTo: [room] });
   } catch (err) {
     console.error("/notifica error:", err);
     return res.status(500).json({ ok: false, error: String(err) });

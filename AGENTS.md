@@ -5,6 +5,11 @@ Monorepo (plain git, no workspace tooling) for **Ciudadan**, a Spanish-language 
 - `ciudadan_backend_26/` — Strapi 4.25.9 headless CMS + REST/GraphQL API (Node 18)
 - `ciudadan_frontend/` — React 18 + CRA/CRACO + MUI v6 + Capacitor (Android/iOS)
 
+> **Notas:** el proyecto original incluía un módulo `ciudadan_backend_26/market/`
+> (Vendure e-commerce). Ese módulo se desmontó/figuramente por que solo servía
+> como pasarela de pago de Stripe; su directorio y dependencias fueron removidos.
+> No hay subproyectos extra, solo los dos descritos arriba.
+
 ## Commands
 
 ### Backend (`ciudadan_backend_26/`)
@@ -30,6 +35,8 @@ npx cap sync android && npx cap open android   # mobile build
 - **Implementation status:** `docs/final-cowork.md`, `docs/RESUMEN-AVANCES-COWORK.md`
 - **Database schema:** `docs/DATABASE-SCHEMA.md` (60 tables, generated from schemas)
 - **Auth/permissions detail:** `docs/TAREAS-CRUD-PERMISOS.md`
+- **Notifications API (toast + notificaciones):** `docs/NOTIFICACIONES.md` —
+  todo pasa por `useNotifications()`; nunca `useSnackbar` ni un segundo socket.
 - **Agenda migration:** `docs/AGENDA-VALIDATION-SYNC.md`
 - **Monorepo/CI plan:** `plan_nonorepo.md`
 - **Backend schema dump:** `ciudadan_backend_26/strapi-schema-export.md` (regenerate via `node export-strapi-schema.js`)
@@ -46,6 +53,7 @@ npx cap sync android && npx cap open android   # mobile build
 | **cartera** | User's laborys wallet. |
 | **calificación** | Rating a `tarea`; triggers automatic laborys payment (backend lifecycle, not frontend). |
 | **verificación** | Document-based validation of a user's area/subarea, stored in `up_users.area_details` JSON. |
+| **notificación** | Persistent message stored in `api::notificacion.notificacion`, delivered in realtime to the recipient's **socket room (email)**. Never broadcast globally. Use `useNotifications()` only: `toast.*` = ephemeral local, `send()` = persistent. Full guide: `docs/NOTIFICACIONES.md`. |
 
 ⚠️ `membresiatipo: 'socio'` (cannabis club membership) ≠ `roles.extra: 'socio'` (permission role). Different concepts.
 

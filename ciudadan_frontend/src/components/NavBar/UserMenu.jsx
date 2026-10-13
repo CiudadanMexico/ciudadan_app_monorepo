@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { useRoles } from "../../Contexts/RolesContext";
 import { useStores } from "../../hooks/useStores";
+import { irALogin } from "../../utils/authRedirect";
 
 const MENU_WIDTH = 320;
 
@@ -132,6 +133,13 @@ const UserMenu = ({
       )}
 
       {/* OPCIONES */}
+      {/* Anunciese — solo invitado: abre publia.mx/ciudadan en pestaña nueva. */}
+      <MenuItem
+        label="Anúnciese"
+        onClick={() => {
+          window.open('https://publia.mx/ciudadan', '_blank', 'noopener,noreferrer');
+        }}
+      />
       <MenuItem
         label={isActivaMembresia() ? "Mi Membresía" : "Membresías"}
         onClick={() => safeNavigate("/membresias")}
@@ -208,7 +216,7 @@ const UserMenu = ({
       ) : (
         <MenuItem
           label="Ingresar"
-          onClick={() => loginWithRedirect()}
+          onClick={() => irALogin(loginWithRedirect)}
         />
       )}
     </div>

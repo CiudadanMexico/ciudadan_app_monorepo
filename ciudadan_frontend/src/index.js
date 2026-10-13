@@ -13,12 +13,15 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { CartProvider } from './Contexts/CartContext';
 import NavBar from './components/NavBar/NavBar.jsx';
 import Rutas from './Routes/index.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 import Asistente from './components/Asistente/Asistente';
 import { SnackbarProvider } from 'notistack';
+import { NOTIF_TOAST_COMPONENTS } from './components/common/NotifToast.jsx';
 import { NotificationsProvider } from './Contexts/NotificationsContext';
 import './styles/index.css';
 
 import AuthGate from './components/AuthGate.jsx';
+import ErrorConfigAuth0, { auth0ConfigValida } from './components/ErrorConfigAuth0.jsx';
 import { Capacitor } from '@capacitor/core';
 import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
 
@@ -64,7 +67,7 @@ const AppWrapper = () => {
   if (isDomainPrelanzamiento) {
     // Si viene por subdominio, forzamos la vista de Prelanzamiento
     // pero mantenemos el wrapper para consistencia de Providers si fuera necesario
-    return <Rutas />; 
+    return (<><ScrollToTop /><Rutas /></>);
     // Nota: Rutas ya maneja la lógica de <Route path='/prelanzamiento' element={<Prelanzamiento />} />
     // pero para que el subdominio muestre Prelanzamiento sin que el usuario escriba /prelanzamiento,
     // necesitamos que Rutas sepa que debe renderizar Prelanzamiento.
@@ -123,7 +126,24 @@ const Auth0ProviderWithNavigate = ({ children }) => {
     : window.location.origin;
 
   const onRedirectCallback = (appState) => {
-    navigate(appState?.returnTo || '/', { replace: true });
+    // Fallback legacy: si el login vino por cookie returnTo (botones viejos),
+    // respetarla. Solo rutas internas para evitar open-redirect.
+    let destino = appState?.returnTo;
+    if (!destino) {
+      const match = document.cookie.match(new RegExp('(^| )returnTo=([^;]+)'));
+      if (match) {
+        try {
+          destino = decodeURIComponent(match[2]);
+        } catch {
+          destino = null;
+        }
+        document.cookie = 'returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      }
+    }
+    const ruta = typeof destino === 'string' && destino.startsWith('/') && !destino.startsWith('//')
+      ? destino
+      : '/';
+    navigate(ruta, { replace: true });
   };
 
   return (
@@ -150,26 +170,43 @@ const Auth0ProviderWithNavigate = ({ children }) => {
 // ==============================
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
-root.render(
+// Si la configuracion de Auth0 esta incompleta, no montamos Auth0Provider:
+// mostraria una redireccion rota a https://authorize/?client_id=...
+// En su lugar se muestra un error de configuracion accionable.
+const appElement = auth0ConfigValida() ? (
   <React.StrictMode>
     <Router>
+      <ScrollToTop />
       <Auth0ProviderWithNavigate>
         <AuthProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
             <RolesProvider>
-              <NotificationsProvider>
-                <CartProvider>
-                  <FoodCartProvider>
-                    <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+              {/* SnackbarProvider FUERA de NotificationsProvider: éste necesita
+                  consumir useSnackbar() para implementar la API de toast.
+                  `Components` SOLO define las variantes `notif-*` que usa
+                  useNotifications() -> look de marca (morado + verde neón). Las
+                  variantes por defecto (useSnackbar legacy) siguen igual. */}
+              <SnackbarProvider
+                maxSnack={3}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                Components={NOTIF_TOAST_COMPONENTS}
+              >
+                <NotificationsProvider>
+                  <CartProvider>
+                    <FoodCartProvider>
                       <AppWrapper />
-                    </SnackbarProvider>
-                  </FoodCartProvider>
-                </CartProvider>
-              </NotificationsProvider>
+                    </FoodCartProvider>
+                  </CartProvider>
+                </NotificationsProvider>
+              </SnackbarProvider>
             </RolesProvider>
           </LocalizationProvider>
         </AuthProvider>
       </Auth0ProviderWithNavigate>
     </Router>
   </React.StrictMode>
+) : (
+  <ErrorConfigAuth0 />
 );
+
+root.render(appElement);

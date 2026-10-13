@@ -181,5 +181,84 @@ Comparación de la lógica de negocio entre backend (`ciudadan_backend_26/src/ap
 | D3 | Baja | Documentar `todo.asignado_a` como "primer asignado" |
 | D4 | Baja | Confirmar con cliente si socio puede auto-asignarse |
 | D5 | Bloqueador | Diagnosticar fallo de `npm run develop` |
+| D6 | Alta (resuelto) | `userJson.areas` vs `{"data": user}` + subáreas aprobadas invisibles (ver §Chips de especialidades) |
 
 **Conclusión**: la lógica de negocio (state machine, matriz Fase 6, reglas de calificación Fase 4) está **alineada** entre backend y frontend. Las discrepancias son de robustez (transacción en `asignar.js`), semántica (`resolved_at`) y entorno (`npm run develop`). No hay bugs funcionales críticos en el happy path.
+
+---
+
+## Chips de especialidades (panel "Tareas especializadas") — `2026-10-08`
+
+**Comportamiento.** El panel muestra un chip por cada especialidad del usuario
+(áreas raíz activas + subáreas level 1 aprobadas, deduplicadas por nombre) con
+su conteo de tareas; el primero queda seleccionado por defecto. Cada chip
+filtra las tareas de esa especialidad (por `task.areas` o `task.subareas`). Los
+chips pendientes de verificación van punteados con «Pendiente». Cuando ya hay
+≥1 chip aparece un chip final **«+ Agregar»** que abre el formulario de
+auto-declaración (el mismo de antes, sin duplicarlo); con 0 especialidades se
+muestra el formulario directamente, como antes.
+
+**Root-cause del bug "aprobada pero no aparece"** (caso publia, `area_details["1"].status="verified"` con la relación `up_users_areas_links` ya ligada, y aun así el panel vacío). Dos fallos independientes que sumaban:
+1. **Shape**: `GET /api/users/:id/areas` responde `{"data": user}` y el frontend
+   leía `userJson.areas` (undefined) → el panel SIEMPRE estaba vacío. Ahora se
+   lee `userJson?.data?.areas ?? userJson?.areas ?? []`.
+2. **Level**: al aprobar una propuesta, `revisarSubarea` ligaba solo la subárea
+   `level: 1` y el panel filtraba `level === 0`. Ahora el helper
+   `buildSkillChips` (ver `src/utils/cowork.helpers.js`, con `buildSkillChips` +
+   `buildAreaEntry` y tests en `cowork.helpers.test.js`) incluye level 1, y el
+   backend además liga la raíz madre al aprobar para que los consumidores que
+   asumen raíces no se rompan. El endpoint `getAreas` también devuelve
+   `area_details` (flag de pendiente).
+
+---
+
+## Formulario «Agregar tarea» — nivel Especialidad ⇒ 2 selects — `2026-10-08`
+
+**Comportamiento.** Al elegir nivel **Especialidad** el formulario muestra dos
+selects obligatorios: **Área** y **Especialidad** (las skills activas del
+catálogo filtradas por esa área). `Experto`/`Personalizada` piden sólo Área
+(matriz `NIVELES_ESPECIALIZADA`, que filtra por `todo.areas`); `General` y
+`Becario` **no piden área** (spec: sólo requieren usuario verificado — antes
+el formulario la exigía siempre y bloqueaba crear tareas generales).
+
+**Modelo.** `skill.areas` (manyToMany ↔ `api::area.area` ↔ `area.skills`) es
+lo que permite filtrar especialidades por área. Antes hubo una relación
+`skill.area` (manyToOne, apuntando al mismo target): con las dos coexistiendo
+hubo DOS tablas join (`skills_area_links` y `skills_areas_links`, ambas
+vacías) y el `populate` del lado skill era inestable — **se eliminó `area`**
+(`2026-10-09`) y `areas` quedó como relación canónica única.
+Al crear en «Gestión de habilidades» el **área es requerida** (validación de
+UI: el diálogo unifica el form con la clave `form.area` pero el PUT/POPULATE
+usan `areas: [id]` — una skill se vincula a un área; el helper `areasIdOf`
+soporta el plural para leer). Las skills huérfanas quedan pendientes de
+editar.
+
+**Niveles del árbol.** El modelo ya soporta N niveles (`parent_area`/
+`subareas` + `level`); la lógica nueva (`src/utils/agregarTarea.helpers.js`)
+es **agnóstica al nivel**: camina `parent_area`, las etiquetas muestran la ruta
+(`Administrativo › Contabilidad`) y el select de Área sólo lista áreas con
+≥1 skill activo. Si mañana existe un nivel más, **los formularios no se tocan**:
+simplemente aparecerá un área nueva con su ruta.
+
+**Payload.** `areas` = cadena completa [raíz …, padre, propia] (para que el
+chip de la raíz agrupe la tarea y `canUserRateTask` siga filtrando),
+`subareas` = `[área]` si `level > 0`, `skills` = `[skillId]` (ya lo soportaba
+`preparePayloadForStrapi`). Tras crear, navega a la pestaña «especializadas»
+si el nivel es especializado.
+
+**Tests**: `src/utils/agregarTarea.helpers.test.js` (15: reglas por nivel,
+opciones filtradas, rutas de 3 niveles, validación del submit).
+
+**Nota 2026-10-09 — «No hay áreas disponibles para este nivel».** El bug tenía
+una causa real y una que lo enmascaraba:
+1. **Causa real (backend):** la ruta pública `GET /api/skills` no incluía
+   `global::allow-public-relations` (las rutas de todo/tarea/area sí). Con
+   `auth: false`, `ctx.state.auth` queda `undefined` y el sanitizador de
+   Strapi (`remove-restricted-relations`) BORRA en silencio cualquier relación
+   poblada. Por eso `populate[areas]` nunca llegaba al frontend aunque la
+   relación existiera en la DB (y `area.skills` inversa sí respondía).
+   Fix: `src/api/skill/routes/skill.js` suma la policy a `find`/`findOne`.
+2. **Nombre viejo (frontend):** `AgregarTarea.jsx` pedía `populate[area]`
+   (singular, relation eliminada) → ahora `populate[areas]=*`; `useSkills.js`
+   ya no pide el populate viejo; el diálogo de Gestión de habilidades envía
+   `areas: [id]`.

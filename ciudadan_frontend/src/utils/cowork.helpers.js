@@ -91,10 +91,19 @@ export const validateTaskStatusTransition = (from, to) => {
   return validTransitions[from]?.includes(to) || false;
 };
 
-export const buildAreaHierarchy = (areas, tasks) =>
-  areas
-  .filter((area) => area.level === 0 && area.isActive)
-  .map((area) => {
+/**
+ * buildAreaEntry — núcleo puro de un chip/entrada del panel: dada un área y
+ * la lista de tareas, devuelve la entrada con sus tareas directas y su
+ * agrupación por subáreas, en la misma forma que consume el panel
+ * (name, totalTasks, directTasks, subareas, verifiedCount).
+ *
+ * Para un área RAÍZ se usa el agrupado por subáreas de toda la vida.
+ * Para una SUBÁREA aprobada (level 1): no tiene sentido agrupar por debajo;
+ * la entrada lleva las tareas que la referencian en `task.subareas` (o en
+ * `task.areas`), con `subareas: []`.
+ */
+export const buildAreaEntry = (area, tasks) => {
+  if (!area.level) {
     const areaTasks = uniqueById(
       tasks.filter((task) => task.areas.some((taskArea) => taskArea.id === area.id))
     );
@@ -125,11 +134,94 @@ export const buildAreaHierarchy = (areas, tasks) =>
       directTasks: uniqueById(directTasks),
       subareas: Array.from(subareaMap.values()).sort((a, b) => (a.name || a.nombre || '').localeCompare(b.name || b.nombre || '')),
       totalTasks: areaTasks.length,
-      verifiedCount: areaTasks.filter(task => 
+      verifiedCount: areaTasks.filter(task =>
         task.area_details?.[area.id]?.status === 'verified'
       ).length
     };
+  }
+
+  const subareaTasks = uniqueById(
+    tasks.filter(
+      (task) =>
+        task.subareas.some((taskSubarea) => taskSubarea.id === area.id) ||
+        task.areas.some((taskArea) => taskArea.id === area.id)
+    )
+  );
+
+  return {
+    ...area,
+    directTasks: subareaTasks,
+    subareas: [],
+    totalTasks: subareaTasks.length,
+    verifiedCount: subareaTasks.filter(task =>
+      task.area_details?.[area.id]?.status === 'verified'
+    ).length
+  };
+};
+
+export const buildAreaHierarchy = (areas, tasks) =>
+  areas
+    .filter((area) => area.level === 0 && area.isActive)
+    .map((area) => buildAreaEntry(area, tasks));
+
+
+/**
+ * buildSkillChips — chips de especialidades del panel "Tareas especializadas".
+ *
+ * Entrada: las áreas asignadas al usuario (raíces level 0 y subáreas level 1
+ * aprobadas), la lista de tareas ya normalizadas y el `area_details` del
+ * usuario (para marcar las pendientes de verificación).
+ *
+ * Reglas:
+ *  - solo áreas activas;
+ *  - dedupe por slug del nombre: si conviven una raíz y una subárea con el
+ *    mismo nombre ("administrativo" bajo "Administrativo"), gana la raíz;
+ *  - orden estable: primero raíces por nombre, luego subáreas por nombre
+ *    (así "la primera por defecto" es determinista);
+ *  - cada chip lleva la misma forma que una entrada de hierarchy
+ *    (name, totalTasks, directTasks, subareas, verifiedCount) más
+ *    `pendiente`: true si area_details[id]?.status no es 'verified'.
+ */
+export const buildSkillChips = (areas = [], tasks = [], areaDetails = {}) => {
+  const slugOf = (name) =>
+    String(name || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/-{2,}/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  const pendingOf = (details, areaId) => {
+    if (!details || typeof details !== 'object') return false;
+    const entry = details[String(areaId)] ?? details[areaId];
+    if (!entry || typeof entry !== 'object') return false;
+    const status = String(entry.status || '').toLowerCase();
+    return status !== 'verified';
+  };
+
+  const activas = normalizeAreas(areas).filter((area) => area.isActive);
+  const bySlug = new Map();
+  for (const area of activas) {
+    const slug = slugOf(area.name) || `id-${area.id}`;
+    const prev = bySlug.get(slug);
+    // Gana la raíz sobre la subárea cuando el nombre choca.
+    if (!prev || (prev.level !== 0 && area.level === 0)) bySlug.set(slug, area);
+  }
+
+  const chips = Array.from(bySlug.values()).map((area) => {
+    const entry = buildAreaEntry(area, tasks);
+    return { ...entry, pendiente: pendingOf(areaDetails, area.id) };
   });
+
+  chips.sort((a, b) => {
+    if ((a.level === 0) !== (b.level === 0)) return a.level === 0 ? -1 : 1;
+    return String(a.name || '').localeCompare(String(b.name || ''));
+  });
+
+  return chips;
+};
 
 export const filterTasksBySkill = (tasks, skillId) => {
   return tasks.filter(task => 

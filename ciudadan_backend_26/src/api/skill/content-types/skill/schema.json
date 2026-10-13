@@ -34,6 +34,12 @@
       "relation": "manyToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "skills"
+    },
+    "areas": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::area.area",
+      "inversedBy": "skills"
     }
   }
 }

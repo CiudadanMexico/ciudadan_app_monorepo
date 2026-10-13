@@ -1148,6 +1148,11 @@ export interface ApiAgenciaAgencia extends Schema.CollectionType {
       'oneToMany',
       'plugin::users-permissions.user'
     >;
+    postulaciones: Attribute.Relation<
+      'api::agencia.agencia',
+      'oneToMany',
+      'api::postulacion-socio.postulacion-socio'
+    >;
     total_verifications: Attribute.Integer &
       Attribute.SetMinMax<
         {
@@ -1306,6 +1311,11 @@ export interface ApiAreaArea extends Schema.CollectionType {
       'api::area.area',
       'manyToMany',
       'plugin::users-permissions.user'
+    >;
+    skills: Attribute.Relation<
+      'api::area.area',
+      'manyToMany',
+      'api::skill.skill'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -2998,6 +3008,11 @@ export interface ApiDriverDriver extends Schema.CollectionType {
     promo_source: Attribute.String;
     promo_granted_at: Attribute.DateTime;
     promo_expires_at: Attribute.DateTime;
+    vehicle: Attribute.Relation<
+      'api::driver.driver',
+      'oneToOne',
+      'api::vehicle.vehicle'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -4141,6 +4156,48 @@ export interface ApiGenerationApplicationGenerationApplication
   };
 }
 
+export interface ApiInvitacionInvitacion extends Schema.CollectionType {
+  collectionName: 'invitaciones';
+  info: {
+    singularName: 'invitacion';
+    pluralName: 'invitaciones';
+    displayName: 'Invitacion';
+    description: 'Invitaciones de una agencia a un candidato/socio (pendientes / rechazadas).';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    email: Attribute.Email;
+    nombre: Attribute.String;
+    estado: Attribute.Enumeration<['pendiente', 'rechazada', 'aceptada']> &
+      Attribute.DefaultTo<'pendiente'>;
+    agencia: Attribute.Relation<
+      'api::invitacion.invitacion',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    fecha_invitacion: Attribute.DateTime;
+    fecha_respuesta: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::invitacion.invitacion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::invitacion.invitacion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiKitjardineroKitjardinero extends Schema.CollectionType {
   collectionName: 'kitjardineros';
   info: {
@@ -4429,6 +4486,100 @@ export interface ApiLogisticsTransactionLogisticsTransaction
   };
 }
 
+export interface ApiMediaMediaJob extends Schema.CollectionType {
+  collectionName: 'media_jobs';
+  info: {
+    singularName: 'media-job';
+    pluralName: 'media-jobs';
+    displayName: 'MediaJob';
+    description: 'Job multimedia via Ciudadan Media API (Bloque 5B). Ownership + media_job_id remoto + metadata UI. NO guarda Bearer ni paths internos.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    mediaJobId: Attribute.String;
+    type: Attribute.String & Attribute.Required;
+    status: Attribute.String & Attribute.DefaultTo<'queued'>;
+    resourceClass: Attribute.String;
+    usageContext: Attribute.String & Attribute.DefaultTo<'internal'>;
+    priority: Attribute.Integer & Attribute.DefaultTo<50>;
+    paramsSafeJson: Attribute.Text;
+    startedAt: Attribute.DateTime;
+    finishedAt: Attribute.DateTime;
+    errorCode: Attribute.String;
+    errorMessage: Attribute.Text;
+    warnings: Attribute.JSON;
+    parentJob: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'api::media.media-job'
+    >;
+    processingSeconds: Attribute.Float;
+    engine: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::media.media-job',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiMediaMediaUpload extends Schema.CollectionType {
+  collectionName: 'media_uploads';
+  info: {
+    singularName: 'media-upload';
+    pluralName: 'media-uploads';
+    displayName: 'MediaUpload';
+    description: 'Referencia de upload hacia la Media API (Bloque 5B). Ownership del archivo.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::media.media-upload',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    uploadId: Attribute.String & Attribute.Required;
+    storedPath: Attribute.String & Attribute.Private;
+    originalName: Attribute.String;
+    mimeType: Attribute.String;
+    sizeBytes: Attribute.Integer;
+    sha256: Attribute.String;
+    kind: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::media.media-upload',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::media.media-upload',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiMembresiaMembresia extends Schema.CollectionType {
   collectionName: 'membresias';
   info: {
@@ -4609,9 +4760,10 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
   attributes: {
     cuerpo: Attribute.Blocks;
     user_email: Attribute.String;
+    titulo: Attribute.String;
     usuario: Attribute.Relation<
       'api::notificacion.notificacion',
-      'oneToOne',
+      'manyToOne',
       'plugin::users-permissions.user'
     >;
     timestamp: Attribute.DateTime;
@@ -4621,6 +4773,7 @@ export interface ApiNotificacionNotificacion extends Schema.CollectionType {
     link: Attribute.String;
     imagen: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
     icono: Attribute.String;
+    meta: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -5041,6 +5194,66 @@ export interface ApiPostulacionPostulacion extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::postulacion.postulacion',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiPostulacionSocioPostulacionSocio
+  extends Schema.CollectionType {
+  collectionName: 'postulacion_socios';
+  info: {
+    singularName: 'postulacion-socio';
+    pluralName: 'postulacion-socios';
+    displayName: 'PostulacionSocio';
+    description: 'Candidatos que se postulan para ser socios de una agencia (/candidatos).';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nombre_completo: Attribute.String;
+    email: Attribute.Email;
+    telefono: Attribute.String;
+    codigo_pais: Attribute.String;
+    area: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'api::area.area'
+    >;
+    agencia: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    cv: Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    descripcion: Attribute.Text;
+    estado: Attribute.Enumeration<
+      ['pendiente', 'revisada', 'contactada', 'aceptada', 'rechazada']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    notas: Attribute.Text;
+    revisado_por: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    fecha_resolucion: Attribute.DateTime;
+    fecha_solicitud: Attribute.DateTime;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::postulacion-socio.postulacion-socio',
       'oneToOne',
       'admin::user'
     > &
@@ -5798,6 +6011,7 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     driver_verifier_required_referrals: Attribute.Integer &
       Attribute.DefaultTo<10>;
     verifier_candidates_whatsapp_group_url: Attribute.String;
+    wikis_path: Attribute.String;
     whatsapp_number: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -5841,6 +6055,11 @@ export interface ApiSkillSkill extends Schema.CollectionType {
       'api::skill.skill',
       'manyToMany',
       'plugin::users-permissions.user'
+    >;
+    areas: Attribute.Relation<
+      'api::skill.skill',
+      'manyToMany',
+      'api::area.area'
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
@@ -6586,6 +6805,104 @@ export interface ApiTriprequestTriprequest extends Schema.CollectionType {
   };
 }
 
+export interface ApiVehicleVehicle extends Schema.CollectionType {
+  collectionName: 'vehicles';
+  info: {
+    singularName: 'vehicle';
+    pluralName: 'vehicles';
+    displayName: 'Vehicle';
+    name: 'Vehicle';
+    description: 'Veh\u00EDculo operativo de un conductor. Agrupa los datos b\u00E1sicos de la unidad y la documentaci\u00F3n vinculada (tarjeta de circulaci\u00F3n, seguro y fotos de la unidad). La documentaci\u00F3n se mantiene privada; el acceso se regula por roles de verificaci\u00F3n.';
+    display: 'Veh\u00EDculo';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    agency: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'api::agencia.agencia'
+    >;
+    driver: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'api::driver.driver'
+    >;
+    concession_holder: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    plates: Attribute.String;
+    vin_number: Attribute.String & Attribute.Unique;
+    brand: Attribute.String;
+    model: Attribute.String;
+    year: Attribute.String;
+    color: Attribute.String;
+    vehicle_type: Attribute.String;
+    passenger_capacity: Attribute.String;
+    registration_card: Attribute.Media<undefined, true>;
+    insurance_document: Attribute.Media<undefined, true>;
+    vehicle_front_photo: Attribute.Media;
+    vehicle_side_photo: Attribute.Media;
+    vehicle_back_photo: Attribute.Media;
+    vehicle_interior_photo: Attribute.Media;
+    concession_reference: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    status: Attribute.Enumeration<
+      [
+        'preregistrado',
+        'documento_completo',
+        'en_revision',
+        'aprobado',
+        'suspenso',
+        'reevaluacion'
+      ]
+    > &
+      Attribute.DefaultTo<'preregistrado'>;
+    validated_by: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    validated_at: Attribute.DateTime;
+    observation: Attribute.Text;
+    created_by: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    updated_by: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::vehicle.vehicle',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiVerificationAuditVerificationAudit
   extends Schema.CollectionType {
   collectionName: 'verification_audits';
@@ -6986,12 +7303,15 @@ declare module '@strapi/types' {
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::generation-application.generation-application': ApiGenerationApplicationGenerationApplication;
+      'api::invitacion.invitacion': ApiInvitacionInvitacion;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
       'api::license-catalog.license-catalog': ApiLicenseCatalogLicenseCatalog;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::logistics-balance.logistics-balance': ApiLogisticsBalanceLogisticsBalance;
       'api::logistics-transaction.logistics-transaction': ApiLogisticsTransactionLogisticsTransaction;
+      'api::media.media-job': ApiMediaMediaJob;
+      'api::media.media-upload': ApiMediaMediaUpload;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
       'api::message.message': ApiMessageMessage;
@@ -7002,6 +7322,7 @@ declare module '@strapi/types' {
       'api::pedido.pedido': ApiPedidoPedido;
       'api::planta.planta': ApiPlantaPlanta;
       'api::postulacion.postulacion': ApiPostulacionPostulacion;
+      'api::postulacion-socio.postulacion-socio': ApiPostulacionSocioPostulacionSocio;
       'api::pregunta-producto.pregunta-producto': ApiPreguntaProductoPreguntaProducto;
       'api::producto.producto': ApiProductoProducto;
       'api::publicacion.publicacion': ApiPublicacionPublicacion;
@@ -7028,6 +7349,7 @@ declare module '@strapi/types' {
       'api::todo.todo': ApiTodoTodo;
       'api::transaccion.transaccion': ApiTransaccionTransaccion;
       'api::triprequest.triprequest': ApiTriprequestTriprequest;
+      'api::vehicle.vehicle': ApiVehicleVehicle;
       'api::verification-audit.verification-audit': ApiVerificationAuditVerificationAudit;
       'api::verification-audit-item.verification-audit-item': ApiVerificationAuditItemVerificationAuditItem;
       'api::viaje.viaje': ApiViajeViaje;

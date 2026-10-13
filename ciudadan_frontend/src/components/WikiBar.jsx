@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import UserIcon from "./NavBar/UserIcon"; 
 import { useAuth0 } from "@auth0/auth0-react";
+import { irALogin } from "../utils/authRedirect";
 // assets
 import logo from "../assets/wikiciudadan.png";
 import guestImg from "../assets/guest.png";
@@ -87,12 +88,7 @@ const WikiBar = ({ SetIsMenuOpen }) => {
   };
 
   const handleLogin = () => {
-    // Guarda la URL actual antes de hacer login
-    const currentUrl = window.location.pathname + window.location.search;
-    document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
-    console.log("URL guardada en cookie antes de login:", currentUrl);
-    // Redirige a Auth0
-    loginWithRedirect();
+    irALogin(loginWithRedirect);
     setIsMenuOpen(false);
   };
   

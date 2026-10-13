@@ -300,6 +300,12 @@
     "promo_expires_at": {
       "type": "datetime",
       "comment": "Opcional. NO se calcula al descargar la app: los meses promocionales corren desde el inicio de la membresía real"
+    },
+    "vehicle": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::vehicle.vehicle",
+      "inversedBy": "driver"
     }
   }
 }

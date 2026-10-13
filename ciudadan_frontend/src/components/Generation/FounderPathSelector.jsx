@@ -2,7 +2,7 @@
  * FounderPathSelector — grid con las 4 vías de la Generación Fundadora.
  * Al abrir una vía navega a su landing y emite generation_path_selected.
  */
-import { Grid } from '@mui/material';
+import { Grid2 as Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import GenerationPathCard from './GenerationPathCard';
 import { GENERATION_PATHS } from '../../config/generationFounderConfig';

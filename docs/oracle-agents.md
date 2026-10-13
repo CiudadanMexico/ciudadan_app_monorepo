@@ -227,7 +227,11 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:33432/admin     # 200
 
 # frontend + URLs inyectadas en el bundle
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3002/           # 200
-curl -s http://localhost:3002/static/js/bundle.js -o /tmp/b.js
+# El bundle de dev lleva hash en el nombre (lo firma craco.config.js para que
+# el borde de Cloudflare no lo sirva cacheado), así que la ruta se lee del HTML
+# en vez de hardcodear /static/js/bundle.js.
+B=$(curl -s http://localhost:3002/ | grep -oE '/static/js/bundle[^"]*\.js' | head -1)
+curl -s "http://localhost:3002${B}" -o /tmp/b.js
 grep -c 'localhost:33432' /tmp/b.js   # > 0 (URL Strapi)
 grep -c 'localhost:33035' /tmp/b.js   # > 0 (URL socket)
 

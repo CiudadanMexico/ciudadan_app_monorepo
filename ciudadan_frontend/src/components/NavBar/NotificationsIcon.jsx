@@ -14,7 +14,7 @@ import "../../styles/MessagesIcon.css";
  */
 const NotificationsIcon = ({ count: propCount, handleLogout, containerRef }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { unreadCount, refreshNotificaciones, loading } = useNotifications();
+  const { unreadCount, refresh, loading } = useNotifications();
 
   const count = typeof propCount === "number" ? propCount : Number(unreadCount || 0);
 
@@ -25,11 +25,11 @@ const NotificationsIcon = ({ count: propCount, handleLogout, containerRef }) => 
     if (next) {
       // al abrir, intentamos traer la lista actualizada (silencioso)
       try {
-        if (typeof refreshNotificaciones === "function") {
-          await refreshNotificaciones();
+        if (typeof refresh === "function") {
+          await refresh();
         }
       } catch (err) {
-        console.error("NotificationsIcon: refreshNotificaciones error", err);
+        console.error("NotificationsIcon: refresh error", err);
       }
     }
   };

@@ -3,7 +3,7 @@
  * (2 meses → 1/3, 6 meses → 1/3, 12 meses → 1/3) con ejemplo desglosado.
  * Los datos provienen de CIT.vesting / CIT.example en la config central.
  */
-import { Box, Typography, Stack, Grid } from '@mui/material';
+import { Box, Typography, Stack, Grid2 as Grid } from '@mui/material';
 import { GEN_COLORS, GEN_FONTS } from './GenerationTheme';
 
 const CitVestingTimeline = ({ vesting = [], example }) => (
