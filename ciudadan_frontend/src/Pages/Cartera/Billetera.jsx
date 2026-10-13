@@ -62,9 +62,12 @@ const Billetera = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data = await res.json();
-      setCartera(data?.data || data);
+      // Normalizar envelope: el controlador puede devolver la cartera directa
+      // o envuelta ({ data: {...} } o { data: { data: {...} } }) según el caso.
+      const normalizada = data?.data?.data ?? data?.data ?? data ?? null;
+      setCartera(normalizada);
 
-      const wallet = data?.wallet_address || data?.data?.wallet_address;
+      const wallet = normalizada?.wallet_address;
       if (wallet) {
         setCargandoHist(true);
         const resHist = await fetch(
