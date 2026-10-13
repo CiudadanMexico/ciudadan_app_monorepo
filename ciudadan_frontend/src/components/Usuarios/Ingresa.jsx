@@ -7,22 +7,12 @@ import {
   Button,
 } from "@mui/material";
 import LoginIcon from "@mui/icons-material/Login";
+import { irALogin } from "../../utils/authRedirect";
 
 const Ingresa = () => {
   const { loginWithRedirect } = useAuth0();
 
-  const handleLogin = () => {
-    const currentUrl =
-      window.location.pathname + window.location.search;
-
-    document.cookie = `returnTo=${encodeURIComponent(
-      currentUrl
-    )}; path=/; max-age=3600`;
-
-    console.log("URL guardada en cookie antes de login:", currentUrl);
-
-    loginWithRedirect();
-  };
+  const handleLogin = () => irALogin(loginWithRedirect);
 
   return (
     <Card sx={{ maxWidth: 760, mx: "auto", mt: 4 }}>

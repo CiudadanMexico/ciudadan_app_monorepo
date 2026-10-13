@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import '../../styles/AccountMenuInfo.css';
 import UserMenu from './UserMenu';
+import { irALogin, salir } from '../../utils/authRedirect';
 
 const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handleLinkClick, defaultProfileImage, guestImage, containerRef }) => {
   //const containerRef = useRef(null);
@@ -49,8 +50,7 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogin = async () => {
-    const returnTo = window.location.pathname + window.location.search;
-    await loginWithRedirect({ appState: { returnTo } });
+    await irALogin(loginWithRedirect);
     setIsProfileMenuOpen(false);
   };
 
@@ -63,7 +63,7 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogoutWithLog = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    salir(logout);
     setIsProfileMenuOpen(false);
   };
 
