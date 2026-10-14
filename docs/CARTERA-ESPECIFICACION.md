@@ -409,6 +409,53 @@ socket apagado: contenido intacto + mensaje honesto), nunca queda vacía.
 
 ---
 
+### 10.6 Acceso por túnel Cloudflare: CORS obligatorio (caso real diagnosticado)
+
+**Situación (máquina `adrianperez2`, túnel `ciudadan-adrianperez2`):** el
+frontend se sirve por `https://frontend-adrianperez2.ciudadan.org` →
+`localhost:3001`, y el socket por `https://socket-adrianperez2.ciudadan.org` →
+`localhost:33035` (ver `/etc/cloudflared/config.yml`). Cuando la persona entra
+**por el túnel**, el navegador pide la wiki **cross-origin** al socket.
+
+**Síntoma exacto:** la wiki muestra *"Documento no disponible / Aún no está
+publicado o la wiki no respondió"* aunque los `.md` existen y el socket los
+sirve. Causa: el socket responde `200` pero **sin** `Access-Control-Allow-Origin`
+porque el origen del túnel no estaba en `CORS_ORIGINS` → el navegador bloquea la
+respuesta. (En `localhost` directo funciona porque el origen sí estaba listado;
+por eso "en local se ve y por el túnel no".)
+
+**Dos piezas que deben coincidir:**
+
+1. **Frontend** — `.env` debe apuntar al socket **público**, no a `localhost`:
+   ```
+   REACT_APP_SOCKET_URL=https://socket-adrianperez2.ciudadan.org
+   ```
+   Con `http://localhost:33035`, el navegador del túnel pediría a *su propia*
+   máquina y la wiki nunca cargaría. CRA lee `REACT_APP_*` al arrancar: hay que
+   **reiniciar el dev server** tras cambiar el `.env`.
+
+2. **Socket** — `CORS_ORIGINS` debe incluir los orígenes del túnel
+   (`server.js` lee `CORS_ORIGINS` del entorno; si no, usa `defaultAccept`):
+   ```
+   CORS_ORIGINS=http://localhost:3001,http://localhost,https://frontend-adrianperez2.ciudadan.org,https://socket-adrianperez2.ciudadan.org
+   ```
+   Ya está añadido a `defaultAccept` en `server.js` (commit `ca657b2`) y al
+   `.env` del socket. Ojo: los valores con espacio tras la coma (`", https://…"`)
+   rompen el match exacto del `cors`; la lista debe ir sin espacios.
+
+**Verificación (reproducida):** petición con
+`Origin: https://frontend-adrianperez2.ciudadan.org` debe devolver
+`access-control-allow-origin: https://frontend-adrianperez2.ciudadan.org`, y
+`https://frontend-adrianperez2.ciudadan.org/wiki/help` debe listar los 12
+`cartera-*`; `/wiki/cartera-labory` el artículo completo.
+
+**Raíz física de los `.md` (aclarado):** el root real es
+`/var/www/apps/wikis` (`WIKI_ROOT_PATH`, fallback por defecto en Linux). Los 12
+`cartera-*.md` están sembrados ahí. **No existe** `/apps/wikialgo` ni está
+referenciado en el repo; el seed es idempotente (`0 copiados, 32 sin cambios`).
+
+---
+
 ## 11. Fuera de alcance en este bloque (explícito)
 
 No se implementó: **simuladores**, **movimientos de dinero**, **emisión de
