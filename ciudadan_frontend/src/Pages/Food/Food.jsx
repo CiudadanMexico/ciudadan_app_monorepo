@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Buscador from '../../components/Food/Buscador.jsx';
 import ProductoCard from '../../components/MarketPlace/ProductoCard.jsx';
-import CategoriasSlider from '../../components/MarketPlace/CategoriasSlider.jsx';
+import FoodCategorias from '../../components/Food/FoodCategorias.jsx';
 import { useUbicacion } from '../../hooks/useUbicacion.jsx';
 import useProductos from '../../hooks/useProductos.jsx';
 import EnviosBanner from '../../components/Food/EnviosBanner.jsx';
@@ -19,13 +19,11 @@ import {
   useMediaQuery,
   useTheme,
   Paper,
-  Chip,
   Tab,
   Tabs,
 } from '@mui/material';
 
 // Iconos
-import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import { useFoodCategories } from '../../hooks/food/useFoodCategories.jsx';
@@ -105,7 +103,7 @@ const Food = ({ filtros = '', parametros = '' }) => {
     if (!slug) return;
     navigate(`/productos/busqueda/${slug}`);
   };
-  const handleCategoriaClick = (slug) => navigate(`/productos/categoria/${slug}`);
+  const handleCategoriaClick = (slug) => setSelectedCategory(slug);
   const handleOfertas = () => navigate('/comida/ofertas');
   const handleEnvios = () => navigate('/comida/envios');
 
@@ -386,61 +384,13 @@ const Food = ({ filtros = '', parametros = '' }) => {
                 </Stack>
 
                 {/* CATEGORÍAS */}
-                {(!loadingCategories && categorias.length > 0 && showCategories) && (
-                  <Box sx={{ mb: 3 }}>
-                    <Paper
-                      elevation={1}
-                      sx={{
-                        p: 2,
-                        mb: 2,
-                        borderRadius: 2,
-                        display: 'flex',
-                        gap: 2,
-                        alignItems: 'center',
-                        background: 'linear-gradient(90deg, rgba(255,242,224,0.95), rgba(255,245,232,0.95))',
-                      }}
-                    >
-                      <DeliveryDiningIcon sx={{ fontSize: 40, color: SEARCH_ORANGE }} />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="subtitle1" fontWeight={900} sx={{ color: '#d35400' }}>
-                          Tu comida favorita en casa en menos de 45 min
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Pago justo para quien te la trae • Opciones rápidas y sin contacto
-                        </Typography>
-                      </Box>
-                      <Button
-                        onClick={handleOfertas}
-                        variant="contained"
-                        sx={{
-                          bgcolor: '#ffb74d',
-                          color: '#4b2e00',
-                          fontWeight: 700,
-                          textTransform: 'none',
-                        }}
-                      >
-                        Ver ofertas
-                      </Button>
-                    </Paper>
-
-                    <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Chip label="Entrega rápida" icon={<AccessTimeIcon />} sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                      <Chip label="Pago justo" icon={<MonetizationOnIcon />} sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                      <Chip label="Vegano" sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                      <Chip label="Sin contacto" sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                    </Box>
-
-                    <Box sx={{ bgcolor: 'transparent', p: 1, borderRadius: 2 }}>
-                      <CategoriasSlider
-                        categorias={categorias.map((c) => ({
-                          nombre: c.attributes?.nombre,
-                          slug: c.attributes?.slug,
-                          imagen: c?.attributes?.imagen?.urls?.thumbnail ?? c?.attributes?.imagen?.urls?.small ?? c?.attributes?.imagen?.urls?.original ?? '',
-                        }))}
-                        onClick={(slug) => handleCategoriaClick(slug)}
-                      />
-                    </Box>
-                  </Box>
+                {showCategories && (
+                  <FoodCategorias
+                    categorias={categorias}
+                    loading={loadingCategories}
+                    onSelectCategory={handleCategoriaClick}
+                    onVerOfertas={handleOfertas}
+                  />
                 )}
 
                 {/* TITULO */}
@@ -597,58 +547,14 @@ const Food = ({ filtros = '', parametros = '' }) => {
           {/* CATEGORÍAS */}
           {(!loadingCategories && categorias.length > 0 && showCategories) && (
             <Box sx={{ mb: 3 }}>
-              <Paper
-                elevation={1}
-                sx={{
-                  p: 2,
-                  mb: 2,
-                  borderRadius: 2,
-                  display: 'flex',
-                  gap: 2,
-                  alignItems: 'center',
-                  background: 'linear-gradient(90deg, rgba(255,242,224,0.95), rgba(255,245,232,0.95))',
-                }}
-              >
-                <DeliveryDiningIcon sx={{ fontSize: 40, color: SEARCH_ORANGE }} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="subtitle1" fontWeight={900} sx={{ color: '#d35400' }}>
-                    Tu comida favorita en casa en menos de 45 min
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Pago justo para quien te la trae • Opciones rápidas y sin contacto
-                  </Typography>
-                </Box>
-                <Button
-                  onClick={handleOfertas}
-                  variant="contained"
-                  sx={{
-                    bgcolor: '#ffb74d',
-                    color: '#4b2e00',
-                    fontWeight: 700,
-                    textTransform: 'none',
-                  }}
-                >
-                  Ver ofertas
-                </Button>
-              </Paper>
-
-              <Box sx={{ mb: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Chip label="Entrega rápida" icon={<AccessTimeIcon />} sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                <Chip label="Pago justo" icon={<MonetizationOnIcon />} sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                <Chip label="Vegano" sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-                <Chip label="Sin contacto" sx={{ bgcolor: '#fff7f0', fontWeight: 700 }} />
-              </Box>
-
-              <Box sx={{ bgcolor: 'transparent', p: 1, borderRadius: 2 }}>
-                <CategoriasSlider
-                  categorias={categorias.map((c) => ({
-                    nombre: c.attributes?.nombre,
-                    slug: c.attributes?.slug,
-                    imagen: c?.attributes?.imagen?.urls?.thumbnail ?? c?.attributes?.imagen?.urls?.small ?? c?.attributes?.imagen?.urls?.original ?? '',
-                  }))}
-                  onClick={(slug) => handleCategoriaClick(slug)}
+              {showCategories && (
+                <FoodCategorias
+                  categorias={categorias}
+                  loading={loadingCategories}
+                  onSelectCategory={handleCategoriaClick}
+                  onVerOfertas={handleOfertas}
                 />
-              </Box>
+              )}
             </Box>
           )}
 
