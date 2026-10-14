@@ -84,6 +84,41 @@ Notas de `AppWrapper`: calcula `siteSection` según el primer segmento del path
 
 > ⚠️ `ClubContext` existe (`ClubContext.jsx`) pero **no se monta** en la pila de providers.
 
+### 2.1 Autenticación: flujo de login y logout (Auth0)
+
+**Login** — todas las entradas vuelven a la página donde estaba el usuario
+(`appState.returnTo = pathname + search + hash`; tras Auth0, `onRedirectCallback`
+en `src/index.js` hace `navigate(appState?.returnTo || '/', { replace: true })`):
+
+| Entrada | Archivo |
+|---|---|
+| Menú "Ingresar" (navbar) | `components/NavBar/NavBar.jsx` |
+| Item "Ingresar" (menú de usuario) | `components/NavBar/UserMenu.jsx` |
+| Icono de cuenta | `components/NavBar/UserIcon.jsx` |
+| Barra de `/wiki` | `components/WikiBar.jsx` |
+| Pantalla de checkout de membresías | `components/Usuarios/Ingresa.jsx` |
+| Botón suelto (no se usa en la UI actual) | `components/NavBar/LoginButton.jsx` |
+
+**Logout** — siempre al origen del frontend (`logoutParams.returnTo =
+window.location.origin`, sin path). Entradas: `NavBar.jsx`, `UserMenu.jsx`,
+`UserIcon.jsx`, `WikiBar.jsx` (item/menú "Salir"). `LogoutButton.jsx` existe con el
+mismo patrón pero **no se usa en la UI actual**.
+
+> ⚠️ **Regla Auth0 (verificada con curl el 2026-10-14):** el endpoint `/v2/logout`
+> valida `returnTo` contra las **Allowed Logout URLs de la APLICACIÓN**
+> (auth0-spa-js siempre envía `client_id`, así que la lista a nivel de **tenant no
+> aplica** a estas peticiones). Comprobado contra `ciudadan.us.auth0.com`:
+> - `returnTo=https://frontend-adrian1.ciudadan.org` → **302** → frontend ✔
+> - `returnTo=https://frontend-adrian1.ciudadan.org/cartera/pesos-mxn` → **400** (página de error) ✘
+> - sin `returnTo` → **302** a la primera Allowed Logout URL (p. ej. `http://localhost:3000/`) ✘
+>
+> Por eso el logout manda **solo el origen** (sin path) y **nunca** se omite el
+> `returnTo`. La app SPA (`client_id za265MeRdxMKuPqzdPSTL7lHL0yyg5bd`) debe tener
+> `https://*.ciudadan.org` en su Allowed Logout URLs (el wildcard de subdominios
+> **no** cubre el dominio raíz `https://ciudadan.org`).
+>
+> Cómo se despliega este frontend: **`docs/deploy-adrian1-local.md`**.
+
 <a name="rutas"></a>
 ## 3. Rutas del router (todas)
 
