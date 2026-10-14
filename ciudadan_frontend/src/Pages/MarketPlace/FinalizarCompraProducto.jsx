@@ -54,7 +54,24 @@ export default function FinalizarCompraProducto() {
     calcularPromedioRankingsPorProducto,
     obtenerResenas,
   } = useProductos();
-  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, user, getAccessTokenSilently } = useAuth0();
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const authBearer = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
+  const authHeaders = async () => {
+    const headers = { "Content-Type": "application/json" };
+    const token = await authBearer();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
   const { userData } = useRoles();
   const { precotizarPlataforma, precotizarMienvio, precotizarStripe } = useCart();
 
@@ -325,10 +342,12 @@ export default function FinalizarCompraProducto() {
         },
       };
 
+      const gToken = await authBearer();
       const carritoRes = await fetch(
         `${STRAPI}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(
           user?.email || ""
-        )}&filters[estado][$eq]=activo`
+        )}&filters[estado][$eq]=activo`,
+        { headers: gToken ? { Authorization: `Bearer ${gToken}` } : {} }
       );
 
       if (!carritoRes.ok) {
@@ -342,14 +361,14 @@ export default function FinalizarCompraProducto() {
         carritoCreatedId = carritoJson.data[0].id;
         const upd = await fetch(`${STRAPI}/api/carritos/${carritoCreatedId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify(carritoPayload),
         });
         if (!upd.ok) throw new Error("Error actualizando carrito");
       } else {
         const newCarrito = await fetch(`${STRAPI}/api/carritos`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify(carritoPayload),
         });
         if (!newCarrito.ok) throw new Error("Error creando carrito");
@@ -383,7 +402,7 @@ export default function FinalizarCompraProducto() {
 
       const res = await fetch(`${STRAPI}/api/pedidos`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify(payloadPedido),
       });
 
@@ -494,7 +513,7 @@ export default function FinalizarCompraProducto() {
 
       const upd = await fetch(`${STRAPI}/api/pedidos/${pedidoCreado.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({
           data: {
             status: "pendiente_verificacion",
@@ -513,7 +532,7 @@ export default function FinalizarCompraProducto() {
         console.log("cart y emojis - marcando carrito como pagado id:", carritoId);
         const updCar = await fetch(`${STRAPI}/api/carritos/${carritoId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify({
             data: { estado: "pagado" },
           }),

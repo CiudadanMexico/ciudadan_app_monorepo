@@ -92,7 +92,24 @@ const groupByStore = (items) => items.reduce((acc, item) => {
 export default function FinalizarCompra() {
   // Contexto carrito y auth
   const { total, updateQuantity, clearCart, items: itemsContext } = useCart();
-  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, user, getAccessTokenSilently } = useAuth0();
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const authBearer = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
+  const authHeaders = async () => {
+    const headers = { "Content-Type": "application/json" };
+    const token = await authBearer();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
   const { userData } = useRoles();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -356,7 +373,8 @@ export default function FinalizarCompra() {
   const handleUpdateCreateCart = async (payload) => {
     try {
       // Buscar carrito activo del usuario
-      const carritoRes = await fetch(`${STRAPI}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(user?.email || "")}&filters[estado][$eq]=activo`);
+      const gToken = await authBearer();
+      const carritoRes = await fetch(`${STRAPI}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(user?.email || "")}&filters[estado][$eq]=activo`, { headers: gToken ? { Authorization: `Bearer ${gToken}` } : {} });
 
       if (!carritoRes.ok) {
         const t = await carritoRes.text();
@@ -375,7 +393,7 @@ export default function FinalizarCompra() {
 
         const upd = await fetch(`${STRAPI}/api/carritos/${carritoCreatedId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify(payload),
         });
 
@@ -387,7 +405,7 @@ export default function FinalizarCompra() {
         console.log("handleUpdateCreateCart - creando nuevo carrito");
         const newCarrito = await fetch(`${STRAPI}/api/carritos`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify(payload),
         });
 
@@ -408,7 +426,8 @@ export default function FinalizarCompra() {
 
   const handleClearCart = async () => {
     try {
-      const resFetch = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(user.email)}&filters[estado][$eq]=activo`, { credentials: "include", });
+      const clearToken = await authBearer();
+      const resFetch = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/carritos?filters[usuario_email][$eq]=${encodeURIComponent(user.email)}&filters[estado][$eq]=activo`, { credentials: "include", headers: clearToken ? { Authorization: `Bearer ${clearToken}` } : {} });
       const json = await resFetch.json();
       const carritoEntry = json?.data?.[0];
 
@@ -429,11 +448,10 @@ export default function FinalizarCompra() {
         },
       };
 
+      const clearHeaders = await authHeaders();
       const resPut = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/carritos/${carritoIdStrapi}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: clearHeaders,
         credentials: "include",
         body: JSON.stringify(payload),
       });
@@ -579,7 +597,7 @@ export default function FinalizarCompra() {
           // Request para registro de pedidos
           const res = await fetch(`${STRAPI}/api/pedidos`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: await authHeaders(),
             body: JSON.stringify(payloadPedido),
           });
 
@@ -708,7 +726,7 @@ export default function FinalizarCompra() {
 
         const upd = await fetch(`${STRAPI}/api/pedidos/${p.id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           body: JSON.stringify({
             data: {
               status: "pendiente_verificacion",
