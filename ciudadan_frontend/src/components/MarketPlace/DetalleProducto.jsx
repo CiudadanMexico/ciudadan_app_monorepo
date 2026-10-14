@@ -23,12 +23,11 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useCart } from '../../Contexts/CartContext';
 import useFavoritos from '../../hooks/useFavoritos';
 import { useAuth0 } from '@auth0/auth0-react';
-
-const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
-
 import '../../styles/DetalleProducto.css';
 import { esFavorito, toggleFavorito } from "../../services/favoritosService";
 import { useRoles } from '../../Contexts/RolesContext';
+
+const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
 
 const MotionButton = motion(Button);
 

@@ -612,12 +612,12 @@ const CooWork = () => {
         setResolverDialog({ open: false, todo: null, notes: '', enlaces: [''] });
         setArchivosResolver([]);
 
-        // Llevar al usuario a donde puede ver el resultado de su entrega.
-        // (tab/subTab se derivan de la URL: navegamos a la ruta canonica.)
+        // Llevar al usuario a donde puede ver el resultado de su entrega
+        // (enrutamiento profundo: la URL manda, no el estado local).
         if (tienePermisoCRUD) {
-          navigate('/coowork/tareas-socio');
+          navigate(rutaDeTab('socio', 0));
         } else {
-          navigate('/coowork/mis-tareas');
+          navigate(rutaDeTab('mistareas', 0));
         }
       } catch (err) {
         console.error('Error resolviendo tarea general:', err);
