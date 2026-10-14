@@ -4,7 +4,6 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Divider,
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -27,13 +26,16 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 // Secciones en el orden editorial acordado.
 // - `clave` puede ser un string (campo plano) o un array de claves alternas.
+// - `siempre` marca la explicación PRINCIPAL: se muestra desplegada, sin que la
+//   persona tenga que abrir nada para entender el instrumento. Lo extenso
+//   (reglas, estado, pantalla de wiki) va dentro del bloque desplegable.
 const SECCIONES = [
-  { clave: ['proposito', 'queEs'], titulo: 'Resumen y propósito' },
-  { clave: 'comoFunciona', titulo: 'Cómo funciona' },
-  { clave: 'comoSeObtiene', titulo: '¿Cómo se obtiene o se participa?' },
-  { clave: 'paraQueSirve', titulo: '¿Para qué sirve?' },
-  { clave: 'miActividad', titulo: 'Mi actividad' },
-  { clave: 'acciones', titulo: 'Acciones y destinos' },
+  { clave: ['proposito', 'queEs'], titulo: 'Resumen y propósito', siempre: true },
+  { clave: 'comoFunciona', titulo: 'Cómo funciona dentro de Ciudadan', siempre: true },
+  { clave: 'comoSeObtiene', titulo: '¿Cómo se obtiene o se participa?', siempre: true },
+  { clave: 'paraQueSirve', titulo: '¿Qué permite hacer?', siempre: true },
+  { clave: 'miActividad', titulo: 'Mi actividad', siempre: true },
+  { clave: 'acciones', titulo: 'Acciones y destinos', siempre: true },
   { clave: 'reglas', titulo: 'Reglas y transparencia' },
   { clave: 'saberMas', titulo: 'Saber más: wiki y documentos' },
   { clave: 'estado', titulo: 'Estado de implementación' },
@@ -130,7 +132,7 @@ const construirSeccionesExtra = (contenido) => {
 };
 
 const TokenDetails = ({ nombre, contenido, defaultExpanded = false }) => {
-  const [expanded, setExpanded] = useState(defaultExpanded);
+  const [, setExpanded] = useState(defaultExpanded);
 
   if (!contenido) return null;
 
@@ -140,24 +142,29 @@ const TokenDetails = ({ nombre, contenido, defaultExpanded = false }) => {
   })).filter((seccion) => Boolean(seccion.texto));
 
   const seccionesCompuestas = construirSeccionesExtra(contenido);
-  const todas = [...secciones, ...seccionesCompuestas];
 
-  if (todas.length === 0) return null;
+  // Caja HECHA VISIBLE: explicación principal, desplegada desde el inicio.
+  const principales = secciones.filter((s) => s.titulo !== 'Reglas y transparencia');
+
+  // Bloque DESPLEGABLE: lo extenso (reglas y transparencia, estado,
+  // documentos wiki, etc.). El usuario lo abre solo si lo requiere.
+  const desplegables = [
+    ...secciones.filter((s) => s.titulo === 'Reglas y transparencia'),
+    ...seccionesCompuestas,
+    ...secciones.filter((s) => s.titulo === 'Estado de implementación'),
+  ];
+
+  if (principales.length === 0 && desplegables.length === 0) return null;
 
   return (
-    <Accordion
-      expanded={expanded}
-      onChange={(_, next) => setExpanded(next)}
-      disableGutters
-      elevation={0}
+    <Box
       sx={{
         mt: 2,
         width: '100%',
-        bgcolor: 'rgba(255,255,255,0.05)',
         border: '1px solid rgba(138,92,245,0.35)',
         borderRadius: 2,
-        '&:before': { display: 'none' },
-        color: 'white',
+        overflow: 'hidden',
+        bgcolor: 'rgba(255,255,255,0.04)',
       }}
     >
       <AccordionSummary
@@ -178,54 +185,116 @@ const TokenDetails = ({ nombre, contenido, defaultExpanded = false }) => {
         </Typography>
       </AccordionSummary>
 
-      <AccordionDetails sx={{ pt: 0 }}>
-        {todas.map((seccion, index) => (
-          <Box key={seccion.titulo} sx={{ mb: index === todas.length - 1 ? 0 : 2 }}>
+      {/* 1) Principal, siempre visible */}
+      {principales.map((seccion, index) => (
+        <Box key={seccion.titulo} sx={{ p: 1.5, borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '0.78rem', sm: '0.82rem' },
+              color: '#8ee9d6',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+              mb: 0.5,
+            }}
+          >
+            {seccion.titulo}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: '0.82rem', sm: '0.88rem' },
+              lineHeight: 1.6,
+              color: 'rgba(255,255,255,0.88)',
+              whiteSpace: 'pre-line',
+              textAlign: 'left',
+            }}
+          >
+            {seccion.texto}
+          </Typography>
+        </Box>
+      ))}
+
+      {/* 2) Bloque desplegable: reglas y transparencia, estado, documentos wiki. */}
+      {desplegables.length > 0 ? (
+        <Accordion
+          defaultExpanded={defaultExpanded}
+          onChange={(_, next) => setExpanded(next)}
+          disableGutters
+          elevation={0}
+          sx={{
+            mt: 0,
+            border: '1px solid rgba(138,92,245,0.35)',
+            borderTop: 'none',
+            width: '100%',
+            '&:first-of-type': { borderTop: '1px solid rgba(138,92,245,0.35)' },
+          }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon sx={{ color: '#c9b4ff' }} />}
+            aria-controls={`token-detail-${nombre}`}
+            id={`token-detail-header-${nombre}`}
+            sx={{ '& .MuiAccordionSummary-content': { my: 1 } }}
+          >
             <Typography
               sx={{
                 fontWeight: 700,
                 fontSize: { xs: '0.8rem', sm: '0.85rem' },
-                color: '#8ee9d6',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                mb: 0.5,
+                color: '#c9b4ff',
+                letterSpacing: '-0.01em',
               }}
             >
-              {seccion.titulo}
+              {desplegables.map((d) => d.titulo).join(' · ')}
             </Typography>
-            <Typography
-              sx={{
-                fontSize: { xs: '0.82rem', sm: '0.88rem' },
-                lineHeight: 1.6,
-                color: 'rgba(255,255,255,0.88)',
-                whiteSpace: 'pre-line',
-                textAlign: 'left',
-              }}
-            >
-              {seccion.texto}
-            </Typography>
-            {index < todas.length - 1 && (
-              <Divider sx={{ mt: 1.5, borderColor: 'rgba(255,255,255,0.08)' }} />
-            )}
-          </Box>
-        ))}
+          </AccordionSummary>
 
-        {/* Versión y fecha de revisión del contenido (transparencia editorial) */}
-        {contenido.version && (
-          <Typography
-            sx={{
-              mt: 2,
-              fontSize: 11,
-              color: 'rgba(255,255,255,0.5)',
-              textAlign: 'left',
-            }}
-          >
-            Versión del contenido: {contenido.version}
-            {contenido.fecha ? ` · Revisado el ${contenido.fecha}` : ''}
-          </Typography>
-        )}
-      </AccordionDetails>
-    </Accordion>
+          <AccordionDetails sx={{ pt: 0 }}>
+            {desplegables.map((seccion, index) => (
+              <Box key={seccion.titulo} sx={{ mb: index === desplegables.length - 1 ? 0 : 2 }}>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: { xs: '0.78rem', sm: '0.82rem' },
+                    color: '#8ee9d6',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    mb: 0.5,
+                  }}
+                >
+                  {seccion.titulo}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: { xs: '0.82rem', sm: '0.88rem' },
+                    lineHeight: 1.6,
+                    color: 'rgba(255,255,255,0.88)',
+                    whiteSpace: 'pre-line',
+                    textAlign: 'left',
+                  }}
+                >
+                  {seccion.texto}
+                </Typography>
+              </Box>
+            ))}
+          </AccordionDetails>
+        </Accordion>
+      ) : null}
+      )}
+
+      {/* Versión y fecha de revisión del contenido (transparencia editorial) */}
+      {contenido.version && (
+        <Typography
+          sx={{
+            mt: 1,
+            fontSize: 10,
+            color: 'rgba(255,255,255,0.45)',
+            textAlign: 'left',
+          }}
+        >
+          Versión del contenido: {contenido.version}
+          {contenido.fecha ? ` · Revisado el ${contenido.fecha}` : ''}
+        </Typography>
+      )}
+    </Box>
   );
 };
 

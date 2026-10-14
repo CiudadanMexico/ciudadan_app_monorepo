@@ -245,10 +245,91 @@ informativa. Ver `docs/CARTERA-PENDIENTES-BLOQUES.md` (pendiente P-04).
 | D-08 | Equivalencia MXN degradada a `Aviso` en el panel Resumen | Evitaba leerse como saldo disponible en pesos |
 | D-09 | Documentos wiki nuevos en `wikiseed/help/` | Es la fuente versionada real; no se migra ni sustituye la wiki |
 | D-10 | No se tocan estilos, navegación ni componentes reutilizables | El rediseño completo corresponde a bloques posteriores |
+---
+
+## 10. Corrección del bloque 1 (post-entrega): contenido en Cartera, roles y wiki
+
+**Contexto:** la entrega original puso el contenido sobre todo en dos superficies
+separadas: las fichas de Cartera (texto en el acordeón) y la wiki (11 documentos
+nuevos). La corrección exige que la información viva **integrada en las fichas**.
+
+### 10.1 Causa de que la información terminara sólo en wiki
+
+La causa fue de diseño de presentación, no de contenido: las secciones editoriales
+(`tokenContent.js`) existían, pero `TokenDetails.jsx` las metía todas dentro de un
+**único acordeón colapsado**, así que sin abrir nada la ficha mostraba apenas el
+saldo/resumen y el mensaje de "inicia sesión". La corrección separa:
+
+- **principal, siempre visible:** propósito, cómo funciona, cómo se obtiene,
+  para qué sirve, mi actividad y acciones;
+- **desplegable:** reglas y transparencia, estado de implementación y documentos
+  (fondo de recompra, aristas, simuladores).
+
+### 10.2 Componente de roles recuperado y procedencia
+
+Se recuperó —no se construyó otro— el carrusel de roles de
+`src/components/Home/Intro.jsx` (hero del Home): 4 roles, cada uno con su imagen
+real (`programadores.png`, `becarios.png`, `profesionales.png`,
+`universitarios.png`) y navegación con flechas. Búsqueda realizada antes de
+reutilizar: `Pages/Cartera`, `components/Cartera`, historial completo de
+`ImagenInteractiva.jsx`/`IngresosInfo.jsx`, `assets` y ramas remotas
+(`abraham-home`, `abraham-gana`, `abraham-cartera`, `abraham-wallet`,
+`abraham-lideresysociosconductores`, `el3-wallet-tunning`, `cartera-bankchain`).
+
+**Adaptación, no restauración literal:** el `Intro.jsx` original es un hero de
+pantalla completa con estilos neón; aquí se conservan las imágenes, los títulos
+y las flechas, y se montan en el estilo morado de Cartera con MUI + `sx`.
+Se descartó `ImagenInteractiva.jsx` (una sola imagen `roles.png` con 5 botones
+que disparan `alert()` sin hacer nada). Cada rol declara su destino real ya
+verificado (`/coowork?tab=generales`, `/gana/ver-anuncios`) y su simulador como
+**pendiente sin botón**. El carrusel se integró en la ficha de Pesos MXN fuera
+del gate de autenticación (no muestra datos privados: es la entrada visual a
+las formas de participar).
+
+### 10.3 Causa del fallo de visibilidad de los documentos nuevos de wiki
+
+**Arquitectura real, verificada:** la wiki NO lista archivos del disco. El árbol
+de navegación sale de la tabla `documents` de SQLite (`ciudadadan.db`) vía
+`DocumentRepositoryImpl.findAllForTree()`. La causa exacta, en dos puntos:
+
+1. `wikiseed/sync-wikis.js` sólo copiaba el `.md` al disco y **nunca indexaba
+   la BD**, reportando éxito mientras el artículo quedaba invisible en el
+   listado. **Tabla `documents`: 0 filas.**
+2. El `dist/` compilado del socket-service estaba **obsoleto**: `tsconfig.json`
+   no compilaba `config/WikiPaths.ts` ni `WikiRootProvider.ts`, y
+   `WikiService.js` resolvía el disco con `path.resolve(process.cwd(), …)`,
+   ignorando `wikis_path`. La lectura por URL directa devolvía el aviso
+   "El archivo físico no se encontró".
+
+**Corrección (causa, no sólo enlaces):**
+
+- `wikiseed/sync-wikis.js` ahora indexa con el **mismo servicio que el watcher**
+  (`WikiService.updateIndex`, idempotente por SHA-256): repetido no duplica,
+  `--dry-run` no toca nada, y si el `dist` no existe se reporta sin ocultar el
+  fallo (el servicio lo indexará al arrancar).
+- `socket-service/tsconfig.json`: `rootDir: "."` para compilar `config/`;
+  `dist/` regenerado con `tsc` (está en `.gitignore`: no se commitea).
+- Tanto el listado como la lectura se probaron contra el router real.
+  Sin permisos generales nuevos ni borradores expuestos.
+
+**Pruebas realizadas sobre la wiki:** `sync --dry-run` (no escribe, no indexa);
+sync real (12 documentos cartera + el resto, todos indexados); sync repetido
+(0 copiados, 0 indexados, sin duplicados); `GET /wiki/help` → 200 con los 12
+`cartera*` en el árbol; `GET /wiki/help/cartera-cit.md` → 200 con contenido
+íntegro; sección inválida → 400; documento inexistente → 404.
+
+### 10.4 Una fuente coherente, dos presentaciones
+
+- **Cartera:** contenido integrado y visible en la ficha (datos de
+  `tokenContent.js`), con la wiki como enlace complementario.
+- **Wiki:** explicación ampliada en `wikiseed/help/cartera*.md`.
+- Ambas usan la **misma fuente editorial**; no hay dos copias editadas a mano:
+  si el índice de la wiki falla, la ficha conserva su contenido versionado y
+  muestra el aviso en lugar de quedar vacía.
 
 ---
 
-## 9. Fuera de alcance en este bloque (explícito)
+## 11. Fuera de alcance en este bloque (explícito)
 
 No se implementó: **simuladores**, **movimientos de dinero**, **emisión de
 instrumentos**, **recompra**, **préstamos de objetos** ni **votaciones**.
