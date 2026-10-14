@@ -8,19 +8,17 @@ const UBER_CLIENT_SECRET = process.env.UBER_DIRECT_CLIENT_SECRET;
 const UBER_AUTH_URL = process.env.UBER_DIRECT_AUTH_URL || "https://auth.uber.com/oauth/v2/token";
 const UBER_API_BASE_URL = process.env.UBER_DIRECT_API_BASE_URL || "https://api.uber.com";
 const UBER_SCOPE = process.env.UBER_DIRECT_SCOPE || "eats.deliveries";
-const UBER_DIRECT_MOCK = String(process.env.UBER_DIRECT_MOCK).toLowerCase() === "true";
+const UBER_DIRECT_MOCK = String(process.env?.UBER_DIRECT_MOCK ?? 'true').toLowerCase() === "true";
 
 // --------------------------------------------------
 // Cache del access token
 // --------------------------------------------------
-
 let cachedAccessToken = null;
 let accessTokenExpiresAt = 0;
 
 // --------------------------------------------------
 // Helpers
 // --------------------------------------------------
-
 const isValidCoordinate = (value) => {
   return Number.isFinite(Number(value));
 };
@@ -43,10 +41,7 @@ const parseJsonIfNeeded = (value) => {
   return null;
 };
 
-// --------------------------------------------------
 // Obtener Access Token
-// --------------------------------------------------
-
 const getAccessToken = async () => {
   const now = Date.now();
 
@@ -81,9 +76,7 @@ const getAccessToken = async () => {
 
   if (!response.ok) {
     const error = new Error(data?.error_description ?? data?.error ?? "No fue posible obtener el access token de Uber Direct");
-    // @ts-ignore
     error.status = response.status;
-    // @ts-ignore
     error.details = data;
 
     throw error;
@@ -95,17 +88,14 @@ const getAccessToken = async () => {
 
   cachedAccessToken = data?.access_token;
 
-  const expiresIn = Number(data.expires_in) ?? 2592000;
+  const expiresIn = Number(data?.expires_in) ?? 2592000;
 
   accessTokenExpiresAt = now + expiresIn * 1000;
 
   return cachedAccessToken;
 };
 
-// --------------------------------------------------
 // Construir dirección Uber
-// --------------------------------------------------
-
 const buildUberAddress = (rawDireccion) => {
   const direccion = parseJsonIfNeeded(rawDireccion) || {};
 
@@ -129,23 +119,14 @@ const buildUberAddress = (rawDireccion) => {
 
   /*
    * Uber recomienda utilizar direcciones estructuradas.
-   * street_address es un array.
-   *
-   * Ejemplo:
-   * [
-   *   "Av. Xalapa 123",
-   *   "Colonia Centro"
-   * ]
   */
-
   const streetAddress = [
     [street, number].filter(Boolean).join(" "),
     neighborhood,
   ].filter(Boolean);
 
   /*
-   * Si nuestra dirección no tiene estructura
-   * suficiente, usamos formatted_address.
+   * Si nuestra dirección no tiene estructura suficiente, usamos formatted_address.
    */
   const hasStructuredAddress =
     Boolean(streetAddress.length) &&
@@ -168,10 +149,7 @@ const buildUberAddress = (rawDireccion) => {
   };
 };
 
-// --------------------------------------------------
 // Buscar dirección del restaurante
-// --------------------------------------------------
-
 const getRestaurantAddress = async (restaurantId) => {
   if (!restaurantId) {
     throw new Error("restaurantId es requerido");
@@ -308,10 +286,7 @@ const createMockDelivery = ({
   };
 };
 
-// --------------------------------------------------
 // Solicitar Quote a Uber
-// --------------------------------------------------
-
 const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccionDestino }) => {
   if (!UBER_CUSTOMER_ID) {
     throw new Error("Falta UBER_DIRECT_CUSTOMER_ID");
@@ -413,6 +388,8 @@ const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccion
 
   payload.dropoff_longitude = dropoff.lng;
 
+  strapi.log.info(`Uber direct payload: ${JSON.stringify(payload)}`);
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -423,6 +400,8 @@ const createDeliveryQuote = async ({ restaurantId, direccionDestinoId, direccion
   });
 
   const data = await response.json().catch(() => ({}));
+
+  strapi.log.info(`data response uber direct: ${JSON.stringify(data)}`);
 
   /*
    * Si el token expiró o fue rechazado, limpiamos cache para que el siguiente request solicite uno nuevo.
