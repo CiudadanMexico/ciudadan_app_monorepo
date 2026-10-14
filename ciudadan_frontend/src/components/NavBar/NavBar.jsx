@@ -18,7 +18,6 @@ import {
 import { BsBriefcaseFill } from "react-icons/bs";
 import { AiOutlineApartment } from "react-icons/ai";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { irALogin } from '../../utils/authRedirect';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import ForumIcon from '@mui/icons-material/Forum';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -274,17 +273,21 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     handleUserRegistration();
   }, [isAuthenticated, user]);
 
-  // Login: vuelve a la página donde estabas. Logout: igual que siempre,
-  // vuelve a la raíz (origen) — comportamiento original sin cambios.
+  // Login / Logout: guardamos returnTo en cookie (ruta, query, hash)
   const handleLogin = () => {
-    irALogin(loginWithRedirect);
+    const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+    document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
+    loginWithRedirect({
+      appState: {
+        returnTo: location.pathname + location.search,
+      },
+    });
     setIsMenuOpen(false);
   };
 
   const handleLogout = () => {
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
-    logout();
+    logout({ logoutParams: { returnTo: window.location.origin } });
     setIsMenuOpen(false);
   };
 

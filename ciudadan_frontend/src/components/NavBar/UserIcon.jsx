@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import '../../styles/AccountMenuInfo.css';
 import UserMenu from './UserMenu';
-import { irALogin } from '../../utils/authRedirect';
 
 const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handleLinkClick, defaultProfileImage, guestImage, containerRef }) => {
   //const containerRef = useRef(null);
@@ -50,7 +49,8 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogin = async () => {
-    await irALogin(loginWithRedirect);
+    const returnTo = window.location.pathname + window.location.search;
+    await loginWithRedirect({ appState: { returnTo } });
     setIsProfileMenuOpen(false);
   };
 
@@ -63,8 +63,7 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogoutWithLog = () => {
-    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
-    logout();
+    logout({ logoutParams: { returnTo: window.location.origin } });
     setIsProfileMenuOpen(false);
   };
 

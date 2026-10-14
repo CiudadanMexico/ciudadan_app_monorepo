@@ -5,8 +5,8 @@ const LogoutButton = () => {
   const { logout } = useAuth0();
 
   const handleLogout = () => {
-    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
-    logout();
+    // Opcionalmente, puedes pasar un returnTo para redirigir después del logout
+    logout({ returnTo: window.location.origin });
   };
 
   return (

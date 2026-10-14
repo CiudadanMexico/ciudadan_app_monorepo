@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { useRoles } from "../../Contexts/RolesContext";
 import { useStores } from "../../hooks/useStores";
-import { irALogin } from "../../utils/authRedirect";
 
 const MENU_WIDTH = 320;
 
@@ -209,13 +208,14 @@ const UserMenu = ({
       {isAuthenticated ? (
         <MenuItem
           label="Salir"
-          // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
-          onClick={() => logout()}
+          onClick={() =>
+            logout({ logoutParams: { returnTo: window.location.origin } })
+          }
         />
       ) : (
         <MenuItem
           label="Ingresar"
-          onClick={() => irALogin(loginWithRedirect)}
+          onClick={() => loginWithRedirect()}
         />
       )}
     </div>

@@ -126,24 +126,7 @@ const Auth0ProviderWithNavigate = ({ children }) => {
     : window.location.origin;
 
   const onRedirectCallback = (appState) => {
-    // Fallback legacy: si el login vino por cookie returnTo (botones viejos),
-    // respetarla. Solo rutas internas para evitar open-redirect.
-    let destino = appState?.returnTo;
-    if (!destino) {
-      const match = document.cookie.match(new RegExp('(^| )returnTo=([^;]+)'));
-      if (match) {
-        try {
-          destino = decodeURIComponent(match[2]);
-        } catch {
-          destino = null;
-        }
-        document.cookie = 'returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-      }
-    }
-    const ruta = typeof destino === 'string' && destino.startsWith('/') && !destino.startsWith('//')
-      ? destino
-      : '/';
-    navigate(ruta, { replace: true });
+    navigate(appState?.returnTo || '/', { replace: true });
   };
 
   return (

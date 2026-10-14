@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import UserIcon from "./NavBar/UserIcon"; 
 import { useAuth0 } from "@auth0/auth0-react";
-import { irALogin } from "../utils/authRedirect";
 // assets
 import logo from "../assets/wikiciudadan.png";
 import guestImg from "../assets/guest.png";
@@ -88,7 +87,12 @@ const WikiBar = ({ SetIsMenuOpen }) => {
   };
 
   const handleLogin = () => {
-    irALogin(loginWithRedirect);
+    // Guarda la URL actual antes de hacer login
+    const currentUrl = window.location.pathname + window.location.search;
+    document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
+    console.log("URL guardada en cookie antes de login:", currentUrl);
+    // Redirige a Auth0
+    loginWithRedirect();
     setIsMenuOpen(false);
   };
   
@@ -97,8 +101,8 @@ const WikiBar = ({ SetIsMenuOpen }) => {
     // Elimina la cookie de retorno antes de cerrar sesión
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     //console.log("Cookie de returnTo eliminada antes de logout");
-    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
-    logout();
+    // Redirige a la página principal después del logout
+    logout({ logoutParams: { returnTo: window.location.origin } });
     setIsMenuOpen(false);
   };
 
