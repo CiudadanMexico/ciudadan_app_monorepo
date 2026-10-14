@@ -283,7 +283,8 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
 
   const handleLogout = () => {
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
+    logout();
     setIsMenuOpen(false);
   };
 

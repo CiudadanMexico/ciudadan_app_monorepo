@@ -63,7 +63,8 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogoutWithLog = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
+    logout();
     setIsProfileMenuOpen(false);
   };
 

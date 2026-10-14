@@ -97,8 +97,8 @@ const WikiBar = ({ SetIsMenuOpen }) => {
     // Elimina la cookie de retorno antes de cerrar sesión
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     //console.log("Cookie de returnTo eliminada antes de logout");
-    // Redirige a la página principal después del logout
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
+    logout();
     setIsMenuOpen(false);
   };
 

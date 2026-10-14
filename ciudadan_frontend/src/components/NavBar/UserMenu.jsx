@@ -209,9 +209,8 @@ const UserMenu = ({
       {isAuthenticated ? (
         <MenuItem
           label="Salir"
-          onClick={() =>
-            logout({ logoutParams: { returnTo: window.location.origin } })
-          }
+          // Sin returnTo: Auth0 redirige a la primera Allowed Logout URL del dashboard
+          onClick={() => logout()}
         />
       ) : (
         <MenuItem
