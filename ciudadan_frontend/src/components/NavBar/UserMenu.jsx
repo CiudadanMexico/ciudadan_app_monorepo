@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import { logoutAqui } from "../../utils/logoutAqui";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "@mui/material";
 import { useRoles } from "../../Contexts/RolesContext";
@@ -208,9 +209,8 @@ const UserMenu = ({
       {isAuthenticated ? (
         <MenuItem
           label="Salir"
-          onClick={() =>
-            logout({ logoutParams: { returnTo: window.location.origin } })
-          }
+          // Cierra sesión sin salir de la página actual
+          onClick={() => logoutAqui(logout)}
         />
       ) : (
         <MenuItem

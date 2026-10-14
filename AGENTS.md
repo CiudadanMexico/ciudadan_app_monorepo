@@ -38,7 +38,8 @@ npx cap sync android && npx cap open android   # mobile build
 > haya errores de ESLint en archivos ajenos que bloquean el build.)
 >
 > Login/logout con Auth0 (login vuelve a la página previa vía `appState.returnTo`;
-> logout siempre al origen): **`docs/03-Frontend.md` §2.1**.
+> logout se queda EN la página vía `utils/logoutAqui.js`, iframe oculto):
+> **`docs/03-Frontend.md` §2.1**.
 
 ## Architecture & Key Docs
 

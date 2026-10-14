@@ -71,7 +71,8 @@ y del estado final:
 - **Estado final del código (compartido con `main`):**
   - Login: todas las entradas mandan `appState.returnTo = pathname+search+hash` →
     `onRedirectCallback` devuelve al usuario a la página previa.
-  - Logout: intacto, original (`logoutParams.returnTo = window.location.origin`).
+  - Logout: `utils/logoutAqui.js` — cierra sesión (local + IdP vía iframe oculto)
+    **sin salir de la página** donde estaba el usuario.
 - **Se probó y se revirtió** (documentado para no repetir): helper `utils/authRedirect.js`
   con `salir`/`irALogin` y logout "a la raíz" o "sin returnTo" — todos rompían el logout
   de formas distintas. No reintroducir sin necesidad.

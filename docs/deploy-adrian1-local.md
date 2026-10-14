@@ -72,7 +72,7 @@ NEWJS=$(curl -s https://frontend-adrian1.ciudadan.org/ | grep -oE 'static/js/mai
 curl -s "https://frontend-adrian1.ciudadan.org/$NEWJS" -o /tmp/live.js
 
 # marcadores útiles (comprobados 2026-10-14):
-grep -o 'logoutParams:{returnTo:window.location.origin}' /tmp/live.js | wc -l   # logout original (≥1)
+grep -o 'logoutParams:{returnTo:window.location.origin}' /tmp/live.js | wc -l   # logout "en el lugar" (helper logoutAqui)
 grep -o 'appState:{returnTo:window.location.pathname' /tmp/live.js | wc -l      # login página actual
 ```
 

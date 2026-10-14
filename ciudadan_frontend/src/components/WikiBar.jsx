@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import UserIcon from "./NavBar/UserIcon"; 
 import { useAuth0 } from "@auth0/auth0-react";
+import { logoutAqui } from "../utils/logoutAqui";
 // assets
 import logo from "../assets/wikiciudadan.png";
 import guestImg from "../assets/guest.png";
@@ -101,8 +102,8 @@ const WikiBar = ({ SetIsMenuOpen }) => {
     // Elimina la cookie de retorno antes de cerrar sesión
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     //console.log("Cookie de returnTo eliminada antes de logout");
-    // Redirige a la página principal después del logout
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Cierra sesión sin salir de la página actual
+    logoutAqui(logout);
     setIsMenuOpen(false);
   };
 

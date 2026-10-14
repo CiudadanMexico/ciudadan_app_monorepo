@@ -99,10 +99,14 @@ en `src/index.js` hace `navigate(appState?.returnTo || '/', { replace: true })`)
 | Pantalla de checkout de membresías | `components/Usuarios/Ingresa.jsx` |
 | Botón suelto (no se usa en la UI actual) | `components/NavBar/LoginButton.jsx` |
 
-**Logout** — siempre al origen del frontend (`logoutParams.returnTo =
-window.location.origin`, sin path). Entradas: `NavBar.jsx`, `UserMenu.jsx`,
-`UserIcon.jsx`, `WikiBar.jsx` (item/menú "Salir"). `LogoutButton.jsx` existe con el
-mismo patrón pero **no se usa en la UI actual**.
+**Logout** — **sin salir de la página**: `logoutAqui(logout)`
+(`utils/logoutAqui.js`): llama `logout({ logoutParams: { returnTo: window.location.origin },
+openUrl: (url) => iframe oculto })`. auth0-spa-js siempre limpia la sesión local
+(`_clearLocalSession`) y en vez de navegar la ventana, el iframe carga la URL de
+logout → Auth0 termina la sesión del IdP → el usuario **se queda en su ruta actual**
+viendo la UI en estado "sin sesión". Entradas: `NavBar.jsx`, `UserMenu.jsx`,
+`UserIcon.jsx`, `WikiBar.jsx` (item/menú "Salir"); `LogoutButton.jsx` (no se usa en
+la UI actual) usa el mismo helper.
 
 > ⚠️ **Regla Auth0 (verificada con curl el 2026-10-14):** el endpoint `/v2/logout`
 > valida `returnTo` contra las **Allowed Logout URLs de la APLICACIÓN**
@@ -112,8 +116,9 @@ mismo patrón pero **no se usa en la UI actual**.
 > - `returnTo=https://frontend-adrian1.ciudadan.org/cartera/pesos-mxn` → **400** (página de error) ✘
 > - sin `returnTo` → **302** a la primera Allowed Logout URL (p. ej. `http://localhost:3000/`) ✘
 >
-> Por eso el logout manda **solo el origen** (sin path) y **nunca** se omite el
-> `returnTo`. La app SPA (`client_id za265MeRdxMKuPqzdPSTL7lHL0yyg5bd`) debe tener
+> Por eso el logout **nunca** manda `returnTo` con path (ni login ni logout): el
+> usuario se queda en la página vía `openUrl` (iframe oculto con `returnTo=origen`).
+> La app SPA (`client_id za265MeRdxMKuPqzdPSTL7lHL0yyg5bd`) debe tener
 > `https://*.ciudadan.org` en su Allowed Logout URLs (el wildcard de subdominios
 > **no** cubre el dominio raíz `https://ciudadan.org`).
 >
