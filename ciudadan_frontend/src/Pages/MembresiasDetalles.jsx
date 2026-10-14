@@ -1,4 +1,6 @@
-import React from "react";
+// src/Pages/MembresiasDetalles.jsx — Detalles completos de membresías y servidores
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   Box,
@@ -8,7 +10,6 @@ import {
   Typography,
   Button,
   Chip,
-  Divider,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -22,12 +23,20 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MemoryIcon from "@mui/icons-material/Memory";
 import BoltIcon from "@mui/icons-material/Bolt";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import PersonIcon from "@mui/icons-material/Person";
+import DriveEtaIcon from "@mui/icons-material/DriveEta";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 import MercadoPagoBoton from "../components/Membresias/MercadoPagoBoton";
-import Seccion from "../components/Membresias/Seccion";
+import imgCompartido from "../assets/ciudadan_servidor_compartido.png";
+import imgPrivado from "../assets/ciudadan_servidor_privado.png";
 import { sendToWhatsApp } from "../utils/sendToWhatsApp";
 import {
-  MEMBRESIAS,
+  HERO_DETALLES,
+  PLANES_ORDER,
+  PLANES_COPY,
   MODALIDADES_SERVIDOR,
   COMPARACION_SERVIDOR,
   EQUIVALENCIA_RENTA,
@@ -35,28 +44,33 @@ import {
   FAQ,
   PUBLIA,
 } from "../config/membresiasContenido";
-import { SERVIDOR } from "../config/servidores";
+import { SERVIDOR, mensualidadServidor } from "../config/servidores";
 import { RENTA_COMPARTIDO_LAB, LAB_REFERENCIA } from "../config/labory";
+import "../styles/membresias.css";
 import "../styles/membresias-servidores.css";
 
-const fmtMxn = (n) =>
-  `$${new Intl.NumberFormat("es-MX", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n)}`;
+const fmtMxn = (n, decimales = 2) => {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return null; // nunca mostrar NaN
+  return `$${new Intl.NumberFormat("es-MX", {
+    minimumFractionDigits: decimales,
+    maximumFractionDigits: decimales,
+  }).format(v)}`;
+};
 
 const ICONOS_MODALIDAD = { compartido: MemoryIcon, privado: BoltIcon };
+const ICONOS_PLAN = { personal: PersonIcon, conductor: DriveEtaIcon, negocios: StorefrontIcon };
 
 function Beneficios({ items, color }) {
   return (
     <List dense disablePadding>
-      {items.map((b, i) => (
+      {(Array.isArray(items) ? items : []).map((b, i) => (
         <ListItem key={i} disableGutters sx={{ py: 0.5 }}>
-          <ListItemIcon sx={{ minWidth: 34, color }}>
+          <ListItemIcon sx={{ minWidth: 34, color: color || "var(--mg-lila)" }}>
             <CheckCircleIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText
-            primary={<Typography sx={{ color: "#e7e0ff" }}>{b}</Typography>}
+            primary={<Typography sx={{ color: "var(--mg-lila-claro)" }}>{b}</Typography>}
           />
         </ListItem>
       ))}
@@ -64,28 +78,41 @@ function Beneficios({ items, color }) {
   );
 }
 
-function TarjetaMembresia({ data, email }) {
-  const precio = `${fmtMxn(data.precio)} MXN / mes`;
+// Tarjeta de membresía: precios/beneficios REALES de Strapi (o fallback de
+// config si el fetch falla). Un solo CTA por tarjeta (sin duplicados).
+function TarjetaMembresia({ plan, copy, email }) {
+  const Icono = ICONOS_PLAN[copy.id] || PersonIcon;
+  const precio = `${fmtMxn(plan.precio, 0)} MXN / mes`;
   return (
-    <Card className="ms-card" sx={{ height: "100%" }}>
-      <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-        <Chip size="small" className="ms-chip" label={`$${data.precio} MXN mensuales`} />
-        <Typography variant="h4" sx={{ fontWeight: 900, mt: 2, color: "#fff" }}>
-          {data.nombre}
-        </Typography>
-        <Typography sx={{ color: "#cfc4f0", mt: 1, mb: 3 }}>{data.resumen}</Typography>
-        <Beneficios items={data.beneficios} color={data.color} />
-        <Box sx={{ mt: 3 }}>
+    <Card id={copy.id} className={`mg-card mg-ancla ${copy.destacado ? "mg-glow" : ""}`} sx={{ height: "100%" }}>
+      <CardContent sx={{ p: { xs: 3, md: 4 }, display: "flex", flexDirection: "column", gap: 1.5, height: "100%" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box sx={{
+            width: 46, height: 46, borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(255,224,74,0.12)", border: "1px solid rgba(255,224,74,0.35)",
+          }}>
+            <Icono sx={{ color: "var(--mg-amarillo)" }} />
+          </Box>
+          <Box>
+            <Typography variant="h5" className="mg-titulo-marca" sx={{ fontSize: "1.35rem" }}>{plan.nombre}</Typography>
+            <Chip size="small" className="mg-chip-precio" label={precio} sx={{ height: 22, mt: 0.5 }} />
+          </Box>
+        </Box>
+
+        <Typography className="mg-texto" sx={{ fontSize: "0.95rem" }}>{copy.resumen}</Typography>
+        <Box sx={{ flex: 1 }}><Beneficios items={plan.beneficios} /></Box>
+
+        <Box sx={{ mt: 1 }}>
           {email ? (
             <MercadoPagoBoton
-              order={data.order}
+              order={plan.order}
               email={email}
-              precioMostrado={`${precio}`}
-              label={data.cta}
+              precioMostrado={precio}
+              label={copy.cta}
               labelCargando="Preparando tu contratación..."
             />
           ) : (
-            <MercadoPagoBoton order={data.order} label={data.cta} />
+            <MercadoPagoBoton order={plan.order} label={copy.cta} />
           )}
         </Box>
       </CardContent>
@@ -93,462 +120,398 @@ function TarjetaMembresia({ data, email }) {
   );
 }
 
-function ModalidadServidor({ data, email }) {
+function ModalidadServidor({ data, email, precioServidor }) {
   const Icono = ICONOS_MODALIDAD[data.id] || MemoryIcon;
   return (
-    <Card className="ms-card ms-glow" sx={{ height: "100%" }}>
+    <Card className="mg-card mg-glow" sx={{ height: "100%" }}>
       <CardContent sx={{ p: { xs: 3, md: 4 } }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
-          <Icono sx={{ color: "#a78bfa" }} />
-          <Typography variant="h5" sx={{ fontWeight: 900, color: "#fff" }}>
-            {data.nombre}
+          <Icono sx={{ color: "var(--mg-amarillo)" }} />
+          <Typography variant="h5" className="mg-titulo-marca">{data.nombre}</Typography>
+        </Box>
+
+        <Box className="mg-serv-imagen" sx={{ mb: 2.5 }}>
+          <img
+            src={data.id === "privado" ? imgPrivado : imgCompartido}
+            alt={data.id === "privado" ? "Chica de cabello morado junto al servidor privado" : "Equipos conectados de la modalidad de servidor compartido"}
+            loading="lazy"
+            decoding="async"
+          />
+        </Box>
+
+        <Beneficios items={data.puntos} />
+
+        <Box className="mg-precio" sx={{ display: "flex", alignItems: "baseline", gap: 0.75, mt: 3, mb: 0.5 }}>
+          <Typography component="span" sx={{ fontSize: "1.7rem", fontWeight: 900 }}>{fmtMxn(precioServidor, 0)}</Typography>
+          <Typography component="small" sx={{ fontSize: "0.9rem" }}>
+            MXN · pago único · ≈ {fmtMxn(mensualidadServidor(SERVIDOR.plazoObjetivo))} al mes a {SERVIDOR.plazoObjetivo} MSI
           </Typography>
         </Box>
-        {/* Slot de imagen: listo para ciudadan_servidor_*.png cuando llegue.
-            Mientras tanto, ilustración con iconografía (no se generan imágenes). */}
-        <Box
-          className="ms-server-img"
-          sx={{ mb: 3, display: "flex", justifyContent: "center" }}
-        >
-          <Icono sx={{ fontSize: 84, opacity: 0.6 }} />
-        </Box>
-        <Beneficios items={data.puntos} color="#a78bfa" />
-        <Box sx={{ mt: 3 }}>
-          {email ? (
-            <MercadoPagoBoton
-              order={SERVIDOR.order}
-              subtypeKey={data.subtypeKey}
-              email={email}
-              precioMostrado={fmtMxn(SERVIDOR.precioTotal)}
-              label={data.cta}
-              labelCargando="Preparando tu compra..."
-            />
-          ) : (
-            <MercadoPagoBoton
-              order={SERVIDOR.order}
-              subtypeKey={data.subtypeKey}
-              label={data.cta}
-            />
-          )}
-        </Box>
+        <Typography className="mg-caption" sx={{ display: "block", mb: 2.5 }}>
+          {PAGOS.notaMsi}
+        </Typography>
+
+        {email ? (
+          <MercadoPagoBoton
+            order={SERVIDOR.order}
+            subtypeKey={data.subtypeKey}
+            email={email}
+            precioMostrado={`${fmtMxn(precioServidor, 0)} MXN (pago único)`}
+            label={data.cta}
+            labelCargando="Preparando tu compra..."
+          />
+        ) : (
+          <MercadoPagoBoton order={SERVIDOR.order} subtypeKey={data.subtypeKey} label={data.cta} />
+        )}
       </CardContent>
     </Card>
   );
 }
 
 export default function MembresiasDetalles() {
-  const { isAuthenticated, email } = useAuth0();
+  const location = useLocation();
+  const reducir = useReducedMotion();
+  const { user, isAuthenticated } = useAuth0();
+  const [modalidad, setModalidad] = useState("compartido");
+  const [planes, setPlanes] = useState(null); // null = aún sin fetch
+
+  const strapiUrl = (process.env.REACT_APP_STRAPI_URL || "http://localhost:33032").replace(/\/$/, "");
+
+  // Scroll restoration: al abrir sin ancla se ve el encabezado; con ancla se
+  // respeta la navegación deliberada.
+  useEffect(() => {
+    const hash = location.hash?.replace("#", "");
+    if (hash) {
+      // Pequeño retry: el contenido puede estar montando.
+      let intentos = 0;
+      const t = setInterval(() => {
+        const el = document.getElementById(hash);
+        intentos += 1;
+        if (el || intentos > 10) {
+          clearInterval(t);
+          if (el) el.scrollIntoView({ behavior: reducir ? "auto" : "smooth", block: "start" });
+        }
+      }, 120);
+      return () => clearInterval(t);
+    }
+    window.scrollTo(0, 0);
+    return undefined;
+  }, [location.hash, reducir]);
+
+  // Precios y beneficios reales desde Strapi; fallback al contenido local.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetch(`${strapiUrl}/api/membresias-tipos?pagination[pageSize]=100&sort=order:asc&populate=*`);
+        const json = await res.json();
+        if (mounted) setPlanes(json?.data ?? []);
+      } catch {
+        if (mounted) setPlanes([]);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [strapiUrl]);
+
+  const parsearPlan = (item) => {
+    const attrs = item?.attributes || {};
+    let datos = null;
+    if (attrs.json) {
+      try { datos = typeof attrs.json === "string" ? JSON.parse(attrs.json) : attrs.json; } catch { datos = null; }
+    }
+    const tomar = (clave, porDefecto) => {
+      if (attrs[clave] !== undefined && attrs[clave] !== null && attrs[clave] !== "") return attrs[clave];
+      if (datos && datos[clave] !== undefined && datos[clave] !== null && datos[clave] !== "") return datos[clave];
+      return porDefecto;
+    };
+    return { order: attrs.order ?? 0, nombre: tomar("nombre", "Membresía"), precio: Number(tomar("precio", 0)) || 0, beneficios: tomar("beneficios", []) };
+  };
+
+  // Planes 1-3 (membresías); el 10 (servidor) usa config para no duplicar.
+  const porOrder = {};
+  if (Array.isArray(planes) && planes.length) {
+    planes.forEach((it) => { const p = parsearPlan(it); porOrder[p.order] = p; });
+  }
+  const membresias = [PLANES_ORDER.personal, PLANES_ORDER.conductor, PLANES_ORDER.negocios].map((order) => ({
+    order,
+    nombre: porOrder[order]?.nombre || PLANES_COPY[Object.keys(PLANES_ORDER).find((k) => PLANES_ORDER[k] === order)]?.nombre,
+    precio: porOrder[order]?.precio || 300,
+    beneficios: porOrder[order]?.beneficios || [],
+  }));
+
+  const precioServidor = porOrder[PLANES_ORDER.servidor]?.precio || SERVIDOR.precioTotal;
+  const equivalencia = EQUIVALENCIA_RENTA;
+  const equivalenciaValida = equivalencia && Number.isFinite(equivalencia.total);
+
+  const entrada = (i) =>
+    reducir
+      ? {}
+      : {
+          initial: { opacity: 0, y: 20 },
+          whileInView: { opacity: 1, y: 0 },
+          viewport: { once: true, amount: 0.15 },
+          transition: { duration: 0.5, delay: (i % 3) * 0.08, ease: "easeOut" },
+        };
+
+  const modalidadData = MODALIDADES_SERVIDOR[modalidad];
 
   return (
-    <Box component="main" className="ms-page" sx={{ py: { xs: 5, md: 7 } }}>
+    <Box className="mg-page">
+      <Box className="mg-halo mg-halo--uno" />
+      <Box className="mg-halo mg-halo--dos" />
 
-      {/* HERO PRINCIPAL */}
-      <Box
-        sx={{
-          textAlign: { xs: "center", md: "left" },
-          maxWidth: 1200,
-          margin: "0 auto",
-          px: 2,
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{ color: "#c4b5fd", mt: 2, mb: 3, letterSpacing: 1 }}
-        >
-          Para ti, para tu negocio, para el ecosistema
-        </Typography>
-        <Typography variant="h2" className="ms-hero-title" sx={{ mb: 3 }}>
-          Membresías y servidores de Ciudadan
-        </Typography>
-        <Typography
-          variant="h5"
-          sx={{ color: "#e7e0ff", maxWidth: 960, mx: "auto", mb: 4 }}
-        >
-          Elige cómo quieres participar: una membresía mensual para tu agencia o
-          la compra de un servidor para llevar la red contigo. Precios en pesos
-          MXN y labores, sin compromisos de más de 30 días.
-        </Typography>
-        <Box
-          sx={{
-            display: { xs: "block", md: "flex" },
-            gap: 2,
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          {!isAuthenticated ? (
-            <Button
-              component="a"
-              href="/login?returnTo=/membresias/detalles"
-              variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#7C3AED",
-                color: "#fff",
-                textTransform: "none",
-                fontWeight: 800,
-                py: 2,
-                borderRadius: 3,
-                "&:hover": { backgroundColor: "#6D28D9" },
-              }}
-            >
-              Elegir tu modalidad
-            </Button>
-          ) : (
-            <Box component={MercadoPagoBoton} order={10} label="Quiero mi modalidad" />
-          )}
-        </Box>
+      {/* ============ HERO ============ */}
+      <Box sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pt: { xs: 7, md: 11 }, pb: { xs: 5, md: 7 }, textAlign: "center" }}>
+        <motion.div {...entrada(0)}>
+          <Typography variant="overline" className="mg-kicker">{HERO_DETALLES.kicker}</Typography>
+          <Typography variant="h2" className="mg-titulo-marca" sx={{ fontSize: { xs: "2.1rem", md: "3rem" }, mt: 1, mb: 2 }}>
+            {HERO_DETALLES.titulo}
+          </Typography>
+          <Typography className="mg-texto" sx={{ maxWidth: 620, mx: "auto" }}>{HERO_DETALLES.subtitulo}</Typography>
+        </motion.div>
       </Box>
 
-
-      {/* 1) MEMBRESÍAS PERSONAL Y NEGOCIOS */}
-      <Seccion
-        id="membresias"
-        kicker="Membresías"
-        title="Elige tu forma de estar en la red"
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={5}>
-            {!isAuthenticated ? (
-              <MercadoPagoBoton order={1} label={MEMBRESIAS.personal.cta} />
-            ) : (
-              <MercadoPagoBoton
-                order={1}
-                email={email}
-                precioMostrado={`${fmtMxn(MEMBRESIAS.personal.precio)} MXN mensuales`}
-                label={MEMBRESIAS.personal.cta}
-                labelCargando="Preparando tu contratación..."
-              />
-            )}
-          </Grid>
-          <Grid item xs={12} sm={6} md={7}>
-            <TarjetaMembresia data={MEMBRESIAS.personal} email={email} />
-          </Grid>
+      {/* ============ 1) MEMBRESÍAS ============ */}
+      <Box id="membresias" className="mg-ancla" sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pb: 7 }}>
+        <Typography variant="overline" className="mg-kicker">Membresías</Typography>
+        <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 3.5, mt: 0.5 }}>Membresías</Typography>
+        <Grid container spacing={3} alignItems="stretch">
+          {membresias.map((plan, i) => {
+            const copyKey = Object.keys(PLANES_ORDER).find((k) => PLANES_ORDER[k] === plan.order);
+            const copy = PLANES_COPY[copyKey] || { id: copyKey, resumen: "", cta: `Elegir ${plan.nombre}` };
+            return (
+              <Grid item xs={12} md={4} key={plan.order}>
+                <motion.div {...entrada(i)} style={{ height: "100%" }}>
+                  <TarjetaMembresia plan={plan} copy={copy} email={isAuthenticated ? user?.email : null} />
+                </motion.div>
+              </Grid>
+            );
+          })}
         </Grid>
-        <Grid container spacing={3} sx={{ mt: 6 }}>
-          <Grid item xs={12} sm={6} md={5}>
-            {!isAuthenticated ? (
-              <MercadoPagoBoton order={3} label={MEMBRESIAS.negocios.cta} />
-            ) : (
-              <MercadoPagoBoton
-                order={3}
-                email={email}
-                precioMostrado={`${fmtMxn(MEMBRESIAS.negocios.precio)} MXN mensuales`}
-                label={MEMBRESIAS.negocios.cta}
-                labelCargando="Preparando tu contratación..."
-              />
-            )}
-          </Grid>
-          <Grid item xs={12} sm={6} md={7}>
-            <TarjetaMembresia data={MEMBRESIAS.negocios} email={email} />
-          </Grid>
-        </Grid>
-      </Seccion>
+      </Box>
 
-      {/* 2) SERVIDORES */}
-      <Seccion
-        id="servidores"
-        kicker="Servidores"
-        title="Alquila capacidad y lleva la red contigo"
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Grid container spacing={3} sx={{ mb: 6 }}>
-          <Grid item xs={12} md={5}>
-            <Typography sx={{ color: "#e7e0ff" }}>
-              El servidor no es una suscripción: es una compra de hardware con
-              renta mensual en labores (50 labores/mes). Dos formas de operar:
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={7}>
-            {!isAuthenticated ? (
-              <MercadoPagoBoton order={SERVIDOR.order} label="Ver opciones de servidor" />
-            ) : (
-              <Box component={MercadoPagoBoton} order={SERVIDOR.order} label="Ver opciones de servidor" />
-            )}
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} sx={{ mb: 6 }}>
-          <Grid item xs={12} md={6}>
-            <ModalidadServidor data={MODALIDADES_SERVIDOR.compartido} email={email} />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ModalidadServidor data={MODALIDADES_SERVIDOR.privado} email={email} />
-          </Grid>
-        </Grid>
-      </Seccion>
+      {/* ============ 2) SERVIDORES ============ */}
+      <Box id="servidores" className="mg-ancla" sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, py: 7 }}>
+        <Typography variant="overline" className="mg-kicker">Infraestructura</Typography>
+        <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 1, mt: 0.5 }}>Servidores</Typography>
+        <Typography className="mg-texto" sx={{ maxWidth: 720, mb: 3 }}>
+          Compra el equipo físico y elige cómo operarlo. La compra es un pago único
+          de {fmtMxn(precioServidor, 0)} MXN; no es una suscripción.
+        </Typography>
 
-
-      {/* 3) COMPARACIÓN */}
-      <Seccion
-        id="comparacion"
-        kicker="Comparativa"
-        title="Compartido vs privado, a simple vista"
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Grid container spacing={3}>
-          {COMPARACION_SERVIDOR.map((row) => (
-            <Grid item xs={12} md={6} key={row.criterio}>
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { md: "1fr 1fr" },
-                  gap: 2,
-                  alignItems: "center",
-                }}
-              >
-                <Typography variant="overline" sx={{ color: "#a78bfa", fontWeight: 700 }}>
-                  {row.criterio}
-                </Typography>
-                <Box
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 2,
-                    backgroundColor: "rgba(124,58,237,0.08)",
-                    border: "1px solid rgba(167,139,250,0.25)",
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#e7e0ff", whiteSpace: "pre-wrap" }}
-                  >
-                    {row.compartido}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 2,
-                    backgroundColor: "rgba(37,99,235,0.1)",
-                    border: "1px solid rgba(37,99,235,0.35)",
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#e7e0ff", whiteSpace: "pre-wrap" }}
-                  >
-                    {row.privado}
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
-        <Box sx={{ mt: 5, textAlign: { xs: "center", md: "left" } }}>
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              backgroundColor: "#2563EB",
-              color: "#fff",
-              textTransform: "none",
-              fontWeight: 800,
-              py: 2,
-              borderRadius: 3,
-              "&:hover": { backgroundColor: "#1d4ed8" },
-            }}
-          >
-            Más detalle de cada modalidad
-          </Button>
-        </Box>
-      </Seccion>
-
-      {/* 4) EQUIVALENCIA DE LA RENTA */}
-      <Seccion
-        id="renta"
-        kicker="Valor de la renta"
-        title="¿Cuánto cuesta la renta mensual?"
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <Typography sx={{ color: "#e7e0ff" }}>
-              En el servidor compartido, la renta fija es de{" "}
-              <Typography
-                component="span"
-                sx={{ fontWeight: 900, color: "#fff" }}
-              >
-                {RENTA_COMPARTIDO_LAB} Labory al mes
-              </Typography>
-              {`, con una referencia interna de 1 Labory ≈ ${fmtMxn(LAB_REFERENCIA)}
-              de pesos. La equivalencia en tu moneda local depende del tipo de
-              cambio aplicable y del par a que se referencie.`}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card className="ms-card" sx={{ textAlign: "center", py: 4 }}>
-              <Typography
-                variant="h2"
-                sx={{ fontWeight: 900, color: "#fff", mb: 1 }}
-              >
-                {fmtMxn(EQUIVALENCIA_RENTA.total)}
-              </Typography>
-              <Typography variant="body2" sx={{ color: "#cfc4f0" }}>
-                ≈ renta mensual en pesos (referencia interna)
-              </Typography>
-            </Card>
-          </Grid>
-        </Grid>
-      </Seccion>
-
-
-      {/* 5) PAGOS Y RENOVACIÓN */}
-      <Seccion
-        id="pagos"
-        kicker="Pagos"
-        title="Cómo se paga cada opción"
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={7}>
-            <Typography sx={{ color: "#e7e0ff" }}>
-              {PAGOS.notaMsi}
-            </Typography>
-            <Divider sx={{ my: 3 }} />
-            <Typography sx={{ color: "#e7e0ff" }}>
-              {PAGOS.notaRenovacion}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={5}>
-            <Card className="ms-card" sx={{ p: 4 }}>
-              <Typography
-                variant="overline"
-                sx={{ color: "#a78bfa", fontWeight: 700, mb: 2 }}
-              >
-                Resumen del punto de venta
-              </Typography>
-              <Typography variant="h3" sx={{ fontWeight: 900, color: "#fff" }}>
-                {fmtMxn(PAGOS.precioServidor)}
-              </Typography>
-              <Typography variant="body2" sx={{ color: "#cfc4f0", mb: 3 }}>
-                {PAGOS.moneda}, sin recargos de entidad de crédito en los meses sin
-                interés ({PAGOS.plazoObjetivo} meses como objetivo).
-              </Typography>
-              <MercadoPagoBoton
-                order={SERVIDOR.order}
-                label="Contratar servidor"
-                labelCargando="Generando tu compra..."
-              />
-            </Card>
-          </Grid>
-        </Grid>
-      </Seccion>
-
-      {/* 6) Preguntas frecuentes */}
-      <Seccion
-        id="faq"
-        kicker="Ayuda"
-        title="Preguntas frecuentes"
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Box sx={{ maxWidth: 900, mx: "auto" }}>
-          {FAQ.map((item, i) => (
-            <Accordion
-              key={i}
-              sx={{
-                boxShadow: "none",
-                border: "1px solid rgba(167,139,250,0.25)",
-                bgcolor: "transparent",
-                "&:before": { display: "none" },
-              }}
+        {/* Toggle de modalidad */}
+        <Box className="mg-toggle" role="group" aria-label="Modalidad del servidor" sx={{ mb: 3 }}>
+          {Object.values(MODALIDADES_SERVIDOR).map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              aria-pressed={modalidad === m.id}
+              onClick={() => setModalidad(m.id)}
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon sx={{ color: "#a78bfa" }} />}
-                sx={{ color: "#fff" }}
-              >
-                <Typography sx={{ fontWeight: 700, color: "#fff" }}>{item.p}</Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ color: "#e7e0ff" }}>
-                <Typography>{item.r}</Typography>
-              </AccordionDetails>
-            </Accordion>
+              {m.nombre}
+            </button>
           ))}
         </Box>
-      </Seccion>
 
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={modalidad}
+            initial={reducir ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reducir ? undefined : { opacity: 0, y: -12 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            <ModalidadServidor
+              data={modalidadData}
+              email={isAuthenticated ? user?.email : null}
+              precioServidor={precioServidor}
+            />
+          </motion.div>
+        </AnimatePresence>
 
-      {/* 7) SERVICIOS DE PUBLIA */}
-      <Seccion
-        id="publia"
-        kicker="Servicios"
-        title={PUBLIA.nombre}
-        sx={{ maxWidth: 1200, margin: "0 auto", px: 2 }}
-      >
-        <Grid container spacing={3} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <Typography sx={{ color: "#e7e0ff" }}>{PUBLIA.intro}</Typography>
-            <Box sx={{ mt: 3, display: "flex", flexWrap: "wrap", gap: 2 }}>
-              <Button
-                variant="outlined"
-                startIcon={<WhatsAppIcon />}
-                onClick={() => sendToWhatsApp("Conocer servicios de PubliA")}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 700,
-                  borderColor: "#2563EB",
-                  color: "#2563EB",
-                  borderRadius: 2,
-                }}
-              >
-                Contactar
-              </Button>
-              <Button
-                component="a"
-                href="/media/contacto.pdf"
-                variant="outlined"
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 700,
-                  borderColor: "#a78bfa",
-                  color: "#a78bfa",
-                  borderRadius: 2,
-                }}
-              >
-                Descargar catálogo
-              </Button>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Card className="ms-card" sx={{ p: 4, height: "100%" }}>
-              <Typography variant="overline" sx={{ color: "#a78bfa", fontWeight: 700, mb: 3 }}>
-                Servicios de PubliA
-              </Typography>
-              <List dense disablePadding>
-                {[
-                  "Servicio de alojamiento de nodos",
-                  "Servicios de telecomunicaciones y acceso a la red",
-                  "Servicios de empresas y publiempresarial",
-                  "Servicios de soporte y operación",
-                ].map((s, i) => (
-                  <ListItem
-                    key={i}
-                    disableGutters
-                    sx={{
-                      py: 1,
-                      "&:not(:last-child)": { borderBottom: "1px solid rgba(167,139,250,0.15)" },
-                    }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 32, color: "#a78bfa" }}>
-                      <CheckCircleIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={<Typography sx={{ color: "#e7e0ff" }}>{s}</Typography>}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-              <Typography
-                variant="caption"
-                sx={{ color: "#8b7ec9", mt: 3, display: "block" }}
-              >
-                Los servicios y precios concretos de PubliA se consultan de su
-                base de datos. Sin precios ni prestaciones inventadas.
-              </Typography>
+        {/* Bloque renta + equivalencia */}
+        {modalidad === "compartido" && (
+          <motion.div {...entrada(1)}>
+            <Card className="mg-card mg-card--superficie" sx={{ mt: 3 }}>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Typography variant="overline" className="mg-kicker">Renta por participación</Typography>
+                <Box className="mg-renta" sx={{ mt: 1 }}>
+                  <Typography className="mg-renta__principal">
+                    {RENTA_COMPARTIDO_LAB} Labory mensuales
+                  </Typography>
+                  {equivalenciaValida ? (
+                    <Typography className="mg-renta__referencia">
+                      (≈ {fmtMxn(equivalencia.total)} MXN de referencia · 1 Labory ≈ {fmtMxn(LAB_REFERENCIA.valorUnitario)} MXN)
+                    </Typography>
+                  ) : (
+                    <Typography className="mg-renta__referencia">Equivalencia temporalmente no disponible</Typography>
+                  )}
+                </Box>
+                <Typography className="mg-caption" sx={{ display: "block", mt: 1.5 }}>
+                  Referencia interna del esquema de intercambio entre agencias y nodos.
+                  No es efectivo garantizado ni rendimiento asegurado. El precio de venta
+                  de cada nodo puede variar según la demanda y sus condiciones.
+                </Typography>
+              </CardContent>
             </Card>
+          </motion.div>
+        )}
+      </Box>
+
+      {/* ============ 3) FICHA TÉCNICA ============ */}
+      <Box sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pb: 7 }}>
+        <motion.div {...entrada(0)}>
+          <Typography variant="overline" className="mg-kicker">Equipo</Typography>
+          <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 2.5, mt: 0.5 }}>Ficha técnica</Typography>
+          <ul className="mg-specs">
+            {SERVIDOR.specs.map((s, i) => (
+              <li key={i}><MemoryIcon /> {s}</li>
+            ))}
+          </ul>
+          <Typography className="mg-caption" sx={{ display: "block", mt: 2 }}>
+            Hardware reacondicionado. La fuente, la ventilación y la compatibilidad del
+            ejemplar final se validan antes de la entrega.
+          </Typography>
+        </motion.div>
+      </Box>
+
+      {/* ============ 4) COMPARATIVA ============ */}
+      <Box id="comparacion" className="mg-ancla" sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pb: 7 }}>
+        <motion.div {...entrada(0)}>
+          <Typography variant="overline" className="mg-kicker">Comparativa</Typography>
+          <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 3, mt: 0.5 }}>Compartido vs. privado</Typography>
+
+          <table className="mg-comparativa">
+            <thead>
+              <tr>
+                {COMPARACION_SERVIDOR.encabezados.map((h) => (<th key={h} scope="col">{h}</th>))}
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARACION_SERVIDOR.filas.map((f) => (
+                <tr key={f.criterio}>
+                  <th scope="row">{f.criterio}</th>
+                  <td data-etiqueta="Compartido">{f.compartido}</td>
+                  <td data-etiqueta="Privado">{f.privado}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.div>
+      </Box>
+
+      {/* ============ 5) PAGOS Y RENOVACIÓN ============ */}
+      <Box id="pagos" className="mg-ancla" sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pb: 7 }}>
+        <motion.div {...entrada(0)}>
+          <Typography variant="overline" className="mg-kicker">Pagos</Typography>
+          <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 2.5, mt: 0.5 }}>Pagos y renovación</Typography>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card className="mg-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ p: 3.5 }}>
+                  <Typography variant="h6" className="mg-titulo-marca" sx={{ fontSize: "1.1rem", mb: 1 }}>Membresías</Typography>
+                  <Typography className="mg-texto" sx={{ fontSize: "0.95rem" }}>
+                    Se contratan por {fmtMxn(300, 0)} MXN mensuales con renovación automática.
+                    Antes de confirmar verás el importe, la periodicidad y la próxima
+                    renovación; puedes cancelarla cuando quieras.
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card className="mg-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ p: 3.5 }}>
+                  <Typography variant="h6" className="mg-titulo-marca" sx={{ fontSize: "1.1rem", mb: 1 }}>Servidor</Typography>
+                  <Typography className="mg-texto" sx={{ fontSize: "0.95rem" }}>
+                    Es un pago único de {fmtMxn(precioServidor, 0)} MXN, no una suscripción.
+                    {" "}{PAGOS.notaMsi}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12}>
+              <Card className="mg-card mg-card--superficie">
+                <CardContent sx={{ p: 3.5, display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+                  <Typography className="mg-texto" sx={{ flex: 1, minWidth: 260, fontSize: "0.95rem" }}>
+                    {PAGOS.ayudaCta}
+                  </Typography>
+                  <Button
+                    className="mg-btn"
+                    endIcon={<WhatsAppIcon />}
+                    onClick={() => sendToWhatsApp("Duda sobre pagos de membresías y servidores")}
+                  >
+                    Resolver una duda
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
-      </Seccion>
+        </motion.div>
+      </Box>
+
+      {/* ============ 6) FAQ ============ */}
+      <Box id="faq" className="mg-ancla" sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pb: 7 }}>
+        <motion.div {...entrada(0)}>
+          <Typography variant="overline" className="mg-kicker">Ayuda</Typography>
+          <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 3, mt: 0.5 }}>Preguntas frecuentes</Typography>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            {FAQ.map((item, i) => (
+              <Accordion key={i} className="mg-faq-item" disableGutters elevation={0}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: "var(--mg-lila)" }} />} aria-controls={`faq-p-${i}`} id={`faq-p-${i}`}>
+                  <Typography sx={{ fontWeight: 700, color: "#fff" }}>{item.p}</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography>{item.r}</Typography>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        </motion.div>
+      </Box>
+
+      {/* ============ 7) SERVICIOS DE PUBLIA ============ */}
+      <Box id="publia" className="mg-ancla" sx={{ maxWidth: "var(--mg-ancho)", mx: "auto", px: { xs: 3, md: 4 }, pb: 8 }}>
+        <motion.div {...entrada(0)}>
+          <Typography variant="overline" className="mg-kicker">Servicios</Typography>
+          <Typography variant="h4" className="mg-titulo-marca" sx={{ mb: 3, mt: 0.5 }}>{PUBLIA.nombre}</Typography>
+          <Grid container spacing={3} alignItems="stretch">
+            <Grid item xs={12} md={6}>
+              <Card className="mg-card" sx={{ height: "100%" }}>
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Typography className="mg-texto" sx={{ mb: 2 }}>{PUBLIA.intro}</Typography>
+                  <List dense disablePadding>
+                    {PUBLIA.servicios.map((s, i) => (
+                      <ListItem key={i} disableGutters sx={{ py: 1, "&:not(:last-child)": { borderBottom: "1px solid var(--mg-borde)" } }}>
+                        <ListItemIcon sx={{ minWidth: 32, color: "var(--mg-lila)" }}>
+                          <CheckCircleIcon fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText primary={<Typography sx={{ color: "var(--mg-lila-claro)" }}>{s}</Typography>} />
+                      </ListItem>
+                    ))}
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Card className="mg-card mg-card--superficie" sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                <CardContent sx={{ p: { xs: 3, md: 4 }, display: "flex", flexDirection: "column", gap: 2, flex: 1, justifyContent: "center" }}>
+                  <Typography className="mg-texto">{PUBLIA.notaCatalogo}</Typography>
+                  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                    <Button
+                      className="mg-btn mg-btn--flecha"
+                      endIcon={<WhatsAppIcon />}
+                      onClick={() => sendToWhatsApp(PUBLIA.cta)}
+                    >
+                      {PUBLIA.cta}
+                      <span className="mg-flecha"><ArrowForwardIcon fontSize="small" /></span>
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </motion.div>
+      </Box>
     </Box>
   );
 }
-
