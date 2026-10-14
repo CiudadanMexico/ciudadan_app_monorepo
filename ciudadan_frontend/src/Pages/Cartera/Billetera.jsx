@@ -11,6 +11,7 @@ import PurpleButton from '../../components/common/PurpleButton.jsx';
 import TokenAction from './TokenAction.jsx';
 import TokenDetails from './TokenDetails.jsx';
 import TokenPanel from './TokenPanel.jsx';
+import TokenSaberMas from '../../components/Cartera/TokenSaberMas.jsx';
 import { TOKENS, STATUS_LABELS, findTokenByParam, getTokenPath } from './tokenConfig';
 
 /**
@@ -315,6 +316,9 @@ const Billetera = () => {
 
             {/* Explicación larga desplegable (Accordion de MUI) */}
             <TokenDetails nombre={token.nombre} contenido={token.descripcion} />
+
+            {/* Saber más: wiki y documentos (integración mínima, carga perezosa) */}
+            <TokenSaberMas referencias={token.descripcion?.wiki} />
           </Paper>
         </Box>
       </Fade>

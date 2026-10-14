@@ -24,10 +24,20 @@ import SocialImg from '../../assets/monedas/social.png';
  *   nombre / imagen / resumen  → ficha breve (siempre visible)
  *   descripcion                → explicación larga desplegable (tokenContent.js)
  *   action { label, to, hint } → CTA con destino REAL (o null si no aplica)
+ *   simuladores                → destinos futuros declarados, NO operativos
  *   status                     → 'activo' | 'informativo' | 'desarrollo'
  *   panel                      → bloque de datos reales que renderiza Billetera
  *                                ('resumen' | 'pesos' | 'labory' | 'itoken'
  *                                 | 'evaluation' | 'skills' | 'info')
+ *
+ * REGLA — NO INVENTAR (bloque 1, cartera integral):
+ *   - `action.to` sólo apunta a rutas que EXISTEN en `src/Routes/index.jsx`.
+ *     Si una función no está implementada, no se declara acción: se declara en
+ *     `simuladores` con `estado: 'pendiente'` y la UI lo anuncia sin botón.
+ *   - Los `slug` se conservan y se amplían con `aliases` para que los enlaces
+ *     antiguos sigan abriendo (compatibilidad hacia atrás).
+ *   - Fichas incorporadas en este bloque: CIT (antes "Ciudadan I-Token",
+ *     con alias 'cit') y PROOF (resoluciones, que no existía).
  */
 
 export const STATUS_LABELS = {
@@ -58,10 +68,22 @@ export const TOKENS = [
     nombre: 'Pesos MXN',
     imagen: PesosImg,
     resumen:
-      'Tu referencia en pesos mexicanos: cuánto representan tus Laborys y tus pagos en efectivo.',
+      'Cómo se gana y se cobra dinero en efectivo dentro de Ciudadan, y punto de acceso a los simuladores de ingresos.',
     status: 'informativo',
     panel: 'pesos',
     action: null,
+    // Destinos futuros de simuladores. `estado: 'pendiente'` = todavía no
+    // existe, así que TokenPanel NO renderiza botón: sólo anuncia el destino.
+    // No se declaran fórmulas ni cifras: se definirán en su bloque.
+    simuladores: [
+      { rol: 'Socio de agencia', estado: 'pendiente' },
+      { rol: 'Colaborador', estado: 'pendiente' },
+      { rol: 'Conductor', estado: 'pendiente' },
+      { rol: 'Repartidor', estado: 'pendiente' },
+      { rol: 'Líder / promotor', estado: 'pendiente' },
+      { rol: 'Comercio / restaurante', estado: 'pendiente' },
+      { rol: 'Agencia completa', estado: 'pendiente' },
+    ],
     descripcion: TOKEN_CONTENT.pesos,
   },
   {
@@ -78,16 +100,22 @@ export const TOKENS = [
     descripcion: TOKEN_CONTENT.labory,
   },
   {
+    // CIT — Ciudadan Investment Token.
+    // Antes esta ficha se llamaba "Ciudadan I-Token" (id 'itoken'). Se conserva
+    // el id para no romper nada interno y se agrega el alias 'cit' porque
+    // `Ganar.jsx` ya enlazaba a `/cartera/cit` y ese slug no resolvía (la app
+    // redirigía en silencio a /cartera). Ahora /cartera/cit abre esta ficha.
     id: 'itoken',
-    slug: 'i-token',
-    aliases: ['i-token', 'itoken', 'ciudadan-i-token', 'ciudadan-itoken'],
-    nombre: 'Ciudadan I-Token',
+    slug: 'cit',
+    aliases: ['cit', 'ciudadan-investment-token', 'i-token', 'itoken', 'ciudadan-i-token', 'ciudadan-itoken'],
+    nombre: 'CIT — Ciudadan Investment Token',
     imagen: CiudadanImg,
-    resumen: 'Tokens de inversión y rendimientos del ecosistema Ciudadan.',
+    resumen:
+      'Participación económica en el ecosistema Ciudadan: fuentes, series, documentos, plazos y distribuciones de cada emisión.',
     status: 'desarrollo',
     panel: 'itoken',
     action: { label: 'Ver catálogo de I-Tokens', to: '/cartera/itokens' },
-    descripcion: TOKEN_CONTENT.itoken,
+    descripcion: TOKEN_CONTENT.cit,
   },
   {
     id: 'publia',
@@ -95,10 +123,13 @@ export const TOKENS = [
     aliases: ['publia', 'publia-token'],
     nombre: 'Publia',
     imagen: PubliaImg,
-    resumen: 'El ecosistema de publicidad y recompensas por atención e interacción.',
+    resumen:
+      'La publicidad de la plataforma Ciudadan: se adquiere con Labory (comprar LAB → contratar publicidad → publicación y medición → recompra).',
     status: 'informativo',
     panel: 'info',
-    action: { label: 'Ver anuncios remunerados', to: '/gana/ver-anuncios' },
+    // CTA principal acordada: "Comprar Labory". Reutiliza el destino real de
+    // compra de Labory que ya existe (/market); no se inventa un checkout.
+    action: { label: 'Comprar Labory', to: '/market' },
     descripcion: TOKEN_CONTENT.publia,
   },
   {
@@ -124,6 +155,24 @@ export const TOKENS = [
     panel: 'info',
     action: { label: 'Ver tareas disponibles', to: '/coowork?tab=generales' },
     descripcion: TOKEN_CONTENT.task,
+  },
+  {
+    // PROOF — la aportación/resolución de un encargo.
+    // No existía como ficha: sólo había TaskToken y TodoToken. Se incorpora en
+    // este bloque para nombrar correctamente las resoluciones. NO cambia los
+    // identificadores internos `todo`/`tarea` ni sus estados: apunta al mismo
+    // tablero real del CoWork que ya funcionaba.
+    id: 'proof',
+    slug: 'proof-token',
+    aliases: ['proof', 'proof-token', 'proofs', 'resoluciones', 'aportaciones', 'tarea'],
+    nombre: 'ProofToken',
+    imagen: TaskImg,
+    resumen:
+      'Tu aportación o resolución de un encargo: el trabajo entregado contra un TaskToken publicado. Un encargo puede tener varias resoluciones.',
+    status: 'activo',
+    panel: 'info',
+    action: { label: 'Ver tareas disponibles', to: '/coowork?tab=generales' },
+    descripcion: TOKEN_CONTENT.proof,
   },
   {
     id: 'todo',
