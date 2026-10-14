@@ -279,7 +279,7 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
     loginWithRedirect({
       appState: {
-        returnTo: location.pathname + location.search,
+        returnTo: window.location.pathname + window.location.search + window.location.hash,
       },
     });
     setIsMenuOpen(false);

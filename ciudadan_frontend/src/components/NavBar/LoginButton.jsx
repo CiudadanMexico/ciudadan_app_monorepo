@@ -16,7 +16,7 @@ const LoginButton = () => {
     // Redirige a Auth0 para/ iniciar sesión
     loginWithRedirect({
       appState: {
-        returnTo: location.pathname + location.search,
+        returnTo: location.pathname + location.search + location.hash,
       },
     });
   };

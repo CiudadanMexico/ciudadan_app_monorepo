@@ -88,11 +88,11 @@ const WikiBar = ({ SetIsMenuOpen }) => {
 
   const handleLogin = () => {
     // Guarda la URL actual antes de hacer login
-    const currentUrl = window.location.pathname + window.location.search;
+    const currentUrl = window.location.pathname + window.location.search + window.location.hash;
     document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
     console.log("URL guardada en cookie antes de login:", currentUrl);
     // Redirige a Auth0
-    loginWithRedirect();
+    loginWithRedirect({ appState: { returnTo: currentUrl } });
     setIsMenuOpen(false);
   };
   

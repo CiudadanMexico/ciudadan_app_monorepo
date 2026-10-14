@@ -215,7 +215,16 @@ const UserMenu = ({
       ) : (
         <MenuItem
           label="Ingresar"
-          onClick={() => loginWithRedirect()}
+          onClick={() =>
+            loginWithRedirect({
+              appState: {
+                returnTo:
+                  window.location.pathname +
+                  window.location.search +
+                  window.location.hash,
+              },
+            })
+          }
         />
       )}
     </div>

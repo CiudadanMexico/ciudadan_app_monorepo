@@ -49,7 +49,7 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogin = async () => {
-    const returnTo = window.location.pathname + window.location.search;
+    const returnTo = window.location.pathname + window.location.search + window.location.hash;
     await loginWithRedirect({ appState: { returnTo } });
     setIsProfileMenuOpen(false);
   };
