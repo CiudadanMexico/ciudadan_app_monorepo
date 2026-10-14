@@ -53,6 +53,29 @@ npx cap sync android && npx cap open android   # móvil
 | Ramas y estado git | `06-Ramas-y-Git.md` |
 | Variables de entorno | `07-Variables-de-Entorno.md` |
 | Dump de esquema Strapi (regenerable) | `ciudadan_backend_26/strapi-schema-export.md` (vía `node export-strapi-schema.js`) |
+| **Deploy real del frontend de la instancia adrian1** (build estático + systemd) | `deploy-adrian1-local.md` |
+| Flujo Auth0 login/logout + trampas verificadas | `03-Frontend.md` §2.1 |
+
+## 🚨 Instancia adrian1 (`frontend-adrian1.ciudadan.org`) — leer antes de trabajar aquí
+
+- **El sitio sirve un BUILD COMPILADO** (`ciudadan_frontend/build/` vía
+  `serve -s build -l 3001`, unidad systemd `ciudadan-frontend.service`, tras túnel
+  cloudflared). **Editar `src/` NO cambia el sitio.** Para desplegar:
+  ```bash
+  cd ciudadan_frontend
+  CI=false DISABLE_ESLINT_PLUGIN=true npx craco build   # DISABLE_ESLINT_PLUGIN: ver §4 del runbook
+  sudo systemctl restart ciudadan-frontend.service
+  ```
+- **`git push` a `main` NO despliega este frontend** (GitHub Actions apunta a
+  Daniel/Polanco y está fallando). Runbook completo con verificación del bundle
+  servido: **`deploy-adrian1-local.md`**.
+- **Auth0** (tenant `ciudadan.us.auth0.com`, app SPA `za265MeRdxMKuPqzdPSTL7lHL0yyg5bd`):
+  - Login: `appState.returnTo = pathname+search+hash` → vuelve a la página previa.
+  - Logout: **`utils/logoutAqui.js`** — se queda EN la página (iframe oculto cierra la
+    sesión de Auth0; el menú de usuario se cierra con `onClose()`).
+  - ⚠️ `/v2/logout` valida `returnTo` contra las **Allowed Logout URLs de la APLICACIÓN**
+    (no del tenant): path profundo → **400**; solo el origen pasa. **Nunca** mandes
+    `returnTo` con path en logout. Detalles y enfoques ya revertidos: `03-Frontend.md` §2.1.
 
 ## Conceptos de dominio (Spanish-first)
 

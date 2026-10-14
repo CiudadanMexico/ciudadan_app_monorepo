@@ -6,6 +6,13 @@
 > (instancias VPS, frontend con dev server) — **esta instancia es diferente**: aquí el
 > frontend es un **build estático** servido por systemd.
 
+> 🚨 **REGLA DE ORO (leer antes de tocar nada):**
+> **Editar el código NO cambia el sitio.** El sitio sirve `ciudadan_frontend/build/`
+> (compilado). Hasta que no hagas `craco build` + `systemctl restart`, el navegador
+> seguirá viendo el build viejo — aunque `git` tenga lo nuevo. Si el usuario reporta
+> "sigue igual", lo primero es verificar el bundle servido (§5), no el código.
+> **`git push` tampoco despliega** (§2).
+
 ## 1. Cadena de red
 
 ```
@@ -18,11 +25,20 @@ frontend-adrian1.ciudadan.org
 
 Servicios de la misma máquina (mismo túnel cloudflared):
 
-| Hostname | Puerto local | Unidad systemd |
-|---|---|---|
-| `frontend-adrian1.ciudadan.org` | 3001 | `ciudadan-frontend.service` (`serve -s build -l 3001`) |
-| `backend-adrian1.ciudadan.org` | 33032 | `strapi-ciudadan-dev.service` (Strapi) |
-| `socket-adrian1.ciudadan.org` | 33035 | `socket-service.service` |
+| Hostname | Puerto local | Unidad systemd | Qué es |
+|---|---|---|---|
+| `frontend-adrian1.ciudadan.org` | 3001 | `ciudadan-frontend.service` | build estático (`serve -s build -l 3001`, node v22.23.3) |
+| `backend-adrian1.ciudadan.org` | 33032 | `strapi-ciudadan-dev.service` | Strapi |
+| `socket-adrian1.ciudadan.org` | 33035 | `socket-service.service` | Socket.IO |
+
+Comandos de operación:
+
+```bash
+sudo systemctl status|restart|enable ciudadan-frontend.service
+sudo systemctl status ciudadan-frontend.service  # activo = site arriba
+ss -ltnp | grep :3001                            # listener presente?
+journalctl -u ciudadan-frontend -n 50 --no-pager # logs del servicio
+```
 
 ## 2. GitHub Actions NO despliega este frontend
 
@@ -52,14 +68,15 @@ Persistencia tras reboot: `sudo systemctl enable ciudadan-frontend.service`.
 
 > ⚠️ Durante un `craco build` el directorio `build/` se limpia y recrea → la web
 > responde 502 / archivos ausentes hasta que termina. No interrumpas builds a medias.
+> El build tarda ~4-6 min en esta máquina.
 
 ## 4. Bloqueo conocido del build: ESLint de archivos ajenos
 
-`craco build` falla por errores de ESLint en archivos de otros módulos (pendientes de
-arreglar por sus dueños):
+`craco build` falla por errores de ESLint en archivos de otros módulos (**pendientes de
+arreglar por sus dueños — no relacionados con login/logout**):
 
-- `src/Pages/Coowork/Coowork.jsx` — `setTab` / `setSubTab` no definidos (`no-undef`)
-- `src/components/MarketPlace/DetalleProducto.jsx` — imports en cuerpo del módulo (`import/first`)
+- `src/Pages/Coowork/Coowork.jsx` — `setTab` / `setSubTab` no definidos (`no-undef`, ~líneas 571-574)
+- `src/components/MarketPlace/DetalleProducto.jsx` — imports en cuerpo del módulo (`import/first`, ~líneas 29-31)
 
 Mientras se arreglan, `DISABLE_ESLINT_PLUGIN=true` permite construir (solo omite la
 validación de lint durante el build; no cambia el runtime).
@@ -84,3 +101,11 @@ El hash del bundle (`main.<hash>.js`) cambia en cada build → compararlo con el
 Casi siempre es el servicio systemd caído (no el túnel): `sudo systemctl restart
 ciudadan-frontend.service`. Diagnóstico: `ss -ltnp | grep :3001` (sin listener = servicio
 muerto).
+
+## 7. Auth0 en esta instancia (resumen)
+
+- Tenant: `ciudadan.us.auth0.com` · App SPA: `client_id za265MeRdxMKuPqzdPSTL7lHL0yyg5bd`.
+- Login: vuelve a la página previa (`appState.returnTo = pathname+search+hash`).
+- Logout: se queda EN la página (`utils/logoutAqui.js`, iframe oculto).
+- Reglas y trampas documentadas en **`docs/03-Frontend.md` §2.1**.
+

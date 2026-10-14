@@ -124,6 +124,28 @@ Entradas: `NavBar.jsx`, `UserMenu.jsx`, `UserIcon.jsx`, `WikiBar.jsx` (item/men�
 >
 > Cómo se despliega este frontend: **`docs/deploy-adrian1-local.md`**.
 
+#### ⚠️ Ya probado y revertido — NO reintroducir (2026-10-14)
+
+Estos enfoques de logout se intentaron y **rompían cosas**; quedan documentados para
+que ningún agente los repita:
+
+| Intento | Por qué falló |
+|---|---|
+| Helper `utils/authRedirect.js` con `salir()` = `returnTo: origin + página actual` | Auth0 rechaza `returnTo` con path → **400**, página de error |
+| `salir()` = logout siempre a la raíz (`origin + '/'`) | El sitio servía un build viejo (ver abajo) y el usuario seguía viendo el error; además resolvía el síntoma por casualidad, no la causa |
+| `logout()` **sin** `returnTo` | Auth0 redirige a la **primera** Allowed Logout URL de la app, que es `http://localhost:3000/` → salía a un localhost muerto |
+| Revertir todo al código "original" (`returnTo: origin`) | Funciona (302) pero **saca al usuario de su página** al origen — no es lo que se pedía |
+
+**La causa raíz de la confusión de toda la sesión:** el sitio sirve un **build
+compilado** (`serve -s build`), no el código fuente. Cambios en `src/` no se ven hasta
+`craco build` + `systemctl restart ciudadan-frontend.service`. Ver
+`docs/deploy-adrian1-local.md` (§3 y §5: cómo verificar el bundle servido).
+
+**Estado actual (correcto):** login → `appState.returnTo` (página previa);
+logout → `utils/logoutAqui.js` (se queda en la página, sesión de Auth0 cerrada vía
+iframe oculto, menú de usuario cerrado con `onClose()`). Para **nuevas entradas de
+login/logout** reutiliza estos patronos; no inventes variantes de `returnTo` con path.
+
 <a name="rutas"></a>
 ## 3. Rutas del router (todas)
 

@@ -88,6 +88,10 @@ Commits relevantes en `main` (más reciente primero):
 3e5edf1 revert(auth0): logout tal cual original (returnTo=origin); login irALogin intacto                    [revertido]
 7c5ce06 chore(auth0): logout siempre a la raíz para evitar página de error tras cerrar sesión                [revertido]
 0f5151e fix(auth0): centralizar login/logout con irALogin/salir (returnTo en appState y cookie fallback)     [revertido]
+274e7f7 docs: runbook deploy frontend adrian1 (build estatico + systemd, GH Actions no aplica) y flujo Auth0 login/logout
+733ab6f feat(auth0): logout se queda en la pagina del usuario (logoutAqui: openUrl=iframe oculto, sesion IdP tambien se cierra)   [VIGENTE]
+7a60577 fix(auth0): el menu de usuario se cierra al dar Salir (onClose tras logoutAqui)                     [VIGENTE]
+f3cfc9c docs: logout cierra el menu de usuario (onClose tras logoutAqui)                                    [VIGENTE]
 ```
 
 ## Notas / hoja de ruta
