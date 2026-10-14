@@ -209,8 +209,11 @@ const UserMenu = ({
       {isAuthenticated ? (
         <MenuItem
           label="Salir"
-          // Cierra sesión sin salir de la página actual
-          onClick={() => logoutAqui(logout)}
+          // Cierra sesión sin salir de la página actual y cierra el menú de usuario
+          onClick={() => {
+            logoutAqui(logout);
+            onClose();
+          }}
         />
       ) : (
         <MenuItem
