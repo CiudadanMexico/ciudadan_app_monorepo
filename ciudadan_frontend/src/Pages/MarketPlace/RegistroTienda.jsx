@@ -123,7 +123,7 @@ export default function RegistroTienda() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)",
+          background: "linear-gradient(135deg, #ede7fb 0%, #d9c9fb 100%)",
           backgroundImage: "url(/fondo-cannabis.png)",
           backgroundBlendMode: "overlay",
           backgroundSize: "cover",
@@ -143,11 +143,11 @@ export default function RegistroTienda() {
             width: "100%"
           }}
         >
-          <Typography variant="h4" fontWeight="bold" sx={{ color: "#1b5e20", mb: 2 }}>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: "#6A3FCB", mb: 2 }}>
              Bienvenido a Ciudadan.org
           </Typography>
 
-          <Typography variant="body1" sx={{ mb: 3, color: "#2e7d32", lineHeight: 1.6 }}>
+          <Typography variant="body1" sx={{ mb: 3, color: "#8A5CF5", lineHeight: 1.6 }}>
             Inicia sesión para registrar tu tienda y formar parte del mercado
             cooperativo consciente. Comparte tus productos y crece junto a la
             comunidad.
@@ -157,11 +157,11 @@ export default function RegistroTienda() {
             variant="contained"
             size="large"
             sx={{
-              backgroundColor: "#4caf50",
+              backgroundColor: "#8A5CF5",
               "&:hover": {
-                backgroundColor: "#388e3c",
+                backgroundColor: "#6A3FCB",
                 transform: "scale(1.05)",
-                boxShadow: "0 4px 15px rgba(76, 175, 80, 0.4)"
+                boxShadow: "0 4px 15px rgba(138, 92, 245, 0.4)"
               },
               transition: "all 0.3s ease",
               borderRadius: 3,
@@ -175,7 +175,7 @@ export default function RegistroTienda() {
           </Button>
 
           <Box sx={{ mt: 4 }}>
-            <Typography variant="body2" sx={{ color: "#388e3c", mb: 1 }}>
+            <Typography variant="body2" sx={{ color: "#6A3FCB", mb: 1 }}>
               ¿Necesitas ayuda para registrar tu tienda?
             </Typography>
 
@@ -202,7 +202,7 @@ export default function RegistroTienda() {
               />
             </Box>
 
-            <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#2e7d32" }}>
+            <Typography variant="caption" sx={{ display: "block", mt: 1, color: "#8A5CF5" }}>
               Escanéalo para ir a Ciudadan.org
             </Typography>
           </Box>

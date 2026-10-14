@@ -21,19 +21,19 @@ const secciones = [
     titulo: 'Agregar socio',
     desc: 'Invita o da de alta socios en tu agencia y revisa las invitaciones.',
     icon: <PersonAddIcon sx={{ fontSize: 26, color: '#fff' }} />,
-    to: '/coowork/herramientas/mi-agencia/agregar-socio',
+    to: '/coowork/admin/herramientas/mi-agencia/agregar-socio',
   },
   {
     titulo: 'Capital humano',
     desc: 'Socios actuales de la agencia y su historial.',
     icon: <GroupsIcon sx={{ fontSize: 26, color: '#fff' }} />,
-    to: '/coowork/herramientas/mi-agencia/capital-humano',
+    to: '/coowork/admin/herramientas/mi-agencia/capital-humano',
   },
   {
     titulo: 'Configuración',
     desc: 'Ajustes de tu agencia.',
     icon: <SettingsIcon sx={{ fontSize: 26, color: '#fff' }} />,
-    to: '/coowork/herramientas/mi-agencia/configuracion',
+    to: '/coowork/admin/herramientas/mi-agencia/configuracion',
   },
 ];
 

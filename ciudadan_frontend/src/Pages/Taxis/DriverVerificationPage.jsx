@@ -282,7 +282,7 @@ const DriverVerificationPage = () => {
       await refreshReviewBundle();
       showFeedback(successMessages[action] || 'Acción completada.');
       if (action === 'request_resub') {
-        navigate(`/herramientas/conductores`);
+        navigate(`/coowork/admin/herramientas/conductores`);
       }
     } catch (completeError) {
       showFeedback(completeError?.message || 'No se pudo completar la acción.', 'error');

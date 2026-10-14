@@ -13,6 +13,7 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { resolveValidationByAgendaId } from '../../services/driverVerification/getters';
 import {
   AGENDA_ESTADO,
@@ -144,6 +145,16 @@ const ConductoresAgencia = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: fondo, py: { xs: 3, md: 5 }, px: 2, fontFamily: fontStack }}>
       <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={() => {
+          if (window.history.length > 1) navigate(-1);
+          else navigate('/coowork/admin/herramientas');
+        }}
+        sx={{ color: '#cfcfe6', mb: 2, textTransform: 'none', fontFamily: fontStack }}
+      >
+        Volver
+      </Button>
       <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: '#fff', fontFamily: fontStack }}>
         <span style={{ color: MORADO }}>Conductores</span> pendientes
       </Typography>

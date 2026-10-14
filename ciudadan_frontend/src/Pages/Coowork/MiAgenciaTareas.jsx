@@ -83,7 +83,7 @@ const MiAgenciaTareas = () => {
     <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
       <Button
         component={RouterLink}
-        to="/coowork/herramientas/tareas/agregar-tarea"
+        to="/coowork/admin/herramientas/tareas/agregar-tarea"
         size="small"
         variant="contained"
         sx={{
