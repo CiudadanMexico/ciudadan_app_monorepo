@@ -12,12 +12,42 @@ const CrearBilleteraCentralWld = () => {
   const [mostrarPrivada, setMostrarPrivada] = useState(false);
   const [confirmado, setConfirmado] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  // NUEVO: distinguir "wallet generada local" vs "vinculada en backend".
+  // El botón de continuar solo aparece tras confirmación exitosa del servidor.
+  const [vinculada, setVinculada] = useState(false);
   const navigate = useNavigate();
   const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+
+  const vincularWallet = async (address) => {
+    setStatus('Vinculando wallet a tu usuario...');
+    let token;
+    try {
+      token = await getAccessTokenSilently({
+        authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
+      });
+    } catch (e) {
+      if (e.error === 'missing_refresh_token' || e.message?.includes('Missing Refresh Token')) {
+        throw new Error('Sesión expirada: cierra sesión y vuelve a iniciar sesión con Auth0');
+      }
+      throw e;
+    }
+    const res = await fetch(`${STRAPI_URL}/api/cartera/vincular-wallet`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ wallet_address: address }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || data?.message || 'Error vinculando');
+    return data?.cartera?.id;
+  };
 
   const generarCartera = async () => {
     try {
       setStatus('Generando wallet...');
+      setVinculada(false);
       const wallet = ethers.Wallet.createRandom();
       setWalletInfo({
         address: wallet.address,
@@ -27,36 +57,30 @@ const CrearBilleteraCentralWld = () => {
       console.log('Dirección:', wallet.address);
       // privateKey solo visible bajo demanda, no en log persistente
 
-      if (isAuthenticated) {
-        setStatus('Vinculando wallet a tu usuario...');
-        let token;
-        try {
-          token = await getAccessTokenSilently({
-            authorizationParams: { audience: 'https://api.ciudadan.org', scope: 'openid profile email offline_access' },
-          });
-        } catch (e) {
-          if (e.error === 'missing_refresh_token' || e.message?.includes('Missing Refresh Token')) {
-            setStatus('⚠️ Sesión sin refresh token, redirigiendo a login...');
-            // fuerza login para obtener refresh token
-            throw new Error('Missing Refresh Token: cierra sesión y vuelve a iniciar sesión con Auth0 (offline_access)');
-          }
-          throw e;
-        }
-        const res = await fetch(`${STRAPI_URL}/api/cartera/vincular-wallet`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ wallet_address: wallet.address }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error?.message || data?.message || 'Error vinculando');
-        setStatus(`✅ Wallet vinculada a tu usuario (cartera id ${data.cartera?.id})`);
-      } else {
+      if (!isAuthenticated) {
         setStatus('⚠️ Wallet generada local (inicia sesión para vincularla a tu usuario)');
+        return;
       }
+      const carteraId = await vincularWallet(wallet.address);
+      setVinculada(true);
+      setStatus(`✅ Wallet vinculada a tu usuario (cartera id ${carteraId})`);
     } catch (e) {
+      // No se limpia walletInfo: el usuario conserva su clave y puede reintentar
+      setVinculada(false);
+      setStatus(`❌ Error: ${e.message}`);
+      console.error(e);
+    }
+  };
+
+  // Reintenta SOLO la vinculación con la misma dirección (sin regenerar).
+  const reintentarVinculacion = async () => {
+    if (!walletInfo?.address) return;
+    try {
+      const carteraId = await vincularWallet(walletInfo.address);
+      setVinculada(true);
+      setStatus(`✅ Wallet vinculada a tu usuario (cartera id ${carteraId})`);
+    } catch (e) {
+      setVinculada(false);
       setStatus(`❌ Error: ${e.message}`);
       console.error(e);
     }
@@ -118,20 +142,42 @@ const CrearBilleteraCentralWld = () => {
             <Typography sx={{ color: '#2ee6c8', fontSize: '0.85rem', mt: 1 }}>✓ Copiado al portapapeles</Typography>
           )}
 
+          {/* Si falló la vinculación (pero la clave existe), permitir reintentar
+              sin regenerar. Solo se muestra cuando NO está vinculada. */}
+          {walletInfo && !vinculada && isAuthenticated && (
+            <Button
+              onClick={reintentarVinculacion}
+              size="small"
+              sx={{ mt: 1.5, bgcolor: '#8A5CF5', color: 'white', fontWeight: 700 }}
+            >
+              Reintentar vinculación
+            </Button>
+          )}
+
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
             <input type="checkbox" checked={confirmado} onChange={e => setConfirmado(e.target.checked)} /> He guardado mi clave en lugar seguro
           </label>
           <p style={{ color: confirmado ? '#2ee6c8' : '#ffb3b3', fontSize: 12, marginTop: 8 }}>
             {confirmado ? '✅ No se guarda en servidor, solo en tu navegador. Ya puedes usar tu wallet.' : '⚠️ Solo se muestra una vez. Guárdala en un lugar seguro antes de continuar.'}
           </p>
+          {/* Continuar solo si el backend confirmó la vinculación.
+              Antes este botón limpiaba el estado y mandaba a /cartera aunque
+              la vinculación hubiera fallado, lo que provocaba el ciclo
+              "me regresa a crear cartera". */}
           {confirmado && (
-            <Button
-              onClick={() => { setWalletInfo(null); setStatus(''); setConfirmado(false); setMostrarPrivada(false); navigate('/cartera'); }}
-              size="small"
-              sx={{ mt: 1, bgcolor: '#333', color: 'white' }}
-            >
-              Borrar de pantalla
-            </Button>
+            vinculada ? (
+              <Button
+                onClick={() => { setWalletInfo(null); setStatus(''); setConfirmado(false); setMostrarPrivada(false); setVinculada(false); navigate('/cartera'); }}
+                size="small"
+                sx={{ mt: 1, bgcolor: '#2ee6c8', color: '#06231f', fontWeight: 700 }}
+              >
+                Continuar a mi cartera
+              </Button>
+            ) : (
+              <p style={{ color: '#ffb3b3', fontSize: 12, marginTop: 8 }}>
+                ⚠️ Tu wallet aún no quedó vinculada en el servidor. Usa «Reintentar vinculación» antes de continuar.
+              </p>
+            )
           )}
         </Box>
       )}
