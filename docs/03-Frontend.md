@@ -104,9 +104,9 @@ en `src/index.js` hace `navigate(appState?.returnTo || '/', { replace: true })`)
 openUrl: (url) => iframe oculto })`. auth0-spa-js siempre limpia la sesión local
 (`_clearLocalSession`) y en vez de navegar la ventana, el iframe carga la URL de
 logout → Auth0 termina la sesión del IdP → el usuario **se queda en su ruta actual**
-viendo la UI en estado "sin sesión". Entradas: `NavBar.jsx`, `UserMenu.jsx`,
-`UserIcon.jsx`, `WikiBar.jsx` (item/menú "Salir"); `LogoutButton.jsx` (no se usa en
-la UI actual) usa el mismo helper.
+viendo la UI en estado "sin sesión" y el menú de usuario se cierra (`onClose()`).
+Entradas: `NavBar.jsx`, `UserMenu.jsx`, `UserIcon.jsx`, `WikiBar.jsx` (item/menú
+"Salir"); `LogoutButton.jsx` (no se usa en la UI actual) usa el mismo helper.
 
 > ⚠️ **Regla Auth0 (verificada con curl el 2026-10-14):** el endpoint `/v2/logout`
 > valida `returnTo` contra las **Allowed Logout URLs de la APLICACIÓN**
