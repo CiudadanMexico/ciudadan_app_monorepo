@@ -183,7 +183,11 @@ jobs:
         run: |
           cd ciudadan_frontend
           npm ci --legacy-peer-deps --no-audit --no-fund
-          CI=false npm run build
+          # REACT_APP_SOCKET_URL obligatorio: sin él CRA usa el fallback
+          # http://localhost:33035, que rompe la wiki en producción (la petición
+          # se hace a localhost de la máquina del usuario). Usar el socket de
+          # producción: https://socket-adrianperez2.ciudadan.org
+          REACT_APP_SOCKET_URL=https://socket-adrianperez2.ciudadan.org CI=false npm run build
           test -f build/index.html && echo "frontend build OK"
 
       - name: Empaquetado + checksums + MANIFEST

@@ -13,7 +13,7 @@ const Ingresa = () => {
 
   const handleLogin = () => {
     const currentUrl =
-      window.location.pathname + window.location.search;
+      window.location.pathname + window.location.search + window.location.hash;
 
     document.cookie = `returnTo=${encodeURIComponent(
       currentUrl
@@ -21,7 +21,7 @@ const Ingresa = () => {
 
     console.log("URL guardada en cookie antes de login:", currentUrl);
 
-    loginWithRedirect();
+    loginWithRedirect({ appState: { returnTo: currentUrl } });
   };
 
   return (

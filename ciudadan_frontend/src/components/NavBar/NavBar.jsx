@@ -1,6 +1,7 @@
 // src/components/NavBar/NavBar.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { logoutAqui } from '../../utils/logoutAqui';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 // No socket.io aquí (evitamos duplicados)
 import {
@@ -279,7 +280,7 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
     loginWithRedirect({
       appState: {
-        returnTo: location.pathname + location.search,
+        returnTo: window.location.pathname + window.location.search + window.location.hash,
       },
     });
     setIsMenuOpen(false);
@@ -287,7 +288,8 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
 
   const handleLogout = () => {
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Cierra sesión sin salir de la página actual
+    logoutAqui(logout);
     setIsMenuOpen(false);
   };
 

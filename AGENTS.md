@@ -29,6 +29,18 @@ npm test          # Jest watch (CRA defaults; minimal tests)
 npx cap sync android && npx cap open android   # mobile build
 ```
 
+> ⚠️ En la instancia del agente **adrian1** el frontend NO es dev server: es build
+> estático (`serve -s build -l 3001` tras cloudflared → `frontend-adrian1.ciudadan.org`,
+> unidad systemd `ciudadan-frontend.service`) y **GitHub Actions no lo despliega**.
+> Para actualizarlo: `CI=false DISABLE_ESLINT_PLUGIN=true npx craco build` +
+> `sudo systemctl restart ciudadan-frontend.service`. Runbook:
+> **`docs/deploy-adrian1-local.md`**. (`DISABLE_ESLINT_PLUGIN` es necesario mientras
+> haya errores de ESLint en archivos ajenos que bloquean el build.)
+>
+> Login/logout con Auth0 (login vuelve a la página previa vía `appState.returnTo`;
+> logout se queda EN la página vía `utils/logoutAqui.js`, iframe oculto):
+> **`docs/03-Frontend.md` §2.1**.
+
 ## Architecture & Key Docs
 
 - **Canonical CoWork spec:** `docs/documento-off.md` (source of truth)
@@ -37,6 +49,10 @@ npx cap sync android && npx cap open android   # mobile build
 - **Auth/permissions detail:** `docs/TAREAS-CRUD-PERMISOS.md`
 - **Notifications API (toast + notificaciones):** `docs/NOTIFICACIONES.md` —
   todo pasa por `useNotifications()`; nunca `useSnackbar` ni un segundo socket.
+- **Deploy frontend instancia adrian1 (build estático + systemd):**
+  `docs/deploy-adrian1-local.md` — GH Actions NO despliega este frontend.
+- **Flujo Auth0 login/logout (returnTo, Allowed Logout URLs a nivel app):**
+  `docs/03-Frontend.md` §2.1.
 - **Agenda migration:** `docs/AGENDA-VALIDATION-SYNC.md`
 - **Monorepo/CI plan:** `plan_nonorepo.md`
 - **Backend schema dump:** `ciudadan_backend_26/strapi-schema-export.md` (regenerate via `node export-strapi-schema.js`)

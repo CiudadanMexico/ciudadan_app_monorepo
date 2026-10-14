@@ -59,6 +59,41 @@ b5034aa feat(ads): recompensa en DecisionWindow + barra Recompensa ganada
 8be8761 feat(ads): cobertura basada en duración real del video
 ```
 
+## Trabajo login/logout Auth0 (rama `feature/agente1-adrian-loginredirect`) — `2026-10-14`
+
+Rama de la instancia **adrian1** (`frontend-adrian1.ciudadan.org`). Resumen de lo aprendido
+y del estado final:
+
+- **Regla Auth0 verificada:** `/v2/logout` valida `returnTo` contra las *Allowed Logout
+  URLs de la APLICACIÓN* (la lista de tenant no aplica porque auth0-spa-js manda
+  `client_id`). Origen sin path → 302 OK; path profundo → 400 (página de error); sin
+  `returnTo` → redirige a la primera URL permitida (p. ej. `localhost:3000`).
+- **Estado final del código (compartido con `main`):**
+  - Login: todas las entradas mandan `appState.returnTo = pathname+search+hash` →
+    `onRedirectCallback` devuelve al usuario a la página previa.
+  - Logout: `utils/logoutAqui.js` — cierra sesión (local + IdP vía iframe oculto)
+    **sin salir de la página** donde estaba el usuario.
+- **Se probó y se revirtió** (documentado para no repetir): helper `utils/authRedirect.js`
+  con `salir`/`irALogin` y logout "a la raíz" o "sin returnTo" — todos rompían el logout
+  de formas distintas. No reintroducir sin necesidad.
+- **Deploy:** esta instancia NO se despliega por GitHub Actions (falla y apunta a
+  Daniel/Polanco). Se actualiza con build local + `systemctl restart
+  ciudadan-frontend.service`. Runbook: `docs/deploy-adrian1-local.md`.
+
+Commits relevantes en `main` (más reciente primero):
+```
+29985f7 fix(auth0): login siempre regresa a la pagina donde estaba (appState returnTo con ruta+query+hash); logout intacto
+855ea75 revert(auth0): rollback total login/logout al estado previo 956c504
+99b28ce fix(auth0): logout sin returnTo - Auth0 usa la primera Allowed Logout URL (evita pagina de error)   [revertido]
+3e5edf1 revert(auth0): logout tal cual original (returnTo=origin); login irALogin intacto                    [revertido]
+7c5ce06 chore(auth0): logout siempre a la raíz para evitar página de error tras cerrar sesión                [revertido]
+0f5151e fix(auth0): centralizar login/logout con irALogin/salir (returnTo en appState y cookie fallback)     [revertido]
+274e7f7 docs: runbook deploy frontend adrian1 (build estatico + systemd, GH Actions no aplica) y flujo Auth0 login/logout
+733ab6f feat(auth0): logout se queda en la pagina del usuario (logoutAqui: openUrl=iframe oculto, sesion IdP tambien se cierra)   [VIGENTE]
+7a60577 fix(auth0): el menu de usuario se cierra al dar Salir (onClose tras logoutAqui)                     [VIGENTE]
+f3cfc9c docs: logout cierra el menu de usuario (onClose tras logoutAqui)                                    [VIGENTE]
+```
+
 ## Notas / hoja de ruta
 - **`abraham-cartera` / `cartera-bankchain` / `feat/zoom-integration` / `docs` / `verify_changes`**
   apuntan a commits de verificación/merges relacionados con la cartera y el flujo de revisión.
