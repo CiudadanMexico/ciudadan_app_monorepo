@@ -2,7 +2,7 @@
 
 /**
  * sync-wikis.js — Sincroniza los .md de ejemplo (wikiseed/) hacia la carpeta
- * física donde vive la wiki fuera del proyecto.
+ * física donde vive la wiki fuera del proyecto Y los indexa para la wiki.
  *
  * - Origen: `wikiseed/{main,help,faq}/` junto a este script (resuelto por
  *   `__dirname`; funciona desde cualquier carpeta). Solo se sincronizan las 3
@@ -14,11 +14,28 @@
  *   NUNCA borra nada del destino — lo editado en vivo se conserva.
  * - Flags: `--dry-run` (reporta sin escribir), `--force` (re-copia todo).
  *
+ * ── POR QUÉ TAMBIÉN INDEXA EN LA BASE DE DATOS ────────────────────────────
+ * La wiki NO lista archivos del disco: el árbol de navegación sale de la tabla
+ * `documents` de SQLite (`ciudadadan.db`), que lee `WikiService.getWikiSection`
+ * vía `DocumentRepositoryImpl.findAllForTree()`. Escribir el `.md` en disco NO
+ * era suficiente: el archivo quedaba invisible en el listado y sólo era legible
+ * por URL directa (gracias al fallback a disco de `getDocumentByPath`).
+ *
+ * Copiar sin indexar producía exactamente eso: el sync reportaba éxito mientras
+ * el artículo no aparecía en la wiki. Por eso este script, tras copiar, indexa
+ * con el MISMO servicio que usa el watcher (`WikiService.updateIndex`):
+ *   - idempotente por SHA-256 del contenido → sincronizar repetido NO duplica;
+ *   - escribe SOLO la BD (`writeToDisk: false`), no reescribe el archivo;
+ *   - reutiliza el código real en vez de duplicar SQL aquí.
+ *
+ * El índice sólo se toca si el archivo quedó copiado/actualizado, así que un
+ * `--dry-run` no modifica nada y un sync sin cambios no reescribe la BD.
+ *
  * Uso:
  *   node wikiseed/sync-wikis.js [--dry-run] [--force]
  *
  * Sale con código 1 si falla algo (destino irresoluble, error de red fatal,
- * fallo de escritura).
+ * fallo de escritura o de indexado).
  */
 
 const fs = require('fs');
@@ -74,6 +91,61 @@ function getJson(url) {
   });
 }
 
+/**
+ * Indexa un documento en la BD de la wiki para que aparezca en el listado.
+ *
+ * Reutiliza `WikiService.updateIndex` (el mismo que usa `WikiWatcherService`),
+ * que es idempotente por SHA-256: si el contenido no cambió, no hace nada, así
+ * que sincronizar varias veces NO duplica documentos.
+ *
+ * Devuelve { ok, indexado, motivo }:
+ *   - ok: false y motivo 'sin-dist' si el socket-service no está compilado
+ *     (`dist/`) o le faltan dependencias. En ese caso NO se considera fallo del
+ *     sync: los `.md` quedaron copiados y el watcher los indexará cuando el
+ *     servicio arranque. Se reporta para que no quede oculto.
+ */
+function indexarDocumento(rutaLogica, contenido) {
+  const distDir = path.resolve(__dirname, '..', 'ciudadan_backend_26', 'socket-service', 'dist');
+  if (!fs.existsSync(distDir)) {
+    return { ok: false, indexado: false, motivo: 'sin-dist' };
+  }
+
+  try {
+    // El servicio abre `ciudadadan.db` relativo al CWD, como en producción.
+    const cwdPrevio = process.cwd();
+    const socketDir = path.resolve(__dirname, '..', 'ciudadan_backend_26', 'socket-service');
+    process.chdir(socketDir);
+    let ws;
+    try {
+      const { ConfigDatabase } = require(path.join(distDir, 'config', 'ConfigDatabase'));
+      const { DocumentRepositoryImpl } = require(path.join(
+        distDir,
+        'repository',
+        'impl',
+        'DocumentRepositoryImpl'
+      ));
+      const { WikiService } = require(path.join(distDir, 'services', 'WikiService'));
+
+      const db = ConfigDatabase.getConnection();
+      ws = new WikiService(new DocumentRepositoryImpl(db));
+    } finally {
+      process.chdir(cwdPrevio);
+    }
+
+    // `updateIndex` es async aunque sólo escriba en BD.
+    return Promise.resolve(ws.updateIndex(rutaLogica, contenido)).then(
+      (cambiado) => ({ ok: true, indexado: Boolean(cambiado), motivo: null }),
+      (err) => ({ ok: false, indexado: false, motivo: err && err.message ? err.message : String(err) })
+    );
+  } catch (err) {
+    return {
+      ok: false,
+      indexado: false,
+      motivo: err && err.message ? err.message : String(err),
+    };
+  }
+}
+
 function validarDestino(raw) {
   const valor = typeof raw === 'string' ? raw.trim() : '';
   if (!valor) throw new Error('wikis_path vacío: no hay destino configurable.');
@@ -113,7 +185,7 @@ async function main(argv = process.argv.slice(2), deps = {}) {
   const strapiUrl = process.env.STRAPI_URL || '';
   const leerDestino = deps.resolverDestino || resolverDestino;
 
-  const stats = { copiados: 0, sinCambios: 0, omitidos: 0 };
+  const stats = { copiados: 0, sinCambios: 0, omitidos: 0, indexados: 0, sinIndexar: 0 };
   const { destino, origen } = await leerDestino(strapiUrl);
   console.log(`Destino: ${destino} (origen: ${origen})${dryRun ? ' [dry-run]' : ''}`);
 
@@ -141,6 +213,25 @@ async function main(argv = process.argv.slice(2), deps = {}) {
       }
       stats.copiados += 1;
       console.log(`${dryRun ? 'copiaría' : 'copiado'}: ${seccion}/${relativo}`);
+
+      // El listado de la wiki sale de la BD, no del disco: sin indexar, el
+      // archivo copiado NO aparece en el árbol. Idempotente por hash.
+      if (!dryRun) {
+        const rutaLogica = `wiki/${seccion}/${relativo}`;
+        const res = await indexarDocumento(rutaLogica, fs.readFileSync(meta, 'utf-8'));
+        if (res.ok && res.indexado) {
+          stats.indexados += 1;
+          console.log(`   indexado: ${rutaLogica}`);
+        } else if (res.ok) {
+          console.log(`   ya indexado (sin cambios): ${rutaLogica}`);
+        } else {
+          stats.sinIndexar += 1;
+          console.warn(
+            `   ⚠ no se pudo indexar ${rutaLogica} (${res.motivo}). ` +
+              'El archivo quedó copiado; el watcher lo indexará al arrancar el socket-service.'
+          );
+        }
+      }
     }
   }
 
@@ -148,6 +239,13 @@ async function main(argv = process.argv.slice(2), deps = {}) {
     `Listo: ${stats.copiados} copiados, ${stats.sinCambios} sin cambios, ` +
     `${stats.omitidos} secciones omitidas.`
   );
+  if (!dryRun) {
+    console.log(
+      `Índice de la wiki: ${stats.indexados} indexados` +
+      (stats.sinIndexar > 0 ? `, ${stats.sinIndexar} sin indexar` : '') +
+      '.'
+    );
+  }
   return stats;
 }
 

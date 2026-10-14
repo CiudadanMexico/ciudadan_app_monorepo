@@ -11,6 +11,8 @@ import PurpleButton from '../../components/common/PurpleButton.jsx';
 import TokenAction from './TokenAction.jsx';
 import TokenDetails from './TokenDetails.jsx';
 import TokenPanel from './TokenPanel.jsx';
+import TokenSaberMas from '../../components/Cartera/TokenSaberMas.jsx';
+import RolesParticipar from '../../components/Cartera/RolesParticipar.jsx';
 import { TOKENS, STATUS_LABELS, findTokenByParam, getTokenPath } from './tokenConfig';
 
 /**
@@ -313,8 +315,21 @@ const Billetera = () => {
             {/* CTA declarado por el token en la configuración central */}
             <TokenAction token={token} />
 
-            {/* Explicación larga desplegable (Accordion de MUI) */}
+            {/* Carrusel de roles recuperado del componente original del Home
+                (src/components/Home/Intro.jsx), con sus imágenes reales.
+                Entrada visual a las formas de participar: visible para todas
+                las personas, no sólo autenticadas (no muestra datos privados). */}
+            {token.id === 'pesos' && (
+              <Box sx={{ mt: 1.5, width: '100%' }}>
+                <RolesParticipar />
+              </Box>
+            )}
+
+            {/* Explicación larga con secciones visibles + detalle desplegable */}
             <TokenDetails nombre={token.nombre} contenido={token.descripcion} />
+
+            {/* Saber más: wiki y documentos (integración mínima, carga perezosa) */}
+            <TokenSaberMas referencias={token.descripcion?.wiki} />
           </Paper>
         </Box>
       </Fade>

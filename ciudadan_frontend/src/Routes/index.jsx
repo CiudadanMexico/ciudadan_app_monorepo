@@ -236,6 +236,7 @@ const WikiWrapper = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [doc, setDoc] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -250,12 +251,12 @@ const WikiWrapper = () => {
       for (const candidate of candidates) {
         try {
           const found = await wikiService.getDocument(candidate);
-          if (found && !cancelled) { setDoc(found); return; }
+          if (found && !cancelled) { setDoc(found); setCargando(false); return; }
         } catch (e) {
           /* intentar siguiente sección */
         }
       }
-      if (!cancelled) setDoc(null);
+      if (!cancelled) { setDoc(null); setCargando(false); }
     })();
 
     return () => { cancelled = true; };
@@ -270,7 +271,7 @@ const WikiWrapper = () => {
     if (last) navigate(`/wiki/${last}`);
   };
 
-  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
+  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} cargando={cargando} />;
 };
 
 
