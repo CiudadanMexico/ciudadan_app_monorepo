@@ -303,6 +303,33 @@ Notas:
 
 ---
 
+## Paso 7d — Instancia adrian1 (frontend como **build estático**) — `2026-10-14`
+
+> La instancia del agente **adrian1** (esta máquina Ubuntu) **no** usa CRA dev server:
+> su `ciudadan-frontend.service` sirve el build estático con `serve -s build -l 3001`,
+> detrás del túnel cloudflared que responde en `frontend-adrian1.ciudadan.org`.
+> **GitHub Actions no despliega este frontend** (el workflow raíz apunta a Daniel/Polanco
+> y ha fallado en corridas recientes): hay que construir y reiniciar en la máquina.
+
+```bash
+cd /home/ubuntu/ciudadan_app_monorepo/ciudadan_frontend
+CI=false DISABLE_ESLINT_PLUGIN=true npx craco build   # ver nota de ESLint abajo
+sudo systemctl restart ciudadan-frontend.service
+curl -s -o /dev/null -w '%{http_code}\n' https://frontend-adrian1.ciudadan.org/   # 200
+```
+
+Notas:
+
+- `DISABLE_ESLINT_PLUGIN=true` es necesario mientras haya errores de ESLint en archivos
+  ajenos al cambio (`Pages/Coowork/Coowork.jsx`: `setTab`/`setSubTab` no definidos;
+  `components/MarketPlace/DetalleProducto.jsx`: imports fuera del tope).
+- Si el puerto 3001 no tiene listener (`ss -ltnp | grep :3001`), la web da **502**: es
+  el servicio caído, no el túnel — `sudo systemctl restart ciudadan-frontend.service`.
+- Runbook completo (incl. cómo verificar el bundle desplegado):
+  **`docs/deploy-adrian1-local.md`**.
+
+---
+
 ## Paso 8 — Deploy a producción (sucinto)
 
 ### vía CI/CD (GitHub Actions)

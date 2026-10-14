@@ -1,6 +1,7 @@
 // src/components/NavBar/NavBar.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { logoutAqui } from '../../utils/logoutAqui';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 // No socket.io aquí (evitamos duplicados)
 import {
@@ -18,7 +19,6 @@ import {
 import { BsBriefcaseFill } from "react-icons/bs";
 import { AiOutlineApartment } from "react-icons/ai";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import { irALogin } from '../../utils/authRedirect';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import ForumIcon from '@mui/icons-material/Forum';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -274,16 +274,22 @@ const NavBar = ({ SetIsMenuOpen, siteSection }) => {
     handleUserRegistration();
   }, [isAuthenticated, user]);
 
-  // Login: vuelve a la página donde estabas. Logout: igual que siempre,
-  // vuelve a la raíz (origen) — comportamiento original sin cambios.
+  // Login / Logout: guardamos returnTo en cookie (ruta, query, hash)
   const handleLogin = () => {
-    irALogin(loginWithRedirect);
+    const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+    document.cookie = `returnTo=${encodeURIComponent(currentUrl)}; path=/; max-age=3600`;
+    loginWithRedirect({
+      appState: {
+        returnTo: window.location.pathname + window.location.search + window.location.hash,
+      },
+    });
     setIsMenuOpen(false);
   };
 
   const handleLogout = () => {
     document.cookie = "returnTo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Cierra sesión sin salir de la página actual
+    logoutAqui(logout);
     setIsMenuOpen(false);
   };
 

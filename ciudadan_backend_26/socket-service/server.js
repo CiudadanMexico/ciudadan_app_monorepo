@@ -20,12 +20,20 @@ const defaultAccept = [
   "http://localhost:3000",
   "http://localhost",
   "http://localhost:3001",
+  "http://localhost:3099",
   "http://localhost:33422",
   "https://chatbot.publia.mx",
   "https://marihuanas.club",
   "https://www.marihuanas.club",
   "https://wiki.ciudadan.org",
   "https://ciudadan.org",
+  // Túnel Cloudflare de esta máquina (maquina adrianperez2):
+  // el frontend se sirve en frontend-adrianperez2.ciudadan.org → localhost:3001
+  // y pide la wiki cross-origin al socket; sin estos orígenes el navegador
+  // bloquea la respuesta (sin Access-Control-Allow-Origin) y la wiki sale
+  // "Documento no disponible".
+  "https://frontend-adrianperez2.ciudadan.org",
+  "https://socket-adrianperez2.ciudadan.org",
 ];
 const accept = (process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(",") : defaultAccept);
 

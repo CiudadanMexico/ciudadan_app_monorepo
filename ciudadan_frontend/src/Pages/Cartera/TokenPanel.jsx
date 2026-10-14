@@ -23,6 +23,21 @@ import PurpleButton from '../../components/common/PurpleButton.jsx';
 // cambio operado por la plataforma). Se conserva el valor que ya mostraba la app.
 export const FACTOR_LABORY_MXN = 80;
 
+// ── CONSTANTES DE REFERENCIA Labory→MXN EN EL CÓDIGO (inventario, bloque 1) ──
+// Hay DOS constantes distintas y en desacuerdo. NO se unifican ni se reemplazan
+// por una cifra nueva: se documentan para que se decida con datos reales.
+//
+//   1. FACTOR_LABORY_MXN = 80      → este archivo (paneles de Cartera).
+//   2. LAB_REFERENCIA.valorUnitario = 147.16 → `src/config/labory.js`,
+//      usada por membresías (ver `MembresiasDetalles.jsx`).
+//
+// Regla del bloque: se conserva cada una donde ya se usaba y NINGUNA se
+// presenta como cotización operada. Ver docs/CARTERA-ESPECIFICACION.md.
+export const CONSTANTES_REFERENCIA_LABORY = [
+  { valor: FACTOR_LABORY_MXN, usadaEn: 'src/Pages/Cartera/TokenPanel.jsx (fichas de Cartera)' },
+  { valor: 147.16, usadaEn: 'src/config/labory.js → MembresiasDetalles.jsx (membresías)' },
+];
+
 const PANELES_CON_CARTERA = ['resumen', 'pesos', 'labory', 'itoken'];
 
 const lby = (valor) => Number(valor || 0).toFixed(2);
@@ -48,6 +63,68 @@ const Aviso = ({ children }) => (
 const Cargando = ({ texto = 'Cargando...' }) => (
   <Typography sx={{ fontSize: 12, opacity: 0.8 }}>{texto}</Typography>
 );
+
+/** Encabezado de un bloque del panel (Cobrado / Pendiente / Equivalencia / …). */
+const Separador = ({ etiqueta }) => (
+  <Typography
+    sx={{
+      mt: 1.5,
+      mb: 0.5,
+      fontWeight: 700,
+      fontSize: 11,
+      color: '#8ee9d6',
+      textTransform: 'uppercase',
+      letterSpacing: '0.04em',
+    }}
+  >
+    {etiqueta}
+  </Typography>
+);
+
+/**
+ * Anuncia destinos futuros SIN renderizar botones operativos.
+ *
+ * Regla del bloque: "No muestres un botón operativo para una función
+ * inexistente". Si todos los destinos están `pendiente`, se listan como
+ * próximamente. Si alguno ya existiera (`estado !== 'pendiente'` con `to`),
+ * se renderizaría como enlace real — hoy ninguno lo está.
+ */
+const Proximamente = ({ simuladores }) => {
+  const lista = Array.isArray(simuladores) ? simuladores.filter(Boolean) : [];
+  if (lista.length === 0) return null;
+
+  const listos = lista.filter((sim) => sim.estado !== 'pendiente' && sim.to);
+  const pendientes = lista.filter((sim) => sim.estado === 'pendiente' || !sim.to);
+
+  return (
+    <Box>
+      {listos.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
+          {listos.map((sim) => (
+            <PurpleButton key={sim.rol} href={sim.to} size="small">
+              {sim.rol}
+            </PurpleButton>
+          ))}
+        </Box>
+      )}
+
+      {pendientes.length > 0 && (
+        <>
+          <Typography sx={{ fontSize: 12, opacity: 0.75 }}>
+            Próximamente podrás estimar tus ingresos con estos simuladores:
+          </Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 0.5, lineHeight: 1.6 }}>
+            {pendientes.map((sim) => `• ${sim.rol}`).join('\n')}
+          </Typography>
+          <Aviso>
+            Estos destinos todavía no están implementados: sus fórmulas y parámetros se definirán en
+            su bloque. No son una oferta ni una promesa de resultados.
+          </Aviso>
+        </>
+      )}
+    </Box>
+  );
+};
 
 /** Historial de movimientos de Laborys (mismo comportamiento que ya existía). */
 const HistorialLabory = ({ historial, cargandoHist, onRefresh }) => (
@@ -153,15 +230,20 @@ const TokenPanel = ({
           🔒 <strong>Laborys:</strong> {lby(cartera.laborysSaldo)} LBY
         </Typography>
         <Typography sx={{ opacity: 0.9, mt: 0.5 }}>
-          💰 <strong>Equivalente (1 LBY = {FACTOR_LABORY_MXN} MXN):</strong> $
-          {mxn(cartera.laborysSaldo)} MXN
-        </Typography>
-        <Typography sx={{ opacity: 0.9, mt: 0.5 }}>
           📈 <strong>Laborys ganados:</strong> {lby(cartera.laborysGanados)}
         </Typography>
         <Typography sx={{ opacity: 0.9, mt: 0.5, wordBreak: 'break-all' }}>
           🔗 <strong>Wallet:</strong> {cartera.wallet_address || 'sin vincular'}
         </Typography>
+        {/* Separación explícita: la equivalencia NO es dinero disponible.
+            Antes esta cifra encabezaba el panel y se leía como un saldo en
+            pesos. Ahora queda rotulada como referencia informativa. */}
+        <Aviso>
+          Equivalencia informativa de tus {lby(cartera.laborysSaldo)} LBY (1 LBY ={' '}
+          {FACTOR_LABORY_MXN} MXN de referencia): ${mxn(cartera.laborysSaldo)} MXN. No es dinero
+          disponible ni un tipo de cambio operado: los Laborys no se convierten a pesos
+          automáticamente.
+        </Aviso>
         <Aviso>El historial de movimientos está en la ficha de Labory.</Aviso>
       </>
     );
@@ -170,13 +252,34 @@ const TokenPanel = ({
   if (panel === 'pesos') {
     return (
       <>
-        <Typography sx={{ opacity: 0.9, fontSize: '1.3rem' }}>
-          ${mxn(cartera.laborysSaldo)} MXN
-        </Typography>
-        <Typography sx={{ opacity: 0.7, fontSize: 12 }}>
-          Equivalente de referencia de tus {lby(cartera.laborysSaldo)} LBY (1 LBY ={' '}
-          {FACTOR_LABORY_MXN} MXN). No es un tipo de cambio operado por la plataforma.
-        </Typography>
+        {/* Cuatro cosas separadas, sin sumarlas entre sí (regla del bloque). */}
+        <Box sx={{ textAlign: 'left', width: '100%' }}>
+          <Separador etiqueta='Cobrado' />
+          <Typography sx={{ fontSize: 12, opacity: 0.75 }}>
+            Lo efectivamente pagado por trabajo con recompensa en efectivo se registra en tus
+            movimientos reales. Aquí no se muestra una cifra que la plataforma no tenga.
+          </Typography>
+
+          <Separador etiqueta='Pendiente' />
+          <Typography sx={{ fontSize: 12, opacity: 0.75 }}>
+            Lo pendiente depende del estado de cada encargo y de su proceso de calificación; se
+            consulta en CoWork, donde vive ese flujo.
+          </Typography>
+
+          <Separador etiqueta='Equivalencia (informativa)' />
+          <Typography sx={{ opacity: 0.9, fontSize: '1.15rem' }}>
+            ${mxn(cartera.laborysSaldo)} MXN
+          </Typography>
+          <Typography sx={{ opacity: 0.7, fontSize: 12 }}>
+            Equivalente de referencia de tus {lby(cartera.laborysSaldo)} LBY (1 LBY ={' '}
+            {FACTOR_LABORY_MXN} MXN). No es dinero disponible ni un tipo de cambio operado por la
+            plataforma.
+          </Typography>
+
+          <Separador etiqueta='Simulaciones' />
+          <Proximamente simuladores={token?.simuladores} />
+        </Box>
+
         <Box sx={{ mt: 2, width: '100%' }}>
           <IngresosInfo />
         </Box>

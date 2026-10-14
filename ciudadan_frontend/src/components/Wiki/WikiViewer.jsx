@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { Box, Typography, Paper, Divider } from '@mui/material';
+import { Box, Typography, Paper, Divider, CircularProgress } from '@mui/material';
 
-const WikiViewer = ({ document, onNavigateDocument }) => {
+const WikiViewer = ({ document, onNavigateDocument, cargando = false }) => {
   const contentRef = useRef(null);
 
   useEffect(() => {
@@ -36,8 +36,43 @@ const WikiViewer = ({ document, onNavigateDocument }) => {
     return () => node.removeEventListener('click', handleClick);
   }, [onNavigateDocument, document]);
 
+  // Mientras la wiki responde, la página nunca queda en blanco: se muestra
+  // un estado de carga. Cuando la petición termina y no hay documento (404, o
+  // socket caído), se muestra un mensaje honesto en vez de un hueco vacío.
   if (!document) {
-    return null;
+    if (cargando) {
+      return (
+        <Box
+          sx={{
+            p: 8,
+            textAlign: 'center',
+            color: 'text.secondary',
+            mt: 3,
+          }}
+        >
+          <CircularProgress size={20} sx={{ color: 'text.secondary', mr: 1 }} />
+          <Typography variant="body1">Cargando el documento de la wiki…</Typography>
+        </Box>
+      );
+    }
+    return (
+      <Box
+        sx={{
+          p: 8,
+          textAlign: 'center',
+          color: 'text.secondary',
+          mt: 3,
+        }}
+      >
+        <Typography variant="h6" color="error" gutterBottom>
+          Documento no disponible en la wiki
+        </Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          Aún no está publicado o la wiki no respondió. La ficha mantiene su
+          contenido versionado hasta que esté disponible.
+        </Typography>
+      </Box>
+    );
   }
 
   // Priorizamos el htmlContent que ya parsea tu backend de forma limpia

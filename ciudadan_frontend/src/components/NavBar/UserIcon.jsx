@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { logoutAqui } from '../../utils/logoutAqui';
 import '../../styles/AccountMenuInfo.css';
 import UserMenu from './UserMenu';
-import { irALogin } from '../../utils/authRedirect';
 
 const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handleLinkClick, defaultProfileImage, guestImage, containerRef }) => {
   //const containerRef = useRef(null);
@@ -50,7 +50,8 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogin = async () => {
-    await irALogin(loginWithRedirect);
+    const returnTo = window.location.pathname + window.location.search + window.location.hash;
+    await loginWithRedirect({ appState: { returnTo } });
     setIsProfileMenuOpen(false);
   };
 
@@ -63,7 +64,8 @@ const UserIcon = ({ handleLogout, isProfileMenuOpen, setIsProfileMenuOpen, handl
   };
 
   const handleLogoutWithLog = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    // Cierra sesión sin salir de la página actual
+    logoutAqui(logout);
     setIsProfileMenuOpen(false);
   };
 
