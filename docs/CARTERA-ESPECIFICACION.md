@@ -327,6 +327,86 @@ sync real (12 documentos cartera + el resto, todos indexados); sync repetido
   si el índice de la wiki falla, la ficha conserva su contenido versionado y
   muestra el aviso en lugar de quedar vacía.
 
+### 10.5 Runbook de la wiki: sembrar el seed y que se vea (local y producción)
+
+**Arquitectura real (verificada):** la wiki son `.md` servidos por
+`socket-service` (`WikiRouter` montado en `/wiki`) en el puerto
+`SOCKET_PORT` (33035). El **listado** sale de la tabla `documents` de SQLite;
+la **lectura** busca en BD con fallback a disco. Raíz resuelta con precedencia
+`site-setting.wikis_path` (Strapi) → `WIKI_ROOT_PATH` (.env) → default
+(`/var/www/apps/wikis` en Linux).
+
+**Estructura de carpetas (la que realmente se visualiza):**
+
+```text
+{raíz wiki}/                    ← site-setting.wikis_path | WIKI_ROOT_PATH | default
+├── main/*.md                   ← sección PRINCIPAL  → /wiki/main
+├── help/*.md                   ← sección AYUDA      → /wiki/help      ← cartera-*.md
+└── faq/*.md                    ← sección FAQ        → /wiki/faq
+```
+
+El origen en el repo es `wikiseed/{main,help,faq}/`. Sólo esas 3 secciones se
+sincronizan; cada archivo `help/x.md` es visible en `/wiki/help` y legible en
+`/wiki/x` (porque `WikiWrapper` busca el slug en las 3 secciones).
+
+**Pasos (comandos exactos, verificados en local):**
+
+```bash
+# 0) compilar el socket-service (una vez, o si cambió algo en *.ts)
+cd ciudadan_backend_26/socket-service && npm run build   # tsc → dist/
+
+# 1) arrancar el servicio (añadir SIEMPRE las raíces explícitas)
+SOCKET_PORT=33035 STRAPI_URL=http://localhost:33032 \
+WIKI_ROOT_PATH=/var/www/apps/wikis npx tsx server.js
+
+# 2) sembrar el seed (idempotente: copia + indexa; repetido no duplica)
+node wikiseed/sync-wikis.js            # --dry-run para revisar sin escribir
+
+# 3) verificar A) listado y B) lectura
+#    A) GET /wiki/help → nodos incluye help/cartera-*.md
+#    B) GET /wiki/help/cartera-labory.md → htmlContent real
+```
+
+**Causas reales de "no se ven los documentos" (todas verificadas aquí):**
+
+| # | Causa | Síntoma | Corrección |
+|---|---|---|---|
+| 1 | `sync` copiaba a disco sin indexar la BD | listado vacío aunque los `.md` existen | `sync-wikis.js` indexa con `WikiService.updateIndex` (ya corregido) |
+| 2 | `dist/` desactualizado (`tsconfig` sin `config/`) | lectura directa: "archivo físico no se encontró" | `rootDir: "."` en tsconfig + `npm run build` (ya corregido) |
+| 3 | `socket-service` no corriendo | peticiones `ERR_FAILED` / 404 | arrancarlo en 33035 |
+| 4 | `REACT_APP_SOCKET_URL` apunta a otra instancia | la instancia local pide la wiki a otra URL | .env local → `http://localhost:33035` (.env no versionado) |
+| 5 | `wikis_path` no configurado | cae al default (`/var/www/apps/wikis`) | configurar `site-setting.wikis_path` en Strapi o `WIKI_ROOT_PATH` |
+
+**Para la INSTANCIA DE PRODUCCIÓN (`socket-adrianperez2.ciudadan.org`):**
+
+> ⚠️ El seed **nunca se sincronizó en producción**: localmente se sembraron
+> la BD local (`ciudadadan.db`) y el disco local (`/var/www/apps/wikis`), que
+> no son los de producción. Además el `dist/` de producción probablemente tiene
+> el bug 2. La ejecución de esto en producción **queda pendiente** (no se
+> despliega desde este bloque). Procedimiento exacto a ejecutar allá:
+
+```bash
+# en el host de producción
+cd socket-service && npm run build          # regenera dist con WikiPaths
+# reiniciar el servicio de socket de producción
+node wikiseed/sync-wikis.js --dry-run        # revisar destino (ver "Destino: ...")
+node wikiseed/sync-wikis.js                  # copiar + indexar en la BD PRODUCCIÓN
+# verificar:
+#   GET https://socket-<entorno>.ciudadan.org/wiki/help  → cartera* en el árbol
+#   GET https://socket-<entorno>.ciudadan.org/wiki/help/cartera-labory.md → 200
+```
+
+**Verificación de "una fuente, dos presentaciones":** si el socket no responde,
+la ficha conserva su contenido versionado y muestra el aviso (probado con el
+socket apagado: contenido intacto + mensaje honesto), nunca queda vacía.
+
+- **Cartera:** contenido integrado y visible en la ficha (datos de
+  `tokenContent.js`), con la wiki como enlace complementario.
+- **Wiki:** explicación ampliada en `wikiseed/help/cartera*.md`.
+- Ambas usan la **misma fuente editorial**; no hay dos copias editadas a mano:
+  si el índice de la wiki falla, la ficha conserva su contenido versionado y
+  muestra el aviso en lugar de quedar vacía.
+
 ---
 
 ## 11. Fuera de alcance en este bloque (explícito)

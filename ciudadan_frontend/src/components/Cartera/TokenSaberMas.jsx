@@ -35,8 +35,14 @@ import { useWikiDocumento, WIKI_ESTADO } from '../../hooks/useWikiDocumento';
  *   No se expone contenido en borrador: sólo se lee lo que la wiki sirve.
  */
 
-/** Enlace canónico a la sección de la wiki (ruta que ya existe en la app). */
-const enlaceWikiApp = (ref) => `/wiki/${ref.seccion}`;
+/**
+ * Enlace canónico al ARTÍCULO de la wiki (ruta que ya existe en la app).
+ * `/wiki/:slug` lo resuelve `WikiWrapper` buscando el slug en las secciones
+ * main/help/faq, así que el enlace lleva directo al documento, no a la sección.
+ * Si el documento no está publicado, `WikiWrapper` muestra el visor vacío y la
+ * ficha conserva su contenido versionado: nunca queda en blanco ni rompe.
+ */
+const enlaceWikiApp = (ref) => `/wiki/${ref.ruta}`;
 
 const TokenSaberMas = ({ referencias = [] }) => {
   const navigate = useNavigate();
@@ -165,7 +171,7 @@ const TokenSaberMas = ({ referencias = [] }) => {
             onClick={() => navigate(enlaceWikiApp(principal))}
             sx={{ mt: 1, textTransform: 'none', color: '#c9b4ff' }}
           >
-            Abrir la sección en la wiki
+            Abrir el artículo en la wiki
           </Button>
         </Box>
       )}
