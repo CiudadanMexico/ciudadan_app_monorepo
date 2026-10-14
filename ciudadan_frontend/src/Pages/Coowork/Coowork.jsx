@@ -567,12 +567,12 @@ const CooWork = () => {
         setArchivosResolver([]);
 
         // Llevar al usuario a donde puede ver el resultado de su entrega.
-        if (tienePermisoCRUD) {
-          setTab('socio');
-          setSubTab(0);
-        } else {
-          setTab('mistareas');
-        }
+        // if (tienePermisoCRUD) {
+        //   setTab('socio');
+        //   setSubTab(0);
+        // } else {
+        //   setTab('mistareas');
+        // }
       } catch (err) {
         console.error('Error resolviendo tarea general:', err);
         setResolverDialogError(err.message || 'No se pudo resolver la tarea');
