@@ -619,7 +619,6 @@ const CooWork = () => {
         } else {
           navigate(rutaDeTab('mistareas', 0));
         }
-        }
       } catch (err) {
         console.error('Error resolviendo tarea general:', err);
         setResolverDialogError(err.message || 'No se pudo resolver la tarea');
