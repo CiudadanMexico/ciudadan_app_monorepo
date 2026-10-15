@@ -43,9 +43,14 @@ const Carrito = () => {
           value={tab}
           onChange={handleChange}
           variant="fullWidth"
+          textColor="inherit"
           sx={{
             borderBottom: "1px solid",
             borderColor: "divider",
+            // Morado de marca (paleta Ciudadan) en el tab activo + indicador.
+            "& .MuiTab-root.Mui-selected": { color: "#8A5CF5" },
+            "& .MuiTab-root.Mui-selected .MuiSvgIcon-root": { color: "#8A5CF5" },
+            "& .MuiTabs-indicator": { backgroundColor: "#8A5CF5" },
           }}
         >
           <Tab
