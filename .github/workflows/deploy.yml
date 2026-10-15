@@ -222,12 +222,22 @@ jobs:
         run: |
           cd ciudadan_frontend
           npm ci --legacy-peer-deps --no-audit --no-fund
-          # REACT_APP_SOCKET_URL obligatorio: sin él CRA usa el fallback
-          # http://localhost:33035, que rompe la wiki en producción (la petición
-          # se hace a localhost de la máquina del usuario). Usar el socket de
-          # producción: https://socket-adrianperez2.ciudadan.org
-          REACT_APP_SOCKET_URL=https://socket-adrianperez2.ciudadan.org CI=false npm run build
+          # .env de producción: CRA hornea REACT_APP_* en el build y el runner
+          # no tiene el archivo que vivía en el server
+          # (/var/www/apps/frontend-ciudadan/.env.production). Valores del
+          # bundle de producción que funcionaba (verificado en main.*.js):
+          # dominio Auth0 SIN protocolo, socket/strapi = back.ciudadan.org.
+          cat > .env.production <<'ENVEOF'
+          REACT_APP_AUTH0_DOMAIN=ciudadan.us.auth0.com
+          REACT_APP_AUTH0_CLIENT_ID=za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
+          REACT_APP_STRAPI_URL=https://back.ciudadan.org
+          REACT_APP_ALCHEMY_API_KEY=
+          REACT_APP_SOCKET_URL=https://back.ciudadan.org
+          REACT_APP_PLACES_KEY=google_maps
+          ENVEOF
+          CI=false npm run build
           test -f build/index.html && echo "frontend build OK"
+          grep -q "ciudadan.us.auth0.com" build/static/js/main.*.js && echo "AUTH0_BAKED_OK" || { echo "::error::Auth0 no quedó horneado en el bundle"; exit 1; }
 
       - name: Empaquetado + checksums + MANIFEST
         run: |
