@@ -4,6 +4,23 @@
 > **Ciudadan**. Resumen ejecutivo actualizado; para profundizar ver la documentación completa
 > en esta misma carpeta (`01-Arquitectura.md` … `07-Variables-de-Entorno.md`).
 
+## 🆕 Novedades (2026-10-14) — wiki operativa y seeds verificados
+
+> ⚠️ **Sección destacada para agentes** — resumen de las últimas actualizaciones.
+
+- **Wiki SEMBRADA y CONFIGURADA** (verificado end-to-end): 32 documentos en
+  `socket-service/wiki/{main,help,faq}` + índice en `documents` (`ciudadadan.db`).
+  El árbol NO sale del disco: sale de `documents` → sembrar siempre con
+  `wikiseed/sync-wikis.js` (copia + indexa, idempotente). Runbook completo:
+  **`docs/WIKI-SEED-SETUP.md`**.
+- **⚠️ REGLA DE ORO — Node 22**: todo script que toque `ciudadadan.db` o el
+  `better-sqlite3` del socket-service DEBE usar `/opt/node22/bin/node` (con Node 20
+  el `require` pasa, pero *usar* el binding = SIGSEGV no capturable).
+- **Seeds Strapi verificados (2026-10-14)**: los 13 ejecutados; 3 reparados —
+  `seed/seed-cowork.js` (columnas `name`/`level`), `seed/seed-endpoints.js`
+  (sin `pagos_laborys` legado) y `seed/seed.js` (contenido `blocks` + `publishedAt`).
+  Tests: `node --test ciudadan_backend_26/tests/wikiseed-sync.test.js` (8/8).
+
 ## Qué es
 
 Monorepo **git plano** (un solo `.git/`, sin npm workspaces) para **Ciudadan**, plataforma
@@ -30,7 +47,7 @@ cd socket-service && npm install && npm run build && npm start   # :33035
 cd middleware     && npm install && npm run start                 # :33010
 cd market         && npm install && npm run dev                   # :4000 / :5001
 ```
-No hay script de tests en el backend. Scripts de seed/prob en la raíz (`node seed-*.js`, `node fix-perms.js`, etc.).
+No hay script de tests en el backend (salvo `node --test tests/wikiseed-sync.test.js`). Seeds verificados 2026-10-14 (13 ejecutados; 3 reparados — historial en `docs/WIKI-SEED-SETUP.md` §8): raíz (`node seed-*.js`), `seed/`, `scripts/` y `npm run seed:marketplace-categories` / `npm run seed:food-categories`. Todos idempotentes excepto `seed/seed.js` (crea 30 publicaciones por corrida vía HTTP).
 
 ### Frontend (`ciudadan_frontend/`)
 ```bash

@@ -10,6 +10,30 @@ Monorepo (plain git, no workspace tooling) for **Ciudadan**, a Spanish-language 
 > como pasarela de pago de Stripe; su directorio y dependencias fueron removidos.
 > No hay subproyectos extra, solo los dos descritos arriba.
 
+## 🆕 Update Highlights (2026-10-14) — leer antes de tocar la wiki o los seeds
+
+> **La wiki está SEMBRADA, CONFIGURADA y VERIFICADA end-to-end.**
+> Runbook completo: **`docs/WIKI-SEED-SETUP.md`** (arquitectura, siembra, rutas, verificación).
+
+- **Wiki**: 32 documentos sembrados (main 2 / help 29 / faq 1) en la raíz física
+  `socket-service/wiki/` (gitignored; se resuelve vía `WIKI_ROOT_PATH` del env del
+  watchdog de la instancia `/etc/agent/env/services.env`, con la fuente canónica
+  `site_settings.wikis_path` configurada en Strapi). El árbol sale de la tabla
+  `documents` de `ciudadadan.db` → `GET :33032/wiki/<sección>`.
+- **⚠️ REGLA DE ORO — Node 22**: todo lo que toque `ciudadadan.db` o el
+  `better-sqlite3` del socket-service DEBE correr con `/opt/node22/bin/node`
+  (el paquete exige `>=22`; con Node 20 el `require` pasa pero **usar** el binding
+  mata el proceso con SIGSEGV, señal no capturable). `wikiseed/sync-wikis.js`
+  incluye un pre-vuelo ABI que lo reporta como `abi-incompatible` sin crashear.
+- **Sembrar la wiki**: `set -a; . /etc/agent/env/services.env; set +a && /opt/node22/bin/node wikiseed/sync-wikis.js` (copia + indexa; idempotente; nunca borra).
+- **Seeds Strapi**: los 13 ejecutados y verificados (2026-10-14). Tres estaban
+  rotos y fueron reparados: `seed/seed-cowork.js` (columnas `nombre`/`nivel`
+  inexistentes → `name`/`level`), `seed/seed-endpoints.js` (columna legada
+  `pagos_laborys` eliminada del schema), `seed/seed.js` (HTML → `blocks` +
+  `publishedAt`; sus POST anónimos requieren el permiso público `create` de
+  `publicacion`, otorgado solo en la BD local de dev).
+  Suite de verificación: `node --test ciudadan_backend_26/tests/wikiseed-sync.test.js` (8/8).
+
 ## Commands
 
 ### Backend (`ciudadan_backend_26/`)
@@ -44,6 +68,7 @@ npx cap sync android && npx cap open android   # mobile build
 ## Architecture & Key Docs
 
 - **Canonical CoWork spec:** `docs/documento-off.md` (source of truth)
+- **⭐ Wiki seed/setup runbook (nuevo 2026-10-14):** `docs/WIKI-SEED-SETUP.md` — arquitectura de la wiki, siembra (`wikiseed/sync-wikis.js`), resolución de rutas y verificación end-to-end
 - **Implementation status:** `docs/final-cowork.md`, `docs/RESUMEN-AVANCES-COWORK.md`
 - **Database schema:** `docs/DATABASE-SCHEMA.md` (60 tables, generated from schemas)
 - **Auth/permissions detail:** `docs/TAREAS-CRUD-PERMISOS.md`
@@ -134,7 +159,7 @@ Requires raw body — route config must include `middlewares: ["global::raw-body
 `config/database.js` supports sqlite (default dev), mysql, postgres via `DATABASE_CLIENT` env. All config via `env()` calls — no `config/env/` directory.
 
 ### Socket service
-`socket-service/` is a **separate Express + Socket.IO process** (not started by Strapi). Has its own `package.json`. Handles realtime trip events, WhatsApp chatbot, Notion wiki proxy.
+`socket-service/` is a **separate Express + Socket.IO process** (not started by Strapi). Has its own `package.json`. Handles realtime trip events, WhatsApp chatbot, and the **wiki** (`WikiRouter`: tree from the `documents` table of `ciudadadan.db` + `.md` files from the physical root — see `docs/WIKI-SEED-SETUP.md`). Runs under **Node 22** in this instance (`/opt/node22/bin/node`).
 
 ## Frontend Conventions (`ciudadan_frontend/`)
 
@@ -187,6 +212,8 @@ Each subproject has its own `.env` (not committed; no `.env.example`). Key vars:
 8. **`?mockRole=` query param** in `Coowork.jsx` is cosmetic UI preview only — no backend effect.
 9. **`buildlog.txt` is empty.**
 10. **Debug `console.log` statements** scattered in middleware (e.g. `auth0jwt/index.js`) — be careful when cleaning up.
+11. **Node 22 for anything touching `ciudadadan.db` / socket-service's `better-sqlite3`** — the package declares `engines.node >=22`; with Node 20 the `require` works but *using* the binding **SIGSEGVs** (uncatchable signal). Use `/opt/node22/bin/node`. `wikiseed/sync-wikis.js` has an ABI pre-flight that reports `abi-incompatible` gracefully.
+12. **The wiki does NOT list the disk** — its tree comes from the `documents` table of `ciudadadan.db`. Copying `.md` files into the wiki root is not enough; run `wikiseed/sync-wikis.js` (copies + indexes, idempotent). Full runbook: `docs/WIKI-SEED-SETUP.md`.
 
 ## Git Workflow
 
