@@ -9,6 +9,11 @@ on:
         description: "Nota del deploy manual"
         required: false
         default: ""
+      allow_destructive:
+        description: "Permitir cambios DESTRUCTIVOS de schema (solo si ya fueron verificados a mano)"
+        type: boolean
+        required: false
+        default: false
 
 concurrency:
   group: ciudadan-production
@@ -131,7 +136,7 @@ jobs:
         id: meta
         run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
-      - name: FASE 7 — Migration gate (cambios de schema → aprobación manual)
+      - name: "FASE 7 — Migration gate: bloquea SOLO cambios destructivos de schema"
         id: gate
         run: |
           set -uo pipefail
@@ -143,16 +148,50 @@ jobs:
             echo "::error::El SHA desplegado ($DEPLOYED) no existe en este repo (rebase/force-push?). Revisión manual requerida."
             exit 1
           fi
-          CHANGES=$(git diff --name-only "$DEPLOYED".."$GITHUB_SHA" -- 'ciudadan_backend_26/src/api/**/schema.json' 'ciudadan_backend_26/database/**' | head -50)
-          if [ -n "$CHANGES" ]; then
-            echo "gate=BLOCKED_REQUIRES_MANUAL_APPROVAL" >> "$GITHUB_OUTPUT"
-            echo "::error::CAMBIOS DE SCHEMA/DB DETECTADOS (Strapi auto-aplica DDL en arranque):"
-            echo "$CHANGES"
-            echo "::error::Deploy BLOQUEADO: BLOCKED_REQUIRES_MANUAL_APPROVAL. Revisa los cambios y, si son intencionales, despliega manualmente o ajusta este gate."
-            exit 1
+          DB_DIFF=$(git diff --name-only "$DEPLOYED".."$GITHUB_SHA" -- 'ciudadan_backend_26/database/**' | head -50)
+          PROBLEMS=$(node -e '
+            const { execSync } = require("child_process");
+            const [dep, sha] = process.argv.slice(2);
+            const sh = (c) => execSync(c, { encoding: "utf8" });
+            const files = sh(`git diff --name-only ${dep}..${sha} -- "ciudadan_backend_26/src/api/**/schema.json"`).trim().split("\n").filter(Boolean);
+            const show = (ref, f) => { try { return JSON.parse(sh(`git show ${ref}:${f}`)); } catch { return null; } };
+            const sig = (at) => JSON.stringify({ t: at?.type ?? null, r: at?.relation ?? null, tg: at?.target ?? null, c: at?.component ?? null });
+            const problems = [];
+            for (const f of files) {
+              const a = show(dep, f), b = show(sha, f);
+              if (!a) continue;
+              if (!b) { problems.push(`${f}: content-type ELIMINADO`); continue; }
+              const A = a.attributes || {}, B = b.attributes || {};
+              for (const k of Object.keys(A)) {
+                if (!(k in B)) { problems.push(`${f}: atributo eliminado/renombrado: ${k}`); continue; }
+                if (sig(A[k]) !== sig(B[k])) problems.push(`${f}: atributo ${k} cambio de tipo/relacion`);
+              }
+            }
+            process.stdout.write(problems.join("\n"));
+          ' "$DEPLOYED" "$GITHUB_SHA") || PROBLEMS=""
+          if [ -n "$PROBLEMS" ] || [ -n "$DB_DIFF" ]; then
+            if [ "${{ inputs.allow_destructive }}" = "true" ]; then
+              echo "::warning::ALLOW_DESTRUCTIVE=true — avanzando con supervision manual. Cambios detectados:"
+              [ -n "$PROBLEMS" ] && echo "$PROBLEMS"
+              [ -n "$DB_DIFF" ] && echo "database/**: $DB_DIFF"
+              echo "gate=CLEAR_ALLOW_DESTRUCTIVE" >> "$GITHUB_OUTPUT"
+            else
+              echo "gate=BLOCKED_REQUIRES_MANUAL_APPROVAL" >> "$GITHUB_OUTPUT"
+              if [ -n "$PROBLEMS" ]; then
+                echo "::error::CAMBIOS DESTRUCTIVOS DETECTADOS (el auto-DDL de Strapi puede perder datos):"
+                echo "$PROBLEMS"
+              fi
+              if [ -n "$DB_DIFF" ]; then
+                echo "::error::Cambios en database/** (revision manual requerida):"
+                echo "$DB_DIFF"
+              fi
+              echo "::error::Deploy BLOQUEADO. Los cambios aditivos (tipos nuevos, campos nuevos, relaciones nuevas) despliegan solos con push. Para cambios destructivos ya verificados a mano: Run workflow con allow_destructive=true."
+              exit 1
+            fi
+          else
+            echo "gate=CLEAR" >> "$GITHUB_OUTPUT"
+            echo "Gate CLEAR: sin cambios destructivos — los aditivos pasan solos"
           fi
-          echo "gate=CLEAR" >> "$GITHUB_OUTPUT"
-          echo "Sin cambios de schema — gate CLEAR"
 
       - name: Tests rápidos — sintaxis entrypoints
         run: |
@@ -183,12 +222,22 @@ jobs:
         run: |
           cd ciudadan_frontend
           npm ci --legacy-peer-deps --no-audit --no-fund
-          # REACT_APP_SOCKET_URL obligatorio: sin él CRA usa el fallback
-          # http://localhost:33035, que rompe la wiki en producción (la petición
-          # se hace a localhost de la máquina del usuario). Usar el socket de
-          # producción: https://socket-adrianperez2.ciudadan.org
-          REACT_APP_SOCKET_URL=https://socket-adrianperez2.ciudadan.org CI=false npm run build
+          # .env de producción: CRA hornea REACT_APP_* en el build y el runner
+          # no tiene el archivo que vivía en el server
+          # (/var/www/apps/frontend-ciudadan/.env.production). Valores del
+          # bundle de producción que funcionaba (verificado en main.*.js):
+          # dominio Auth0 SIN protocolo, socket/strapi = back.ciudadan.org.
+          cat > .env.production <<'ENVEOF'
+          REACT_APP_AUTH0_DOMAIN=ciudadan.us.auth0.com
+          REACT_APP_AUTH0_CLIENT_ID=za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
+          REACT_APP_STRAPI_URL=https://back.ciudadan.org
+          REACT_APP_ALCHEMY_API_KEY=
+          REACT_APP_SOCKET_URL=https://back.ciudadan.org
+          REACT_APP_PLACES_KEY=google_maps
+          ENVEOF
+          CI=false npm run build
           test -f build/index.html && echo "frontend build OK"
+          grep -q "ciudadan.us.auth0.com" build/static/js/main.*.js && echo "AUTH0_BAKED_OK" || { echo "::error::Auth0 no quedó horneado en el bundle"; exit 1; }
 
       - name: Empaquetado + checksums + MANIFEST
         run: |

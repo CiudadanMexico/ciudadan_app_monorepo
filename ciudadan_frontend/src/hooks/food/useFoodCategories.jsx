@@ -34,7 +34,7 @@ export function useFoodCategories() {
 
   const getCategoriaBySlug = async (slug) => {
     try {
-      const res = await fetch(`${STRAPI_URL}/api/store-categories?filters[slug][$eq]=${slug}&populate=imagen`);
+      const res = await fetch(`${CATEGORIES_URL}?filters[slug][$eq]=${slug}&populate=imagen`);
       const data = await res.json();
       return data.data[0]; // retorna la primera coincidencia
     } catch (err) {
@@ -45,7 +45,7 @@ export function useFoodCategories() {
 
   const getCategoriaById = async (id) => {
     try {
-      const res = await fetch(`${STRAPI_URL}/api/store-categories/${id}?populate=imagen`);
+      const res = await fetch(`${CATEGORIES_URL}/${id}?populate=imagen`);
       const data = await res.json();
       return data.data;
     } catch (err) {

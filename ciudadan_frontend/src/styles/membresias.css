@@ -1,246 +1,243 @@
-/* Estilos generales para animaciones suaves y refinamientos visuales */
+/* ============================================================
+   Sistema de diseño — Experiencia de Membresías Ciudadan
+   Púrpura profundo · morados eléctricos · lilas · amarillo acento
+   Ámbito: SOLO membresías (no usar en otras páginas).
+   ============================================================ */
 
-.material-icons {
-  transition: transform 0.3s ease-in-out;
+:root {
+  --mg-berenjena: #2A0B4D;
+  --mg-morado: #6A1B9A;
+  --mg-morado-el: #9C27B0;
+  --mg-lila: #CE93D8;
+  --mg-lila-claro: #E9D5FF;
+  --mg-lavanda: #D6C9F0;
+  --mg-amarillo: #FFE04A;
+  --mg-amarillo-hover: #F5C400;
+  --mg-superficie: rgba(58, 21, 92, 0.55);
+  --mg-borde: rgba(206, 147, 216, 0.28);
+  --mg-radio: 22px;
+  --mg-ancho: 1240px;
 }
 
-.material-icons:hover {
-  transform: rotate(-5deg) scale(1.1);
-}
-
-/* Card de membresía destacada */
-.MembresiaDestacada {
-  animation: pulsoBrillo 2s ease-in-out infinite;
-}
-
-@keyframes pulsoBrillo {
-  0% {
-    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
-  }
-  100% {
-    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
-  }
-}
-
-/* Botones */
-button {
-  transition: all 0.3s ease-in-out;
-}
-
-/* button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-} */
-
-.membresias-container {
-  padding: 2rem;
-  background: #edf7f1;
+/* --- Contenedor base --- */
+.mg-page {
+  position: relative;
+  overflow-x: clip;
+  background:
+    radial-gradient(1100px 520px at 12% -6%, rgba(156, 39, 176, 0.42) 0%, transparent 62%),
+    radial-gradient(900px 480px at 92% 8%, rgba(106, 27, 154, 0.38) 0%, transparent 60%),
+    radial-gradient(1000px 700px at 50% 108%, rgba(74, 20, 140, 0.55) 0%, transparent 65%),
+    linear-gradient(180deg, #3B0764 0%, #4A148C 42%, #2A0B4D 100%);
   min-height: 100vh;
+  padding-bottom: 56px; /* navegación inferior fija + safe area */
 }
 
-.membresias-titulo {
-  font-family: 'Righteous', cursive !important;
-  font-weight: 900;
-  color: #1b5e20; /* verde oscuro base */
-  letter-spacing: 3.3px !important;
-  text-align: center;
-  display: block;
-  margin: 0 auto;
-  position: relative;
-  user-select: none;
-  
-  /* Capas de sombra superpuestas para brillo psicodélico */
-  text-shadow:
-    0 0 6px #a3d977cc,           /* brillo verde lima base */
-    3px 3px 14px #e6fb64cc,      /* destello amarillo lima grueso */
-    -3px -1px 10px #b388eb88,    /* destello morado sutil */
-    0 0 20px #d4f230cc;          /* brillo general amplio */
-
-  animation: gelatinaRespira 7s ease-in-out infinite, 
-             destelloDinamico 5s ease-in-out infinite alternate,
-             temblorSuave 4s ease-in-out infinite;
-  transform-origin: center;
-  will-change: transform, text-shadow;
-}
-
-/* 1. Movimiento gelatina (respira y escala) */
-@keyframes gelatinaRespira {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(-2px, 1.8px) scale(1.04);
-  }
-  50% {
-    transform: translate(2px, -1.8px) scale(0.97);
-  }
-  75% {
-    transform: translate(-1.3px, 1.2px) scale(1.02);
-  }
-}
-
-/* 2. Destellos de brillo dinámicos que cambian tamaño y color */
-@keyframes destelloDinamico {
-  0% {
-    text-shadow:
-      0 0 6px #a3d977cc,
-      3px 3px 14px #e6fb64cc,
-      -3px -1px 10px #b388eb88,
-      0 0 20px #d4f230cc;
-  }
-  20% {
-    text-shadow:
-      0 0 10px #ccff33dd,
-      4px 4px 18px #f4ff6ecc,
-      -4px -2px 14px #bf94ff99,
-      0 0 25px #d9ff32dd;
-  }
-  40% {
-    text-shadow:
-      0 0 8px #a7dd55cc,
-      2px 2px 12px #d0fa5ecc,
-      -2px -1px 11px #a877efbb,
-      0 0 22px #c7ef32cc;
-  }
-  60% {
-    text-shadow:
-      0 0 11px #d7f844ff,
-      5px 5px 20px #eeff83ff,
-      -5px -3px 16px #c4a6f9cc,
-      0 0 28px #e3ff6aff;
-  }
-  80% {
-    text-shadow:
-      0 0 7px #98cc43bb,
-      3px 3px 15px #c9fa64cc,
-      -3px -1px 13px #9a63ffbb,
-      0 0 20px #b7e834cc;
-  }
-  100% {
-    text-shadow:
-      0 0 6px #a3d977cc,
-      3px 3px 14px #e6fb64cc,
-      -3px -1px 10px #b388eb88,
-      0 0 20px #d4f230cc;
-  }
-}
-
-/* 3. Temblor super suave para darle ese toque “gelatina extra” */
-@keyframes temblorSuave {
-  0%, 100% {
-    filter: drop-shadow(0 0 0 #0000);
-  }
-  10% {
-    filter: drop-shadow(1px 0 1px #d4f230aa);
-  }
-  20% {
-    filter: drop-shadow(-1px 1px 1px #d9ff32bb);
-  }
-  30% {
-    filter: drop-shadow(1px -1px 2px #c7ef32cc);
-  }
-  40% {
-    filter: drop-shadow(-1px 1px 1px #e3ff6aff);
-  }
-  50% {
-    filter: drop-shadow(0 0 0 #0000);
-  }
-  60% {
-    filter: drop-shadow(1px 1px 1px #ccff33bb);
-  }
-  70% {
-    filter: drop-shadow(-1px -1px 2px #f4ff6ecc);
-  }
-  80% {
-    filter: drop-shadow(1px 0 1px #d4f230cc);
-  }
-  90% {
-    filter: drop-shadow(-1px 1px 1px #b7e834bb);
-  }
-}
-
-
-
-.membresias-subtitulo {
-  margin-bottom: 2rem;
-  color: #4A148C;
-}
-
-.membresia-card {
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease-in-out;
-  position: relative;
-}
-
-.membresia-card:hover {
-  transform: scale(1.05);
-}
-
-.membresia-chip {
+/* Halos lentos de fondo (movimiento discreto, se apagan con reduced-motion) */
+.mg-halo {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  color: #fff;
-  font-weight: bold;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+  will-change: transform;
+  animation: mgHaloDrift 26s ease-in-out infinite alternate;
+}
+.mg-halo--uno { width: 420px; height: 420px; top: 6%; left: -140px; background: rgba(186, 104, 200, 0.34); }
+.mg-halo--dos { width: 360px; height: 360px; top: 34%; right: -120px; background: rgba(129, 40, 162, 0.35); animation-delay: -8s; }
+.mg-halo--tres { width: 300px; height: 300px; bottom: 8%; left: 28%; background: rgba(255, 224, 74, 0.10); animation-delay: -16s; }
+
+@keyframes mgHaloDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(26px, -22px, 0) scale(1.06); }
 }
 
-.membresia-icono {
-  font-size: 50px;
+/* --- Títulos --- */
+.mg-titulo-marca {
+  font-weight: 900 !important;
+  color: #fff !important;
+  letter-spacing: 0.5px;
 }
 
-.membresia-nombre {
-  font-weight: bold;
-  color: #2e7d32;
+/* --- Superficies (tarjetas) --- */
+.mg-card {
+  position: relative;
+  border-radius: var(--mg-radio);
+  background: linear-gradient(165deg, rgba(74, 24, 132, 0.85) 0%, rgba(45, 14, 84, 0.92) 100%);
+  border: 1px solid var(--mg-borde);
+  box-shadow: 0 18px 44px rgba(24, 4, 48, 0.45);
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+}
+.mg-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(206, 147, 216, 0.55);
+  box-shadow: 0 26px 58px rgba(24, 4, 48, 0.6);
+}
+.mg-card--superficie {
+  background: linear-gradient(165deg, rgba(90, 32, 150, 0.5) 0%, rgba(52, 17, 96, 0.62) 100%);
 }
 
-.membresia-precio {
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  color: #1b5e20;
+/* --- Destello perimetral (recorre TODO el borde, detrás del contenido) ---
+   Técnica: anillo con degradado cónico animado + máscara interior que
+   deja solo el aro; el contenido queda por encima con z-index. */
+.mg-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--mg-glow-angle, 0deg),
+    #9C27B0, #CE93D8, #E9D5FF, #FFE04A, #E9D5FF, #CE93D8, #9C27B0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: mgGlowSpin 7s linear infinite;
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 0;
 }
-
-.membresia-beneficios {
-  text-align: left;
-  padding: 0 1rem;
-  margin-bottom: 1.5rem;
-  list-style: none;
+@property --mg-glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
 }
-
-.membresia-beneficio {
-  margin-bottom: 0.5rem;
-  color: #333;
+@keyframes mgGlowSpin {
+  to { --mg-glow-angle: 360deg; }
 }
-
-.membresia-check-icon {
-  vertical-align: middle;
-  font-size: 18px;
-  margin-right: 6px;
-}
-
-.boton-proximamente {
-  font-weight: bold;
-  padding-left: 2rem;
-  padding-right: 2rem;
-}
-
-
-.boton-membresia {
-  font-weight: bold;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  color: #fff;
-  transition: all 0.3s ease-in-out;
-}
-
-
-
-/* Responsive tweaks */
-@media (max-width: 600px) {
-  .material-icons {
-    font-size: 36px !important;
+.mg-glow > * { position: relative; z-index: 1; }
+/* Fallback si el navegador no soporta @property: brillo estático elegante */
+@supports not (background: conic-gradient(from var(--mg-glow-angle), red, blue)) {
+  .mg-glow::before {
+    animation: none;
+    background: linear-gradient(120deg, #9C27B0, #CE93D8, #FFE04A, #CE93D8, #9C27B0);
+    background-size: 300% 100%;
   }
+}
+
+/* --- Botones de conversión (amarillo, texto morado oscuro, peso 700) --- */
+.mg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 13px 26px;
+  font-weight: 700 !important;
+  font-size: 1rem;
+  text-transform: none !important;
+  color: var(--mg-berenjena) !important;   /* texto morado oscuro sobre amarillo */
+  background: linear-gradient(135deg, var(--mg-amarillo) 0%, var(--mg-amarillo-hover) 100%);
+  box-shadow: 0 8px 22px rgba(255, 224, 74, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.mg-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255, 224, 74, 0.4); filter: brightness(1.03); }
+.mg-btn:active { transform: translateY(0); }
+.mg-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.mg-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.mg-btn--flecha .mg-flecha { transition: transform 0.2s ease; display: inline-flex; }
+.mg-btn--flecha:hover .mg-flecha { transform: translateX(4px); }
+
+/* Botón secundario (contorno lila) */
+.mg-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 12px 26px;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  color: var(--mg-lila-claro) !important;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(206, 147, 216, 0.55);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+}
+.mg-btn-ghost:hover { background: rgba(206, 147, 216, 0.14); border-color: var(--mg-lila); transform: translateY(-2px); }
+.mg-btn-ghost:focus-visible { outline: 3px solid var(--mg-amarillo); outline-offset: 3px; }
+
+/* --- Textos --- */
+.mg-texto { color: var(--mg-lavanda); line-height: 1.65; }
+.mg-texto-claro { color: #fff; }
+.mg-caption { color: var(--mg-lila); font-size: 0.82rem; line-height: 1.55; }
+.mg-kicker {
+  color: var(--mg-lila) !important;
+  letter-spacing: 2.5px !important;
+  font-weight: 700 !important;
+}
+
+/* --- Chips / precios --- */
+.mg-chip-precio {
+  background: rgba(255, 224, 74, 0.14) !important;
+  color: var(--mg-amarillo) !important;
+  border: 1px solid rgba(255, 224, 74, 0.45) !important;
+  font-weight: 800 !important;
+}
+.mg-precio {
+  color: var(--mg-amarillo);
+  font-weight: 900;
+}
+.mg-precio small { color: var(--mg-lavanda); font-weight: 600; }
+
+/* --- Acordeones (FAQ) con superficie contrastada --- */
+.mg-faq-item {
+  border-radius: 16px !important;
+  background: rgba(66, 24, 116, 0.55) !important;
+  border: 1px solid var(--mg-borde) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.mg-faq-item::before { display: none !important; }
+.mg-faq-item .MuiAccordionSummary-root { color: #fff; border-radius: 16px; }
+.mg-faq-item .MuiAccordionSummary-root:focus-visible { outline: 3px solid var(--mg-amarillo); outline-offset: -3px; }
+.mg-faq-item .MuiAccordionDetails-root { color: var(--mg-lavanda); border-top: 1px solid var(--mg-borde); }
+
+/* --- Anclas --- */
+.mg-ancla { scroll-margin-top: 96px; }
+
+/* --- Responsive --- */
+@media (max-width: 600px) {
+  .mg-halo { display: none; }
+  .mg-btn, .mg-btn-ghost { width: 100%; }
+}
+
+/* --- Accesibilidad: movimiento reducido --- */
+@media (prefers-reduced-motion: reduce) {
+  .mg-halo, .mg-glow::before { animation: none !important; }
+  .mg-card, .mg-btn, .mg-btn-ghost { transition: none !important; }
+  .mg-card:hover, .mg-btn:hover, .mg-btn-ghost:hover { transform: none !important; }
+}
+
+/* --- Hero banner con imagen (proporción natural, sin estirar) --- */
+.mg-hero-banner {
+  position: relative;
+  width: 100%;
+  max-height: 340px;
+  border-radius: var(--mg-radio);
+  overflow: hidden;
+  border: 1px solid var(--mg-borde);
+}
+.mg-hero-banner img {
+  width: 100%;
+  height: 100%;
+  max-height: 340px;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+.mg-hero-banner__velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(42,11,77,0.05) 40%, rgba(42,11,77,0.55) 100%);
+  pointer-events: none;
 }
