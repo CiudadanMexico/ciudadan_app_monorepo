@@ -567,11 +567,12 @@ const CooWork = () => {
         setArchivosResolver([]);
 
         // Llevar al usuario a donde puede ver el resultado de su entrega.
+        // La URL es la fuente de verdad: tab/subTab se navegan (navigate),
+        // no se setean — este componente no tiene estado de tab.
         if (tienePermisoCRUD) {
-          setTab('socio');
-          setSubTab(0);
+          navigate(rutaDeTab('socio', 0));
         } else {
-          setTab('mistareas');
+          navigate(rutaDeTab('mistareas'));
         }
       } catch (err) {
         console.error('Error resolviendo tarea general:', err);
@@ -580,7 +581,7 @@ const CooWork = () => {
         setResolvingGeneralId(null);
       }
     },
-    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD]
+    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD, navigate]
   );
 
   // ---------------------------
