@@ -1,0 +1,355 @@
+{
+  "base_revision": "main @ 956c504259c06962afad78edb74c21c4f0975b44",
+  "total_sku": 30,
+  "total_fotos": 58,
+  "fotos": [
+    {
+      "sku": "83JG008FLM",
+      "archivo": "ptc-cp-83jg008flm-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-83JG008FLM-bc929a.png",
+      "portada": true
+    },
+    {
+      "sku": "83JG008FLM",
+      "archivo": "ptc-cp-83jg008flm-02.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-83JG008FLM-62e9eb.png",
+      "portada": false
+    },
+    {
+      "sku": "XTPCR732GB5780MKW",
+      "archivo": "ptc-cp-xtpcr732gb5780mkw-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-XTREMEPCGAMING-XTPCR732GB5780MKW-f12e7c.jpg",
+      "portada": true
+    },
+    {
+      "sku": "XTPCR732GB5780MKW",
+      "archivo": "ptc-cp-xtpcr732gb5780mkw-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-XTREMEPCGAMING-XTPCR732GB5780MKW-da9006.jpg",
+      "portada": false
+    },
+    {
+      "sku": "12YTS0YQ00",
+      "archivo": "ptc-cp-12yts0yq00-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-12YTS0YQ00-4b8241.png",
+      "portada": true
+    },
+    {
+      "sku": "LS25BG400ELXZX",
+      "archivo": "ptc-cp-ls25bg400elxzx-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-SAMSUNG-LS25BG400ELXZX-bec685.jpg",
+      "portada": true
+    },
+    {
+      "sku": "LS25BG400ELXZX",
+      "archivo": "ptc-cp-ls25bg400elxzx-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-SAMSUNG-LS25BG400ELXZX-3b0a92.jpg",
+      "portada": false
+    },
+    {
+      "sku": "AK2F1UT",
+      "archivo": "ptc-cp-ak2f1ut-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-HP-AK2F1UT-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "AK2F1UT",
+      "archivo": "ptc-cp-ak2f1ut-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-HP-AK2F1UT-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "PRO_MP245PG_E14",
+      "archivo": "ptc-cp-pro-mp245pg-e14-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-MSI-PROMP245PGE14-3d04ba.jpg",
+      "portada": true
+    },
+    {
+      "sku": "PRO_MP245PG_E14",
+      "archivo": "ptc-cp-pro-mp245pg-e14-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-MSI-PROMP245PGE14-730e49.jpg",
+      "portada": false
+    },
+    {
+      "sku": "910-005447",
+      "archivo": "ptc-cp-910-005447-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005447-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "910-005447",
+      "archivo": "ptc-cp-910-005447-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005447-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "570-AALK",
+      "archivo": "ptc-cp-570-aalk-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-570-AALK-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "570-AALK",
+      "archivo": "ptc-cp-570-aalk-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-570-AALK-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "910-005793",
+      "archivo": "ptc-cp-910-005793-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005793-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "910-005793",
+      "archivo": "ptc-cp-910-005793-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005793-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "920-010713",
+      "archivo": "ptc-cp-920-010713-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-010713-91e88c.jpg",
+      "portada": true
+    },
+    {
+      "sku": "920-010713",
+      "archivo": "ptc-cp-920-010713-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-010713-40bacf.jpg",
+      "portada": false
+    },
+    {
+      "sku": "BR-940412",
+      "archivo": "ptc-cp-br-940412-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-BALAMRUSH-BR-940412-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "BR-940412",
+      "archivo": "ptc-cp-br-940412-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-BALAMRUSH-BR-940412-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "920-007901",
+      "archivo": "ptc-cp-920-007901-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-007901-af5854.jpg",
+      "portada": true
+    },
+    {
+      "sku": "920-007901",
+      "archivo": "ptc-cp-920-007901-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-007901-c7245a.jpg",
+      "portada": false
+    },
+    {
+      "sku": "920-004428",
+      "archivo": "ptc-cp-920-004428-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-004428-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "920-004428",
+      "archivo": "ptc-cp-920-004428-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-004428-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "960-000764",
+      "archivo": "ptc-cp-960-000764-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-960-000764-1.png",
+      "portada": true
+    },
+    {
+      "sku": "960-000764",
+      "archivo": "ptc-cp-960-000764-02.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-960-000764-2.png",
+      "portada": false
+    },
+    {
+      "sku": "15728",
+      "archivo": "ptc-cp-15728-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-UGREEN-15728-588524.png",
+      "portada": true
+    },
+    {
+      "sku": "15728",
+      "archivo": "ptc-cp-15728-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-UGREEN-15728-67e315.jpg",
+      "portada": false
+    },
+    {
+      "sku": "981-000612-GR",
+      "archivo": "ptc-cp-981-000612-gr-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-981-000612-GR-f8c18a.jpg",
+      "portada": true
+    },
+    {
+      "sku": "981-000612-GR",
+      "archivo": "ptc-cp-981-000612-gr-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-981-000612-GR-be206b.jpg",
+      "portada": false
+    },
+    {
+      "sku": "JBL_Tune520BT_Blue",
+      "archivo": "ptc-cp-jbl-tune520bt-blue-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-JBL-JBL_Tune520BT_Blue-19da1d.png",
+      "portada": true
+    },
+    {
+      "sku": "SNV3S/1000G",
+      "archivo": "ptc-cp-snv3s-1000g-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SNV3S1000G-221e4a.jpg",
+      "portada": true
+    },
+    {
+      "sku": "SNV3S/1000G",
+      "archivo": "ptc-cp-snv3s-1000g-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SNV3S1000G-e51e68.jpg",
+      "portada": false
+    },
+    {
+      "sku": "SA400S37/480G",
+      "archivo": "ptc-cp-sa400s37-480g-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SA400S37480G-601452.jpg",
+      "portada": true
+    },
+    {
+      "sku": "SA400S37/480G",
+      "archivo": "ptc-cp-sa400s37-480g-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SA400S37480G-4c6d06.jpg",
+      "portada": false
+    },
+    {
+      "sku": "WDBUZG0010BBK-WESN",
+      "archivo": "ptc-cp-wdbuzg0010bbk-wesn-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-WESTERNDIGITAL-WDBUZG0010BBK-WESN-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "WDBUZG0010BBK-WESN",
+      "archivo": "ptc-cp-wdbuzg0010bbk-wesn-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-WESTERNDIGITAL-WDBUZG0010BBK-WESN-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "DTXM/128GB",
+      "archivo": "ptc-cp-dtxm-128gb-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DTXM128GB-d7faaf.jpg",
+      "portada": true
+    },
+    {
+      "sku": "DTXM/128GB",
+      "archivo": "ptc-cp-dtxm-128gb-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DTXM128GB-b276ff.jpg",
+      "portada": false
+    },
+    {
+      "sku": "DT70/64GB",
+      "archivo": "ptc-cp-dt70-64gb-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DT7064GB-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "DT70/64GB",
+      "archivo": "ptc-cp-dt70-64gb-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DT7064GB-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "ARCHER_C6",
+      "archivo": "ptc-cp-archer-c6-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERC6-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "ARCHER_C6",
+      "archivo": "ptc-cp-archer-c6-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERC6-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "ARCHER_AX53",
+      "archivo": "ptc-cp-archer-ax53-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERAX53-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "ARCHER_AX53",
+      "archivo": "ptc-cp-archer-ax53-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERAX53-86eeb1.jpg",
+      "portada": false
+    },
+    {
+      "sku": "MX2002",
+      "archivo": "ptc-cp-mx2002-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LINKSYS-MX2002-6a1494.jpg",
+      "portada": true
+    },
+    {
+      "sku": "MX2002",
+      "archivo": "ptc-cp-mx2002-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LINKSYS-MX2002-2c3131.jpg",
+      "portada": false
+    },
+    {
+      "sku": "BV1000",
+      "archivo": "ptc-cp-bv1000-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-APC-BV1000-1.jpg",
+      "portada": true
+    },
+    {
+      "sku": "BV1000",
+      "archivo": "ptc-cp-bv1000-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-APC-BV1000-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "OM1500ATLCD",
+      "archivo": "ptc-cp-om1500atlcd-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-CYBERPOWER-OM1500ATLCD-1.png",
+      "portada": true
+    },
+    {
+      "sku": "OM1500ATLCD",
+      "archivo": "ptc-cp-om1500atlcd-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-CYBERPOWER-OM1500ATLCD-2.jpg",
+      "portada": false
+    },
+    {
+      "sku": "8X4M5-V3",
+      "archivo": "ptc-cp-8x4m5-v3-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-8X4M5-V3-b08d97.jpg",
+      "portada": true
+    },
+    {
+      "sku": "8X4M5-V3",
+      "archivo": "ptc-cp-8x4m5-v3-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-8X4M5-V3-befe8c.jpg",
+      "portada": false
+    },
+    {
+      "sku": "82YT00Q9LM",
+      "archivo": "ptc-cp-82yt00q9lm-01.png",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-82YT00Q9LM-71d055.png",
+      "portada": true
+    },
+    {
+      "sku": "82YT00Q9LM",
+      "archivo": "ptc-cp-82yt00q9lm-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-82YT00Q9LM-8f354a.jpg",
+      "portada": false
+    },
+    {
+      "sku": "X1504ZA-I316512",
+      "archivo": "ptc-cp-x1504za-i316512-01.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-ASUS-X1504ZA-I316512-268a47.jpg",
+      "portada": true
+    },
+    {
+      "sku": "X1504ZA-I316512",
+      "archivo": "ptc-cp-x1504za-i316512-02.jpg",
+      "url": "https://www.cyberpuerta.mx/img/product/L/CP-ASUS-X1504ZA-I316512-7459b2.jpg",
+      "portada": false
+    }
+  ]
+}

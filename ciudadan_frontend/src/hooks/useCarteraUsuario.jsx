@@ -10,7 +10,6 @@ export function useCarteraUsuario() {
   const getAccessToken = async () => {
     if (!isAuthenticated) return null;
     const token = await getAccessTokenSilently({ authorizationParams: { audience: 'https://api.ciudadan.org' }, }).catch(() => null);
-    console.log("Token access auth0: ", token);
     return token;
   };
   const getCarteraUsuario = async (user_id) => {
@@ -18,7 +17,7 @@ export function useCarteraUsuario() {
     try {
       const token = await getAccessToken();
       const headers = authHeaders(token);
-      const res = await fetch(`${CARTERA_URL}/filters[user_id][id][$eq]=${user_id}`, {
+      const res = await fetch(`${CARTERA_URL}?filters[user_id][id][$eq]=${user_id}`, {
         headers,
       });
       const result = await res.json();

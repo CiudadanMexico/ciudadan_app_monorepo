@@ -51,6 +51,10 @@ const apisToFix = [
   ['pregunta-producto', ['find', 'findOne', 'create', 'update', 'delete']],
   ['store', ['find', 'findOne', 'create', 'update', 'delete']],
   ['store-categorie', ['find', 'findOne', 'create', 'update', 'delete']],
+  // Food: lectura pública (el slider de /comida lista sin sesión). La creación
+  // y edición de categorías sigue siendo solo para administración, al igual
+  // que el resto de catálogos públicos.
+  ['food-categorie', ['find', 'findOne']],
   ['ad', ['find', 'findOne', 'create', 'update', 'delete']],
   ['ad-view', ['find', 'findOne', 'create']],
   ['agencia', ['find', 'findOne', 'create', 'update', 'delete']],
