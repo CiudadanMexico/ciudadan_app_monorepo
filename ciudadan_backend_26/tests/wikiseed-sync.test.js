@@ -18,6 +18,15 @@ const path = require('path');
 
 const sync = require('../../wikiseed/sync-wikis');
 
+// Total dinámico de .md de ejemplo: las secciones de la wiki crecen con el
+// tiempo (help/ ya trae artículos de cartera), así que el test no debe
+// hardcodear el conteo ni romperse cada vez que se agregan artículos.
+const SEED_DIR = path.join(__dirname, '..', '..', 'wikiseed');
+const TOTAL_MD = sync.SECTIONS.reduce(
+  (n, s) => n + sync.listarMd(path.join(SEED_DIR, s)).length,
+  0
+);
+
 const temporal = (prefijo) => fs.mkdtempSync(path.join(os.tmpdir(), prefijo));
 
 const contarMd = (dir) => {
@@ -33,14 +42,14 @@ const contarMd = (dir) => {
   return n;
 };
 
-test('destino vacío: copia los 21 .md de ejemplo', async () => {
+test('destino vacío: copia todos los .md de ejemplo', async () => {
   const destino = temporal('wikiseed-destino-vacio-');
   const stats = await sync.main([], {
     resolverDestino: async () => ({ destino, origen: 'test' }),
   });
-  assert.equal(stats.copiados, 21);
+  assert.equal(stats.copiados, TOTAL_MD);
   assert.equal(stats.sinCambios, 0);
-  assert.equal(contarMd(destino), 21);
+  assert.equal(contarMd(destino), TOTAL_MD);
   for (const seccion of sync.SECTIONS) {
     assert.ok(fs.existsSync(path.join(destino, seccion)), `falta ${seccion}/`);
   }
@@ -52,7 +61,7 @@ test('segunda corrida: 0 copiados, todo sin cambios', async () => {
   await sync.main([], { resolverDestino: resolver });
   const stats = await sync.main([], { resolverDestino: resolver });
   assert.equal(stats.copiados, 0);
-  assert.equal(stats.sinCambios, 21);
+  assert.equal(stats.sinCambios, TOTAL_MD);
 });
 
 test('nunca borra extras del destino (lo editado en vivo se conserva)', async () => {
@@ -69,7 +78,7 @@ test('--dry-run no escribe nada', async () => {
   const stats = await sync.main(['--dry-run'], {
     resolverDestino: async () => ({ destino, origen: 'test' }),
   });
-  assert.equal(stats.copiados, 21);
+  assert.equal(stats.copiados, TOTAL_MD);
   assert.equal(contarMd(destino), 0, 'dry-run no debe crear archivos');
 });
 
@@ -78,7 +87,7 @@ test('--force re-copia aunque todo esté idéntico', async () => {
   const resolver = async () => ({ destino, origen: 'test' });
   await sync.main([], { resolverDestino: resolver });
   const stats = await sync.main(['--force'], { resolverDestino: resolver });
-  assert.equal(stats.copiados, 21);
+  assert.equal(stats.copiados, TOTAL_MD);
   assert.equal(stats.sinCambios, 0);
 });
 
@@ -92,7 +101,7 @@ test('resolverDestino usa STRAPI_URL por defecto para leer wikis_path', async ()
   process.env.WIKI_ROOT_PATH = '/tmp/wikis-env-fallback';
   try {
     const stats = await sync.main(['--dry-run']);
-    assert.equal(stats.copiados, 21);
+    assert.equal(stats.copiados, TOTAL_MD);
   } finally {
     if (anterior === undefined) delete process.env.STRAPI_URL;
     else process.env.STRAPI_URL = anterior;

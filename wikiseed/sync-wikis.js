@@ -34,6 +34,14 @@
  * Uso:
  *   node wikiseed/sync-wikis.js [--dry-run] [--force]
  *
+ * ⚠ IMPORTANTE — Node correcto: el indexado carga `better-sqlite3` del
+ * socket-service, un binario nativo compilado con el Node de ese servicio
+ * (Node 22 en las instancias del agente). Ejecutar el sync con otro Node
+ * (p. ej. el 20 del shell) mataba el proceso con SIGSEGV a mitad de copia;
+ * ahora un pre-vuelo en proceso hijo lo detecta y reporta 'abi-incompatible'
+ * sin crashear (los .md se copian igual; el watcher indexa al arrancar).
+ * En la instancia: /opt/node22/bin/node (el mismo Node del watchdog).
+ *
  * Sale con código 1 si falla algo (destino irresoluble, error de red fatal,
  * fallo de escritura o de indexado).
  */
@@ -92,6 +100,76 @@ function getJson(url) {
 }
 
 /**
+ * Pre-vuelo de ABI del driver nativo `better-sqlite3` del socket-service.
+ *
+ * El paquete se compila con node-gyp usando el Node que instaló las
+ * dependencias del socket-service (Node 22 en las instancias del agente).
+ * Requerirlo desde OTRO runtime (p. ej. Node 20) no lanza un error
+ * capturable: el proceso muere con SIGSEGV y el sync se caía a mitad de
+ * la copia, dejando la siembra a medias y sin explicación.
+ *
+ * Para evitarlo, se carga el driver UNA vez en un proceso hijo desechable:
+ * si el hijo revienta, este proceso sigue vivo, se saltan los indexados con
+ * un motivo claro ("abi-incompatible") y los `.md` ya quedan copiados (el
+ * watcher del socket-service los indexa al arrancar con su propio Node).
+ */
+let abiCache;
+function comprobarAbiDriver() {
+  if (abiCache !== undefined) return abiCache;
+  const socketDir = path.resolve(__dirname, '..', 'ciudadan_backend_26', 'socket-service');
+  const driverDir = path.join(socketDir, 'node_modules', 'better-sqlite3');
+  if (!fs.existsSync(driverDir)) {
+    abiCache = { ok: false, motivo: 'abi: falta better-sqlite3 en el socket-service (falta npm install del servicio)' };
+    return abiCache;
+  }
+
+  const incompatible = (como) => ({
+    ok: false,
+    motivo:
+      `abi-incompatible (${como}): este proceso corre Node ${process.version}, ` +
+      `pero el better-sqlite3 del socket-service exige un Node mayor ` +
+      `(ver node_modules/better-sqlite3/package.json → engines.node). ` +
+      `Ejecuta el sync con el MISMO Node del socket-service (en la instancia: ` +
+      `/opt/node22/bin/node). Los .md se copian igual; el watcher los indexará ` +
+      `al arrancar el servicio.`,
+  });
+
+  // 1) Chequeo estático: engines.node del paquete vs el runtime actual.
+  //    better-sqlite3 v13 declara ">=22": con Node 20 el `require` NO falla
+  //    (prebuild N-API de ABI estable) pero USAR el binding revienta con
+  //    SIGSEGV, señal no capturable en JS. Este chequeo lo detecta a tiempo.
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(driverDir, 'package.json'), 'utf8'));
+    const requisito = pkg && pkg.engines && typeof pkg.engines.node === 'string' ? pkg.engines.node : null;
+    const minimo = requisito ? (requisito.match(/>=\s*(\d+)/) || [])[1] : null;
+    const actual = Number(process.versions.node.split('.')[0]);
+    if (minimo && actual < Number(minimo)) {
+      abiCache = incompatible(`engines ${requisito} vs Node ${process.versions.node}`);
+      return abiCache;
+    }
+  } catch (_) { /* sin package.json legible: se prueba dinámicamente */ }
+
+  // 2) Prueba dinámica: EJERCITAR el driver (require + abrir :memory: +
+  //    query) dentro de un proceso hijo desechable. El require solo no basta
+  //    (ver arriba); si el uso del binding crashea, el hijo muere y este
+  //    proceso sigue vivo para reportarlo en vez de caerse a mitad de copia.
+  const { spawnSync } = require('node:child_process');
+  const fuente = `const D=require(${JSON.stringify(driverDir)});` +
+    `const db=new D(':memory:');` +
+    `db.exec('CREATE TABLE t(a)');` +
+    `db.prepare('SELECT COUNT(*) n FROM t').get();` +
+    `db.close();`;
+  const hijo = spawnSync(process.execPath, ['-e', fuente], { timeout: 20000 });
+  if (hijo.status === 0) {
+    abiCache = { ok: true, motivo: null };
+    return abiCache;
+  }
+  const detalle = hijo.signal ? `señal ${hijo.signal}` : `código ${hijo.status}`;
+  abiCache = incompatible(`prueba de uso en proceso hijo murió con ${detalle}`);
+  return abiCache;
+}
+
+/**
  * Indexa un documento en la BD de la wiki para que aparezca en el listado.
  *
  * Reutiliza `WikiService.updateIndex` (el mismo que usa `WikiWatcherService`),
@@ -103,11 +181,19 @@ function getJson(url) {
  *     (`dist/`) o le faltan dependencias. En ese caso NO se considera fallo del
  *     sync: los `.md` quedaron copiados y el watcher los indexará cuando el
  *     servicio arranque. Se reporta para que no quede oculto.
+ *   - ok: false y motivo 'abi-incompatible...' si el Node que ejecuta este
+ *     script no es el mismo con el que se compiló `better-sqlite3` del
+ *     socket-service (ver `comprobarAbiDriver`). Ídem: no es fallo del sync.
  */
 function indexarDocumento(rutaLogica, contenido) {
   const distDir = path.resolve(__dirname, '..', 'ciudadan_backend_26', 'socket-service', 'dist');
   if (!fs.existsSync(distDir)) {
     return { ok: false, indexado: false, motivo: 'sin-dist' };
+  }
+
+  const abi = comprobarAbiDriver();
+  if (!abi.ok) {
+    return { ok: false, indexado: false, motivo: abi.motivo };
   }
 
   try {
