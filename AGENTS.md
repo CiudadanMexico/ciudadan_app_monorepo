@@ -56,6 +56,15 @@ npx cap sync android && npx cap open android   # mobile build
 - **Agenda migration:** `docs/AGENDA-VALIDATION-SYNC.md`
 - **Monorepo/CI plan:** `plan_nonorepo.md`
 - **Backend schema dump:** `ciudadan_backend_26/strapi-schema-export.md` (regenerate via `node export-strapi-schema.js`)
+- **Cartera (fichas + wiki) spec & runbook:** `docs/CARTERA-ESPECIFICACION.md` —
+  fichas de tokens, integración con la wiki, y §10.6 el **CORS del túnel
+  Cloudflare** (obligatorio para que la wiki se vea por HTTPS).
+- **Wiki (cómo funciona y se siembra):** la wiki son `.md` servidos por
+  `socket-service` (`routes/WikiRouter`, prefijo `/wiki`). Raíz física
+  `/var/www/apps/wikis/{main,help,faq}` (`WIKI_ROOT_PATH`, precedencia:
+  Strapi `wikis_path` → `WIKI_ROOT_PATH` → default Linux). Frontend consume vía
+  `src/services/wikiService.ts` (`{REACT_APP_SOCKET_URL}/wiki`). Semilla:
+  `node wikiseed/sync-wikis.js` (idempotente).
 
 ## Domain Concepts (Spanish-first)
 
@@ -175,6 +184,8 @@ Each subproject has its own `.env` (not committed; no `.env.example`). Key vars:
 
 **Frontend:** `REACT_APP_STRAPI_URL` (default `http://localhost:33032`), `REACT_APP_AUTH0_DOMAIN`, `REACT_APP_AUTH0_CLIENT_ID`, `REACT_APP_AUTH0_AUDIENCE`, `REACT_APP_SOCKET_URL`, `REACT_APP_GOOGLE_MAPS_API_KEY`, `REACT_APP_OPENPAY_MERCHANT_ID`, `REACT_APP_STRIPE_PRICE_ID_*`.
 
+**Socket-service (wiki):** `WIKI_ROOT_PATH` (raíz de los `.md`, default `/var/www/apps/wikis`), `CORS_ORIGINS` (lista sin espacios; debe incluir los orígenes del túnel, ver Gotcha 11). Para la wiki por HTTPS, `REACT_APP_SOCKET_URL` del frontend debe ser el hostname público del socket, no `localhost`.
+
 ## Gotchas
 
 1. **`ctx.state.strapiUser`** (set by policies) ≠ **`ctx.state.user`** (set by `auth0jwt` middleware). Controllers use `strapiUser`.
@@ -187,6 +198,21 @@ Each subproject has its own `.env` (not committed; no `.env.example`). Key vars:
 8. **`?mockRole=` query param** in `Coowork.jsx` is cosmetic UI preview only — no backend effect.
 9. **`buildlog.txt` is empty.**
 10. **Debug `console.log` statements** scattered in middleware (e.g. `auth0jwt/index.js`) — be careful when cleaning up.
+11. **CORS del túnel Cloudflare (wiki "Documento no disponible"):** esta máquina
+    (`adrianperez2`) expone el frontend por `https://frontend-adrianperez2.ciudadan.org`
+    → `localhost:3001` y el socket por `https://socket-adrianperez2.ciudadan.org` →
+    `localhost:33035` (`/etc/cloudflared/config.yml`). Quien entra por el túnel pide la
+    wiki **cross-origin** al socket. Si la wiki sale *"Documento no disponible / Aún no
+    está publicado"* aunque los `.md` existen, es CORS: el socket responde 200 pero sin
+    `Access-Control-Allow-Origin`. Requiere **dos piezas**: (a) `.env` frontend
+    `REACT_APP_SOCKET_URL=https://socket-adrianperez2.ciudadan.org` (NO `localhost`), y
+    (b) `CORS_ORIGINS` del socket que incluya `https://frontend-adrianperez2.ciudadan.org`
+    (ya está en `server.js` `defaultAccept`; sin espacios tras las comas o el match falla).
+12. **CRA lee `REACT_APP_*` al arrancar** — tras cambiar `.env` hay que **reiniciar el
+    dev server**; si no, sigue usando el valor viejo (síntoma: "lo arreglé y sigue igual").
+13. **La raíz de la wiki NO está en el repo** — los `.md` vivos están en
+    `/var/www/apps/wikis` (fuera del proyecto). Sembrar con `node wikiseed/sync-wikis.js`
+    (idempotente). No existe `/apps/wikialgo`.
 
 ## Git Workflow
 
