@@ -58,7 +58,7 @@ function StarRating({ value = 0, onChange }) {
 }
 
 /* ---------------- Item ---------------- */
-function CalificarItem({ pedido, item, itemIndex, userId, onDone }) {
+function CalificarItem({ pedido, item, itemIndex, userId, onDone, getToken, authHeaders }) {
   const [rating, setRating] = useState(5);
   const [texto, setTexto] = useState("");
   const [open, setOpen] = useState(false);
@@ -294,6 +294,8 @@ export default function CalificarCompras({ tipo = "tienda" }) {
                     itemIndex={idx}
                     userId={strapiUserId}
                     onDone={onItemDone}
+                    getToken={getToken}
+                    authHeaders={authHeaders}
                   />
                 </motion.div>
               </Grid>
