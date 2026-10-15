@@ -72,7 +72,7 @@ export default function HabilidadesHub() {
                 }}
               >
                 <CardActionArea
-                  onClick={() => navigate(`/coowork/herramientas/habilidades/${o.slug}`)}
+                  onClick={() => navigate(`/coowork/admin/herramientas/habilidades/${o.slug}`)}
                   sx={{ height: '100%', p: 3 }}
                 >
                   <CardContent sx={{ p: 0 }}>

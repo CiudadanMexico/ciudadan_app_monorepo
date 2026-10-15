@@ -9,7 +9,7 @@ describe('cooworkRutas: rutaDeTab', () => {
     ['generales', 0, '/coowork/tareas-generales'],
     ['especializadas', 0, '/coowork/especializadas'],
     ['socio', 0, '/coowork/tareas-socio'],
-    ['socio', 1, '/coowork/herramientas'],
+    ['socio', 1, '/coowork/admin/herramientas'],
     ['socio', 2, '/coowork/bitacora'],
     ['socio', 3, '/coowork/avance'],
     ['socio', 4, '/coowork/pagos'],
@@ -67,6 +67,32 @@ describe('cooworkRutas: tabDeRuta', () => {
       subTab: 1,
       herramienta: 'mi-agencia',
       categoria: 'administrativas',
+    });
+  });
+
+
+  test('admin/herramientas -> tab socio sub 1 (deep-link nueva canonica)', () => {
+    expect(tabDeRuta({ vista: 'admin', resto: 'herramientas' })).toMatchObject({
+      tab: 'socio',
+      subTab: 1,
+    });
+  });
+
+  test('admin/herramientas con slug', () => {
+    expect(tabDeRuta({ vista: 'admin', resto: 'herramientas/mi-agencia' })).toMatchObject({
+      tab: 'socio',
+      subTab: 1,
+      herramienta: 'mi-agencia',
+      categoria: null,
+    });
+  });
+
+  test('admin/herramientas con categoria/slug', () => {
+    expect(tabDeRuta({ vista: 'admin', resto: 'herramientas/tareas/calificar-tarea' })).toMatchObject({
+      tab: 'socio',
+      subTab: 1,
+      herramienta: 'calificar-tarea',
+      categoria: 'tareas',
     });
   });
 

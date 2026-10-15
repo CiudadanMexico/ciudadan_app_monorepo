@@ -11,7 +11,10 @@ const Strapi = require('@strapi/strapi');
   const app = await Strapi({ dir: process.cwd() }).load();
   const USER_UID = 'plugin::users-permissions.user';
   try {
-    const demoSocio = await app.db.query(USER_UID).findOne({ where: { email: 'demo-socio@ciudadan.org' } });
+    // demo-socio puro puede no existir (test-data crea demo-socio-federal):
+    // usar el federal como socio creador/asignador si falta el puro.
+    const demoSocio = (await app.db.query(USER_UID).findOne({ where: { email: 'demo-socio@ciudadan.org' } }))
+      || (await app.db.query(USER_UID).findOne({ where: { email: 'demo-socio-federal@ciudadan.org' } }));
     const becarioSoftware = await app.db.query(USER_UID).findOne({ where: { email: 'demo-becario@ciudadan.org' } });
     const becarioMultimedia = await app.db.query(USER_UID).findOne({ where: { email: 'demo-becario-multimedia@ciudadan.org' } });
     const agenciaLocal = await app.db.query('api::agencia.agencia').findOne({ where: { tipo: 'local' } });

@@ -8,6 +8,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PermMediaIcon from '@mui/icons-material/PermMedia';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 
@@ -48,25 +49,26 @@ const HERRAMIENTAS = [
   { slug: 'mi-agencia', name: 'Mi Agencia', icon: <AccountBalanceIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'clientes', name: 'Clientes', icon: <GroupsIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'tareas', name: 'Tareas', icon: <AssignmentIcon fontSize="large" />, soloAdminSocio: true },
+  { slug: 'tablero', name: 'Tablero', icon: <DashboardIcon fontSize="large" />, soloAdminSocio: false, external: true, link: 'https://planka.ciudadan.org' },
   { slug: 'conductores', name: 'Conductores', icon: <DirectionsCarIcon fontSize="large" />, soloAdminSocio: false },
   { slug: 'gestionar-habilidades', name: 'Gestionar Habilidades', icon: <PsychologyIcon fontSize="large" />, soloAdminSocio: true },
   // Unidad de Disco Virtual: abre drive.ciudadan.org en una pestaña nueva
   // (external:true -> window.open en vez de navegación SPA interna).
   { slug: 'unidad-disco', name: 'Unidad de Disco Virtual', icon: <FolderIcon fontSize="large" />, soloAdminSocio: false, external: true, link: 'https://drive.ciudadan.org' },
-  // Multimedia: lleva directo a la ruta raíz /multimedia (Centro Multimedia,
-  // Bloque 5C), no a /coowork/herramientas/multimedia. Solo socios/admins.
-  { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, link: '/multimedia' },
+  // Multimedia: abre /multimedia en pestana nueva (mismo destino Centro Multimedia,
+  // Bloque 5C), no a /coowork/admin/herramientas/multimedia. Equipo: admin/root/socio/colaborador/becario.
+  { slug: 'multimedia', name: 'Multimedia', icon: <PermMediaIcon fontSize="large" />, soloAdminSocio: true, external: true, link: '/multimedia' },
   // Agentes: vivienda/agentes de campo, puntera del programa de agentes de la agencia.
-  { slug: 'agentes', name: 'Agentes', icon: <RobotIcon fontSize="large" />, soloAdminSocio: false },
+  { slug: 'agentes', name: 'Agentes', icon: <RobotIcon fontSize="large" />, soloAdminSocio: false, external: true, link: 'https://gameview.ciudadan.org' },
 ];
 
 const HerramientasGrid = () => {
-  const { isAdmin, isSocio } = useRoles();
+  const { isAdminLike, isSocioLike } = useRoles();
   const navigate = useNavigate();
-  const tienePermisoCRUD = isAdmin() || isSocio();
+  const tienePermisoCRUD = isAdminLike() || isSocioLike();
 
   const herramientas = HERRAMIENTAS.filter((tool) => !tool.soloAdminSocio || tienePermisoCRUD).map(
-    (tool) => ({ ...tool, id: tool.slug, link: tool.link || `/coowork/herramientas/${tool.slug}` })
+    (tool) => ({ ...tool, id: tool.slug, link: tool.link || `/coowork/admin/herramientas/${tool.slug}` })
   );
 
   return (
