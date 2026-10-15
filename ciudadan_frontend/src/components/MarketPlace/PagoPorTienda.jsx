@@ -15,7 +15,18 @@ const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
  * - Muchos logs "cart y emojis".
  */
 const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }) => {
-  const { user } = useAuth0();
+  const { user, getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const getToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
   const { userData } = useRoles();
   // ---------- DERIVAR ESTADO INICIAL desde pedido.attributes ----------
   // Puede venir en diferentes formas según Strapi. Extraemos con defensiva.
@@ -158,8 +169,10 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
 
         formPedido.append("data", JSON.stringify(pagoPayload));
         formPedido.append("files.comprobante", archivo);
+        const pagoToken = await getToken();
         const pagoRes = await fetch(`${STRAPI_URL}/api/pagos`, {
           method: "POST",
+          headers: pagoToken ? { Authorization: `Bearer ${pagoToken}` } : {},
           body: formPedido,
         });
 
@@ -197,11 +210,12 @@ const PagoPorTienda = ({ pedido, onPagoSubido, tipoPago = "carrito", carritoId }
 
       console.log("cart y emojis - actualizando pedido:", pedido?.id, pedidoUpdatePayload);
 
+      const putToken = await getToken();
+      const putHeaders = { "Content-Type": "application/json" };
+      if (putToken) putHeaders.Authorization = `Bearer ${putToken}`;
       const pedidoRes = await fetch(`${STRAPI_URL}/api/pedidos/${pedido.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: putHeaders,
         body: JSON.stringify(pedidoUpdatePayload),
       });
 

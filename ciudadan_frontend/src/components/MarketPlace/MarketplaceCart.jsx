@@ -5,7 +5,32 @@ import { useNavigate } from 'react-router-dom';
 
 function MarketplaceCart() {
   const { items, total, updateQuantity, clearCart } = useCart();
-  const { isAuthenticated, loginWithRedirect, user } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, user, getAccessTokenSilently } = useAuth0();
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const authHeaders = async (extra = {}) => {
+    const headers = { "Content-Type": "application/json", ...extra };
+    if (!isAuthenticated) return headers;
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+      if (token) headers.Authorization = `Bearer ${token}`;
+    } catch {
+      /* sin token: sigue el try-auth del backend */
+    }
+    return headers;
+  };
+  const authGet = async () => {
+    if (!isAuthenticated) return {};
+    try {
+      const token = await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    } catch {
+      return {};
+    }
+  };
   const navigate = useNavigate();
 
   const [localItems, setLocalItems] = useState([]);
@@ -84,6 +109,7 @@ function MarketplaceCart() {
         )}&filters[estado][$eq]=activo`,
         {
           credentials: "include",
+          headers: await authGet(),
         }
       );
       const json = await resFetch.json();
@@ -106,9 +132,7 @@ function MarketplaceCart() {
         `${process.env.REACT_APP_STRAPI_URL}/api/carritos/${carritoIdStrapi}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: await authHeaders(),
           credentials: "include",
           body: JSON.stringify(payload),
         }
@@ -215,6 +239,7 @@ function MarketplaceCart() {
         )}&filters[estado][$eq]=activo`,
         {
           credentials: "include",
+          headers: await authGet(),
         }
       );
 
@@ -233,7 +258,7 @@ function MarketplaceCart() {
           `${process.env.REACT_APP_STRAPI_URL}/api/carritos/${carritoIdStrapi}`,
           {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: await authHeaders(),
             credentials: "include",
             body: JSON.stringify(payload),
           }
@@ -248,7 +273,7 @@ function MarketplaceCart() {
         // crear
         const resPost = await fetch(`${process.env.REACT_APP_STRAPI_URL}/api/carritos`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: await authHeaders(),
           credentials: "include",
           body: JSON.stringify(payload),
         });

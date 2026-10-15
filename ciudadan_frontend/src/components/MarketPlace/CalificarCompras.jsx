@@ -83,7 +83,7 @@ function CalificarItem({ pedido, item, itemIndex, userId, onDone }) {
       // 1️⃣ rating
       await fetch(`${STRAPI}/api/ratings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({
           data: {
             calificacion: estrellasABase10(rating),
@@ -98,8 +98,10 @@ function CalificarItem({ pedido, item, itemIndex, userId, onDone }) {
 
       // 2️⃣ actualizar pedido
       const pedidoId = pedido.id;
+      const token = await getToken();
       const pedidoRes = await fetch(
-        `${STRAPI}/api/pedidos/${pedidoId}?populate=item`
+        `${STRAPI}/api/pedidos/${pedidoId}?populate=item`,
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
       const pedidoJson = await pedidoRes.json();
 
@@ -114,7 +116,7 @@ function CalificarItem({ pedido, item, itemIndex, userId, onDone }) {
 
       await fetch(`${STRAPI}/api/pedidos/${pedidoId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders(),
         body: JSON.stringify({
           data: {
             item: items,
@@ -179,7 +181,24 @@ function CalificarItem({ pedido, item, itemIndex, userId, onDone }) {
 
 /* ================= MAIN ================= */
 export default function CalificarCompras({ tipo = "tienda" }) {
-  const { user, isLoading } = useAuth0();
+  const { user, isLoading, getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
+  const getToken = async () => {
+    if (!isAuthenticated) return null;
+    try {
+      return await getAccessTokenSilently({
+        authorizationParams: { audience: AUTH0_AUDIENCE },
+      });
+    } catch {
+      return null;
+    }
+  };
+  const authHeaders = async () => {
+    const headers = { "Content-Type": "application/json" };
+    const token = await getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  };
 
   const [strapiUserId, setStrapiUserId] = useState(null);
   const [pedidos, setPedidos] = useState([]);
@@ -193,7 +212,8 @@ export default function CalificarCompras({ tipo = "tienda" }) {
       const q = new URLSearchParams();
       q.append("filters[email][$eq]", user.email);
 
-      const res = await fetch(`${STRAPI}/api/users?${q}`);
+      const token = await getToken();
+      const res = await fetch(`${STRAPI}/api/users?${q}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
       const json = await res.json();
 
       if (Array.isArray(json) && json.length > 0) {
@@ -218,7 +238,8 @@ export default function CalificarCompras({ tipo = "tienda" }) {
     q.append("filters[tipo][$eq]", tipo);
     q.append("populate", "item.producto");
 
-    const res = await fetch(`${STRAPI}/api/pedidos?${q}`);
+    const token = await getToken();
+    const res = await fetch(`${STRAPI}/api/pedidos?${q}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
     const json = await res.json();
 
     setPedidos(json.data || []);
