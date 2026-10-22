@@ -173,6 +173,8 @@ import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx
 import ExpedienteConductor from '../components/Taxiz/ExpedienteConductor.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
+import QuieroRepartir from '../components/Repartidor/QuieroRepartir.jsx';
+import EstadoRepartidor from '../components/Repartidor/EstadoRepartidor.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
@@ -554,6 +556,18 @@ const Rutas = () => {
     <Route
       path='/taxis/viaje-gratis'
       element={<VerifyFreeTrip />}
+    />
+
+    {/* Repartidores (MVP de registro/verificación/activación, api::delivery-registration):
+        sin PrivateRoute en el repo, cada vista se autoguarda (login con returnTo
+        dentro de QuieroRepartir/EstadoRepartidor) y el backend protege todo. */}
+    <Route
+      path='/repartidor/registro'
+      element={<QuieroRepartir />}
+    />
+    <Route
+      path='/repartidor/estado'
+      element={<EstadoRepartidor />}
     />
 
     {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
