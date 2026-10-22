@@ -1,0 +1,59 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_waitlist_entries",
+  "info": {
+    "singularName": "delivery-waitlist-entry",
+    "pluralName": "delivery-waitlist-entries",
+    "displayName": "Delivery Waitlist Entry",
+    "description": "Lista de espera voluntaria de repartidores para ciudades sin agencia activa elegible. Solo email + ciudad + consentimiento: sin INE, sin CURP, sin CLABE. Dedup por email unico normalizado; permite baja explicita. Replica el PATRON de driver-launch-lead, no su coleccion (acoplada a promo/APK/launch de conductores)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true,
+      "comment": "Siempre normalizado: trim + lowercase."
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "comment": "Opcional: si el alta la hace un usuario con sesion."
+    },
+    "city": {
+      "type": "string",
+      "required": true,
+      "comment": "Ciudad de operacion declarada (MVP: CDMX)."
+    },
+    "municipality": {
+      "type": "string"
+    },
+    "consent": {
+      "type": "boolean",
+      "default": false,
+      "comment": "Consentimiento especifico para el aviso de nueva cobertura de repartidores."
+    },
+    "consent_at": {
+      "type": "datetime"
+    },
+    "privacy_version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["activa", "dada_de_baja"],
+      "default": "activa"
+    },
+    "unsubscribed_at": {
+      "type": "datetime"
+    },
+    "source": {
+      "type": "string",
+      "comment": "Origen del alta (p.ej. 'quiero-repartir-sin-cobertura')."
+    }
+  }
+}
