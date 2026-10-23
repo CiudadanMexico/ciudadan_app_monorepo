@@ -34,6 +34,12 @@ module.exports = {
     },
     {
       method: 'POST',
+      path: '/delivery-registration/agency/:id/vehicle-classification',
+      handler: 'revision.clasificarVehiculo',
+      config: { auth: false, policies: ['global::is-delivery-reviewer'] },
+    },
+    {
+      method: 'POST',
       path: '/delivery-registration/agency/:id/request-corrections',
       handler: 'revision.pedirCorrecciones',
       config: { auth: false, policies: ['global::is-delivery-reviewer'] },

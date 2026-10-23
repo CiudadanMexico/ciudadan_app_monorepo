@@ -48,6 +48,12 @@ module.exports = {
     };
   },
 
+  async clasificarVehiculo(ctx) {
+    const { clasificarVehiculo } = require('../services/revision-service');
+    const resultado = await clasificarVehiculo(ctx.state.strapiUser, ctx.params.id, ctx.request.body || {});
+    ctx.body = { ok: true, ...resultado };
+  },
+
   async pedirCorrecciones(ctx) {
     const { pedirCorrecciones } = require('../services/revision-service');
     const resultado = await pedirCorrecciones(ctx.state.strapiUser, ctx.params.id, ctx.request.body || {});

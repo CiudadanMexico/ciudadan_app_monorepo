@@ -393,6 +393,65 @@ async function registrarCotejo(caller, id, body) {
 }
 
 // ---------------------------------------------------------------------------
+// Clasificacion normativa de la bicicleta electrica (spec §4.3/§12B)
+// ---------------------------------------------------------------------------
+const CLASIFICACIONES_VALIDAS = ['bicicleta_asistida', 'motorizado'];
+
+/**
+ * El revisor clasifica la electrica. Si la marca como `motorizado`, la matriz
+ * de requisitos pasa a la de motocicleta: el expediente no pasara el
+ * mark-video-eligible hasta que el solicitante agregue los documentos de moto
+ * (el revisor debe pedir correcciones para pediros). Si no puede clasificarla
+ * con seguridad, debe pedir correcciones o escalar — nunca dejarla pasar.
+ */
+async function clasificarVehiculo(caller, id, body) {
+  const strapi = global.strapi;
+  const profile = await cargarParaAccion(caller, id);
+
+  if (!ESTADOS_EN_REVISION.includes(profile.status)) {
+    throw badRequest(`El expediente no esta en revision (${profile.status})`);
+  }
+
+  const classification = body?.classification;
+  if (!CLASIFICACIONES_VALIDAS.includes(classification)) {
+    throw badRequest(`classification invalida. Usa: ${CLASIFICACIONES_VALIDAS.join(', ')}`);
+  }
+  const motivo = String(body?.motivo || '').trim();
+  if (motivo.length < 10) {
+    throw badRequest('La clasificacion exige su base normativa (motivo, minimo 10 caracteres)');
+  }
+
+  const vehicles = await strapi.db.query(UIDS.VEHICLE).findMany({
+    where: { delivery_profile: profile.id },
+  });
+  const vehicle = vehicles[0] || null;
+  if (!vehicle || vehicle.type !== 'bicicleta_electrica') {
+    throw badRequest('La clasificacion normativa aplica solo a bicicletas electricas');
+  }
+
+  const actualizado = await strapi.db.query(UIDS.VEHICLE).update({
+    where: { id: vehicle.id },
+    data: { juridical_classification: classification },
+  });
+
+  await registrarEvento({
+    profile: profile.id,
+    vehicle: vehicle.id,
+    agency: profile.agency?.id ?? profile.agency ?? null,
+    actor: caller.id,
+    action: ACCIONES.VEHICULO_CLASIFICADO,
+    document_id: 'juridical_classification',
+    result: classification,
+    data_contrastada: { base_normativa: motivo, tipo_previo: vehicle.juridical_classification },
+  });
+
+  return {
+    juridical_classification: actualizado.juridical_classification,
+    requiere_documentos_de_moto: classification === 'motorizado',
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Correcciones
 // ---------------------------------------------------------------------------
 async function pedirCorrecciones(caller, id, body) {
@@ -904,6 +963,7 @@ module.exports = {
   cola,
   detalle,
   registrarCotejo,
+  clasificarVehiculo,
   pedirCorrecciones,
   marcarElegibleVideo,
   registrarValidacionZoom,

@@ -804,7 +804,8 @@ const Rutas = () => {
       element={<HerramientaDedicada />}
     />
     {/* Todas las vistas: tareas-generales|especializadas|tareas-socio|
-        herramientas|bitacora|pagos|verificar-conductores|auditorias|mis-tareas */}
+        herramientas|bitacora|pagos|verificar-conductores|verificar-repartidores|
+        auditorias|mis-tareas */}
     <Route
       path='/coowork/:vista'
       element={<Coowork />}

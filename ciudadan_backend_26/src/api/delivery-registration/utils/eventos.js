@@ -12,6 +12,7 @@ const ACCIONES = Object.freeze({
   APLICACION_INICIADA: 'application_started',
   EXPEDIENTE_ACTUALIZADO: 'profile_updated',
   VEHICULO_REGISTRADO: 'vehicle_registered',
+  VEHICULO_CLASIFICADO: 'vehicle_classified',
   EVIDENCIA_ADJUNTADA: 'evidence_attached',
   IDENTIDAD_REUTILIZADA: 'identity_reused_from_user',
   ENVIADO_A_REVISION: 'submitted',

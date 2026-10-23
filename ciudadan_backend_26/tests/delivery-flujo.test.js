@@ -95,6 +95,9 @@ async function crearExpedienteCompleto(mock, { userId = 7, type = 'bicicleta' } 
   });
 
   const vehiculoBody = { type, brand: 'Marca', model: 'Modelo', color: 'Rojo' };
+  if (type === 'bicicleta_electrica') {
+    Object.assign(vehiculoBody, { motor_power: '250W', max_assisted_speed: 25 });
+  }
   if (type === 'motocicleta') {
     Object.assign(vehiculoBody, {
       year: 2022,
@@ -119,7 +122,9 @@ async function crearExpedienteCompleto(mock, { userId = 7, type = 'bicicleta' } 
     'video_presentation', 'license_front_photo', 'license_back_photo',
     'circulation_card_photo', 'insurance_policy_photo',
   ];
-  for (const slot of type === 'motocicleta' ? mediaMoto : mediaBici) v[slot] = 200 + mediaBici.indexOf(slot);
+  const mediaEbike = [...mediaBici, 'motor_label_photo'];
+  const slotsMedia = type === 'motocicleta' ? mediaMoto : type === 'bicicleta_electrica' ? mediaEbike : mediaBici;
+  for (const slot of slotsMedia) v[slot] = 200 + slotsMedia.indexOf(slot);
 
   await expedienteService.presentarExamen({ user, respuestas: respuestasCorrectas(EXAMEN_MINIMO_APROBATORIO) });
 
@@ -539,6 +544,51 @@ test('aprobar: agencia despublicada o senal alta activa bloquean', async () => {
 // ---------------------------------------------------------------------------
 // Correcciones, rechazo, suspension, revalidacion
 // ---------------------------------------------------------------------------
+test('clasificacion de electrica: solo electricas, exige motivo y endurece la matriz', async () => {
+  const { mock } = montar();
+  const { profileId } = await crearExpedienteCompleto(mock, { type: 'bicicleta_electrica' });
+  const socio = mock.tablas[UIDS.USER].find((u) => u.id === 8);
+
+  await assert.rejects(
+    () => revisionService.clasificarVehiculo(socio, profileId, { classification: 'motorizado' }),
+    (e) => e.status === 400 && /motivo/.test(e.message),
+    'exige base normativa'
+  );
+
+  const res = await revisionService.clasificarVehiculo(socio, profileId, {
+    classification: 'motorizado',
+    motivo: 'La potencia declarada supera el limite de asistencia de la normativa local',
+  });
+  assert.equal(res.juridical_classification, 'motorizado');
+  assert.equal(res.requiere_documentos_de_moto, true);
+
+  const vehicle = mock.tablas[UIDS.VEHICLE][0];
+  assert.equal(vehicle.juridical_classification, 'motorizado');
+  assert.ok(
+    mock.tablas[UIDS.EVENT].some((e) => e.action === 'vehicle_classified'),
+    'queda en bitacora con base normativa'
+  );
+
+  // Con clasificacion motorizado, la matriz de requisitos se endurece: los
+  // cotejos requeridos ahora incluyen los documentos de motocicleta.
+  await assert.rejects(
+    () => revisionService.marcarElegibleVideo(socio, profileId),
+    (e) =>
+      e.status === 400 &&
+      /Faltan cotejos/.test(e.message) &&
+      /insurance_policy_photo/.test(e.message) &&
+      /circulation_card_photo/.test(e.message),
+    'la matriz exige los documentos de moto tras clasificarla como motorizado'
+  );
+
+  // Una bici convencional no se puede clasificar.
+  const { profileId: otro } = await crearExpedienteCompleto(mock, { userId: 20 });
+  await assert.rejects(
+    () => revisionService.clasificarVehiculo(socio, otro, { classification: 'bicicleta_asistida', motivo: 'no aplica aqui' }),
+    (e) => e.status === 400 && /solo a bicicletas/.test(e.message)
+  );
+});
+
 test('correcciones -> reenvio; rechazo motivado -> reapertura', async () => {
   const { mock } = montar();
   const { profileId } = await crearExpedienteCompleto(mock, {});
