@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import {
   Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
   DialogTitle, Divider, Grid2 as Grid, IconButton, MenuItem, Stack, TextField, Typography,
+  useMediaQuery, useTheme,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -63,6 +64,8 @@ const etiquetaAccion = (action) =>
 const VisorEvidencia = ({ token, expedienteId, slot, fileId, onClose }) => {
   const [url, setUrl] = useState(null);
   const [error, setError] = useState(null);
+  // QA Fase E: en pantallas chicas el visor ocupa la pantalla completa.
+  const esMovil = useMediaQuery(useTheme().breakpoints.down('sm'));
 
   useEffect(() => {
     let vivo = true;
@@ -81,7 +84,7 @@ const VisorEvidencia = ({ token, expedienteId, slot, fileId, onClose }) => {
   }, [token, expedienteId, fileId]);
 
   return (
-    <Dialog open onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open onClose={onClose} maxWidth="md" fullWidth fullScreen={esMovil}>
       <DialogTitle sx={{ color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {ETIQUETAS_SLOT[slot] || 'Evidencia'}
         <IconButton onClick={onClose} sx={{ color: '#fff' }}><CloseIcon /></IconButton>
@@ -534,6 +537,10 @@ const RepartidoresAgencia = () => {
   const [status, setStatus] = useState('');
   const [abierto, setAbierto] = useState(null);
 
+  // QA Fase E: el expediente concentra cotejos+Zoom+decisiones; en movil va
+  // a pantalla completa para que el scroll "paper" aproveche toda la altura.
+  const esMovil = useMediaQuery(useTheme().breakpoints.down('sm'));
+
   const esFederal = userData?.agencia?.tipo === 'federal';
 
   const cargarCola = useCallback(async (tkn) => {
@@ -616,7 +623,7 @@ const RepartidoresAgencia = () => {
         </Box>
       )}
 
-      <Dialog open={Boolean(abierto)} onClose={() => setAbierto(null)} maxWidth="md" fullWidth scroll="paper">
+      <Dialog open={Boolean(abierto)} onClose={() => setAbierto(null)} maxWidth="md" fullWidth fullScreen={esMovil} scroll="paper">
         <DialogTitle sx={{ color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           Expediente de repartidor #{abierto}
           <IconButton onClick={() => setAbierto(null)} sx={{ color: '#fff' }}><CloseIcon /></IconButton>
