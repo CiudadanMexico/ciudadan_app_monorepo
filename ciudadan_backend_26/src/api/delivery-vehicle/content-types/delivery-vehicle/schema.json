@@ -1,0 +1,159 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_vehicles",
+  "info": {
+    "singularName": "delivery-vehicle",
+    "pluralName": "delivery-vehicles",
+    "displayName": "Delivery Vehicle",
+    "description": "Vehiculo del expediente de repartidor. MVP: uno por expediente (escalable a varios). Tipos permitidos: bicicleta, bicicleta_electrica, motocicleta (sin autos ni repartidor a pie)."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "delivery_profile": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery-profile.delivery-profile",
+      "inversedBy": "vehicles"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": ["bicicleta", "bicicleta_electrica", "motocicleta"],
+      "required": true
+    },
+    "brand": {
+      "type": "string",
+      "required": true
+    },
+    "model": {
+      "type": "string",
+      "required": true
+    },
+    "color": {
+      "type": "string",
+      "required": true
+    },
+    "year": {
+      "type": "integer"
+    },
+    "serial_or_vin": {
+      "type": "string",
+      "comment": "Numero de serie si existe (bici); NIV si existe (moto)."
+    },
+    "plate": {
+      "type": "string",
+      "comment": "Solo motocicleta (condicional por tipo; bicicleta jamas exige placa)."
+    },
+    "motor_power": {
+      "type": "string",
+      "comment": "Solo bicicleta_electrica."
+    },
+    "max_assisted_speed": {
+      "type": "integer",
+      "comment": "Solo bicicleta_electrica: velocidad maxima de asistencia segun fabricante."
+    },
+    "juridical_classification": {
+      "type": "enumeration",
+      "enum": ["pendiente", "bicicleta_asistida", "motorizado"],
+      "default": "pendiente",
+      "comment": "Clasificacion normativa de la electrica (spec 4.3): si el revisor la clasifica como motorizado, se exigen los documentos de motocicleta antes de aprobar."
+    },
+    "photo_front": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "photo_side": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "photo_back": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Motocicleta: trasera con placa visible."
+    },
+    "photo_helmet": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "photo_delivery_bag": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Mochila termica o equipo de reparto."
+    },
+    "video_presentation": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["videos"],
+      "comment": "Video 15-30 s con repartidor y vehiculo."
+    },
+    "motor_label_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Solo bicicleta_electrica: motor o etiqueta de especificaciones / ficha tecnica."
+    },
+    "license_front_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Solo motocicleta."
+    },
+    "license_back_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Solo motocicleta."
+    },
+    "circulation_card_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Solo motocicleta: tarjeta de circulacion."
+    },
+    "insurance_policy_photo": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"],
+      "comment": "Solo motocicleta: poliza de seguro."
+    },
+    "license_number": {
+      "type": "string",
+      "comment": "Solo motocicleta."
+    },
+    "license_expiration": {
+      "type": "date",
+      "comment": "Solo motocicleta: vigencia de la licencia."
+    },
+    "insurance_expiration": {
+      "type": "date",
+      "comment": "Solo motocicleta: vigencia del seguro."
+    },
+    "validation_status": {
+      "type": "enumeration",
+      "enum": ["pendiente", "corrections_required", "verificado"],
+      "default": "pendiente"
+    },
+    "review_notes": {
+      "type": "text",
+      "private": true
+    }
+  }
+}

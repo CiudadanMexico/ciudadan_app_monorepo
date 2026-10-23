@@ -389,6 +389,15 @@ export const RolesProvider = ({ children }) => {
     return hasExtra('auditor');
   }, [isAuthenticated, userData, hasExtra]);
 
+  // MVP repartidores (docs/REPARTIDORES-MVP-*): rol concedido SOLO por el
+  // backend (api::delivery-registration) tras la aprobación documental de la
+  // agencia + validación Zoom. El frontend solo lo usa para navegación/estado;
+  // la protección real vive en las policies del backend.
+  const isRepartidor = useCallback(() => {
+    if (!isAuthenticated || !userData) return false;
+    return hasExtra('repartidor');
+  }, [isAuthenticated, userData, hasExtra]);
+
   const isActivaMembresia = useCallback(() => Boolean(membresia), [membresia]);
 
   /**
@@ -542,6 +551,7 @@ export const RolesProvider = ({ children }) => {
         isSocio,
         isVerificador,
         isAuditor,
+        isRepartidor,
         isJardinero,
         isClub,
         haveClub,

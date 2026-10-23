@@ -50,6 +50,8 @@ import Auditorias from './../../components/Cowork/Auditorias.jsx';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
+import DirectionsBikeIcon from '@mui/icons-material/DirectionsBike';
+import RepartidoresAgencia from '../../components/Cowork/RepartidoresAgencia.jsx';
 import { useRoles } from '../../Contexts/RolesContext.jsx';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { getGeneralTodos, getCartera } from '../../services/cowork/queryServices.js';
@@ -88,7 +90,7 @@ const MAX_ARCHIVOS_RESOLVER = 10;
 // nombre elimina esa clase de bug de raíz.
 const getTabFromSearchParams = (searchParams) => {
   const tabParam = searchParams.get('tab');
-  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores', 'auditorias'].includes(tabParam)) {
+  if (['socio', 'mistareas', 'generales', 'especializadas', 'conductores', 'repartidores', 'auditorias'].includes(tabParam)) {
     return tabParam;
   }
   return null;
@@ -121,6 +123,8 @@ const rutaDeTab = (tabValue, subTabValue = 0, areaSlugValue = null) => {
       return '/coowork/tareas-socio';
     case 'conductores':
       return '/coowork/verificar-conductores';
+    case 'repartidores':
+      return '/coowork/verificar-repartidores';
     case 'auditorias':
       return '/coowork/auditorias';
     case 'mistareas':
@@ -162,6 +166,8 @@ const tabDeRuta = ({ vista = null, resto = null, areaSlugParam = null, searchPar
       return { tab: 'socio', subTab: 3 };
     case 'verificar-conductores':
       return { tab: 'conductores', subTab: 0 };
+    case 'verificar-repartidores':
+      return { tab: 'repartidores', subTab: 0 };
     case 'auditorias':
       return { tab: 'auditorias', subTab: 0 };
     case 'mis-tareas':
@@ -328,6 +334,12 @@ const CooWork = () => {
     }
     if (tab === 'conductores' && !soloVerificador) {
       navigate(tienePermisoCRUD ? '/coowork/tareas-socio' : '/coowork/tareas-generales', { replace: true });
+      return;
+    }
+    // Repartidores (spec §8): solo socio/admin/root de agencia; el verificador
+    // puro NO revisa repartidores (la policy is-delivery-reviewer lo exige).
+    if (tab === 'repartidores' && !tienePermisoCRUD) {
+      navigate(soloVerificador ? '/coowork/verificar-conductores' : '/coowork/tareas-generales', { replace: true });
       return;
     }
     if (tab === 'auditorias' && !soloAuditor) {
@@ -674,6 +686,11 @@ const CooWork = () => {
             {soloVerificador && (
               <StyledTab value="conductores" icon={<DirectionsCarIcon />} label="Verificar Conductores" />
             )}
+            {/* Repartidores: la revisa el socio/admin/root de la agencia
+                (spec §8/§12F), junto a la verificación de conductores. */}
+            {tienePermisoCRUD && (
+              <StyledTab value="repartidores" icon={<DirectionsBikeIcon />} label="Verificar Repartidores" />
+            )}
             {soloAuditor && (
               <StyledTab value="auditorias" icon={<FactCheckIcon />} label="Auditorías" />
             )}
@@ -826,6 +843,17 @@ const CooWork = () => {
             transition={{ duration: 0.4 }}
           >
             <ConductoresAgencia />
+          </motion.div>
+        )}
+
+        {tab === 'repartidores' && tienePermisoCRUD && (
+          <motion.div
+            key="repartidores"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <RepartidoresAgencia />
           </motion.div>
         )}
 
