@@ -1,11 +1,67 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert, Box, Button, CircularProgress, Grid2 as Grid, Typography,
+  Alert, Box, Button, CircularProgress, Dialog, DialogContent, DialogTitle,
+  Grid2 as Grid, IconButton, Typography,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import repartidorService from '../../../services/Repartidor/repartidorService';
 import { TarjetaPaso, ETIQUETAS_SLOT, SLOTS_POR_TIPO } from '../helpers';
 
-const SlotEvidencia = ({ slot, vehicleId, adjuntado, token, onAdjuntado, toast }) => {
+/**
+ * Visor de evidencia PROPIA (revision de integracion): descarga privada por
+ * streaming autenticado (blob efimero con revoke al desmontar) — el mismo
+ * mecanismo del visor del revisor; nunca existe una URL publica.
+ */
+const VisorEvidenciaPropia = ({ token, fileId, slot, onClose }) => {
+  const [url, setUrl] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let vivo = true;
+    let creado = null;
+    (async () => {
+      try {
+        const res = await fetch(repartidorService.urlEvidenciaPropia(fileId), {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error?.message || 'No se pudo abrir la evidencia');
+        }
+        const blob = await res.blob();
+        creado = URL.createObjectURL(blob);
+        if (vivo) setUrl(creado);
+      } catch (e) {
+        if (vivo) setError(e.message);
+      }
+    })();
+    return () => {
+      vivo = false;
+      if (creado) URL.revokeObjectURL(creado);
+    };
+  }, [token, fileId]);
+
+  return (
+    <Dialog open onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {ETIQUETAS_SLOT[slot] || 'Evidencia'}
+        <IconButton onClick={onClose} sx={{ color: '#fff' }}><CloseIcon /></IconButton>
+      </DialogTitle>
+      <DialogContent dividers sx={{ bgcolor: '#111', textAlign: 'center' }}>
+        {error && <Alert severity="error">{error}</Alert>}
+        {!url && !error && <CircularProgress sx={{ color: '#8A5CF5' }} />}
+        {url && slot === 'video_presentation' ? (
+          <video src={url} controls style={{ maxWidth: '100%' }} />
+        ) : (
+          url && <img src={url} alt="evidencia" style={{ maxWidth: '100%' }} />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const SlotEvidencia = ({ slot, vehicleId, adjuntado, fileId, token, onAdjuntado, onVer, toast }) => {
   const [cargando, setCargando] = useState(false);
   const esVideo = slot === 'video_presentation';
 
@@ -51,6 +107,16 @@ const SlotEvidencia = ({ slot, vehicleId, adjuntado, token, onAdjuntado, toast }
         {cargando ? <CircularProgress size={18} sx={{ color: '#8A5CF5' }} /> : adjuntado ? 'Reemplazar' : 'Subir archivo'}
         <input type="file" hidden accept={esVideo ? 'video/mp4,video/quicktime,video/webm' : 'image/jpeg,image/png,image/webp'} onChange={subir} />
       </Button>
+      {adjuntado && fileId && onVer && (
+        <Button
+          variant="text"
+          size="small"
+          onClick={() => onVer(slot, fileId)}
+          sx={{ color: '#8A5CF5', ml: 1 }}
+        >
+          Ver
+        </Button>
+      )}
     </Box>
   );
 };
@@ -64,6 +130,7 @@ const StepEvidencias = ({ token, me, recargar, siguiente, toast }) => {
   const d = me?.data || {};
   const vehicle = d.vehicle || null;
   const slotsPerfil = d.identity?.slots || {};
+  const [viendo, setViendo] = useState(null);
 
   const slotsVehiculo = useMemo(() => {
     if (!vehicle) return [];
@@ -88,9 +155,11 @@ const StepEvidencias = ({ token, me, recargar, siguiente, toast }) => {
             <SlotEvidencia
               slot={slot}
               adjuntado={Boolean(slotsPerfil[slot])}
+              fileId={slotsPerfil[slot] || null}
               token={token}
               toast={toast}
               onAdjuntado={recargar}
+              onVer={setViendo}
             />
           </Grid>
         ))}
@@ -106,13 +175,24 @@ const StepEvidencias = ({ token, me, recargar, siguiente, toast }) => {
               slot={slot}
               vehicleId={vehicle.id}
               adjuntado={Boolean(vehicle.slots?.[slot])}
+              fileId={vehicle.slots?.[slot] || null}
               token={token}
               toast={toast}
               onAdjuntado={recargar}
+              onVer={setViendo}
             />
           </Grid>
         ))}
       </Grid>
+
+      {viendo && (
+        <VisorEvidenciaPropia
+          token={token}
+          fileId={viendo.fileId}
+          slot={viendo.slot}
+          onClose={() => setViendo(null)}
+        />
+      )}
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
