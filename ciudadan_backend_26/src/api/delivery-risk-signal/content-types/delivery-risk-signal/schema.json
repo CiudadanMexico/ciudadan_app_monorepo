@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_risk_signals",
+  "info": {
+    "singularName": "delivery-risk-signal",
+    "pluralName": "delivery-risk-signals",
+    "displayName": "Delivery Risk Signal",
+    "description": "Senal de riesgo del motor de prevalidacion/revision del MVP de repartidores (spec 12G). Regla explicable + nivel + datos minimos. Nivel alto => estado pending_federal_audit y congelacion de la concesion del rol hasta resolucion federal."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "profile": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery-profile.delivery-profile"
+    },
+    "rule": {
+      "type": "string",
+      "required": true,
+      "comment": "Identificador de la regla activada (vocabulario en delivery-registration/utils/senales.js)."
+    },
+    "level": {
+      "type": "enumeration",
+      "enum": ["baja", "media", "alta"],
+      "required": true,
+      "default": "baja"
+    },
+    "data": {
+      "type": "json",
+      "comment": "Datos minimos que explican la senal, sin datos sensibles completos."
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["activa", "resuelta"],
+      "default": "activa"
+    },
+    "resolved_by": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "comment": "Responsable federal que resolvio la senal."
+    },
+    "resolved_at": {
+      "type": "datetime"
+    },
+    "resolution": {
+      "type": "text",
+      "comment": "Hallazgo/decision federal: devolver a agencia, habilitar aprobacion o mantener bloqueo."
+    }
+  }
+}

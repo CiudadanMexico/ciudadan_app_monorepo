@@ -1,0 +1,85 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_verification_events",
+  "info": {
+    "singularName": "delivery-verification-event",
+    "pluralName": "delivery-verification-events",
+    "displayName": "Delivery Verification Event",
+    "description": "Bitacora append-only del expediente de repartidor: cada alta, correccion, cotejo documental, validacion Zoom, decision y acto federal. Las correcciones se registran como eventos NUEVOS; nunca se borra el evento anterior."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "profile": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery-profile.delivery-profile"
+    },
+    "vehicle": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery-vehicle.delivery-vehicle"
+    },
+    "agency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agencia.agencia"
+    },
+    "actor": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "comment": "Responsable del acto (revisor o federal). Null en actos del sistema."
+    },
+    "action": {
+      "type": "string",
+      "required": true,
+      "comment": "Vocabulario controlado en delivery-registration/utils/eventos.js (string, no enum, para no migrar el schema en cada accion nueva)."
+    },
+    "document_id": {
+      "type": "string",
+      "comment": "Slot del documento cotejado (id_front, license_front_photo, ...) o campo corregido."
+    },
+    "check_type": {
+      "type": "enumeration",
+      "enum": ["officially_checked", "visually_reviewed", "unavailable", "not_applicable"],
+      "comment": "Tipo REAL de cotejo (spec 12B): nunca declarar oficial lo que solo se reviso visualmente."
+    },
+    "source_name": {
+      "type": "string",
+      "comment": "Fuente oficial o metodo concreto consultado (INE listanominal, SEMOVI, portal de aseguradora...)."
+    },
+    "official_source_url": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string",
+      "comment": "Resultado del cotejo: verified | not_found | mismatch | reported | unavailable | error | ok | ok_visual (vocabulario en eventos.js)."
+    },
+    "data_contrastada": {
+      "type": "json",
+      "comment": "Datos minimos contrastados, SIN CURP/CLABE completos."
+    },
+    "evidence_file_id": {
+      "type": "integer",
+      "comment": "Id del archivo del plugin upload que respalda el cotejo (captura del resultado oficial)."
+    },
+    "evidence_sha256": {
+      "type": "string",
+      "comment": "SHA-256 del archivo de evidencia calculado por el servidor al registrar el cotejo."
+    },
+    "notes": {
+      "type": "text",
+      "private": true
+    },
+    "review_version": {
+      "type": "integer",
+      "default": 0
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

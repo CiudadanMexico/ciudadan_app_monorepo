@@ -2825,6 +2825,401 @@ export interface ApiCursoCurso extends Schema.CollectionType {
   };
 }
 
+export interface ApiDeliveryProfileDeliveryProfile
+  extends Schema.CollectionType {
+  collectionName: 'delivery_profiles';
+  info: {
+    singularName: 'delivery-profile';
+    pluralName: 'delivery-profiles';
+    displayName: 'Delivery Profile';
+    description: 'Expediente de repartidor (MVP registro/verificacion/activacion). Independiente del expediente taxi (api::driver.driver): no comparte estados ni campos de moto/bici con driver.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    agency: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    status: Attribute.Enumeration<
+      [
+        'draft',
+        'pending_documents',
+        'pending_review',
+        'corrections_required',
+        'eligible_for_video_review',
+        'pending_federal_audit',
+        'approved',
+        'rejected',
+        'suspended'
+      ]
+    > &
+      Attribute.DefaultTo<'draft'>;
+    current_step: Attribute.String & Attribute.DefaultTo<'identidad'>;
+    territory_ref: Attribute.String;
+    agency_assigned_at: Attribute.DateTime;
+    coverage_version: Attribute.String & Attribute.DefaultTo<'v1'>;
+    id_front: Attribute.Media<'images'>;
+    id_back: Attribute.Media<'images'>;
+    selfie: Attribute.Media<'images'>;
+    phone: Attribute.String;
+    birthdate: Attribute.Date;
+    curp: Attribute.String & Attribute.Private;
+    emergency_contact_name: Attribute.String;
+    emergency_contact_phone: Attribute.String;
+    identity_verification_status: Attribute.Enumeration<
+      [
+        'pendiente',
+        'visualmente_revisada',
+        'oficialmente_verificada',
+        'no_disponible',
+        'no_aplicable'
+      ]
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    payout_clabe_encrypted: Attribute.Text & Attribute.Private;
+    payout_clabe_last4: Attribute.String;
+    account_holder_name: Attribute.String;
+    payment_validation_status: Attribute.Enumeration<
+      ['pendiente', 'formato_valido', 'invalida']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    reviewer: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    review_notes: Attribute.Text & Attribute.Private;
+    correction_requests: Attribute.JSON;
+    terms_version: Attribute.String;
+    terms_accepted_at: Attribute.DateTime;
+    privacy_version: Attribute.String;
+    privacy_accepted_at: Attribute.DateTime;
+    training_status: Attribute.Enumeration<
+      ['pendiente', 'aprobado', 'reprobado']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    training_score: Attribute.Integer & Attribute.DefaultTo<0>;
+    training_completed_at: Attribute.DateTime;
+    zoom_session_url: Attribute.String;
+    zoom_validated_at: Attribute.DateTime;
+    zoom_validator: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    zoom_attendance_result: Attribute.Enumeration<
+      ['pendiente', 'validado', 'no_validado']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    approval_version: Attribute.Integer & Attribute.DefaultTo<0>;
+    submitted_at: Attribute.DateTime;
+    reviewed_at: Attribute.DateTime;
+    approved_at: Attribute.DateTime;
+    rejected_at: Attribute.DateTime;
+    suspended_at: Attribute.DateTime;
+    last_revalidated_at: Attribute.DateTime;
+    vehicles: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'oneToMany',
+      'api::delivery-vehicle.delivery-vehicle'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::delivery-profile.delivery-profile',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryRiskSignalDeliveryRiskSignal
+  extends Schema.CollectionType {
+  collectionName: 'delivery_risk_signals';
+  info: {
+    singularName: 'delivery-risk-signal';
+    pluralName: 'delivery-risk-signals';
+    displayName: 'Delivery Risk Signal';
+    description: 'Senal de riesgo del motor de prevalidacion/revision del MVP de repartidores (spec 12G). Regla explicable + nivel + datos minimos. Nivel alto => estado pending_federal_audit y congelacion de la concesion del rol hasta resolucion federal.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    profile: Attribute.Relation<
+      'api::delivery-risk-signal.delivery-risk-signal',
+      'manyToOne',
+      'api::delivery-profile.delivery-profile'
+    >;
+    rule: Attribute.String & Attribute.Required;
+    level: Attribute.Enumeration<['baja', 'media', 'alta']> &
+      Attribute.Required &
+      Attribute.DefaultTo<'baja'>;
+    data: Attribute.JSON;
+    status: Attribute.Enumeration<['activa', 'resuelta']> &
+      Attribute.DefaultTo<'activa'>;
+    resolved_by: Attribute.Relation<
+      'api::delivery-risk-signal.delivery-risk-signal',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    resolved_at: Attribute.DateTime;
+    resolution: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::delivery-risk-signal.delivery-risk-signal',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::delivery-risk-signal.delivery-risk-signal',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryTrainingAttemptDeliveryTrainingAttempt
+  extends Schema.CollectionType {
+  collectionName: 'delivery_training_attempts';
+  info: {
+    singularName: 'delivery-training-attempt';
+    pluralName: 'delivery-training-attempts';
+    displayName: 'Delivery Training Attempt';
+    description: 'Intento del examen de capacitacion de repartidores (5 modulos, 10 preguntas, aprobado >= 8). Cuestionario autonomo del MVP, sin dependencia de Academia. Se permiten reintentos y se conservan todos los intentos.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    profile: Attribute.Relation<
+      'api::delivery-training-attempt.delivery-training-attempt',
+      'manyToOne',
+      'api::delivery-profile.delivery-profile'
+    >;
+    version: Attribute.Integer & Attribute.Required;
+    attempted_at: Attribute.DateTime;
+    score: Attribute.Integer & Attribute.Required;
+    passed: Attribute.Boolean & Attribute.Required & Attribute.DefaultTo<false>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::delivery-training-attempt.delivery-training-attempt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::delivery-training-attempt.delivery-training-attempt',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryVehicleDeliveryVehicle
+  extends Schema.CollectionType {
+  collectionName: 'delivery_vehicles';
+  info: {
+    singularName: 'delivery-vehicle';
+    pluralName: 'delivery-vehicles';
+    displayName: 'Delivery Vehicle';
+    description: 'Vehiculo del expediente de repartidor. MVP: uno por expediente (escalable a varios). Tipos permitidos: bicicleta, bicicleta_electrica, motocicleta (sin autos ni repartidor a pie).';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    delivery_profile: Attribute.Relation<
+      'api::delivery-vehicle.delivery-vehicle',
+      'manyToOne',
+      'api::delivery-profile.delivery-profile'
+    >;
+    type: Attribute.Enumeration<
+      ['bicicleta', 'bicicleta_electrica', 'motocicleta']
+    > &
+      Attribute.Required;
+    brand: Attribute.String & Attribute.Required;
+    model: Attribute.String & Attribute.Required;
+    color: Attribute.String & Attribute.Required;
+    year: Attribute.Integer;
+    serial_or_vin: Attribute.String;
+    plate: Attribute.String;
+    motor_power: Attribute.String;
+    max_assisted_speed: Attribute.Integer;
+    juridical_classification: Attribute.Enumeration<
+      ['pendiente', 'bicicleta_asistida', 'motorizado']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    photo_front: Attribute.Media<'images'>;
+    photo_side: Attribute.Media<'images'>;
+    photo_back: Attribute.Media<'images'>;
+    photo_helmet: Attribute.Media<'images'>;
+    photo_delivery_bag: Attribute.Media<'images'>;
+    video_presentation: Attribute.Media<'videos'>;
+    motor_label_photo: Attribute.Media<'images'>;
+    license_front_photo: Attribute.Media<'images'>;
+    license_back_photo: Attribute.Media<'images'>;
+    circulation_card_photo: Attribute.Media<'images'>;
+    insurance_policy_photo: Attribute.Media<'images'>;
+    license_number: Attribute.String;
+    license_expiration: Attribute.Date;
+    insurance_expiration: Attribute.Date;
+    validation_status: Attribute.Enumeration<
+      ['pendiente', 'corrections_required', 'verificado']
+    > &
+      Attribute.DefaultTo<'pendiente'>;
+    review_notes: Attribute.Text & Attribute.Private;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::delivery-vehicle.delivery-vehicle',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::delivery-vehicle.delivery-vehicle',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryVerificationEventDeliveryVerificationEvent
+  extends Schema.CollectionType {
+  collectionName: 'delivery_verification_events';
+  info: {
+    singularName: 'delivery-verification-event';
+    pluralName: 'delivery-verification-events';
+    displayName: 'Delivery Verification Event';
+    description: 'Bitacora append-only del expediente de repartidor: cada alta, correccion, cotejo documental, validacion Zoom, decision y acto federal. Las correcciones se registran como eventos NUEVOS; nunca se borra el evento anterior.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    profile: Attribute.Relation<
+      'api::delivery-verification-event.delivery-verification-event',
+      'manyToOne',
+      'api::delivery-profile.delivery-profile'
+    >;
+    vehicle: Attribute.Relation<
+      'api::delivery-verification-event.delivery-verification-event',
+      'manyToOne',
+      'api::delivery-vehicle.delivery-vehicle'
+    >;
+    agency: Attribute.Relation<
+      'api::delivery-verification-event.delivery-verification-event',
+      'manyToOne',
+      'api::agencia.agencia'
+    >;
+    actor: Attribute.Relation<
+      'api::delivery-verification-event.delivery-verification-event',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    action: Attribute.String & Attribute.Required;
+    document_id: Attribute.String;
+    check_type: Attribute.Enumeration<
+      [
+        'officially_checked',
+        'visually_reviewed',
+        'unavailable',
+        'not_applicable'
+      ]
+    >;
+    source_name: Attribute.String;
+    official_source_url: Attribute.String;
+    result: Attribute.String;
+    data_contrastada: Attribute.JSON;
+    evidence_file_id: Attribute.Integer;
+    evidence_sha256: Attribute.String;
+    notes: Attribute.Text & Attribute.Private;
+    review_version: Attribute.Integer & Attribute.DefaultTo<0>;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::delivery-verification-event.delivery-verification-event',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::delivery-verification-event.delivery-verification-event',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDeliveryWaitlistEntryDeliveryWaitlistEntry
+  extends Schema.CollectionType {
+  collectionName: 'delivery_waitlist_entries';
+  info: {
+    singularName: 'delivery-waitlist-entry';
+    pluralName: 'delivery-waitlist-entries';
+    displayName: 'Delivery Waitlist Entry';
+    description: 'Lista de espera voluntaria de repartidores para ciudades sin agencia activa elegible. Solo email + ciudad + consentimiento: sin INE, sin CURP, sin CLABE. Dedup por email unico normalizado; permite baja explicita. Replica el PATRON de driver-launch-lead, no su coleccion (acoplada a promo/APK/launch de conductores).';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    email: Attribute.Email & Attribute.Required & Attribute.Unique;
+    user: Attribute.Relation<
+      'api::delivery-waitlist-entry.delivery-waitlist-entry',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    city: Attribute.String & Attribute.Required;
+    municipality: Attribute.String;
+    consent: Attribute.Boolean & Attribute.DefaultTo<false>;
+    consent_at: Attribute.DateTime;
+    privacy_version: Attribute.String;
+    status: Attribute.Enumeration<['activa', 'dada_de_baja']> &
+      Attribute.DefaultTo<'activa'>;
+    unsubscribed_at: Attribute.DateTime;
+    source: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::delivery-waitlist-entry.delivery-waitlist-entry',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::delivery-waitlist-entry.delivery-waitlist-entry',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiDireccionDireccion extends Schema.CollectionType {
   collectionName: 'direcciones';
   info: {
@@ -7281,6 +7676,12 @@ declare module '@strapi/types' {
       'api::contenido.contenido': ApiContenidoContenido;
       'api::credencial.credencial': ApiCredencialCredencial;
       'api::curso.curso': ApiCursoCurso;
+      'api::delivery-profile.delivery-profile': ApiDeliveryProfileDeliveryProfile;
+      'api::delivery-risk-signal.delivery-risk-signal': ApiDeliveryRiskSignalDeliveryRiskSignal;
+      'api::delivery-training-attempt.delivery-training-attempt': ApiDeliveryTrainingAttemptDeliveryTrainingAttempt;
+      'api::delivery-vehicle.delivery-vehicle': ApiDeliveryVehicleDeliveryVehicle;
+      'api::delivery-verification-event.delivery-verification-event': ApiDeliveryVerificationEventDeliveryVerificationEvent;
+      'api::delivery-waitlist-entry.delivery-waitlist-entry': ApiDeliveryWaitlistEntryDeliveryWaitlistEntry;
       'api::direccion.direccion': ApiDireccionDireccion;
       'api::driver.driver': ApiDriverDriver;
       'api::driver-launch-lead.driver-launch-lead': ApiDriverLaunchLeadDriverLaunchLead;

@@ -28,7 +28,6 @@ import { esFavorito, toggleFavorito } from "../../services/favoritosService";
 import { useRoles } from '../../Contexts/RolesContext';
 
 const AUTH0_AUDIENCE = process.env.REACT_APP_AUTH0_AUDIENCE;
-
 const MotionButton = motion(Button);
 
 export default function DetalleProducto({

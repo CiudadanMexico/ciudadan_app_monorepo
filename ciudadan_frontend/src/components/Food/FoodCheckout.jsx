@@ -166,10 +166,10 @@ const FoodCheckout = () => {
     }
 
     // Verificar que todos los restaurantes tengan una cotización
-    const restaurantesSinQuote = restaurantes.filter((restaurante) => obtenerCostoEnvio(restaurante.id) == null);
-
-    if (restaurantesSinQuote.length > 0) {
-      setError(`No fue posible calcular el envío de: ${restaurantesSinQuote.map((r) => r.nombre).join(', ')}.`);
+    if (restaurantesSinCotizacion.length > 0) {
+      const mensaje = `No fue posible calcular el envío de: ${restaurantesSinCotizacion.map((r) => r.nombre).join(', ')}. Vuelve al paso de dirección e inténtalo de nuevo.`;
+      setError(mensaje);
+      enqueueSnackbar(mensaje, { variant: 'error' });
       return;
     }
 
@@ -430,8 +430,48 @@ const FoodCheckout = () => {
     return Number((Number(subtotal ?? 0) + Number(totalEnviosCotizados ?? 0)).toFixed(2));
   }, [subtotal, totalEnviosCotizados,]);
 
+  /*
+   * Restaurantes que aún no tienen una cotización válida.
+   * Si la lista no está vacía, no se permite crear las órdenes.
+   */
+  const restaurantesSinCotizacion = useMemo(() => {
+    return restaurantes.filter((restaurante) => obtenerCostoEnvio(restaurante.id) == null);
+  }, [restaurantes, quotes]);
+
+  const cotizacionIncompleta = restaurantesSinCotizacion.length > 0;
+
+  /*
+   * Mostrar snackbar cuando falle la cotización (error general o parcial).
+   */
   useEffect(() => {
-    if (!direccionSeleccionada || restaurantes.length === 0) {
+    if (errorCotizacion) {
+      enqueueSnackbar(errorCotizacion, { variant: 'error' });
+    }
+  }, [errorCotizacion, enqueueSnackbar]);
+
+  useEffect(() => {
+    if (!uberError) {
+      return;
+    }
+
+    if (uberError?.type === 'PARTIAL_ERROR' && Array.isArray(uberError?.restaurants)) {
+      const nombres = uberError.restaurants
+        .map((r) => r?.restaurantName || `Restaurante ${r?.restaurantId}`)
+        .filter(Boolean)
+        .join(', ');
+
+      enqueueSnackbar(
+        `${uberError.message}${nombres ? ` (${nombres})` : ''}`,
+        { variant: 'warning' }
+      );
+      return;
+    }
+
+    enqueueSnackbar(uberError?.message ?? 'No fue posible obtener las cotizaciones de envío.', { variant: 'error' });
+  }, [uberError, enqueueSnackbar]);
+
+  useEffect(() => {
+    if (!direccionSeleccionada || restaurantes?.length === 0) {
       clearQuotes();
       return;
     }
@@ -443,9 +483,9 @@ const FoodCheckout = () => {
       setErrorCotizacion('');
 
       try {
-        const restaurantesUber = restaurantes.map((restaurante) => ({
-          restaurantId: restaurante.id,
-          restaurantName: restaurante.nombre,
+        const restaurantesUber = restaurantes?.map((restaurante) => ({
+          restaurantId: restaurante?.id,
+          restaurantName: restaurante?.nombre,
         }));
 
         /*
@@ -545,6 +585,13 @@ const FoodCheckout = () => {
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} >
           {error}
+        </Alert>
+      )}
+
+      {activeStep === 2 && !cotizandoEnvios && cotizacionIncompleta && (
+        <Alert severity="warning" sx={{ mb: 3 }} >
+          No fue posible calcular el envío de: {restaurantesSinCotizacion.map((r) => r.nombre).join(', ')}.
+          Regresa al paso de dirección para volver a cotizar.
         </Alert>
       )}
 
@@ -748,10 +795,10 @@ const FoodCheckout = () => {
                   <ArrowForward />
                 )
               }
-              disabled={procesando || cotizandoEnvios}
+              disabled={procesando || cotizandoEnvios || cotizacionIncompleta}
               onClick={crearOrdenes}
             >
-              {procesando ? 'Creando órdenes...' : cotizandoEnvios ? 'Calculando envío...' : 'Confirmar pedido'}
+              {procesando ? 'Creando órdenes...' : cotizandoEnvios ? 'Calculando envío...' : cotizacionIncompleta ? 'Envío no disponible' : 'Confirmar pedido'}
             </Button>
           </Stack>
         </Box>
