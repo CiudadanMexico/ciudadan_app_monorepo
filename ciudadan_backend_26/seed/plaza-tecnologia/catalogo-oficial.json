@@ -1,0 +1,1143 @@
+{
+  "schema_version": 1,
+  "seed_key": "ciudadan-plaza-beta-v1",
+  "section": "La plaza de la tecnología a tu casa",
+  "repository_commit": "956c504259c06962afad78edb74c21c4f0975b44",
+  "markup_percent": 5,
+  "currency": "MXN",
+  "products": [
+    {
+      "sku": "83JG008FLM",
+      "slug": "ptc-cp-83jg008flm",
+      "nombre": "Laptop Gamer Lenovo LOQ 15AHP10, 15.6\" 1920x1080 Full HD, AMD Ryzen 7 250, NVIDIA GeForce RTX 5060, 16GB, 512GB SSD, Windows 11 Home, Español",
+      "descripcion": "Laptop para creación y juegos: Ryzen 7 250, GeForce RTX 5060, 16 GB RAM y SSD de 512 GB. Pantalla Full HD de 15.6 pulgadas y teclado español.",
+      "marca": "LENOVO",
+      "precio": 29860.95,
+      "segmento": "laptops",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": true,
+      "especificaciones": {
+        "Modelo": "83JG008FLM",
+        "Condición": "Nuevo",
+        "Características": "Laptop Gamer Lenovo LOQ 15AHP10, 15.6\" 1920x1080 Full HD, AMD Ryzen 7 250, NVIDIA GeForce RTX 5060, 16GB, 512GB SSD, Windows 11 Home, Español"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-83JG008FLM-bc929a.png",
+          "filename": "ptc-cp-83jg008flm-01.png"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-83JG008FLM-62e9eb.png",
+          "filename": "ptc-cp-83jg008flm-02.png"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/Laptops/Laptop-Gamer-Lenovo-LOQ-15AHP10-15-6-1920x1080-Full-HD-AMD-Ryzen-7-250-NVIDIA-GeForce-RTX-5060-16GB-512GB-SSD-Windows-11-Home-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 2843900,
+        "availability": "InStock",
+        "quantity": 253,
+        "checked_at": "2026-10-12T05:18:24.657963+00:00",
+        "evidence": "253 pzas. disponibles",
+        "shipping_reference_mxn": 168
+      }
+    },
+    {
+      "sku": "XTPCR732GB5780MKW",
+      "slug": "ptc-cp-xtpcr732gb5780mkw",
+      "nombre": "Computadora Xtreme PC Gaming CM-05456, AMD Ryzen 7 8700G, 16GB, 500GB SSD, Wi-Fi, Windows 11 Prueba",
+      "descripcion": "Equipo de escritorio con Ryzen 7 8700G, 16 GB RAM y SSD de 500 GB. Incluye Wi-Fi. Windows 11 de prueba; no se anuncia licencia definitiva.",
+      "marca": "XTREME PC GAMING",
+      "precio": 15507.45,
+      "segmento": "computadoras",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "XTPCR732GB5780MKW",
+        "Condición": "Nuevo",
+        "Características": "Computadora Xtreme PC Gaming CM-05456, AMD Ryzen 7 8700G, 16GB, 500GB SSD, Wi-Fi, Windows 11 Prueba",
+        "Sistema operativo": "Windows 11 de prueba; licencia definitiva no incluida en esta oferta"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-XTREMEPCGAMING-XTPCR732GB5780MKW-f12e7c.jpg",
+          "filename": "ptc-cp-xtpcr732gb5780mkw-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-XTREMEPCGAMING-XTPCR732GB5780MKW-da9006.jpg",
+          "filename": "ptc-cp-xtpcr732gb5780mkw-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/PC-s-de-Escritorio/Computadora-Xtreme-PC-Gaming-CM-05456-AMD-Ryzen-7-8700G-16GB-500GB-SSD-Wi-Fi-Windows-11-Prueba.html",
+        "currency": "MXN",
+        "cost_centavos": 1476900,
+        "availability": "InStock",
+        "quantity": 7,
+        "checked_at": "2026-10-12T05:18:25.132912+00:00",
+        "evidence": "7 pzas. disponibles",
+        "shipping_reference_mxn": 0
+      }
+    },
+    {
+      "sku": "12YTS0YQ00",
+      "slug": "ptc-cp-12yts0yq00",
+      "nombre": "Computadora Lenovo ThinkCentre M90S G6 SFF, Intel Core Ultra 7 265, 16GB, 512GB SSD, Windows 11 Pro + Teclado/Mouse",
+      "descripcion": "Computadora empresarial ThinkCentre M90S G6 con Core Ultra 7 265, 16 GB RAM y SSD de 512 GB. Incluye Windows 11 Pro, teclado y mouse.",
+      "marca": "LENOVO",
+      "precio": 21397.95,
+      "segmento": "computadoras",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "12YTS0YQ00",
+        "Condición": "Nuevo",
+        "Características": "Computadora Lenovo ThinkCentre M90S G6 SFF, Intel Core Ultra 7 265, 16GB, 512GB SSD, Windows 11 Pro + Teclado/Mouse"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-12YTS0YQ00-4b8241.png",
+          "filename": "ptc-cp-12yts0yq00-01.png"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/PC-s-de-Escritorio/Computadora-Lenovo-ThinkCentre-M90S-G6-SFF-Intel-Core-Ultra-7-265-16GB-512GB-SSD-Windows-11-Pro-Teclado-Mouse.html",
+        "currency": "MXN",
+        "cost_centavos": 2037900,
+        "availability": "InStock",
+        "quantity": 42,
+        "checked_at": "2026-10-12T05:18:25.621099+00:00",
+        "evidence": "42 pzas. disponibles",
+        "shipping_reference_mxn": 209
+      }
+    },
+    {
+      "sku": "LS25BG400ELXZX",
+      "slug": "ptc-cp-ls25bg400elxzx",
+      "nombre": "Monitor Gamer Samsung Odyssey G4 LED IPS 25\", 1920x1080 Full HD, G-Sync/FreeSync, 240Hz, HDMI/DisplayPort, Negro",
+      "descripcion": "Monitor de 25 pulgadas Full HD con panel IPS y frecuencia de 240 Hz. Conexiones HDMI y DisplayPort para un escritorio de trabajo y juego.",
+      "marca": "SAMSUNG",
+      "precio": 3547.95,
+      "segmento": "monitores",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "LS25BG400ELXZX",
+        "Condición": "Nuevo",
+        "Características": "Monitor Gamer Samsung Odyssey G4 LED IPS 25\", 1920x1080 Full HD, G-Sync/FreeSync, 240Hz, HDMI/DisplayPort, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-SAMSUNG-LS25BG400ELXZX-bec685.jpg",
+          "filename": "ptc-cp-ls25bg400elxzx-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-SAMSUNG-LS25BG400ELXZX-3b0a92.jpg",
+          "filename": "ptc-cp-ls25bg400elxzx-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Monitores/Monitores/Monitor-Gamer-Samsung-Odyssey-G4-LED-IPS-25-1920x1080-Full-HD-G-Sync-FreeSync-240Hz-HDMI-DisplayPort-Negro.html",
+        "currency": "MXN",
+        "cost_centavos": 337900,
+        "availability": "InStock",
+        "quantity": 29,
+        "checked_at": "2026-10-12T05:18:25.235674+00:00",
+        "evidence": "29 pzas. disponibles",
+        "shipping_reference_mxn": 209
+      }
+    },
+    {
+      "sku": "AK2F1UT",
+      "slug": "ptc-cp-ak2f1ut",
+      "nombre": "Monitor HP Series 3 Pro LCD IPS 21.5\", 1920x1080 Full HD, 100Hz, HDMI, Negro",
+      "descripcion": "Monitor IPS Full HD de 21.5 pulgadas con 100 Hz y conexión HDMI. Una pantalla compacta para oficina, estudio y navegación.",
+      "marca": "HP",
+      "precio": 1741.95,
+      "segmento": "monitores",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": true,
+      "especificaciones": {
+        "Modelo": "AK2F1UT",
+        "Condición": "Nuevo",
+        "Características": "Monitor HP Series 3 Pro LCD IPS 21.5\", 1920x1080 Full HD, 100Hz, HDMI, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-HP-AK2F1UT-1.jpg",
+          "filename": "ptc-cp-ak2f1ut-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-HP-AK2F1UT-2.jpg",
+          "filename": "ptc-cp-ak2f1ut-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Monitores/Monitores/Monitor-HP-Series-3-Pro-LCD-IPS-21-5-1920x1080-Full-HD-100Hz-HDMI-Negro.html",
+        "currency": "MXN",
+        "cost_centavos": 165900,
+        "availability": "InStock",
+        "quantity": 227,
+        "checked_at": "2026-10-12T05:20:33.284920+00:00",
+        "evidence": "227 pzas. disponibles",
+        "shipping_reference_mxn": 0
+      }
+    },
+    {
+      "sku": "PRO_MP245PG_E14",
+      "slug": "ptc-cp-pro-mp245pg-e14",
+      "nombre": "Monitor MSI PRO MP245PG E14 LCD IPS 23.8\", 1920x1080 Full HD, 144Hz, HDMI/DisplayPort, Bocinas Integradas, Negro",
+      "descripcion": "Monitor IPS Full HD de 23.8 pulgadas, 144 Hz y bocinas integradas. Conexiones HDMI y DisplayPort para trabajo y entretenimiento.",
+      "marca": "MSI",
+      "precio": 2508.45,
+      "segmento": "monitores",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "PRO_MP245PG_E14",
+        "Condición": "Nuevo",
+        "Características": "Monitor MSI PRO MP245PG E14 LCD IPS 23.8\", 1920x1080 Full HD, 144Hz, HDMI/DisplayPort, Bocinas Integradas, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-MSI-PROMP245PGE14-3d04ba.jpg",
+          "filename": "ptc-cp-pro-mp245pg-e14-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-MSI-PROMP245PGE14-730e49.jpg",
+          "filename": "ptc-cp-pro-mp245pg-e14-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Monitores/Monitores/Monitor-MSI-PRO-MP245PG-E14-LCD-IPS-23-8-1920x1080-Full-HD-144Hz-HDMI-DisplayPort-Bocinas-Integradas-Negro.html",
+        "currency": "MXN",
+        "cost_centavos": 238900,
+        "availability": "InStock",
+        "quantity": 15,
+        "checked_at": "2026-10-12T05:18:27.763554+00:00",
+        "evidence": "15 pzas. disponibles",
+        "shipping_reference_mxn": 199
+      }
+    },
+    {
+      "sku": "910-005447",
+      "slug": "ptc-cp-910-005447",
+      "nombre": "Mouse Ergonómico Logitech MX Vertical, Inalámbrico, Óptico, 4.000DPI, RF Inalámbrico, Negro",
+      "descripcion": "Mouse vertical inalámbrico Logitech MX Vertical, resolución de hasta 4000 DPI. Una alternativa ergonómica para el escritorio.",
+      "marca": "LOGITECH",
+      "precio": 1636.95,
+      "segmento": "mouse",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "910-005447",
+        "Condición": "Nuevo",
+        "Características": "Mouse Ergonómico Logitech MX Vertical, Inalámbrico, Óptico, 4.000DPI, RF Inalámbrico, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005447-1.jpg",
+          "filename": "ptc-cp-910-005447-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005447-2.jpg",
+          "filename": "ptc-cp-910-005447-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Mouse/Mouse-Ergonomico-Logitech-MX-Vertical-Inalambrico-Optico-4-000DPI-RF-Inalambrico-Negro.html",
+        "currency": "MXN",
+        "cost_centavos": 155900,
+        "availability": "InStock",
+        "quantity": 126,
+        "checked_at": "2026-10-12T05:21:15.835714+00:00",
+        "evidence": "126 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "570-AALK",
+      "slug": "ptc-cp-570-aalk",
+      "nombre": "Mouse Dell Óptico WM126, Inalámbrico, USB, 1000DPI, Negro",
+      "descripcion": "Mouse inalámbrico Dell WM126 de 1000 DPI, con receptor USB. Formato sencillo para acompañar tu laptop o equipo de oficina.",
+      "marca": "DELL",
+      "precio": 263.55,
+      "segmento": "mouse",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "570-AALK",
+        "Condición": "Nuevo",
+        "Características": "Mouse Dell Óptico WM126, Inalámbrico, USB, 1000DPI, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-570-AALK-1.jpg",
+          "filename": "ptc-cp-570-aalk-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-570-AALK-2.jpg",
+          "filename": "ptc-cp-570-aalk-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Mouse/Mouse-Dell-Optico-WM126-Inalambrico-USB-1000DPI-Negro-2.html",
+        "currency": "MXN",
+        "cost_centavos": 25100,
+        "availability": "InStock",
+        "quantity": 125,
+        "checked_at": "2026-10-12T05:20:35.357969+00:00",
+        "evidence": "125 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "910-005793",
+      "slug": "ptc-cp-910-005793",
+      "nombre": "Mouse Gamer Ergonómico Logitech G203 LightSync, Alámbrico, Óptico, 8.000DPI, USB-A, Negro",
+      "descripcion": "Mouse Logitech G203 LightSync negro, conexión USB y sensor de hasta 8000 DPI. Para escritorio, estudio y juegos.",
+      "marca": "LOGITECH",
+      "precio": 414.75,
+      "segmento": "mouse",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "910-005793",
+        "Condición": "Nuevo",
+        "Características": "Mouse Gamer Ergonómico Logitech G203 LightSync, Alámbrico, Óptico, 8.000DPI, USB-A, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005793-1.jpg",
+          "filename": "ptc-cp-910-005793-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-910-005793-2.jpg",
+          "filename": "ptc-cp-910-005793-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Mouse/Mouse-Gamer-Ergonomico-Logitech-G203-LightSync-Alambrico-Optico-8-000DPI-USB-A-Negro.html",
+        "currency": "MXN",
+        "cost_centavos": 39500,
+        "availability": "InStock",
+        "quantity": 991,
+        "checked_at": "2026-10-12T05:18:29.642431+00:00",
+        "evidence": "991 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "920-010713",
+      "slug": "ptc-cp-920-010713",
+      "nombre": "Teclado Logitech Pop Keys, Teclado Mecánico, Inalámbrico, Negro/Gris/Amarillo (Español)",
+      "descripcion": "Teclado mecánico inalámbrico Logitech Pop Keys en español. Acabado negro, gris y amarillo para darle personalidad a tu escritorio.",
+      "marca": "LOGITECH",
+      "precio": 702.45,
+      "segmento": "teclados",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "920-010713",
+        "Condición": "Nuevo",
+        "Características": "Teclado Logitech Pop Keys, Teclado Mecánico, Inalámbrico, Negro/Gris/Amarillo (Español)"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-010713-91e88c.jpg",
+          "filename": "ptc-cp-920-010713-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-010713-40bacf.jpg",
+          "filename": "ptc-cp-920-010713-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Teclados/Teclado-Logitech-Pop-Keys-Teclado-Mecanico-Inalambrico-Negro-Gris-Amarillo-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 66900,
+        "availability": "InStock",
+        "quantity": 8,
+        "checked_at": "2026-10-12T05:18:29.730470+00:00",
+        "evidence": "8 pzas. disponibles",
+        "shipping_reference_mxn": 138
+      }
+    },
+    {
+      "sku": "BR-940412",
+      "slug": "ptc-cp-br-940412",
+      "nombre": "Teclado Gamer Balam Rush Dominate Expert GK959 LED RGB TKL, Teclado Mecánico, Switch Brown, Inalámbrico, RF Inalámbrico/Bluetooth, Blanco, Español",
+      "descripcion": "Teclado mecánico Balam Rush GK959 blanco, formato TKL, switch Brown e iluminación RGB. Conectividad inalámbrica y Bluetooth; distribución en español.",
+      "marca": "BALAMRUSH",
+      "precio": 660.45,
+      "segmento": "teclados",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "BR-940412",
+        "Condición": "Nuevo",
+        "Características": "Teclado Gamer Balam Rush Dominate Expert GK959 LED RGB TKL, Teclado Mecánico, Switch Brown, Inalámbrico, RF Inalámbrico/Bluetooth, Blanco, Español"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-BALAMRUSH-BR-940412-1.jpg",
+          "filename": "ptc-cp-br-940412-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-BALAMRUSH-BR-940412-2.jpg",
+          "filename": "ptc-cp-br-940412-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Teclados/Teclado-Gamer-Balam-Rush-Dominate-Expert-GK959-LED-RGB-TKL-Teclado-Mecanico-Switch-Brown-Inalambrico-RF-Inalambrico-Bluetooth-Blanco-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 62900,
+        "availability": "InStock",
+        "quantity": 26,
+        "checked_at": "2026-10-12T05:20:33.168906+00:00",
+        "evidence": "26 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "920-007901",
+      "slug": "ptc-cp-920-007901",
+      "nombre": "Kit de Teclado y Mouse Logitech MK235, Inalámbrico, RF Inalámbrico, Negro, Español",
+      "descripcion": "Kit inalámbrico Logitech MK235 con teclado en español y mouse. Para completar un espacio de estudio o trabajo con menos cables.",
+      "marca": "LOGITECH",
+      "precio": 483.0,
+      "segmento": "kits-teclado-mouse",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "920-007901",
+        "Condición": "Nuevo",
+        "Características": "Kit de Teclado y Mouse Logitech MK235, Inalámbrico, RF Inalámbrico, Negro, Español"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-007901-af5854.jpg",
+          "filename": "ptc-cp-920-007901-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-007901-c7245a.jpg",
+          "filename": "ptc-cp-920-007901-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Kits-de-Teclado-y-Mouse/Kit-de-Teclado-y-Mouse-Logitech-MK235-Inalambrico-RF-Inalambrico-Negro-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 46000,
+        "availability": "InStock",
+        "quantity": 18,
+        "checked_at": "2026-10-12T05:18:29.799475+00:00",
+        "evidence": "18 pzas. disponibles",
+        "shipping_reference_mxn": 138
+      }
+    },
+    {
+      "sku": "920-004428",
+      "slug": "ptc-cp-920-004428",
+      "nombre": "Kit de Teclado y Mouse Logitech MK120, Alámbrico, USB, Negro, Español",
+      "descripcion": "Kit Logitech MK120 con teclado en español y mouse USB. Una opción alámbrica para equipar oficinas, aulas y estaciones de trabajo.",
+      "marca": "LOGITECH",
+      "precio": 310.8,
+      "segmento": "kits-teclado-mouse",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "920-004428",
+        "Condición": "Nuevo",
+        "Características": "Kit de Teclado y Mouse Logitech MK120, Alámbrico, USB, Negro, Español"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-004428-1.jpg",
+          "filename": "ptc-cp-920-004428-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-920-004428-2.jpg",
+          "filename": "ptc-cp-920-004428-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Dispositivos-de-Entrada/Kits-de-Teclado-y-Mouse/Kit-de-Teclado-y-Mouse-Logitech-MK120-Alambrico-USB-Negro-Espanol-2.html",
+        "currency": "MXN",
+        "cost_centavos": 29600,
+        "availability": "InStock",
+        "quantity": 111,
+        "checked_at": "2026-10-12T05:18:32.858715+00:00",
+        "evidence": "111 pzas. disponibles",
+        "shipping_reference_mxn": 158
+      }
+    },
+    {
+      "sku": "960-000764",
+      "slug": "ptc-cp-960-000764",
+      "nombre": "Logitech Webcam HD Pro C920, 3MP, 1920 x 1080 Pixeles, USB 2.0",
+      "descripcion": "Webcam Logitech C920 Full HD 1080p con conexión USB. Para clases, reuniones y videollamadas desde tu computadora.",
+      "marca": "LOGITECH",
+      "precio": 1111.95,
+      "segmento": "webcams",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": true,
+      "especificaciones": {
+        "Modelo": "960-000764",
+        "Condición": "Nuevo",
+        "Características": "Logitech Webcam HD Pro C920, 3MP, 1920 x 1080 Pixeles, USB 2.0"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-960-000764-1.png",
+          "filename": "ptc-cp-960-000764-01.png"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-960-000764-2.png",
+          "filename": "ptc-cp-960-000764-02.png"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/Webcam-Audio/Webcams/Logitech-Webcam-HD-Pro-C920-3MP-1920-x-1080-Pixeles-USB-2-0.html",
+        "currency": "MXN",
+        "cost_centavos": 105900,
+        "availability": "InStock",
+        "quantity": 21,
+        "checked_at": "2026-10-12T05:18:32.805789+00:00",
+        "evidence": "21 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "15728",
+      "slug": "ptc-cp-15728",
+      "nombre": "Ugreen Webcam 15728, 2MP, 1920 x 1080 Pixeles, USB 2.0",
+      "descripcion": "Webcam Ugreen 15728 Full HD 1080p, 2 MP y conexión USB 2.0. Accesorio para videollamadas, clases y reuniones.",
+      "marca": "UGREEN",
+      "precio": 607.95,
+      "segmento": "webcams",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "15728",
+        "Condición": "Nuevo",
+        "Características": "Ugreen Webcam 15728, 2MP, 1920 x 1080 Pixeles, USB 2.0"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-UGREEN-15728-588524.png",
+          "filename": "ptc-cp-15728-01.png"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-UGREEN-15728-67e315.jpg",
+          "filename": "ptc-cp-15728-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/Webcam-Audio/Webcams/Ugreen-Webcam-15728-2MP-1920-x-1080-Pixeles-USB-2-0.html",
+        "currency": "MXN",
+        "cost_centavos": 57900,
+        "availability": "InStock",
+        "quantity": 88,
+        "checked_at": "2026-10-12T05:18:32.542233+00:00",
+        "evidence": "88 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "981-000612-GR",
+      "slug": "ptc-cp-981-000612-gr",
+      "nombre": "Logitech Audífonos con Micrófono H111, Alámbrico, 3.5mm, Gris",
+      "descripcion": "Audífonos Logitech H111 grises con micrófono y conexión de 3.5 mm. Para llamadas y clases; verifica el conector compatible de tu equipo.",
+      "marca": "LOGITECH",
+      "precio": 212.1,
+      "segmento": "audio",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "981-000612-GR",
+        "Condición": "Nuevo",
+        "Características": "Logitech Audífonos con Micrófono H111, Alámbrico, 3.5mm, Gris"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-981-000612-GR-f8c18a.jpg",
+          "filename": "ptc-cp-981-000612-gr-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LOGITECH-981-000612-GR-be206b.jpg",
+          "filename": "ptc-cp-981-000612-gr-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Audio-y-Video/Audio/Audifonos/Logitech-Audifonos-con-Microfono-H111-Alambrico-3-5mm-Gris.html",
+        "currency": "MXN",
+        "cost_centavos": 20200,
+        "availability": "InStock",
+        "quantity": 100,
+        "checked_at": "2026-10-12T05:18:32.642941+00:00",
+        "evidence": "100 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "JBL_Tune520BT_Blue",
+      "slug": "ptc-cp-jbl-tune520bt-blue",
+      "nombre": "JBL Audífonos con Micrófono Tune 520BT, Bluetooth, Inalámbrico, USB-C, Azul",
+      "descripcion": "Audífonos inalámbricos JBL Tune 520BT azules con Bluetooth y micrófono. Para escuchar audio y atender llamadas.",
+      "marca": "JBL",
+      "precio": 975.45,
+      "segmento": "audio",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "JBL_Tune520BT_Blue",
+        "Condición": "Nuevo",
+        "Características": "JBL Audífonos con Micrófono Tune 520BT, Bluetooth, Inalámbrico, USB-C, Azul"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-JBL-JBL_Tune520BT_Blue-19da1d.png",
+          "filename": "ptc-cp-jbl-tune520bt-blue-01.png"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Audio-y-Video/Audio/Audifonos/JBL-Audifonos-con-Microfono-Tune-520BT-Bluetooth-Inalambrico-USB-C-Azul.html",
+        "currency": "MXN",
+        "cost_centavos": 92900,
+        "availability": "InStock",
+        "quantity": 948,
+        "checked_at": "2026-10-12T05:18:36.389939+00:00",
+        "evidence": "948 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "SNV3S/1000G",
+      "slug": "ptc-cp-snv3s-1000g",
+      "nombre": "SSD Kingston SNV3S NVMe, 1TB, M.2, PCI Express 4.0, 4000 MB/s Escritura, 6000 MB/s Lectura",
+      "descripcion": "SSD Kingston NV3 de 1 TB, formato M.2 y conexión NVMe PCIe 4.0. Verifica que tu computadora tenga una ranura compatible antes de comprar.",
+      "marca": "KINGSTON",
+      "precio": 2812.95,
+      "segmento": "almacenamiento",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "SNV3S/1000G",
+        "Condición": "Nuevo",
+        "Características": "SSD Kingston SNV3S NVMe, 1TB, M.2, PCI Express 4.0, 4000 MB/s Escritura, 6000 MB/s Lectura"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SNV3S1000G-221e4a.jpg",
+          "filename": "ptc-cp-snv3s-1000g-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SNV3S1000G-e51e68.jpg",
+          "filename": "ptc-cp-snv3s-1000g-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Discos-Duros-SSD-NAS/SSD/SSD-Kingston-SNV3S-NVMe-1TB-M-2-PCI-Express-4-0-4000-MB-s-Escritura-6000-MB-s-Lectura.html",
+        "currency": "MXN",
+        "cost_centavos": 267900,
+        "availability": "InStock",
+        "quantity": 341,
+        "checked_at": "2026-10-12T05:18:36.334785+00:00",
+        "evidence": "341 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "SA400S37/480G",
+      "slug": "ptc-cp-sa400s37-480g",
+      "nombre": "SSD Kingston A400, 480GB, 2.5\", SATA III, 450MB/s Escritura, 500 MB/s Lectura",
+      "descripcion": "SSD Kingston A400 de 480 GB, formato de 2.5 pulgadas y conexión SATA III. Para renovar almacenamiento en computadoras compatibles.",
+      "marca": "KINGSTON",
+      "precio": 1479.45,
+      "segmento": "almacenamiento",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "SA400S37/480G",
+        "Condición": "Nuevo",
+        "Características": "SSD Kingston A400, 480GB, 2.5\", SATA III, 450MB/s Escritura, 500 MB/s Lectura"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SA400S37480G-601452.jpg",
+          "filename": "ptc-cp-sa400s37-480g-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-SA400S37480G-4c6d06.jpg",
+          "filename": "ptc-cp-sa400s37-480g-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Discos-Duros-SSD-NAS/SSD/SSD-Kingston-A400-480GB-2-5-SATA-III-450MB-s-Escritura-500-MB-s-Lectura.html",
+        "currency": "MXN",
+        "cost_centavos": 140900,
+        "availability": "InStock",
+        "quantity": 1035,
+        "checked_at": "2026-10-12T05:18:36.636238+00:00",
+        "evidence": "1035 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "WDBUZG0010BBK-WESN",
+      "slug": "ptc-cp-wdbuzg0010bbk-wesn",
+      "nombre": "Disco Duro Externo Western Digital WD Elements Portátil 2.5'', 1TB, USB 3.0, Negro - para Mac/PC",
+      "descripcion": "Disco duro externo WD Elements portátil de 1 TB con USB 3.0. Para guardar documentos, respaldos y archivos de trabajo.",
+      "marca": "WESTERN DIGITAL",
+      "precio": 1993.95,
+      "segmento": "almacenamiento",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "WDBUZG0010BBK-WESN",
+        "Condición": "Nuevo",
+        "Características": "Disco Duro Externo Western Digital WD Elements Portátil 2.5'', 1TB, USB 3.0, Negro - para Mac/PC"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-WESTERNDIGITAL-WDBUZG0010BBK-WESN-1.jpg",
+          "filename": "ptc-cp-wdbuzg0010bbk-wesn-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-WESTERNDIGITAL-WDBUZG0010BBK-WESN-2.jpg",
+          "filename": "ptc-cp-wdbuzg0010bbk-wesn-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Discos-Duros-SSD-NAS/Discos-Duros-Externos/Disco-Duro-Externo-Western-Digital-WD-Elements-Portatil-2-5-1TB-USB-3-0-Negro-para-Mac-PC.html",
+        "currency": "MXN",
+        "cost_centavos": 189900,
+        "availability": "InStock",
+        "quantity": 35,
+        "checked_at": "2026-10-12T05:18:36.256215+00:00",
+        "evidence": "35 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "DTXM/128GB",
+      "slug": "ptc-cp-dtxm-128gb",
+      "nombre": "Memoria USB Kingston DataTraveler Exodia M, 128GB, USB A, Negro/Rojo",
+      "descripcion": "Memoria USB Kingston Exodia M de 128 GB con conector USB-A, color negro y rojo. Almacenamiento portátil para documentos y archivos.",
+      "marca": "KINGSTON",
+      "precio": 196.35,
+      "segmento": "memorias-usb",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "DTXM/128GB",
+        "Condición": "Nuevo",
+        "Características": "Memoria USB Kingston DataTraveler Exodia M, 128GB, USB A, Negro/Rojo"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DTXM128GB-d7faaf.jpg",
+          "filename": "ptc-cp-dtxm-128gb-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DTXM128GB-b276ff.jpg",
+          "filename": "ptc-cp-dtxm-128gb-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Memorias-RAM-y-Flash/Memorias-USB/Memoria-USB-Kingston-DataTraveler-Exodia-M-128GB-USB-A-Negro-Rojo.html",
+        "currency": "MXN",
+        "cost_centavos": 18700,
+        "availability": "InStock",
+        "quantity": 125,
+        "checked_at": "2026-10-12T05:18:40.878788+00:00",
+        "evidence": "125 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "DT70/64GB",
+      "slug": "ptc-cp-dt70-64gb",
+      "nombre": "Memoria USB Kingston DataTraveler 70, 64GB, USB-C 3.2, Negro",
+      "descripcion": "Memoria Kingston DataTraveler 70 de 64 GB con conector USB-C. Para transportar archivos entre equipos compatibles.",
+      "marca": "KINGSTON",
+      "precio": 118.65,
+      "segmento": "memorias-usb",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "DT70/64GB",
+        "Condición": "Nuevo",
+        "Características": "Memoria USB Kingston DataTraveler 70, 64GB, USB-C 3.2, Negro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DT7064GB-1.jpg",
+          "filename": "ptc-cp-dt70-64gb-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-KINGSTON-DT7064GB-2.jpg",
+          "filename": "ptc-cp-dt70-64gb-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Memorias-RAM-y-Flash/Memorias-USB/Memoria-USB-Kingston-DataTraveler-70-64GB-USB-C-3-2-Negro.html",
+        "currency": "MXN",
+        "cost_centavos": 11300,
+        "availability": "InStock",
+        "quantity": 10,
+        "checked_at": "2026-10-12T05:18:40.823131+00:00",
+        "evidence": "10 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "ARCHER_C6",
+      "slug": "ptc-cp-archer-c6",
+      "nombre": "Router TP-Link Gigabit Ethernet de Banda Dual MU-MIMO AC1200 ARCHER C6, Inalámbrico, 867Mbit/s, 5x RJ-45, 2.4/5GHz, 4 Antenas Externas",
+      "descripcion": "Router TP-Link Archer C6 de doble banda AC1200 y puertos Gigabit. Para distribuir la conexión de internet en casa u oficina.",
+      "marca": "TP-LINK",
+      "precio": 597.45,
+      "segmento": "redes",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "ARCHER_C6",
+        "Condición": "Nuevo",
+        "Características": "Router TP-Link Gigabit Ethernet de Banda Dual MU-MIMO AC1200 ARCHER C6, Inalámbrico, 867Mbit/s, 5x RJ-45, 2.4/5GHz, 4 Antenas Externas"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERC6-1.jpg",
+          "filename": "ptc-cp-archer-c6-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERC6-2.jpg",
+          "filename": "ptc-cp-archer-c6-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Redes/Router/Router-TP-Link-Gigabit-Ethernet-de-Banda-Dual-MU-MIMO-AC1200-ARCHER-C6-Inalambrico-867Mbit-s-5x-RJ-45-2-4-5GHz-4-Antenas-Externas.html",
+        "currency": "MXN",
+        "cost_centavos": 56900,
+        "availability": "InStock",
+        "quantity": 56,
+        "checked_at": "2026-10-12T05:18:40.676635+00:00",
+        "evidence": "56 pzas. disponibles",
+        "shipping_reference_mxn": 148
+      }
+    },
+    {
+      "sku": "ARCHER_AX53",
+      "slug": "ptc-cp-archer-ax53",
+      "nombre": "Router TP-Link Ethernet de Banda Dual AX3000 Archer AX53 Wi-Fi 6, Inalámbrico, 2402 Mbit/s, 4x RJ-45, 2.4/5GHz, 4 Antenas Externas",
+      "descripcion": "Router TP-Link Archer AX53 con Wi-Fi 6 AX3000 y doble banda. Para renovar la red inalámbrica de casa o del espacio de trabajo.",
+      "marca": "TP-LINK",
+      "precio": 901.95,
+      "segmento": "redes",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": true,
+      "especificaciones": {
+        "Modelo": "ARCHER_AX53",
+        "Condición": "Nuevo",
+        "Características": "Router TP-Link Ethernet de Banda Dual AX3000 Archer AX53 Wi-Fi 6, Inalámbrico, 2402 Mbit/s, 4x RJ-45, 2.4/5GHz, 4 Antenas Externas"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERAX53-1.jpg",
+          "filename": "ptc-cp-archer-ax53-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-TP-LINK-ARCHERAX53-86eeb1.jpg",
+          "filename": "ptc-cp-archer-ax53-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computo-Hardware/Redes/Router/Router-TP-Link-Ethernet-de-Banda-Dual-AX3000-Archer-AX53-Wi-Fi-6-Inalambrico-2402-Mbit-s-4x-RJ-45-2-4-5GHz-4-Antenas-Externas.html",
+        "currency": "MXN",
+        "cost_centavos": 85900,
+        "availability": "InStock",
+        "quantity": 60,
+        "checked_at": "2026-10-12T05:18:40.756110+00:00",
+        "evidence": "60 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "MX2002",
+      "slug": "ptc-cp-mx2002",
+      "nombre": "Router Linksys Gigabit Ethernet de Banda Dual Atlas 6 MX2002 con WiFi Mesh, Inalámbrico, 2400Mbit/s, 4x RJ-45, 2.4/5GHz, 3 Antenas Internas, 2 Piezas",
+      "descripcion": "Sistema Linksys Atlas 6 MX2002 de dos unidades con Wi-Fi Mesh y puertos Gigabit. Para ampliar la cobertura con una red de malla.",
+      "marca": "LINKSYS",
+      "precio": 2214.45,
+      "segmento": "redes",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "MX2002",
+        "Condición": "Nuevo",
+        "Características": "Router Linksys Gigabit Ethernet de Banda Dual Atlas 6 MX2002 con WiFi Mesh, Inalámbrico, 2400Mbit/s, 4x RJ-45, 2.4/5GHz, 3 Antenas Internas, 2 Piezas"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LINKSYS-MX2002-6a1494.jpg",
+          "filename": "ptc-cp-mx2002-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LINKSYS-MX2002-2c3131.jpg",
+          "filename": "ptc-cp-mx2002-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Hogar/Smart-Home/Smart-WiFi/Wi-Fi-en-Malla/Router-Linksys-Gigabit-Ethernet-de-Banda-Dual-Atlas-6-MX2002-con-WiFi-Mesh-Inalambrico-2400Mbit-s-4x-RJ-45-2-4-5GHz-3-Antenas-Internas-2-Piezas.html",
+        "currency": "MXN",
+        "cost_centavos": 210900,
+        "availability": "InStock",
+        "quantity": 45,
+        "checked_at": "2026-10-12T05:20:35.503022+00:00",
+        "evidence": "45 pzas. disponibles",
+        "shipping_reference_mxn": 128
+      }
+    },
+    {
+      "sku": "BV1000",
+      "slug": "ptc-cp-bv1000",
+      "nombre": "No Break APC Easy UPS BV1000, 600W, 1000VA, 120V, 6 Contactos",
+      "descripcion": "No break APC Easy UPS BV1000 de 1000 VA y 600 W con seis contactos. Selecciona la carga conectada según su capacidad nominal.",
+      "marca": "APC",
+      "precio": 1951.95,
+      "segmento": "energia",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "BV1000",
+        "Condición": "Nuevo",
+        "Características": "No Break APC Easy UPS BV1000, 600W, 1000VA, 120V, 6 Contactos"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-APC-BV1000-1.jpg",
+          "filename": "ptc-cp-bv1000-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-APC-BV1000-2.jpg",
+          "filename": "ptc-cp-bv1000-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Energia/Proteccion-Contra-Descargas/No-Break-UPS/No-Break-UPS/No-Break-APC-Easy-UPS-BV1000-600W-1000VA-120V-6-Contactos.html",
+        "currency": "MXN",
+        "cost_centavos": 185900,
+        "availability": "InStock",
+        "quantity": 534,
+        "checked_at": "2026-10-12T05:18:44.864907+00:00",
+        "evidence": "534 pzas. disponibles",
+        "shipping_reference_mxn": 189
+      }
+    },
+    {
+      "sku": "OM1500ATLCD",
+      "slug": "ptc-cp-om1500atlcd",
+      "nombre": "No Break CyberPower OM1500ATLCD Línea Interactiva, 900W, 1.500VA, Entrada 82V - 148V, Salida 108V - 132V, 8 Salidas ",
+      "descripcion": "No break CyberPower OM1500ATLCD de 1500 VA y 900 W con ocho salidas. Respaldo para equipos compatibles dentro de su capacidad nominal.",
+      "marca": "CYBERPOWER",
+      "precio": 3810.45,
+      "segmento": "energia",
+      "categoria_slug": "electronica-y-tecnologia",
+      "categoria_nombre": "Electrónica y tecnología",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "OM1500ATLCD",
+        "Condición": "Nuevo",
+        "Características": "No Break CyberPower OM1500ATLCD Línea Interactiva, 900W, 1.500VA, Entrada 82V - 148V, Salida 108V - 132V, 8 Salidas "
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-CYBERPOWER-OM1500ATLCD-1.png",
+          "filename": "ptc-cp-om1500atlcd-01.png"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-CYBERPOWER-OM1500ATLCD-2.jpg",
+          "filename": "ptc-cp-om1500atlcd-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Energia/Proteccion-Contra-Descargas/No-Break-UPS/No-Break-UPS/No-Break-CyberPower-OM1500ATLCD-Linea-Interactiva-900W-1-500VA-Entrada-82V-148V-Salida-108V-132V-8-Salidas.html",
+        "currency": "MXN",
+        "cost_centavos": 362900,
+        "availability": "InStock",
+        "quantity": 32,
+        "checked_at": "2026-10-12T05:18:44.936410+00:00",
+        "evidence": "32 pzas. disponibles",
+        "shipping_reference_mxn": 219
+      }
+    },
+    {
+      "sku": "8X4M5-V3",
+      "slug": "ptc-cp-8x4m5-v3",
+      "nombre": "Laptop Dell Pro 14 Essential, Ryzen 7 250, 16GB RAM, 1TB SSD, WUXGA, Windows 11 Pro",
+      "descripcion": "Laptop Dell Pro 14 Essential con Ryzen 7 250, 16 GB RAM y SSD de 1 TB. Pantalla WUXGA de 14 pulgadas y Windows 11 Pro en español.",
+      "marca": "DELL",
+      "precio": 18846.45,
+      "segmento": "laptops",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "8X4M5-V3",
+        "Condición": "Nuevo",
+        "Características": "Laptop Dell Pro 14 Essential, Ryzen 7 250, 16GB RAM, 1TB SSD, WUXGA, Windows 11 Pro"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-8X4M5-V3-b08d97.jpg",
+          "filename": "ptc-cp-8x4m5-v3-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-DELL-8X4M5-V3-befe8c.jpg",
+          "filename": "ptc-cp-8x4m5-v3-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/Laptops/Laptop-Dell-Pro-14-Essential-14-1920x1200-WUXGA-AMD-Ryzen-7-250-16GB-1TB-SSD-Windows-11-Pro-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 1794900,
+        "availability": "InStock",
+        "quantity": 891,
+        "checked_at": "2026-10-12T05:18:45.111567+00:00",
+        "evidence": "891 pzas. disponibles",
+        "shipping_reference_mxn": 158
+      }
+    },
+    {
+      "sku": "82YT00Q9LM",
+      "slug": "ptc-cp-82yt00q9lm",
+      "nombre": "Laptop Lenovo V14 G4 AMN, 14\" 1920x1080 Full HD, AMD Ryzen 3 7320U, 8GB, 256GB SSD, Windows 11 Home, Español",
+      "descripcion": "Laptop Lenovo V14 G4 con Ryzen 3 7320U, 8 GB RAM y SSD de 256 GB. Pantalla Full HD de 14 pulgadas, Windows 11 Home y teclado español.",
+      "marca": "LENOVO",
+      "precio": 8335.95,
+      "segmento": "laptops",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": false,
+      "especificaciones": {
+        "Modelo": "82YT00Q9LM",
+        "Condición": "Nuevo",
+        "Características": "Laptop Lenovo V14 G4 AMN, 14\" 1920x1080 Full HD, AMD Ryzen 3 7320U, 8GB, 256GB SSD, Windows 11 Home, Español"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-82YT00Q9LM-71d055.png",
+          "filename": "ptc-cp-82yt00q9lm-01.png"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-LENOVO-82YT00Q9LM-8f354a.jpg",
+          "filename": "ptc-cp-82yt00q9lm-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/Laptops/Laptop-Lenovo-V14-G4-AMN-14-1920x1080-Full-HD-AMD-Ryzen-3-7320U-8GB-256GB-SSD-Windows-11-Home-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 793900,
+        "availability": "InStock",
+        "quantity": 20,
+        "checked_at": "2026-10-12T05:20:33.387647+00:00",
+        "evidence": "20 pzas. disponibles",
+        "shipping_reference_mxn": 199
+      }
+    },
+    {
+      "sku": "X1504ZA-I316512",
+      "slug": "ptc-cp-x1504za-i316512",
+      "nombre": "Laptop ASUS Vivobook 15, 15.6\" 1920x1080 Full HD, Intel Core i3-1315U, 16GB, 512GB SSD, Windows 11 Home, Español",
+      "descripcion": "Laptop ASUS Vivobook 15 con Core i3-1315U, 16 GB RAM y SSD de 512 GB. Pantalla Full HD de 15.6 pulgadas y Windows 11 Home en español.",
+      "marca": "ASUS",
+      "precio": 10498.95,
+      "segmento": "laptops",
+      "categoria_slug": "computacion",
+      "categoria_nombre": "Computación",
+      "destacado": true,
+      "especificaciones": {
+        "Modelo": "X1504ZA-I316512",
+        "Condición": "Nuevo",
+        "Características": "Laptop ASUS Vivobook 15, 15.6\" 1920x1080 Full HD, Intel Core i3-1315U, 16GB, 512GB SSD, Windows 11 Home, Español"
+      },
+      "images": [
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-ASUS-X1504ZA-I316512-268a47.jpg",
+          "filename": "ptc-cp-x1504za-i316512-01.jpg"
+        },
+        {
+          "url": "https://www.cyberpuerta.mx/img/product/L/CP-ASUS-X1504ZA-I316512-7459b2.jpg",
+          "filename": "ptc-cp-x1504za-i316512-02.jpg"
+        }
+      ],
+      "supplier": {
+        "name": "Cyberpuerta",
+        "url": "https://www.cyberpuerta.mx/Computadoras/Laptops/Laptop-ASUS-Vivobook-15-15-6-1920x1080-Full-HD-Intel-Core-i3-1315U-16GB-512GB-SSD-Windows-11-Home-Espanol.html",
+        "currency": "MXN",
+        "cost_centavos": 999900,
+        "availability": "InStock",
+        "quantity": 8,
+        "checked_at": "2026-10-12T05:20:33.486518+00:00",
+        "evidence": "8 pzas. disponibles",
+        "shipping_reference_mxn": 148
+      }
+    }
+  ]
+}
