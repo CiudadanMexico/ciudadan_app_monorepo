@@ -45,19 +45,26 @@ const Carrito = () => {
           variant="fullWidth"
           sx={{
             borderBottom: "1px solid",
-            borderColor: "divider",
+            borderColor: "#6A1B9A",
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#6A1B9A",
+            },
+            "& .MuiTab-root.Mui-selected": { color: "#6A1B9A" },
+            "& .MuiTab-root.Mui-selected .MuiTab-iconContainer": { color: "#6A1B9A" },
           }}
         >
           <Tab
             icon={<ShoppingCartIcon />}
             iconPosition="start"
             label="Marketplace"
+            sx={{ color: tab === 0 ? "#6A1B9A" : "#000000", "& .MuiTab-iconContainer": { color: tab === 0 ? "#6A1B9A" : "#000000" } }}
           />
 
           <Tab
             icon={<RestaurantIcon />}
             iconPosition="start"
             label="Comida"
+            sx={{ color: tab === 1 ? "#6A1B9A" : "#000000", "& .MuiTab-iconContainer": { color: tab === 1 ? "#6A1B9A" : "#000000" } }}
           />
         </Tabs>
 

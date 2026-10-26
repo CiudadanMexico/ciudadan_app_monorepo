@@ -478,9 +478,27 @@ export default function RegisterStoreStepper() {
         Registrar Tienda
       </Typography>
       <Stepper activeStep={activeStep} alternativeLabel>
-        {steps.map((label) => (
+        {steps.map((label, index) => (
           <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+            <StepLabel
+              sx={{
+                color: "#6A1B9A",
+                "& .MuiStepIcon-root": {
+                  color: "#6A1B9A",
+                  bgcolor: (t) => (t.completed || t.active ? "#6A1B9A" : "rgba(106, 27, 154, 0.16)"),
+                },
+                "& .MuiStepLabel-icon": {
+                  color: "#6A1B9A",
+                },
+                "& .MuiStepLabel-label": {
+                  color: "#6A1B9A",
+                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                },
+              }}
+            >
+              {label}
+            </StepLabel>
           </Step>
         ))}
       </Stepper>
