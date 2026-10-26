@@ -567,11 +567,13 @@ const CooWork = () => {
         setArchivosResolver([]);
 
         // Llevar al usuario a donde puede ver el resultado de su entrega.
+        // tab/subTab ya no son estado local: derivan de la URL (enrutamiento
+        // profundo de Coowork), asi que el cambio de vista se hace con
+        // navigate(), igual que handleTabChange.
         if (tienePermisoCRUD) {
-          setTab('socio');
-          setSubTab(0);
+          navigate(rutaDeTab('socio')); // -> /coowork/tareas-socio
         } else {
-          setTab('mistareas');
+          navigate(rutaDeTab('mistareas')); // -> /coowork/mis-tareas
         }
       } catch (err) {
         console.error('Error resolviendo tarea general:', err);
@@ -580,7 +582,7 @@ const CooWork = () => {
         setResolvingGeneralId(null);
       }
     },
-    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD]
+    [resolverDialog, archivosResolver, getAccessTokenSilently, tienePermisoCRUD, navigate]
   );
 
   // ---------------------------
