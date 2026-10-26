@@ -1,0 +1,247 @@
+{
+  "nota": "Costos observados en cyberpuerta.mx 2026-10-12 (precio publicado, IVA incl.). precio=redondear(costo*1.05,2). DTXM/DT70 pendientes de verificacion exacta.",
+  "fuente": "https://www.cyberpuerta.mx/search?q=<SKU>",
+  "fecha": "2026-10-12",
+  "productos": [
+    {
+      "sku": "83JG008FLM",
+      "nombre": "Laptop Gamer Lenovo LOQ 15AHP10 15.6\" FHD Ryzen 7 250 RTX 5060 16GB 512GB Win11",
+      "costo_mxn": 28439.0,
+      "stock_proveedor": 253,
+      "categoria_slug": "computacion",
+      "precio_mxn": 29860.95
+    },
+    {
+      "sku": "XTPCR732GB5780MKW",
+      "nombre": "Computadora Xtreme PC Gaming CM-05456 Ryzen 7 8700G 16GB 500GB WiFi Win11",
+      "costo_mxn": 16069.0,
+      "stock_proveedor": 7,
+      "categoria_slug": "computacion",
+      "precio_mxn": 16872.45
+    },
+    {
+      "sku": "12YTS0YQ00",
+      "nombre": "Computadora Lenovo ThinkCentre M90S G6 SFF Core Ultra 7 265 16GB 512GB Win11 Pro",
+      "costo_mxn": 20379.0,
+      "stock_proveedor": 42,
+      "categoria_slug": "computacion",
+      "precio_mxn": 21397.95
+    },
+    {
+      "sku": "LS25BG400ELXZX",
+      "nombre": "Monitor Gamer Samsung Odyssey G4 25\" FHD 240Hz HDMI/DP",
+      "costo_mxn": 3379.0,
+      "stock_proveedor": 29,
+      "categoria_slug": "computacion",
+      "precio_mxn": 3547.95
+    },
+    {
+      "sku": "AK2F1UT",
+      "nombre": "Monitor HP Series 3 Pro 21.5\" FHD 100Hz HDMI",
+      "costo_mxn": 1659.0,
+      "stock_proveedor": 227,
+      "categoria_slug": "computacion",
+      "precio_mxn": 1741.95
+    },
+    {
+      "sku": "PRO_MP245PG_E14",
+      "nombre": "Monitor MSI PRO MP245PG E14 23.8\" FHD 144Hz HDMI/DP bocinas",
+      "costo_mxn": 2389.0,
+      "stock_proveedor": 15,
+      "categoria_slug": "computacion",
+      "precio_mxn": 2508.45
+    },
+    {
+      "sku": "910-005447",
+      "nombre": "Mouse Logitech MX Vertical inalambrico 4000DPI negro",
+      "costo_mxn": 1559.0,
+      "stock_proveedor": 126,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 1636.95
+    },
+    {
+      "sku": "570-AALK",
+      "nombre": "Mouse Dell WM126 inalambrico USB 1000DPI negro",
+      "costo_mxn": 251.0,
+      "stock_proveedor": 125,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 263.55
+    },
+    {
+      "sku": "910-005793",
+      "nombre": "Mouse Gamer Logitech G203 LightSync alambrico 8000DPI negro",
+      "costo_mxn": 395.0,
+      "stock_proveedor": 991,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 414.75
+    },
+    {
+      "sku": "920-010713",
+      "nombre": "Teclado Logitech Pop Keys mecanico inalambrico ES",
+      "costo_mxn": 699.0,
+      "stock_proveedor": 8,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 733.95
+    },
+    {
+      "sku": "BR-940412",
+      "nombre": "Teclado Gamer Balam Rush Dominate Expert GK959 RGB TKL mecanico Brown inalambrico",
+      "costo_mxn": 779.0,
+      "stock_proveedor": 26,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 817.95
+    },
+    {
+      "sku": "920-007901",
+      "nombre": "Kit Teclado+Mouse Logitech MK235 inalambrico ES negro",
+      "costo_mxn": 460.0,
+      "stock_proveedor": 18,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 483.0
+    },
+    {
+      "sku": "920-004428",
+      "nombre": "Kit Teclado+Mouse Logitech MK120 alambrico USB ES negro",
+      "costo_mxn": 296.0,
+      "stock_proveedor": 111,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 310.8
+    },
+    {
+      "sku": "960-000764",
+      "nombre": "Webcam Logitech HD Pro C920 3MP 1080p USB",
+      "costo_mxn": 1059.0,
+      "stock_proveedor": 21,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 1111.95
+    },
+    {
+      "sku": "15728",
+      "nombre": "Webcam Ugreen 15728 2MP 1080p USB",
+      "costo_mxn": 579.0,
+      "stock_proveedor": 88,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 607.95
+    },
+    {
+      "sku": "981-000612-GR",
+      "nombre": "Audifonos Logitech H111 alambricos 3.5mm gris",
+      "costo_mxn": 202.0,
+      "stock_proveedor": 100,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 212.1
+    },
+    {
+      "sku": "JBL_Tune520BT_Blue",
+      "nombre": "Audifonos JBL Tune 520BT Bluetooth USB-C azul",
+      "costo_mxn": 929.0,
+      "stock_proveedor": 948,
+      "categoria_slug": "electronica-y-tecnologia",
+      "precio_mxn": 975.45
+    },
+    {
+      "sku": "SNV3S/1000G",
+      "nombre": "SSD Kingston SNV3S NVMe 1TB M.2 PCIe 4.0",
+      "costo_mxn": 2679.0,
+      "stock_proveedor": 341,
+      "categoria_slug": "computacion",
+      "precio_mxn": 2812.95
+    },
+    {
+      "sku": "SA400S37/480G",
+      "nombre": "SSD Kingston A400 480GB 2.5\" SATA III",
+      "costo_mxn": 1409.0,
+      "stock_proveedor": 1035,
+      "categoria_slug": "computacion",
+      "precio_mxn": 1479.45
+    },
+    {
+      "sku": "WDBUZG0010BBK-WESN",
+      "nombre": "Disco Externo WD Elements 1TB 2.5\" USB 3.0 negro",
+      "costo_mxn": 1899.0,
+      "stock_proveedor": 35,
+      "categoria_slug": "computacion",
+      "precio_mxn": 1993.95
+    },
+    {
+      "sku": "DTXM/128GB",
+      "nombre": "Memoria USB Kingston DataTraveler Exodia M 128GB USB-A negro/rojo",
+      "costo_mxn": 187.0,
+      "stock_proveedor": 125,
+      "categoria_slug": "computacion",
+      "precio_mxn": 196.35
+    },
+    {
+      "sku": "DT70/64GB",
+      "nombre": "Memoria USB Kingston DataTraveler 70 64GB USB-C 3.2 negro",
+      "costo_mxn": 113.0,
+      "stock_proveedor": 10,
+      "categoria_slug": "computacion",
+      "precio_mxn": 118.65
+    },
+    {
+      "sku": "ARCHER_C6",
+      "nombre": "Router TP-Link Archer C6 AC1200 banda dual (variante C6 V4.0 $659/21pzas; C6 base $569/56pzas)",
+      "costo_mxn": 569.0,
+      "stock_proveedor": 56,
+      "categoria_slug": "computacion",
+      "precio_mxn": 597.45
+    },
+    {
+      "sku": "ARCHER_AX53",
+      "nombre": "Router TP-Link Archer AX53 AX3000 WiFi 6 banda dual",
+      "costo_mxn": 859.0,
+      "stock_proveedor": 60,
+      "categoria_slug": "computacion",
+      "precio_mxn": 901.95
+    },
+    {
+      "sku": "MX2002",
+      "nombre": "Router Linksys Atlas 6 MX2002 WiFi 6 Mesh 2 piezas",
+      "costo_mxn": 2109.0,
+      "stock_proveedor": 45,
+      "categoria_slug": "computacion",
+      "precio_mxn": 2214.45
+    },
+    {
+      "sku": "BV1000",
+      "nombre": "No Break APC Easy UPS BV1000 600W 1000VA 6 contactos",
+      "costo_mxn": 1859.0,
+      "stock_proveedor": 534,
+      "categoria_slug": "computacion",
+      "precio_mxn": 1951.95
+    },
+    {
+      "sku": "OM1500ATLCD",
+      "nombre": "No Break CyberPower OM1500ATLCD interactivo 900W 1500VA 8 salidas",
+      "costo_mxn": 3629.0,
+      "stock_proveedor": 32,
+      "categoria_slug": "computacion",
+      "precio_mxn": 3810.45
+    },
+    {
+      "sku": "8X4M5-V3",
+      "nombre": "Laptop Dell Pro 14 Essential 14\" WUXGA Ryzen 7 250 16GB 1TB Win11 Pro",
+      "costo_mxn": 17949.0,
+      "stock_proveedor": 891,
+      "categoria_slug": "computacion",
+      "precio_mxn": 18846.45
+    },
+    {
+      "sku": "82YT00Q9LM",
+      "nombre": "Laptop Lenovo V14 G4 AMN 14\" FHD Ryzen 3 7320U 8GB 256GB Win11",
+      "costo_mxn": 7939.0,
+      "stock_proveedor": 20,
+      "categoria_slug": "computacion",
+      "precio_mxn": 8335.95
+    },
+    {
+      "sku": "X1504ZA-I316512",
+      "nombre": "Laptop ASUS Vivobook 15 15.6\" FHD i3-1315U 16GB 512GB Win11",
+      "costo_mxn": 9999.0,
+      "stock_proveedor": 8,
+      "categoria_slug": "computacion",
+      "precio_mxn": 10498.95
+    }
+  ]
+}

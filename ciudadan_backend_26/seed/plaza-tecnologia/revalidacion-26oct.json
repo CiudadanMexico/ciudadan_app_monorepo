@@ -1,0 +1,38 @@
+{
+  "fecha": "2026-10-26",
+  "fuente": "cyberpuerta.mx via revalidar.py (temporal1-agent1)",
+  "revisados": 30, "cambios_precio": 26, "agotados": 0, "errores": 0,
+  "regla_precio": "precio_final = redondear(costo_observado * 1.05, 2)",
+  "cambios": [
+    {"sku":"83JG008FLM","costo_anterior":28439.0,"costo_observado":26479.0,"stock":410},
+    {"sku":"XTPCR732GB5780MKW","costo_anterior":16069.0,"costo_observado":15459.0,"stock":6},
+    {"sku":"12YTS0YQ00","costo_anterior":20379.0,"costo_observado":20949.0,"stock":33},
+    {"sku":"LS25BG400ELXZX","costo_anterior":3379.0,"costo_observado":3592.0,"stock":26},
+    {"sku":"AK2F1UT","costo_anterior":1659.0,"costo_observado":1629.0,"stock":207},
+    {"sku":"PRO_MP245PG_E14","costo_anterior":2389.0,"costo_observado":2139.0,"stock":3},
+    {"sku":"910-005447","costo_anterior":1559.0,"costo_observado":1599.0,"stock":76},
+    {"sku":"570-AALK","costo_anterior":251.0,"costo_observado":297.0,"stock":99},
+    {"sku":"910-005793","costo_anterior":395.0,"costo_observado":391.0,"stock":974},
+    {"sku":"920-010713","costo_anterior":699.0,"costo_observado":1009.0,"stock":22},
+    {"sku":"BR-940412","costo_anterior":779.0,"costo_observado":777.0,"stock":1},
+    {"sku":"920-004428","costo_anterior":296.0,"costo_observado":309.0,"stock":1231},
+    {"sku":"960-000764","costo_anterior":1059.0,"costo_observado":1089.0,"stock":41},
+    {"sku":"15728","costo_anterior":579.0,"costo_observado":559.0,"stock":59},
+    {"sku":"JBL_Tune520BT_Blue","costo_anterior":929.0,"costo_observado":629.0,"stock":1034},
+    {"sku":"SNV3S/1000G","costo_anterior":2679.0,"costo_observado":2749.0,"stock":915},
+    {"sku":"SA400S37/480G","costo_anterior":1409.0,"costo_observado":1469.0,"stock":441},
+    {"sku":"WDBUZG0010BBK-WESN","costo_anterior":1899.0,"costo_observado":1999.0,"stock":21},
+    {"sku":"DT70/64GB","costo_anterior":113.0,"costo_observado":102.0,"stock":10},
+    {"sku":"ARCHER_C6","costo_anterior":569.0,"costo_observado":659.0,"stock":10},
+    {"sku":"ARCHER_AX53","costo_anterior":859.0,"costo_observado":879.0,"stock":556},
+    {"sku":"MX2002","costo_anterior":2109.0,"costo_observado":2529.0,"stock":39},
+    {"sku":"BV1000","costo_anterior":1859.0,"costo_observado":1799.0,"stock":533},
+    {"sku":"OM1500ATLCD","costo_anterior":3629.0,"costo_observado":3759.0,"stock":20},
+    {"sku":"8X4M5-V3","costo_anterior":17949.0,"costo_observado":18919.0,"stock":400},
+    {"sku":"82YT00Q9LM","costo_anterior":7939.0,"costo_observado":7919.0,"stock":1}
+  ],
+  "anomalias": [
+    {"sku":"DTXM/128GB","costo_anterior":187.0,"costo_observado_scrape":919.0,"nota":"El 919 es anomalia de scraping: la pagina directa del producto muestra ~185 MXN y disponible. Mantener costo 187 / precio 196.35 del catalogo oficial hasta verificacion manual."}
+  ],
+  "sin_cambios": ["920-007901","981-000612-GR","X1504ZA-I316512"]
+}
