@@ -1,6 +1,6 @@
 /**
  * RegistrationField — renderiza UN campo del formulario según su tipo
- * (text, email, tel, url, select, textarea, consent). Config-driven:
+ * (text, email, tel, url, select, textarea, consent, file). Config-driven:
  * los campos provienen de REGISTRATION en generationFounderConfig.js.
  * Accesibilidad: labels reales de MUI, errores en texto, focus visible.
  */
@@ -11,7 +11,9 @@ import {
   Checkbox,
   FormHelperText,
   Box,
+  Button,
 } from '@mui/material';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { GEN_COLORS } from '../GenerationTheme';
 
 const inputSx = {
@@ -100,6 +102,37 @@ const RegistrationField = ({ field, value, error, disabled, onChange }) => {
             label={<span style={{ color: GEN_COLORS.textoSecundario, fontSize: '0.9rem' }}>{field.label}</span>}
           />
           {error && <FormHelperText error>{error}</FormHelperText>}
+        </Box>
+      );
+
+    case 'file':
+      // Subida de archivo (CV). `value` es el File seleccionado o null.
+      return (
+        <Box sx={{ mt: 1 }}>
+          <Button
+            component="label"
+            variant="outlined"
+            startIcon={<AttachFileIcon />}
+            disabled={disabled}
+            sx={{
+              color: GEN_COLORS.texto,
+              borderColor: error ? '#ef5350' : 'rgba(255,255,255,0.2)',
+              textTransform: 'none',
+              '&:hover': { borderColor: GEN_COLORS.verde },
+            }}
+          >
+            {value?.name || field.label}
+            <input
+              type="file"
+              hidden
+              name={field.name}
+              accept=".pdf,.doc,.docx,image/*"
+              onChange={(e) => onChange(field.name, e.target.files?.[0] || null)}
+            />
+          </Button>
+          <FormHelperText error={Boolean(error)} sx={{ color: error ? undefined : GEN_COLORS.textoSecundario }}>
+            {error || field.helperText || 'PDF, Word o imagen. Máx. 10 MB.'}
+          </FormHelperText>
         </Box>
       );
 
