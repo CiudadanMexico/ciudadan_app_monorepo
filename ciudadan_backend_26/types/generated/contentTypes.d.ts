@@ -3974,6 +3974,11 @@ export interface ApiFoodDeliveryFoodDelivery extends Schema.CollectionType {
       'oneToOne',
       'plugin::users-permissions.user'
     >;
+    repartidor: Attribute.Relation<
+      'api::food-delivery.food-delivery',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
     provider: Attribute.String & Attribute.DefaultTo<'uber_direct'>;
     quote_id: Attribute.String & Attribute.Required;
     uber_delivery_id: Attribute.String;
@@ -4444,6 +4449,83 @@ export interface ApiFoodRestaurantFoodRestaurant extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::food-restaurant.food-restaurant',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFoodShippingFoodShippingQuote
+  extends Schema.CollectionType {
+  collectionName: 'food_shipping_quotes';
+  info: {
+    singularName: 'food-shipping-quote';
+    pluralName: 'food-shipping-quotes';
+    displayName: 'Food Shipping Quote';
+    description: 'Cotizaci\u00F3n de env\u00EDo de Food (MVP checkout): snapshot autoritativo del proveedor (ciudadan|uber_direct) con vigencia y consumo \u00FAnico. CRUD cerrado: solo muta api::food-shipping.';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    food_cart: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'api::food-cart.food-cart'
+    >;
+    food_order: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'api::food-order.food-order'
+    >;
+    restaurant: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'api::food-restaurant.food-restaurant'
+    >;
+    direccion_origen: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    direccion_destino: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'api::direccion.direccion'
+    >;
+    origen_coords: Attribute.JSON;
+    destino_coords: Attribute.JSON;
+    destino_inline: Attribute.JSON & Attribute.Private;
+    provider: Attribute.Enumeration<['ciudadan', 'uber_direct']> &
+      Attribute.Required;
+    codigo: Attribute.String & Attribute.Required & Attribute.Unique;
+    importe: Attribute.Decimal & Attribute.Required;
+    moneda: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    distancia_metros: Attribute.Integer;
+    estado: Attribute.Enumeration<
+      ['activa', 'consumida', 'expirada', 'invalidada']
+    > &
+      Attribute.DefaultTo<'activa'>;
+    vencimiento: Attribute.DateTime & Attribute.Required;
+    referencia_proveedor: Attribute.String & Attribute.Private;
+    huella_carrito: Attribute.String;
+    metadata: Attribute.JSON & Attribute.Private;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::food-shipping.food-shipping-quote',
       'oneToOne',
       'admin::user'
     > &
@@ -7702,6 +7784,7 @@ declare module '@strapi/types' {
       'api::food-product.food-product': ApiFoodProductFoodProduct;
       'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
+      'api::food-shipping.food-shipping-quote': ApiFoodShippingFoodShippingQuote;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::generation-application.generation-application': ApiGenerationApplicationGenerationApplication;
       'api::invitacion.invitacion': ApiInvitacionInvitacion;

@@ -135,7 +135,12 @@ module.exports = createCoreService(
 
       /*
        * --------------------------------------------------
-       * 5. Obtener metadata Uber
+       * 5. Metadata del proveedor de envío
+       *
+       * MVP cotizaciones: los pedidos confirmados con la cotización de
+       * Ciudadan (metadata.cotizacion_envio_confirmada, proveedor 'ciudadan')
+       * NO usan Uber Direct. El flujo legacy con metadata.uber_direct queda
+       * exactamente igual.
        * --------------------------------------------------
        */
 
@@ -143,10 +148,21 @@ module.exports = createCoreService(
 
       const uberMetadata = metadata.uber_direct || {};
 
+      const cotizacionCiudadan =
+        metadata.cotizacion_envio_confirmada?.proveedor === 'ciudadan'
+          ? metadata.cotizacion_envio_confirmada
+          : null;
+
       const quoteId = uberMetadata.quote_id;
 
-      if (!quoteId) {
+      if (!cotizacionCiudadan && !quoteId) {
         const error = new Error('El pedido no contiene un quote_id de Uber Direct.');
+        error.status = 400;
+        throw error;
+      }
+
+      if (cotizacionCiudadan && !cotizacionCiudadan.cotizacionId) {
+        const error = new Error('El pedido no contiene la cotización de envío de Ciudadan.');
         error.status = 400;
         throw error;
       }
@@ -250,13 +266,35 @@ module.exports = createCoreService(
       }));
       /*
        * --------------------------------------------------
-       * 9. Crear delivery en Uber
+       * 9. Crear delivery (Uber Direct) o registrar entrega Ciudadan
        * --------------------------------------------------
        */
 
       let delivery;
 
-      try {
+      if (cotizacionCiudadan) {
+        /*
+         * Entrega con repartidores de Ciudadan: el despacho (asignación de
+         * repartidor) es una fase posterior al MVP de cotizaciones. Solo se
+         * registra la entrega pendiente con el código de la cotización.
+         */
+
+        delivery = {
+          id: cotizacionCiudadan.cotizacionId,
+          status: 'pending',
+          fee: cotizacionCiudadan.importe ?? order.monto_envio ?? 0,
+          currency: cotizacionCiudadan.moneda || order.moneda || 'MXN',
+          tracking_url: null,
+          pickup: null,
+          dropoff: null,
+          mock: false,
+          metadata: {
+            provider: 'ciudadan',
+            despacho_pendiente: true,
+          },
+        };
+      } else {
+        try {
 
         delivery = await uberDirect.createDelivery({
           quoteId,
@@ -273,7 +311,7 @@ module.exports = createCoreService(
           manifestItems
         });
 
-      } catch (uberError) {
+        } catch (uberError) {
         strapi.log.error('[food-order] Error creando delivery Uber Direct', uberError);
 
         /*
@@ -303,34 +341,57 @@ module.exports = createCoreService(
         );
 
         throw uberError;
+        }
       }
 
       /*
        * --------------------------------------------------
-       * 10. Crear food_delivery
+       * 10. Crear food_delivery (Uber o Ciudadan)
        * --------------------------------------------------
        */
 
-      const foodDelivery = await strapi.service('api::food-delivery.food-delivery').createFromUber({
-        foodOrderId: orderId,
-        restaurantId,
-        userId: order.user?.id,
-        delivery,
-        quoteId,
-        pickup: {
-          ...pickupAddress,
-          name: pickupName,
-          phone: pickupPhone,
-          notes: pickupNotes || null,
-        },
-        dropoff: {
-          ...dropoff,
-          name: order.delivery_contact_name,
-          phone: order.delivery_contact_phone,
-          notes: order.delivery_notes || null,
-        },
-        manifestItems,
-      });
+      const foodDelivery = cotizacionCiudadan
+        ? await strapi.service('api::food-delivery.food-delivery').createFromCiudadan({
+            foodOrderId: orderId,
+            restaurantId,
+            userId: order.user?.id,
+            quoteId: cotizacionCiudadan.cotizacionId,
+            fee: cotizacionCiudadan.importe ?? order.monto_envio ?? 0,
+            currency: cotizacionCiudadan.moneda || order.moneda || 'MXN',
+            pickup: {
+              ...pickupAddress,
+              name: pickupName,
+              phone: pickupPhone,
+              notes: pickupNotes || null,
+            },
+            dropoff: {
+              ...dropoff,
+              name: order.delivery_contact_name,
+              phone: order.delivery_contact_phone,
+              notes: order.delivery_notes || null,
+            },
+            manifestItems,
+          })
+        : await strapi.service('api::food-delivery.food-delivery').createFromUber({
+            foodOrderId: orderId,
+            restaurantId,
+            userId: order.user?.id,
+            delivery,
+            quoteId,
+            pickup: {
+              ...pickupAddress,
+              name: pickupName,
+              phone: pickupPhone,
+              notes: pickupNotes || null,
+            },
+            dropoff: {
+              ...dropoff,
+              name: order.delivery_contact_name,
+              phone: order.delivery_contact_phone,
+              notes: order.delivery_notes || null,
+            },
+            manifestItems,
+          });
 
       /*
        * --------------------------------------------------
@@ -353,8 +414,8 @@ module.exports = createCoreService(
               delivery_created: true,
               delivery_created_at: now,
               food_delivery_id: foodDelivery.id,
-              delivery_provider: 'uber_direct',
-              delivery_mock: Boolean(delivery?.mock),
+              delivery_provider: cotizacionCiudadan ? 'ciudadan' : 'uber_direct',
+              delivery_mock: cotizacionCiudadan ? false : Boolean(delivery?.mock),
             },
             pickup_contact_name: pickupName,
             pickup_contact_phone: pickupPhone,

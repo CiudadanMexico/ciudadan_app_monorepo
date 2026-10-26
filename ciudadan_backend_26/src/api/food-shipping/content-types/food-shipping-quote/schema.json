@@ -1,0 +1,104 @@
+{
+  "kind": "collectionType",
+  "collectionName": "food_shipping_quotes",
+  "info": {
+    "singularName": "food-shipping-quote",
+    "pluralName": "food-shipping-quotes",
+    "displayName": "Food Shipping Quote",
+    "description": "Cotización de envío de Food (MVP checkout): snapshot autoritativo del proveedor (ciudadan|uber_direct) con vigencia y consumo único. CRUD cerrado: solo muta api::food-shipping."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "food_cart": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-cart.food-cart"
+    },
+    "food_order": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-order.food-order"
+    },
+    "restaurant": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::food-restaurant.food-restaurant"
+    },
+    "direccion_origen": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "direccion_destino": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::direccion.direccion"
+    },
+    "origen_coords": {
+      "type": "json",
+      "comment": "{lat,lng} del restaurante al cotizar."
+    },
+    "destino_coords": {
+      "type": "json",
+      "comment": "{lat,lng} del cliente al cotizar."
+    },
+    "destino_inline": {
+      "type": "json",
+      "private": true,
+      "comment": "Snapshot del destino inline (cuando no es una dirección guardada)."
+    },
+    "provider": {
+      "type": "enumeration",
+      "enum": ["ciudadan", "uber_direct"],
+      "required": true
+    },
+    "codigo": {
+      "type": "string",
+      "unique": true,
+      "required": true,
+      "comment": "Identificador opaco que ve el frontend (no es el quote_id del proveedor)."
+    },
+    "importe": {
+      "type": "decimal",
+      "required": true
+    },
+    "moneda": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "distancia_metros": {
+      "type": "integer",
+      "comment": "Distancia de ruta restaurante→cliente (solo ciudadan; Uber no la expone)."
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": ["activa", "consumida", "expirada", "invalidada"],
+      "default": "activa"
+    },
+    "vencimiento": {
+      "type": "datetime",
+      "required": true
+    },
+    "referencia_proveedor": {
+      "type": "string",
+      "private": true,
+      "comment": "quote_id real de Uber Direct (nunca sale del backend)."
+    },
+    "huella_carrito": {
+      "type": "string",
+      "comment": "SHA-256 de producto|variante|cantidad; detecta cambios de carrito."
+    },
+    "metadata": {
+      "type": "json",
+      "private": true
+    }
+  }
+}
