@@ -114,8 +114,8 @@ const Ganar = () => {
       claseimagen: 'opcion-imagen-ensanchada',
       url: '/coowork/profesores'
     },
-    { 
-      titulo: '🚘 Conduciendo:', 
+    {
+      titulo: '🚘 Conduciendo:',
       descripcion: 'Ya sea tu auto particular, taxi, moto o bicicleta para delivery.',
       descripcionCompleta: 'Somos la única plataforma que te paga el 100% del monto en efectivo que pague el usuario, a cambio de que aceptes hasta un 13% en Labory a los usuarios que deseen hacerlo, mismo que te devolvemos multiplicado en Laborys además de tu parte en efectivo. <br /> Además como conductor de nuestro plataforma tienes Beca automáticamente por lo que te podrás graduar como Ingeniero Maker Dev en Cooperativismo 6.0 potenciado por Inteligencia Artificial gratuitamente además contando con múltiples alternativas para incrementar tus ingresos en el proceso al tiempo que te preparas para la nueva era y aportas a la creación de las comunidades ciudadan del Cooperativismo 6.0. <br /> <br /> Si ya eres taxista con nuestro sistema podrás llegar a más pasajeros sin pagar las costosas comisiones de plataforma, obteniendo lo mejor de 2 mundos, si aún no eres taxista nuestra plataforma te ofrece las mejores condiciones.',
       imagen: taxis,
@@ -123,6 +123,16 @@ const Ganar = () => {
       monedas: [mxn, labory],
       claseimagen: 'opcion-imagen-ensanchada-redondeada',
       url: '/taxis/conductor/preregistro'
+    },
+    {
+      titulo: '🚴 Repartiendo:',
+      descripcion: 'Con tu bicicleta o motocicleta, como repartidor verificado de Ciudadan (arrancamos en CDMX).',
+      descripcionCompleta: 'Regístrate como repartidor de Ciudadan: eliges tu agencia local, completas tu expediente (identidad, vehículo, CLABE protegida y capacitación) y el personal autorizado de tu agencia revisa cada documento con fuentes oficiales antes de aprobar. <br /> <br /> Sin membresía para repartidores y sin visita presencial obligatoria; la validación final es por videollamada grupal (Zoom) organizada por tu agencia. La bicicleta nunca exige placa ni licencia; la motocicleta sí exige licencia, tarjeta de circulación y seguro vigentes. <br /> <br /> Este expediente es independiente del de conductores de taxi. La aprobación documental no implica por sí sola conformidad laboral ni fiscal.',
+      imagen: taxis,
+      boton: '🚴 Quiero Repartir !!',
+      monedas: [mxn, labory],
+      claseimagen: 'opcion-imagen-ensanchada-redondeada',
+      url: '/repartidor/registro'
     },
     { 
       titulo: '💡 Abriendo tu Agencia Digital i.A. Instantánea', 

@@ -1,0 +1,204 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_profiles",
+  "info": {
+    "singularName": "delivery-profile",
+    "pluralName": "delivery-profiles",
+    "displayName": "Delivery Profile",
+    "description": "Expediente de repartidor (MVP registro/verificacion/activacion). Independiente del expediente taxi (api::driver.driver): no comparte estados ni campos de moto/bici con driver."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "agency": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::agencia.agencia"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "draft",
+        "pending_documents",
+        "pending_review",
+        "corrections_required",
+        "eligible_for_video_review",
+        "pending_federal_audit",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "default": "draft"
+    },
+    "current_step": {
+      "type": "string",
+      "default": "identidad"
+    },
+    "territory_ref": {
+      "type": "string",
+      "comment": "Ciudad de operacion elegida (MVP: CDMX). No existe modelo territorial en el repo; se guarda la referencia textual y coverage_version."
+    },
+    "agency_assigned_at": {
+      "type": "datetime"
+    },
+    "coverage_version": {
+      "type": "string",
+      "default": "v1"
+    },
+    "id_front": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "id_back": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "selfie": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "phone": {
+      "type": "string"
+    },
+    "birthdate": {
+      "type": "date"
+    },
+    "curp": {
+      "type": "string",
+      "private": true,
+      "comment": "CURP del solicitante. Nunca se publica: las API la devuelven enmascarada y no viaja en logs ni evidencias."
+    },
+    "emergency_contact_name": {
+      "type": "string",
+      "comment": "Propuesta operativa de la spec (4.1); su obligatoriedad es decision de producto abierta — el MVP la pide sin bloquear el envio."
+    },
+    "emergency_contact_phone": {
+      "type": "string"
+    },
+    "identity_verification_status": {
+      "type": "enumeration",
+      "enum": [
+        "pendiente",
+        "visualmente_revisada",
+        "oficialmente_verificada",
+        "no_disponible",
+        "no_aplicable"
+      ],
+      "default": "pendiente",
+      "comment": "Distingue el tipo real de cotejo de identidad (spec 12B): nunca declarar oficial lo que solo se reviso visualmente."
+    },
+    "payout_clabe_encrypted": {
+      "type": "text",
+      "private": true,
+      "comment": "CLABE cifrada AES-256-GCM (v1:iv:tag:ct, clave derivada de APP_KEYS). Nunca sale del backend en claro."
+    },
+    "payout_clabe_last4": {
+      "type": "string"
+    },
+    "account_holder_name": {
+      "type": "string"
+    },
+    "payment_validation_status": {
+      "type": "enumeration",
+      "enum": ["pendiente", "formato_valido", "invalida"],
+      "default": "pendiente",
+      "comment": "Validacion de formato/checksum e institucion. NO presume titularidad bancaria verificada (spec 12B)."
+    },
+    "reviewer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "review_notes": {
+      "type": "text",
+      "private": true,
+      "comment": "Notas internas del revisor. No se exponen al solicitante."
+    },
+    "correction_requests": {
+      "type": "json",
+      "comment": "Lista estructurada de correcciones pedidas: [{ document_id|campo, motivo, requested_at, requester_id }]"
+    },
+    "terms_version": {
+      "type": "string"
+    },
+    "terms_accepted_at": {
+      "type": "datetime"
+    },
+    "privacy_version": {
+      "type": "string"
+    },
+    "privacy_accepted_at": {
+      "type": "datetime"
+    },
+    "training_status": {
+      "type": "enumeration",
+      "enum": ["pendiente", "aprobado", "reprobado"],
+      "default": "pendiente"
+    },
+    "training_score": {
+      "type": "integer",
+      "default": 0
+    },
+    "training_completed_at": {
+      "type": "datetime"
+    },
+    "zoom_session_url": {
+      "type": "string",
+      "comment": "URL HTTPS de la sesion Zoom externa en la que se valido individualmente al aspirante (spec 12F). Ciudadan no crea ni calendariza reuniones."
+    },
+    "zoom_validated_at": {
+      "type": "datetime"
+    },
+    "zoom_validator": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "zoom_attendance_result": {
+      "type": "enumeration",
+      "enum": ["pendiente", "validado", "no_validado"],
+      "default": "pendiente"
+    },
+    "approval_version": {
+      "type": "integer",
+      "default": 0
+    },
+    "submitted_at": {
+      "type": "datetime"
+    },
+    "reviewed_at": {
+      "type": "datetime"
+    },
+    "approved_at": {
+      "type": "datetime"
+    },
+    "rejected_at": {
+      "type": "datetime"
+    },
+    "suspended_at": {
+      "type": "datetime"
+    },
+    "last_revalidated_at": {
+      "type": "datetime"
+    },
+    "vehicles": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::delivery-vehicle.delivery-vehicle",
+      "mappedBy": "delivery_profile"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "delivery_training_attempts",
+  "info": {
+    "singularName": "delivery-training-attempt",
+    "pluralName": "delivery-training-attempts",
+    "displayName": "Delivery Training Attempt",
+    "description": "Intento del examen de capacitacion de repartidores (5 modulos, 10 preguntas, aprobado >= 8). Cuestionario autonomo del MVP, sin dependencia de Academia. Se permiten reintentos y se conservan todos los intentos."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "profile": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::delivery-profile.delivery-profile"
+    },
+    "version": {
+      "type": "integer",
+      "required": true,
+      "comment": "Version del cuestionario presentado."
+    },
+    "attempted_at": {
+      "type": "datetime"
+    },
+    "score": {
+      "type": "integer",
+      "required": true
+    },
+    "passed": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    }
+  }
+}
