@@ -120,7 +120,7 @@ const validarLocal = () => {
 
 /* Aplicacion en BD (solo con --apply; NO se ejecuta en validacion). */
 const aplicar = async () => {
-  const BACKEND_DIR = path.resolve(DIR, '..');
+  const BACKEND_DIR = path.resolve(DIR, '..', '..');
   process.env.ENV_PATH = path.join(BACKEND_DIR, '.env');
   try { require('dotenv').config({ path: process.env.ENV_PATH }); } catch (_) {}
   const Strapi = require('@strapi/strapi');
