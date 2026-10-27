@@ -179,7 +179,8 @@ const TODOS_DEMO = [
           tipo: t.tipo,
           recurrencia: t.recurrencia,
           reward_laborys: t.reward_laborys,
-          pagos_laborys: t.reward_laborys, // legacy decimal duplicado (Fix C mantiene retrocompat)
+          // FIX: `pagos_laborys` era una columna legacy que ya no existe en el
+          // schema actual de `todo` (PRAGMA: reward_laborys, reward_cash, recompensa).
           recompensa: t.recompensa,
           minutos_desarrollo: t.minutos_desarrollo,
           vence: t.vence ? 1 : 0,

@@ -80,11 +80,13 @@ const DEMO_USERS = [
 
     // ---------- 1. Áreas raíz ----------
     for (const nombre of ROOT_AREA_NAMES) {
-      const exists = await knex('areas').where({ nombre, nivel: 0 }).first();
+      const exists = await knex('areas').where({ name: nombre, level: 0 }).first();
       if (!exists) {
         await knex('areas').insert({
-          nombre,
-          nivel: 0,
+          // FIX: las columnas reales del schema/BD son `name`/`level`
+          // (este seed usaba `nombre`/`nivel` inexistentes y fallaba).
+          name: nombre,
+          level: 0,
           is_active: 1,
           created_at: now,
           updated_at: now,
@@ -157,9 +159,9 @@ const DEMO_USERS = [
     console.log(`Role IDs: ${JSON.stringify(roleIds)}`);
 
     // Listar áreas finales
-    const allAreas = await knex.select('id', 'nombre', 'nivel', 'is_active').from('areas').where({ nivel: 0 });
+    const allAreas = await knex.select('id', 'name', 'level', 'is_active').from('areas').where({ level: 0 });
     console.log(`\nÁreas raíz actuales (${allAreas.length}):`);
-    allAreas.forEach((a) => console.log(`  [${a.id}] ${a.nombre} (active=${a.is_active})`));
+    allAreas.forEach((a) => console.log(`  [${a.id}] ${a.name} (active=${a.is_active})`));
 
     await knex.destroy();
     console.log('\n✅ Seed completo. Correr `node fix-perms.js` después para enlazar permisos a los roles.');

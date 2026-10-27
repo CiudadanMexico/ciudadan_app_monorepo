@@ -7,11 +7,19 @@ const API_URL = "http://localhost:1337/api";
 const AUTOR_ID = 4;                   // ID fijo del autor existente en Strapi
 const ESTADO_PUBLICADO = "publicado"; // Valor exacto de tu enum "publicado"
 
-function makeHtmlContent(index) {
-  return `
-    <p>Este es un párrafo de ejemplo para poblar la colección – Post #${index + 1}.</p>
-    <p>Segundo párrafo de prueba para verificar que el Rich Text funcione.</p>
-  `;
+// FIX: el campo `contenido` del content-type es tipo `blocks` (array JSON de
+// bloques de Strapi), no un string HTML. Antes se enviaba HTML crudo.
+function makeBlocksContent(index) {
+  return [
+    {
+      type: 'paragraph',
+      children: [{ type: 'text', text: `Este es un párrafo de ejemplo para poblar la colección – Post #${index + 1}.` }],
+    },
+    {
+      type: 'paragraph',
+      children: [{ type: 'text', text: 'Segundo párrafo de prueba para verificar que el Rich Text funcione.' }],
+    },
+  ];
 }
 
 // 1) Verificar con GET que Strapi responde en /api/publicaciones
@@ -37,15 +45,16 @@ async function checkStrapiReachable() {
 async function createPost(index) {
   const uid = `post-ejemplo-${index + 1}`;
   const timestamp = new Date().toISOString();
-  const htmlContent = makeHtmlContent(index);
+  const blocksContent = makeBlocksContent(index);
 
   const body = {
     data: {
       uid,
-      contenido: htmlContent, // Rich Text como string HTML
+      contenido: blocksContent, // Rich Text como blocks de Strapi
       autor: AUTOR_ID,
       archivos: [],            // vacío para no subir archivos
       timestamp,
+      publishedAt: timestamp, // FIX: publicar directo (draftAndPublish)
       publicado: ESTADO_PUBLICADO,
     },
   };
