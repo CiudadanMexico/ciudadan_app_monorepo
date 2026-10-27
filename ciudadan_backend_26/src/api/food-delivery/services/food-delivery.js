@@ -78,5 +78,58 @@ module.exports = createCoreService(
       );
     },
 
+    /**
+     * Crea el registro local de una entrega con repartidores de Ciudadan.
+     *
+     * MVP de cotizaciones: el despacho en tiempo real (oferta/asignación al
+     * repartidor) es una fase posterior; aquí se registra la entrega con el
+     * código de la cotización consumida y estado 'pending' hasta que exista
+     * el mecanismo de asignación (campo `repartidor`).
+     */
+    async createFromCiudadan({
+      foodOrderId,
+      restaurantId,
+      userId,
+      quoteId,
+      fee,
+      currency,
+      pickup,
+      dropoff,
+      manifestItems,
+    }) {
+      const existing = await this.findByFoodOrder(foodOrderId);
+
+      if (existing) {
+        return existing;
+      }
+
+      const data = {
+        food_order: foodOrderId,
+        restaurant: restaurantId || null,
+        user: userId || null,
+        provider: 'ciudadan',
+        quote_id: quoteId,
+        uber_delivery_id: null,
+        status: 'pending',
+        fee: Number(fee ?? 0),
+        currency: currency || 'MXN',
+        tracking_url: null,
+        pickup: pickup || null,
+        dropoff: dropoff || null,
+        metadata: {
+          despacho_pendiente: true,
+          manifest_items: manifestItems || [],
+        },
+        publishedAt: new Date(),
+      };
+
+      return await strapi.entityService.create(
+        'api::food-delivery.food-delivery',
+        {
+          data,
+        }
+      );
+    },
+
   })
 );

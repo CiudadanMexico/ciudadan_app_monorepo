@@ -27,6 +27,12 @@
       "relation": "oneToOne",
       "target": "plugin::users-permissions.user"
     },
+    "repartidor": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "comment": "Repartidor de Ciudadan asignado (cuando provider='ciudadan'). Nullable: el despacho en tiempo real es fase posterior al MVP de cotizaciones; mientras tanto distingue entregas propias de Uber Direct."
+    },
     "provider": {
       "type": "string",
       "default": "uber_direct"
