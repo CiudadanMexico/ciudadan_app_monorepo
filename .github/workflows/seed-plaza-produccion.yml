@@ -143,6 +143,45 @@ jobs:
             exit 1
           fi
 
+      - name: "Pre-cargar imagenes por API (el usuario de deploy no puede escribir en uploads)"
+        shell: bash
+        run: |
+          set -uo pipefail
+          # /var/www/shared/uploads es de root:alexander y el usuario de deploy no
+          # puede escribir ahi (EACCES). El servicio de Strapi corre como alexander
+          # y si puede: por eso las imagenes se suben por la API con el token del
+          # entorno y el seed las reutiliza por nombre (plugin::upload.file).
+          ssh -o BatchMode=yes polanco-tunnel "bash -s" <<'REMOTE' 2>&1 | tee imagenes.log
+          set -uo pipefail
+          set -a; . /var/www/shared/ciudadan_backend.env; set +a
+          cd /var/www/releases/ciudadan_backend/current/ciudadan_backend_26
+          DIR=seed/plaza-tecnologia
+          API=http://127.0.0.1:33332/api
+          TOKEN="${STRAPI_API_TOKEN:-}"
+          if [ -z "$TOKEN" ]; then
+            echo "AVISO: no hay STRAPI_API_TOKEN en el env: no se pueden pre-cargar imagenes."
+            exit 0
+          fi
+          SUBIDAS=0; REUSADAS=0; FALLOS=0
+          for f in "$DIR"/images/*; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            if curl -s --max-time 20 -H "Authorization: Bearer $TOKEN" \
+                "$API/upload/files?filters[name][$eq]=$name&pagination[pageSize]=1" | grep -q '"id"'; then
+              REUSADAS=$((REUSADAS+1)); continue
+            fi
+            code=$(curl -s --max-time 120 -o /tmp/up.json -w "%{http_code}" \
+                   -H "Authorization: Bearer $TOKEN" -F "file=@$f" "$API/upload" || echo 000)
+            if [ "$code" = "200" ] || [ "$code" = "201" ]; then
+              SUBIDAS=$((SUBIDAS+1))
+            else
+              FALLOS=$((FALLOS+1))
+              echo "FALLO imagen $name -> HTTP $code $(head -c 160 /tmp/up.json 2>/dev/null)"
+            fi
+          done
+          echo "IMAGENES: subidas=$SUBIDAS reutilizadas=$REUSADAS fallos=$FALLOS"
+          REMOTE
+
       - name: "Ejecutar seed (--apply [--publish]) con el usuario de deploy"
         shell: bash
         run: |
