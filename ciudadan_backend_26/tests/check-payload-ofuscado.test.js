@@ -34,6 +34,12 @@ const temporal = () => fs.mkdtempSync(path.join(os.tmpdir(), 'ci-guardia-payload
 const ejecutarGuardia = (dir) =>
   spawnSync(process.execPath, [GUARDIA, dir], { encoding: 'utf8' });
 
+const ejecutarGuardiaEnRepo = (root) =>
+  spawnSync(process.execPath, [GUARDIA], {
+    encoding: 'utf8',
+    env: { ...process.env, GUARDIA_ROOT: root },
+  });
+
 const escribir = (dir, nombre, contenido) => {
   fs.writeFileSync(path.join(dir, nombre), contenido, 'utf8');
 };

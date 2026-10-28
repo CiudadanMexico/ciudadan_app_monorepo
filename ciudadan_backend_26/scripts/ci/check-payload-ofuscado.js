@@ -13,6 +13,9 @@
  * El modo <directorio> existe para las pruebas negativas: las muestras inertes se
  * generan en un temporal FUERA del repo y se pasan como argumento (no se commitean).
  *
+ * Variables de entorno:
+ *   GUARDIA_ROOT=<ruta>  escanea otro repositorio git en modo repo (pruebas).
+ *
  * Salida: 0 = limpio; 1 = deteccion (el pipeline debe fallar); 2 = error de uso.
  */
 'use strict';
@@ -20,7 +23,7 @@ const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const RAIZ = path.resolve(__dirname, '..', '..', '..');
+const RAIZ = path.resolve(process.env.GUARDIA_ROOT || path.join(__dirname, '..', '..', '..'));
 const MAX_LINEA = 5000;
 const RUTAS_PROHIBIDAS = ['api.js'];
 const EXTENSIONES = ['.js', '.mjs', '.cjs'];
@@ -111,7 +114,9 @@ function escanearRepo() {
   const hallazgos = [];
 
   for (const ruta of RUTAS_PROHIBIDAS) {
-    if (archivos.includes(ruta)) {
+    // Se comprueba el arbol rastreado (lo que se commitearia) y tambien el
+    // disco: un api.js sin trackear en la raiz es igual de peligroso.
+    if (archivos.includes(ruta) || fs.existsSync(path.join(RAIZ, ruta))) {
       hallazgos.push({ ruta, detalle: 'archivo prohibido presente en el arbol rastreado' });
     }
   }
