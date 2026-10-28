@@ -15,6 +15,11 @@ on:
         required: false
         default: false
 
+# Permisos minimos: el deploy solo necesita LEER el contenido del repo
+# (checkout). Los secretos de despliegue viajan por SSH, no por la API de GitHub.
+permissions:
+  contents: read
+
 concurrency:
   group: ciudadan-production
   cancel-in-progress: false
@@ -35,6 +40,8 @@ jobs:
     name: "P4 — Gate: árbol estable (failover/failback)"
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     outputs:
       p4_state: ${{ steps.p4.outputs.state }}
       gate: ${{ steps.p4.outputs.gate }}
@@ -87,6 +94,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: p4-arbiter-gate
     timeout-minutes: 40
+    permissions:
+      contents: read
     outputs:
       sha: ${{ steps.meta.outputs.sha }}
       deployed: ${{ steps.gate.outputs.deployed }}
@@ -102,6 +111,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      # Gate de seguridad: NO se despliega un arbol que traiga un packer, un
+      # api.js en la raiz o una linea sospechosa de >5 KB. Ver
+      # docs/CI-HARDENING-2026-10-28.md.
+      - name: "Guardia de payloads ofuscados"
+        run: node ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js
 
       - name: Setup SSH (key + known_hosts + cloudflared)
         shell: bash
@@ -283,6 +298,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-gate
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - name: Setup SSH (daniel directo, sin tunnel)
         shell: bash
@@ -323,6 +340,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [canary-daniel, build-and-gate]
     timeout-minutes: 45
+    permissions:
+      contents: read
     steps:
       - name: Setup SSH (igual que build)
         shell: bash
@@ -431,6 +450,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [p4-arbiter-gate, build-and-gate, canary-daniel, deploy-polanco]
     if: always()
+    permissions:
+      contents: read
     steps:
       - name: Resumen del deployment
         run: |
