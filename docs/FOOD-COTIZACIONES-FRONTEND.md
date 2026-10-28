@@ -44,7 +44,7 @@ elegida) y el servidor fija el importe autoritativo.
 |---|---|
 | `src/services/food/cotizacionesEnvioService.js` | **Nuevo.** `cotizarEnvio()` y `guardarDireccionEnvio()` sobre `fetchJson`/`STRAPI_URL` de `src/utils/request.utils.js` (sin URLs hardcodeadas). Token Auth0 por parámetro, igual que `services/cowork/mutationsServices.js`. |
 | `src/hooks/food/useCotizacionesEnvio.js` | **Nuevo.** Estado del tablero + selecciones por restaurante; guard de carrera (solo la última solicitud actualiza); preselección por restaurante; consultas (`getCotizacionSeleccionada`, `seleccionVencida`, etc.). |
-| `src/components/Food/FoodOpcionesEnvio.jsx` | **Nuevo.** UI de opciones por restaurante (MUI v6 + `sx`): tarjetas seleccionables con precio, distancia y vigencia; aviso `simulado`; bloque no disponible con `mensaje`. |
+| `src/components/Food/FoodOpcionesEnvio.jsx` | **Nuevo.** UI de opciones por restaurante (MUI v6 + `sx`): tarjetas seleccionables con precio, distancia y vigencia; aviso `simulado`; bloque no disponible con `mensaje`; estado de carga («Calculando opciones de envío…») y caducidad **por proveedor**. |
 | `src/components/Food/FoodCheckout.jsx` | **Modificado.** Reemplaza `useUberDirect` (deprecado, ya sin usos en el checkout) por `useCotizacionesEnvio`; re-cotiza al cambiar dirección/carrito; selector de opciones en el paso «Confirmar pedido»; `metadata.cotizacion_envio.codigo` al confirmar; manejo de 409. |
 
 El hook legacy `src/hooks/food/useUberDirect.js` se deja en el árbol (sin
@@ -64,6 +64,14 @@ usos) por si se quiere referenciar el flujo anterior; el endpoint legacy
    `FoodOpcionesEnvio` con las opciones disponibles (precio, distancia aprox.
    en km, vigencia «Cotización válida hasta hh:mm»). Se preselecciona la
    primera disponible (Ciudadan primero, ver D2) y el usuario puede cambiarla.
+   Estados visibles en este paso:
+   - **Calculando…** (informativo) mientras vuela la petición o el carrito
+     todavía no se ha sincronizado con Strapi (`cartId` vacío).
+   - **Sin opciones** (warning) cuando el tablero llegó pero a algún
+     restaurante no le quedó ningún proveedor disponible (`puedeContinuar ===
+     false`): aparece el botón «Volver a cotizar».
+   - **Error** (warning + snackbar) cuando la llamada falló: se muestra el
+     mensaje del servidor y el botón «Volver a cotizar».
    «Envío» y «Total» se recalculan con el importe seleccionado.
 4. **Confirmación:** «Confirmar pedido» se deshabilita mientras se cotiza, si
    `puedeContinuar === false`, si falta selección (`cotizacionIncompleta`) o si
@@ -97,10 +105,25 @@ usos) por si se quiere referenciar el flujo anterior; el endpoint legacy
   previas del mismo carrito) y las selecciones se recalculan. Además, la
   revalidación de la huella en servidor (`CARRITO_MODIFICADO`) es la última
   línea de defensa al confirmar.
-- **D5 — Manejo de 409.** `COTIZACION_*`, `CARRITO_MODIFICADO`,
-  `DESTINO_MODIFICADO` y `SIN_REPARTIDORES` al confirmar: se muestra el
-  mensaje del servidor y se vuelve al paso 1 (dirección) con las cotizaciones
-  limpias para re-cotizar. Otros errores se muestran sin cambiar de paso.
+- **D5 — Manejo de los rechazos de cotización al confirmar.** El backend
+  responde con status + mensaje en español (no con códigos) y el frontend los
+  clasifica (`esRechazoDeCotizacion`): `409` (COTIZACION_EXPIRADA,
+  COTIZACION_YA_USADA, DESTINO_MODIFICADO, CARRITO_MODIFICADO,
+  SIN_REPARTIDORES) y los `400/403` cuyo mensaje habla de «cotización»
+  (COTIZACION_INVALIDA, COTIZACION_DE_OTRO_USUARIO, RESTAURANTE_NO_COINCIDE).
+  En esos casos: se muestra el mensaje del servidor (snackbar warning), se
+  limpian las cotizaciones, se vuelve al paso 1 (dirección) y **se vuelve a
+  cotizar automáticamente** con la dirección y el carrito actuales
+  (`disparadorCotizacion`). Otros errores se muestran sin cambiar de paso.
+- **D5.1 — «Volver a cotizar» explícito.** El botón aparece cuando una
+  cotización venció, cuando hubo error o cuando `puedeContinuar === false`
+  (ningún proveedor disponible para algún restaurante). No duplica la lógica
+  de la petición: solo incrementa `disparadorCotizacion`, que es dependencia
+  del mismo efecto que cotiza automáticamente.
+- **D5.2 — Caducidad por proveedor.** Cada opción se bloquea cuando su propia
+  `vence` ya pasó (no solo la seleccionada): así, si la opción elegida venció,
+  el usuario todavía puede cambiar a la otra disponible. El reloj del hook
+  (`tic`, 30 s) refresca el estado sin que el usuario tenga que tocar nada.
 - **D6 — `simulado: true`.** El modo pruebas del proveedor Uber se muestra con
   el chip «Precio de prueba (simulado)» (precio NO definitivo), tal como pide
   el contrato (§7.2 del as-built).
@@ -157,4 +180,30 @@ Uber ya viaja por `cotizacion_envio.codigo`.
 Sin cambios en tooling: `CI=false DISABLE_ESLINT_PLUGIN=true npx craco build`
 en `ciudadan_frontend/` (el `DISABLE_ESLINT_PLUGIN` es el flag estándar del
 repo mientras existan errores de ESLint en archivos ajenos).
+
+**Resultado de la verificación (2026-10-28, contenedor `adrianperez2`):**
+- `CI=false DISABLE_ESLINT_PLUGIN=true npx craco build` → **FALLA por memoria**
+  (no por código): el cgroup del contenedor tiene un tope de **4.75 GiB**
+  (`memory.max = 5100273664`) y el build de producción de CRA se pasa de ahí;
+  el kernel mata al proceso y CRA responde
+  `The build failed because the process exited too early. This probably means
+  the system ran out of memory` (`oom_kill` visible en `memory.events`).
+- Con los **mismos** flags y sin source maps (el source map es el mayor
+  consumidor de memoria del build de CRA) **SÍ compila**:
+
+  ```bash
+  cd ciudadan_frontend
+  CI=false DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false \
+    NODE_OPTIONS=--max-old-space-size=3584 npx craco build
+  # → Compiled successfully.  (main.a9a77ef0.js 1.52 MB gzip)
+  ```
+
+- El dev server (`npm start` con `craco start`) compila el módulo **sin
+  warnings**: `Compiled successfully!` (0 errores ESLint, 0 warnings de
+  `react-hooks/exhaustive-deps`).
+
+**Verificación adicional:** el dev server del contenedor (log
+`/workspace/logs/front.log`) recompila el bundle completo tras cada cambio de
+este módulo y termina en `Compiled successfully!` sin errores ni warnings de
+ESLint.
 

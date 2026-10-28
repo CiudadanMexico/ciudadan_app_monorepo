@@ -6,6 +6,7 @@ import {
   CardActionArea,
   CardContent,
   Chip,
+  CircularProgress,
   Radio,
   Stack,
   Typography,
@@ -46,19 +47,35 @@ const formatearHora = (fechaISO) => {
  * @param {string|null} props.proveedorSeleccionado proveedor elegido
  * @param {Function} props.onSeleccionar callback `(proveedor) => void`
  * @param {boolean} props.vencida la cotización seleccionada ya venció
+ * @param {boolean} props.cargando la cotización está en vuelo
  */
 const FoodOpcionesEnvio = ({
   cotizaciones,
   proveedorSeleccionado = null,
   onSeleccionar,
   vencida = false,
+  cargando = false,
 }) => {
   const opciones = PROVEEDORES.filter((proveedor) => cotizaciones?.[proveedor]);
 
-  // Todavía no hay tablero para este restaurante (la cotización sigue en
-  // vuelo): no se muestra nada para no parpadear.
+  /*
+   * Todavía no hay tablero para este restaurante: si la cotización está en
+   * vuelo se muestra el estado de carga (si no, aún no hay nada que pintar y
+   * se evita parpadear la tarjeta).
+   */
   if (!cotizaciones) {
-    return null;
+    if (!cargando) {
+      return null;
+    }
+
+    return (
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+        <CircularProgress size={16} />
+        <Typography variant="body2" color="text.secondary">
+          Calculando opciones de envío...
+        </Typography>
+      </Stack>
+    );
   }
 
   // El restaurante vino en el tablero pero sin ninguna opción de proveedor.
@@ -86,6 +103,15 @@ const FoodOpcionesEnvio = ({
           const mostrarDistancia = distanciaMetros != null && Number.isFinite(distanciaMetros) && distanciaMetros > 0;
           const horaVigencia = disponible ? formatearHora(cotizacion.vence) : null;
 
+          /*
+           * Caducidad POR PROVEEDOR: una opción vencida no se puede elegir, pero
+           * la otra sí (si venció la que estaba seleccionada, el usuario debe
+           * poder cambiar a la otra opción disponible).
+           */
+          const vence = cotizacion?.vence ? new Date(cotizacion.vence).getTime() : NaN;
+          const cotizacionVencida = disponible && Number.isFinite(vence) && vence <= Date.now();
+          const bloqueada = !disponible || cotizacionVencida;
+
           return (
             <Card
               key={proveedor}
@@ -100,7 +126,7 @@ const FoodOpcionesEnvio = ({
               }}
             >
               <CardActionArea
-                disabled={!disponible || vencida}
+                disabled={bloqueada}
                 onClick={() => onSeleccionar?.(proveedor)}
               >
                 <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -108,7 +134,7 @@ const FoodOpcionesEnvio = ({
                     <Radio
                       checked={seleccionada}
                       onChange={() => onSeleccionar?.(proveedor)}
-                      disabled={!disponible || vencida}
+                      disabled={bloqueada}
                       size="small"
                       inputProps={{ 'aria-label': `Envío ${NOMBRES_PROVEEDOR[proveedor]}` }}
                       sx={{ mt: -0.5, ml: -1.5 }}
@@ -155,12 +181,14 @@ const FoodOpcionesEnvio = ({
                             <Stack direction="row" spacing={0.5} alignItems="center">
                               <Schedule sx={{ fontSize: 16, color: 'text.secondary' }} />
                               <Typography variant="body2" color="text.secondary">
-                                Cotización válida hasta {horaVigencia}
+                                {cotizacionVencida
+                                  ? 'Cotización vencida'
+                                  : `Cotización válida hasta ${horaVigencia}`}
                               </Typography>
                             </Stack>
                           )}
 
-                          {seleccionada && vencida && (
+                          {(cotizacionVencida || (seleccionada && vencida)) && (
                             <Typography variant="body2" color="warning.main" fontWeight={600}>
                               Esta cotización venció. Vuelve a cotizar el envío.
                             </Typography>
