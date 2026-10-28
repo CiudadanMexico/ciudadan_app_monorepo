@@ -163,7 +163,7 @@ jobs:
             exit 0
           fi
           SUBIDAS=0; REUSADAS=0; FALLOS=0
-          for f in "$DIR"/images/*; do
+          for f in "$DIR"/images/ptc_cp_*; do
             [ -f "$f" ] || continue
             name=$(basename "$f")
             if curl -s --max-time 20 -H "Authorization: Bearer $TOKEN" \
@@ -177,6 +177,10 @@ jobs:
             else
               FALLOS=$((FALLOS+1))
               echo "FALLO imagen $name -> HTTP $code $(head -c 160 /tmp/up.json 2>/dev/null)"
+              if [ "$code" = "403" ]; then
+                echo "ABORTO: el token no tiene permiso de subida (403). El seed sube las imagenes directamente."
+                break
+              fi
             fi
           done
           echo "IMAGENES: subidas=$SUBIDAS reutilizadas=$REUSADAS fallos=$FALLOS"
