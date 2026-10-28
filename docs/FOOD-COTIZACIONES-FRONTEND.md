@@ -35,8 +35,9 @@ elegida) y el servidor fija el importe autoritativo.
 - **Confirmación:** `POST /api/food-orders` (flujo existente) +
   `metadata.cotizacion_envio.codigo`. El backend revalida (vigencia, huella
   del carrito, destino, disponibilidad), consume la cotización atómicamente y
-  sobrescribe `monto_envio`/`monto_total`. El 409 se maneja volviendo al paso
-  de dirección para re-cotizar.
+  sobrescribe `monto_envio`/`monto_total`. Los rechazos de cotización
+  (409/400/403) se manejan volviendo al paso de dirección y re-cotizando
+  automáticamente (ver D5).
 
 ## 3. Arquitectura frontend
 
@@ -45,7 +46,7 @@ elegida) y el servidor fija el importe autoritativo.
 | `src/services/food/cotizacionesEnvioService.js` | **Nuevo.** `cotizarEnvio()` y `guardarDireccionEnvio()` sobre `fetchJson`/`STRAPI_URL` de `src/utils/request.utils.js` (sin URLs hardcodeadas). Token Auth0 por parámetro, igual que `services/cowork/mutationsServices.js`. |
 | `src/hooks/food/useCotizacionesEnvio.js` | **Nuevo.** Estado del tablero + selecciones por restaurante; guard de carrera (solo la última solicitud actualiza); preselección por restaurante; consultas (`getCotizacionSeleccionada`, `seleccionVencida`, etc.). |
 | `src/components/Food/FoodOpcionesEnvio.jsx` | **Nuevo.** UI de opciones por restaurante (MUI v6 + `sx`): tarjetas seleccionables con precio, distancia y vigencia; aviso `simulado`; bloque no disponible con `mensaje`; estado de carga («Calculando opciones de envío…») y caducidad **por proveedor**. |
-| `src/components/Food/FoodCheckout.jsx` | **Modificado.** Reemplaza `useUberDirect` (deprecado, ya sin usos en el checkout) por `useCotizacionesEnvio`; re-cotiza al cambiar dirección/carrito; selector de opciones en el paso «Confirmar pedido»; `metadata.cotizacion_envio.codigo` al confirmar; manejo de 409. |
+| `src/components/Food/FoodCheckout.jsx` | **Modificado.** Reemplaza `useUberDirect` (deprecado, ya sin usos en el checkout) por `useCotizacionesEnvio`; re-cotiza al cambiar dirección/carrito; selector de opciones en el paso «Confirmar pedido»; `metadata.cotizacion_envio.codigo` al confirmar; manejo de rechazos de cotización (409/400/403) con re-cotización automática. |
 
 El hook legacy `src/hooks/food/useUberDirect.js` se deja en el árbol (sin
 usos) por si se quiere referenciar el flujo anterior; el endpoint legacy
