@@ -39,6 +39,7 @@ permissions:
 env:
   DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
   POLANCO_HOST: ${{ secrets.POLANCO_HOST }}
+  DANIEL_HOST: ${{ secrets.DANIEL_HOST }}
   KH_LINES: |
     ssh.ciudadan.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
     [ssh.ciudadan.org]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
@@ -71,8 +72,14 @@ jobs:
             IdentitiesOnly yes
             StrictHostKeyChecking yes
             ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          Host daniel-direct
+            HostName DANIELHOST
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
           EOF
-          sed -i "s/DEPLOYUSER/$DEPLOY_USER/" ~/.ssh/config
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
           ssh -o BatchMode=yes polanco-tunnel true && echo "SSH polanco OK"
 
       - name: Preflight (release con el fix, P4 PRIMARY_POLANCO, categorias existentes)
@@ -86,7 +93,9 @@ jobs:
             echo "::error::La release desplegada NO trae el fix de publicacion (seed/plaza-tecnologia/publicar.js). Despliega main primero."
             exit 1
           fi
-          P4=$(ssh -o BatchMode=yes polanco-tunnel "sudo -n /usr/local/sbin/p4-executor status" 2>&1 || true)
+          # El arbiter P4 vive en DANIEL (arbol de produccion), no en Polanco:
+          # se consulta ahi, igual que el gate del pipeline de deploy.
+          P4=$(ssh -o BatchMode=yes -o ConnectTimeout=20 daniel-direct "sudo -n /usr/local/sbin/p4-executor status" 2>&1 || true)
           echo "$P4" | head -20
           echo "$P4" | grep -q "PRIMARY_POLANCO" || {
             echo "::error::P4 no esta en PRIMARY_POLANCO: no se escribe en produccion."
