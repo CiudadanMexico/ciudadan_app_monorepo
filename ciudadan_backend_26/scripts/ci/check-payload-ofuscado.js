@@ -43,6 +43,7 @@ for (const ruta of RUTAS_PROHIBIDAS) {
 for (const rel of archivos) {
   if (!rel.endsWith('.js') && !rel.endsWith('.mjs') && !rel.endsWith('.cjs')) continue;
   if (rel.includes('node_modules/')) continue;
+  if (rel.endsWith('check-payload-ofuscado.js')) continue; // la guardia no se detecta a si misma
   const abs = path.join(RAIZ, rel);
   let texto;
   try {
