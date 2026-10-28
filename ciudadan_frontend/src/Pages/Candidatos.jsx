@@ -66,6 +66,8 @@ export default function Candidatos() {
     });
     const tel = String(values.telefono || '').replace(/\D/g, '');
     if (tel.length < 8) next.telefono = 'Escribe un teléfono válido.';
+    // CV opcional: si hay archivo, respeta el límite anunciado (10 MB).
+    if (values.cv && values.cv.size > 10 * 1024 * 1024) next.cv = 'El CV supera 10 MB. Sube un archivo más ligero.';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -100,20 +102,20 @@ export default function Candidatos() {
     setSubmitError('');
     try {
       const tel = String(values.telefono || '').replace(/\D/g, '');
-      const form = new FormData();
-      form.append('data', JSON.stringify({
-        nombre_completo: (values.nombre || '').trim() + ' ' + (values.apellidos || '').trim(),
+      // Contrato de crearPostulacionSocio: objeto plano; el servicio arma el
+      // FormData (data + files.cv). No enviar un FormData crudo: el servicio
+      // no sabe leerlo y la postulación llegaría vacía.
+      await crearPostulacionSocio({
+        nombre_completo: ((values.nombre || '').trim() + ' ' + (values.apellidos || '').trim()).trim(),
         email: user?.email || '',
-        telefono: (tel || '0000') + '@' + paisSel.code,
         codigo_pais: paisSel.code,
+        telefono: tel,
         area: values.area,
         agencia: values.agencia,
         descripcion: values.descripcion || '',
-      }));
-      if (values.cv?.file) {
-        form.append('files.cv', values.cv.file, values.cv.file.name);
-      }
-      await crearPostulacionSocio(form);
+        cv: values.cv || null,
+        metadata: { origen: 'web-candidatos' },
+      });
       setEnviado(true);
     } catch {
       setSubmitError('No se pudo enviar la postulación. Intenta de nuevo.');
@@ -279,7 +281,11 @@ export default function Candidatos() {
         <RegistrationField
           field={{ name: 'cv', label: 'Subir CV', type: 'file', helperText: 'PDF, Word o imagen. Máx. 10 MB.' }}
           value={values.cv || null}
-          onChange={(file) => handleChange('cv', { file, type: file?.type || '', size: file?.size || 0, name: file?.name || '' })}
+          error={submitAttempted && Boolean(errors.cv)}
+          disabled={submitting}
+          // RegistrationField invoca onChange(name, File); conservar el File
+          // directamente en el estado (el servicio espera un File, no un wrapper).
+          onChange={(_campo, archivo) => handleChange('cv', archivo)}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <FormControlLabel
