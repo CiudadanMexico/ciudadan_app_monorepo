@@ -1,0 +1,179 @@
+name: Seed Plaza en produccion (manual)
+
+# Ejecuta el seed idempotente de la tienda oficial "La plaza de la tecnologia a
+# tu casa" (30 productos) contra la BASE DE DATOS DE PRODUCCION (Polanco).
+#
+# Contexto (2026-10-28): el seed solo asignaba `publishedAt` en el path CREATE
+# (bug corregido en seed/plaza-tecnologia/publicar.js), por lo que tienda y
+# productos ya existentes quedaban con published_at NULL y no se servian por
+# la API publica. En PROD la tienda aun no existia: el seed la crea y publica.
+#
+# Topologia: se escribe UNICAMENTE en Polanco (PRIMARY). Dany es standby con
+# replicacion PostgreSQL en streaming (lag 0), asi que los cambios llegan solos:
+# no se ejecuta dos veces ni se escribe en el standby (que es read-only).
+#
+# Uso: GitHub Actions > "Seed Plaza en produccion (manual)" > Run workflow.
+# La nota del operador queda en el log del run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Nota del operador (queda en el log de Actions)"
+        required: false
+        default: ""
+      publish:
+        description: "Publicar lo que falte (--publish)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ciudadan-seed-plaza
+  cancel-in-progress: false
+
+env:
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+  POLANCO_HOST: ${{ secrets.POLANCO_HOST }}
+  KH_LINES: |
+    ssh.ciudadan.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
+    [ssh.ciudadan.org]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
+    40.233.7.3 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
+    [40.233.7.3]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
+
+jobs:
+  seed-plaza:
+    name: "Seed Plaza (tienda oficial + 30 productos) en PROD Polanco"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Preparar SSH (tunel cloudflared a Polanco)
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+          cat > ~/.ssh/config <<'EOF'
+          Host polanco-tunnel
+            HostName ssh.ciudadan.org
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/" ~/.ssh/config
+          ssh -o BatchMode=yes polanco-tunnel true && echo "SSH polanco OK"
+
+      - name: Preflight (release con el fix, P4 PRIMARY_POLANCO, categorias existentes)
+        shell: bash
+        run: |
+          set -uo pipefail
+          SHA=$(ssh -o BatchMode=yes polanco-tunnel cat /var/www/releases/ciudadan_backend/CURRENT 2>/dev/null | tail -1)
+          echo "Release desplegada en Polanco: $SHA"
+          [ -n "$SHA" ] || { echo "::error::No pude leer la release desplegada."; exit 1; }
+          if ! ssh -o BatchMode=yes polanco-tunnel "test -f /var/www/releases/ciudadan_backend/current/ciudadan_backend_26/seed/plaza-tecnologia/publicar.js"; then
+            echo "::error::La release desplegada NO trae el fix de publicacion (seed/plaza-tecnologia/publicar.js). Despliega main primero."
+            exit 1
+          fi
+          P4=$(ssh -o BatchMode=yes polanco-tunnel "sudo -n /usr/local/sbin/p4-executor status" 2>&1 || true)
+          echo "$P4" | head -20
+          echo "$P4" | grep -q "PRIMARY_POLANCO" || {
+            echo "::error::P4 no esta en PRIMARY_POLANCO: no se escribe en produccion."
+            exit 1
+          }
+          echo "PREFLIGHT_OK (release $SHA, P4 PRIMARY_POLANCO)" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: "Preflight 2: categorias de tienda (si faltan, el seed aborta a medias)"
+        shell: bash
+        run: |
+          set -uo pipefail
+          ssh -o BatchMode=yes polanco-tunnel bash -s <<'REMOTE' | tee categorias.log
+          for slug in computacion electronica-y-tecnologia; do
+            n=$(curl -s "http://127.0.0.1:33332/api/store-categories?filters%5Bslug%5D%5B%24eq%5D=$slug" \
+                | grep -o '"id":[0-9]*' | head -1)
+            echo "categoria $slug -> ${n:-NO_ENCONTRADA}"
+          done
+          REMOTE
+          if grep -q "NO_ENCONTRADA" categorias.log; then
+            echo "::error::Falta alguna categoria requerida por el seed. El seed no crea categorias: se aborta antes de escribir."
+            exit 1
+          fi
+
+      - name: "Ejecutar seed (--apply [--publish]) como usuario del servicio"
+        shell: bash
+        run: |
+          set -uo pipefail
+          ARGS="--apply"
+          if [ "${{ inputs.publish }}" = "true" ]; then ARGS="$ARGS --publish"; fi
+          echo "Nota del operador: ${{ inputs.note }}"
+          echo "Argumentos: $ARGS"
+          ssh -o BatchMode=yes polanco-tunnel "sudo -n -u alexander --preserve-env bash -s" <<'REMOTE' 2>&1 | tee seed.log
+          set -a; . /var/www/shared/ciudadan_backend.env; set +a
+          cd /var/www/releases/ciudadan_backend/current/ciudadan_backend_26
+
+          # Owner de la tienda: el del env de produccion; si no existe, un usuario admin.
+          if [ -z "$PLAZA_STORE_OWNER_ID" ]; then
+            OWNER=$(node -e '
+              const { Client } = require("pg");
+              const cfg = {
+                host: process.env.DATABASE_HOST || "127.0.0.1",
+                port: Number(process.env.DATABASE_PORT || 5432),
+                user: process.env.DATABASE_USERNAME,
+                password: process.env.DATABASE_PASSWORD,
+                database: process.env.DATABASE_NAME,
+              };
+              (async () => {
+                const c = new Client(cfg);
+                try {
+                  await c.connect();
+                  const r = await c.query("select u.id, u.email from up_users u join up_users_role_link l on l.user_id = u.id join up_roles r on r.id = l.role_id where r.name = $1 order by u.id limit 1", ["admin"]);
+                  if (r.rows.length) console.log(r.rows[0].id + "|" + r.rows[0].email);
+                } catch (e) { console.log("ERR|" + e.message); }
+                finally { await c.end().catch(() => {}); }
+              })();
+            ' 2>/dev/null | tail -1)
+            case "$OWNER" in
+              ERR\|*) echo "AVISO: no se pudo resolver owner admin ($OWNER); la tienda quedara sin owner." ;;
+              *\|*) export PLAZA_STORE_OWNER_ID="${OWNER%%|*}"; export PLAZA_STORE_EMAIL="${OWNER##*|}"; echo "Owner resolved: id=$PLAZA_STORE_OWNER_ID email=$PLAZA_STORE_EMAIL" ;;
+            esac
+          else
+            echo "Owner desde env de produccion: id=$PLAZA_STORE_OWNER_ID"
+          fi
+
+          NODE_ENV=production node seed/plaza-tecnologia/seed-plaza-tecnologia.js $ARGS
+          RC=$?
+          echo "SEED_EXIT=$RC"
+          exit $RC
+          REMOTE
+          if ! grep -q "SEED_EXIT=0" seed.log; then
+            echo "::error::El seed no termino con exito 0 (ver seed.log)."
+            exit 1
+          fi
+          grep -E "^(Tienda|CREATE|UPDATE|REFRESCO|ANOMALIA|SIN-CAMBIO|AVISO|ERROR|CONFLICTO|Errores)" seed.log | head -60 | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Verificacion (API de produccion)
+        shell: bash
+        run: |
+          set -uo pipefail
+          URL='https://back.ciudadan.org/api/productos?filters%5Bstore%5D%5Bslug%5D%5B%24eq%5D=la-plaza-de-la-tecnologia-a-tu-casa&pagination%5BpageSize%5D=50'
+          curl -sS --max-time 40 "$URL" -o productos.json || {
+            echo "::error::No se pudo consultar la API publica de produccion."
+            exit 1
+          }
+          node -e '
+            const fs = require("fs");
+            const j = JSON.parse(fs.readFileSync("productos.json", "utf8"));
+            const d = Array.isArray(j.data) ? j.data : [];
+            const pub = d.filter((p) => p.attributes && p.attributes.publishedAt);
+            const sin = d.filter((p) => p.attributes && !p.attributes.publishedAt);
+            const linea = "Plaza en PROD: " + d.length + " productos | publicados: " + pub.length + " | sin publicar: " + sin.length;
+            console.log(linea);
+            if (sin.length) console.log("SIN PUBLICAR: " + sin.map((p) => p.attributes.slug).join(", "));
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, linea + "\n");
+            if (d.length === 0) { console.error("La API publica no devolvio productos de la tienda Plaza."); process.exit(1); }
+            if (sin.length) { console.error("Quedan productos sin publicar."); process.exit(1); }
+          '

@@ -23,3 +23,6 @@ ciudadan_backend_26/.env
 
 # Wiki: los .md viven FUERA del repo (ver site-setting.wikis_path)
 ciudadan_backend_26/socket-service/wiki/
+
+# Configuracion local de la flota (puede contener rutas o claves)
+scripts/fleet-status.env

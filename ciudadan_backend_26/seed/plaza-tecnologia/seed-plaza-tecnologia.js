@@ -11,6 +11,7 @@
 */
 const fs = require('fs');
 const path = require('path');
+const { publicarSiHaceFalta } = require('./publicar');
 const DIR = __dirname;
 const MODO_APLICAR = process.argv.includes('--apply');
 const MODO_PUBLICAR = process.argv.includes('--publish');
@@ -141,10 +142,13 @@ const aplicar = async () => {
       const data = { name: TIENDA.name, slug: TIENDA.slug, descripcion: TIENDA.descripcion, localidad: TIENDA.localidad, isOfficial: true };
       if (ownerId) data.users_permissions_user = ownerId;
       if (ownerEmail) data.email = ownerEmail;
+      if (MODO_PUBLICAR) publicarSiHaceFalta(data, null);
       tienda = await app.entityService.create('api::store.store', { data });
       stats.tienda = 'creada id=' + tienda.id;
     } else {
-      await app.entityService.update('api::store.store', tienda.id, { data: { name: TIENDA.name, descripcion: TIENDA.descripcion, localidad: TIENDA.localidad, isOfficial: true } });
+      const patchTienda = { name: TIENDA.name, descripcion: TIENDA.descripcion, localidad: TIENDA.localidad, isOfficial: true };
+      if (MODO_PUBLICAR) publicarSiHaceFalta(patchTienda, tienda);
+      await app.entityService.update('api::store.store', tienda.id, { data: patchTienda });
       const full = await app.entityService.findOne('api::store.store', tienda.id, { populate: ['users_permissions_user'] });
       const tieneOwner = (full && full.users_permissions_user && (full.users_permissions_user.id || full.users_permissions_user)) || null;
       if (!tieneOwner && ownerId) await app.entityService.update('api::store.store', tienda.id, { data: { users_permissions_user: ownerId } });
@@ -193,6 +197,7 @@ const aplicar = async () => {
             patch.imagenes = galeria;
             patch.imagen_predeterminada = galeria.slice(0, 1);
           }
+          if (MODO_PUBLICAR) publicarSiHaceFalta(patch, existente);
           await app.entityService.update('api::producto.producto', existente.id, { data: patch });
           stats.actualizados += 1;
         } else {
@@ -200,7 +205,7 @@ const aplicar = async () => {
           for (const f of fotos) galeria.push((await subirSiFalta(f.filename, p.nombre + ' (' + p.sku + ')')).id);
           const data = { nombre: p.nombre, slug: slugOficial, descripcion: p.descripcion, marca: p.marca, especificaciones: p.especificaciones, destacado: !!p.destacado, precio: res.precio, store: tienda.id, store_id: String(tienda.id), store_category: catIds[p.categoria_slug], tags: 'plaza-tecnologia,plaza-tecnologia-a-tu-casa,' + p.sku, stock: -1, usa_stock: false, activo: true, imagenes: galeria, imagen_predeterminada: galeria.slice(0, 1) };
           if (ownerEmail) data.store_email = ownerEmail;
-          if (MODO_PUBLICAR) data.publishedAt = new Date().toISOString();
+          if (MODO_PUBLICAR) publicarSiHaceFalta(data, null);
           await app.entityService.create('api::producto.producto', { data });
           stats.creados += 1;
         }
