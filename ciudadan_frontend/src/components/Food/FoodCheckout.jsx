@@ -26,10 +26,13 @@ import { useNavigate } from 'react-router-dom';
 import { useFoodCart } from '../../Contexts/FoodCartContext';
 import { useRoles } from '../../Contexts/RolesContext';
 import DireccionSelector from '../MarketPlace/DireccionSelector';
-import useUberDirect from '../../hooks/food/useUberDirect';
+import useCotizacionesEnvio from '../../hooks/food/useCotizacionesEnvio';
+import useAuth0Token from '../../hooks/useAuth0Token';
+import FoodOpcionesEnvio from './FoodOpcionesEnvio';
 import FoodCheckoutPago from './FoodCheckoutPago';
 import FoodDeliveryContact from './FoodDeliveryContact';
 import { useSnackbar } from 'notistack';
+import { guardarDireccionEnvio } from '../../services/food/cotizacionesEnvioService';
 
 const STRAPI_URL = process.env.REACT_APP_STRAPI_URL;
 
@@ -44,30 +47,43 @@ const STEPS = [
 const FoodCheckout = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
+  // Token Auth0 con la audience de la API (hook compartido del repo).
+  const { getToken, tokenError } = useAuth0Token();
   const { userData } = useRoles();
   const {
     items = [],
     subtotal = 0,
+    cartId,
+    syncing: sincronizandoCarrito,
     clearCart,
   } = useFoodCart();
 
+  /*
+   * Tablero de cotizaciones de envío (MVP food-shipping): una sola llamada a
+   * POST /api/food-shipping/cotizar devuelve las opciones por restaurante
+   * (Ciudadan y Uber Direct) con precio, distancia y vigencia.
+   */
   const {
-    quotes,
-    loading: uberLoading,
-    error: uberError,
-    getQuotes,
-    getRestaurantQuote,
-    getRestaurantFee,
-    clearQuotes
-  } = useUberDirect();
+    tablero,
+    selecciones,
+    cotizando: cotizandoEnvios,
+    error: errorCotizacion,
+    puedeContinuar,
+    tic,
+    cotizar,
+    limpiarCotizaciones,
+    seleccionarProveedor,
+    getCotizacionesRestaurante,
+    getCotizacionSeleccionada,
+    seleccionVencida,
+  } = useCotizacionesEnvio();
 
   const [activeStep, setActiveStep] = useState(0);
   const [direccionSeleccionada, setDireccionSeleccionada] = useState(null);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [ordenes, setOrdenes] = useState([]);
-  const [cotizandoEnvios, setCotizandoEnvios] = useState(false);
-  const [errorCotizacion, setErrorCotizacion] = useState('');
+  const [guardandoDireccion, setGuardandoDireccion] = useState(false);
   const [todosLosPagosSubidos, setTodosLosPagosSubidos] = useState(false);
   const [datosEntrega, setDatosEntrega] = useState({ nombre: '', telefono: '', notas: '', });
 
@@ -138,11 +154,40 @@ const FoodCheckout = () => {
   };
 
   /*
-   * Por ahora esta función puede conectarse posteriormente con tu componente real de direcciones.
+   * Registra la dirección de entrega elegida.
+   *
+   * Si la dirección es temporal (sin id, p.ej. "Usar sin guardar" del
+   * DireccionSelector) se guarda primero como dirección del usuario: la
+   * cotización se pide con `direccionDestinoId` (destino guardado preferido
+   * del contrato) y la confirmación de la orden revalida `direccion_destino`
+   * contra la cotización (si no coincide → 409 DESTINO_MODIFICADO).
    */
-  const seleccionarDireccion = (direccion) => {
-    setDireccionSeleccionada(direccion);
+  const seleccionarDireccion = async (direccion) => {
     setError('');
+
+    if (direccion?.id) {
+      setDireccionSeleccionada(direccion);
+      return;
+    }
+
+    try {
+      setGuardandoDireccion(true);
+
+      const data = await guardarDireccionEnvio(direccion);
+      const id = data?.data?.id ?? null;
+
+      if (!id) {
+        throw new Error('La dirección de entrega no pudo guardarse.');
+      }
+
+      setDireccionSeleccionada({ ...direccion, id });
+    } catch (err) {
+      const mensaje = err?.message ?? 'No fue posible guardar la dirección de entrega.';
+      setError(mensaje);
+      enqueueSnackbar(mensaje, { variant: 'error' });
+    } finally {
+      setGuardandoDireccion(false);
+    }
   };
 
   const continuarDireccion = () => {
@@ -165,11 +210,19 @@ const FoodCheckout = () => {
       return;
     }
 
-    // Verificar que todos los restaurantes tengan una cotización
+    // Verificar que todos los restaurantes tengan una cotización seleccionada
     if (restaurantesSinCotizacion.length > 0) {
       const mensaje = `No fue posible calcular el envío de: ${restaurantesSinCotizacion.map((r) => r.nombre).join(', ')}. Vuelve al paso de dirección e inténtalo de nuevo.`;
       setError(mensaje);
       enqueueSnackbar(mensaje, { variant: 'error' });
+      return;
+    }
+
+    // Las cotizaciones vencen (vigencia por defecto: 15 min).
+    if (hayCotizacionVencida) {
+      const mensaje = 'Una o más cotizaciones de envío vencieron. Vuelve a cotizar el envío.';
+      setError(mensaje);
+      enqueueSnackbar(mensaje, { variant: 'warning' });
       return;
     }
 
@@ -182,19 +235,26 @@ const FoodCheckout = () => {
       for (const restaurante of restaurantes) {
         const subtotalRestaurante = calcularSubtotalRestaurante(restaurante.items);
 
-        const envioRestaurante = obtenerCostoEnvio(restaurante.id);
+        const cotizacion = getCotizacionSeleccionada(restaurante.id);
 
-        if (envioRestaurante == null) {
+        if (!cotizacion?.cotizacionId) {
           throw new Error(`No existe una cotización de envío para ${restaurante.nombre}.`);
+        }
+
+        const envioRestaurante = Number(cotizacion.importe);
+
+        if (!Number.isFinite(envioRestaurante)) {
+          throw new Error(`La cotización de envío de ${restaurante.nombre} no tiene un importe válido.`);
         }
 
         const totalRestaurante = Number((subtotalRestaurante + envioRestaurante).toFixed(2));
         /*
          * IMPORTANTE:
-         * Aquí NO estamos repartiendo todavía el envío automáticamente.
-         * Primero necesitamos definir la lógica exacta de envío por restaurante.
+         * El importe de envío que viaja aquí es solo un preview: el backend
+         * revalida la cotización, la consume atómicamente y sobrescribe
+         * monto_envio/monto_total con el importe autoritativo (lifecycle
+         * beforeCreate de food-order). El precio del cliente no manda.
          */
-        const quote = getRestaurantQuote(restaurante?.id);
         const payload = {
           data: {
             items: restaurante.items.map((item) => ({
@@ -212,7 +272,7 @@ const FoodCheckout = () => {
             fecha_creacion: new Date().toISOString(),
             user: userData?.id,
             direccion_destino: direccionSeleccionada?.id ?? null,
-            direccion_origen: restaurante?.direccion?.id ?? quote?.direccionOrigenId ?? null,
+            direccion_origen: restaurante?.direccion?.id ?? null,
             monto_envio: envioRestaurante,
             monto_total: totalRestaurante,
             moneda: 'MXN',
@@ -224,16 +284,14 @@ const FoodCheckout = () => {
               food_cart_item_keys: restaurante.items.map((item) => item.item_key),
               user_email: userData?.email,
               /*
-               * Información de Uber Direct.
+               * Cotización de envío seleccionada (MVP food-shipping): solo
+               * viaja el código opaco de la cotización elegida. El backend
+               * revalida (vigencia, huella del carrito, destino,
+               * disponibilidad), consume la cotización y deja
+               * metadata.cotizacion_envio_confirmada con el importe real.
                */
-              uber_direct: {
-                quote_id: quote?.quote?.id ?? null,
-                expires: quote?.expires ?? null,
-                fee: quote?.quote?.fee ?? null,
-                currency: quote?.quote?.currency ?? 'MXN',
-                pickup: quote?.coordinates?.pickup ?? null,
-                dropoff: quote?.coordinates?.dropoff ?? null,
-                mock: Boolean(quote?.mock),
+              cotizacion_envio: {
+                codigo: cotizacion.cotizacionId,
               },
             },
             restaurant: restaurante.id,
@@ -256,7 +314,11 @@ const FoodCheckout = () => {
 
         if (!response.ok) {
           const responseData = await response.json().catch(() => null);
-          throw new Error(responseData?.error?.message || `No se pudo crear la orden de ${restaurante.nombre}`);
+          const errorOrden = new Error(
+            responseData?.error?.message || `No se pudo crear la orden de ${restaurante.nombre}`
+          );
+          errorOrden.status = response.status;
+          throw errorOrden;
         }
 
         const data = await response.json();
@@ -284,32 +346,43 @@ const FoodCheckout = () => {
       setActiveStep(3);
     } catch (err) {
       console.error('Error creando food_orders:', err);
-      setError(err.message ?? 'No fue posible crear las órdenes.');
+
+      const mensaje = err?.message ?? 'No fue posible crear las órdenes.';
+      setError(mensaje);
+
+      /*
+       * 409 (COTIZACION_EXPIRADA, COTIZACION_YA_USADA, CARRITO_MODIFICADO,
+       * DESTINO_MODIFICADO, SIN_REPARTIDORES): la cotización ya no es válida.
+       * Se vuelve al paso de dirección para volver a cotizar con el mensaje
+       * del servidor (docs/FOOD-COTIZACIONES-ENVIO-MVP.md §4).
+       */
+      if (err?.status === 409) {
+        enqueueSnackbar(mensaje, { variant: 'warning' });
+        limpiarCotizaciones();
+        setActiveStep(0);
+      } else {
+        enqueueSnackbar(mensaje, { variant: 'error' });
+      }
     } finally {
       setProcesando(false);
     }
   };
 
   /**
-   * Obtener costo de envío
+   * Costo de envío de un restaurante: importe de la cotización de envío
+   * seleccionada (Ciudadan o Uber Direct). null si no hay selección válida
+   * y disponible.
   */
   const obtenerCostoEnvio = (restaurantId) => {
-    const quote = getRestaurantQuote(restaurantId);
+    const cotizacion = getCotizacionSeleccionada(restaurantId);
 
-    if (!quote) return null;
+    if (!cotizacion?.disponible) return null;
 
-    const fee = Number(quote?.quote?.fee);
+    const importe = Number(cotizacion.importe);
 
-    if (!Number.isFinite(fee)) return null;
+    if (!Number.isFinite(importe)) return null;
 
-    return fee;
-  };
-
-  /**
-   * Obtener Envío por restaurante
-  */
-  const obtenerEnvioRestaurante = (restaurantId) => {
-    return (obtenerCostoEnvio(restaurantId) ?? 0);
+    return importe;
   };
 
   const subirComprobante = async ({ orden, ordenId, file }) => {
@@ -424,24 +497,35 @@ const FoodCheckout = () => {
 
       return total + envio;
     }, 0);
-  }, [restaurantes, quotes]);
+  }, [restaurantes, tablero, selecciones]);
 
   const totalCheckout = useMemo(() => {
     return Number((Number(subtotal ?? 0) + Number(totalEnviosCotizados ?? 0)).toFixed(2));
   }, [subtotal, totalEnviosCotizados,]);
 
   /*
-   * Restaurantes que aún no tienen una cotización válida.
+   * Restaurantes sin una cotización de envío seleccionada y disponible.
    * Si la lista no está vacía, no se permite crear las órdenes.
    */
   const restaurantesSinCotizacion = useMemo(() => {
     return restaurantes.filter((restaurante) => obtenerCostoEnvio(restaurante.id) == null);
-  }, [restaurantes, quotes]);
+  }, [restaurantes, tablero, selecciones]);
 
   const cotizacionIncompleta = restaurantesSinCotizacion.length > 0;
 
   /*
-   * Mostrar snackbar cuando falle la cotización (error general o parcial).
+   * Alguna cotización seleccionada ya venció (vigencia por defecto: 15 min):
+   * hay que volver a cotizar antes de confirmar.
+   *
+   * `tic` (reloj del hook, cambia cada 30 s) entra como dependencia para que la
+   * caducidad se detecte sola, aunque el usuario no toque nada.
+   */
+  const hayCotizacionVencida = useMemo(() => {
+    return restaurantes.some((restaurante) => seleccionVencida(restaurante.id));
+  }, [restaurantes, tablero, selecciones, tic]);
+
+  /*
+   * Mostrar snackbar cuando falle la cotización de envío.
    */
   useEffect(() => {
     if (errorCotizacion) {
@@ -449,81 +533,135 @@ const FoodCheckout = () => {
     }
   }, [errorCotizacion, enqueueSnackbar]);
 
+  /*
+   * Huella del carrito (item_key:cantidad): dependencia estable del efecto de
+   * cotización para volver a cotizar SOLO cuando cambia el contenido del
+   * carrito (la re-cotización invalida en servidor las cotizaciones activas
+   * previas del mismo carrito).
+   */
+  const huellaCarrito = useMemo(() => {
+    return items
+      .map((item) => `${item.item_key ?? item.producto}:${item.cantidad ?? 0}`)
+      .sort()
+      .join('|');
+  }, [items]);
+
+  /*
+   * Cotizar el envío del carrito hacia la dirección de entrega seleccionada.
+   *
+   * Se vuelve a cotizar cuando cambia la dirección, el contenido del carrito
+   * (huella) o cuando el carrito termina de sincronizarse con Strapi
+   * (cartId): el endpoint resuelve TODO en servidor a partir de
+   * { foodCartId, direccionDestinoId } y no acepta listas de restaurantes del
+   * cliente.
+   *
+   * La petición se hace con un pequeño retardo (debounce) y se espera a que
+   * el carrito termine de sincronizarse: la cotización se calcula sobre el
+   * carrito que vive en Strapi y la confirmación de la orden revalida la
+   * huella del carrito (si se cotiza antes de que el servidor guarde el
+   * cambio, el servidor responde 409 CARRITO_MODIFICADO).
+   */
   useEffect(() => {
-    if (!uberError) {
+    if (!direccionSeleccionada || items.length === 0 || !cartId) {
+      limpiarCotizaciones();
       return;
     }
 
-    if (uberError?.type === 'PARTIAL_ERROR' && Array.isArray(uberError?.restaurants)) {
-      const nombres = uberError.restaurants
-        .map((r) => r?.restaurantName || `Restaurante ${r?.restaurantId}`)
-        .filter(Boolean)
-        .join(', ');
-
-      enqueueSnackbar(
-        `${uberError.message}${nombres ? ` (${nombres})` : ''}`,
-        { variant: 'warning' }
-      );
+    // El carrito se está sincronizando: la cotización se hará al terminar.
+    if (sincronizandoCarrito) {
       return;
     }
 
-    enqueueSnackbar(uberError?.message ?? 'No fue posible obtener las cotizaciones de envío.', { variant: 'error' });
-  }, [uberError, enqueueSnackbar]);
+    /*
+     * Las cotizaciones anteriores quedan obsoletas (cambió la dirección o el
+     * carrito): se limpian para que no se pueda confirmar con un precio
+     * vencido. El backend invalida del mismo modo las cotizaciones activas
+     * previas del mismo carrito al volver a cotizar.
+     */
+    limpiarCotizaciones();
 
-  useEffect(() => {
-    if (!direccionSeleccionada || restaurantes?.length === 0) {
-      clearQuotes();
-      return;
-    }
+    let cancelado = false;
 
-    let cancelled = false;
+    const temporizador = setTimeout(async () => {
+      const token = await getToken();
 
-    const cotizarEnvios = async () => {
-      setCotizandoEnvios(true);
-      setErrorCotizacion('');
+      if (cancelado) {
+        return;
+      }
+
+      if (!token) {
+        const mensaje =
+          'No fue posible validar tu sesión para cotizar el envío. Vuelve a iniciar sesión.';
+        setError(mensaje);
+        enqueueSnackbar(mensaje, { variant: 'warning' });
+        return;
+      }
 
       try {
-        const restaurantesUber = restaurantes?.map((restaurante) => ({
-          restaurantId: restaurante?.id,
-          restaurantName: restaurante?.nombre,
-        }));
-
-        /*
-         * Si la dirección está guardada usamos su ID.
-         * Si es una dirección temporal creada desde DirecciónSelector, id será null y enviamos directamente el objeto de dirección.
-         */
-        const resultado = await getQuotes({
-          restaurants: restaurantesUber,
-          direccionDestinoId: direccionSeleccionada.id ?? null,
-          direccionDestino: direccionSeleccionada.id ? null : direccionSeleccionada,
-        });
-
-        if (cancelled) {
-          return;
-        }
-
-        console.log('Cotizaciones Uber Direct:', resultado);
+        await cotizar(
+          {
+            foodCartId: cartId,
+            direccionDestinoId: direccionSeleccionada.id ?? null,
+            // Respaldo: destino inline si la dirección no llegó a guardarse.
+            direccionDestino: direccionSeleccionada.id ? null : direccionSeleccionada,
+          },
+          token
+        );
       } catch (err) {
-        if (cancelled) {
+        if (cancelado) {
           return;
         }
 
+        // El mensaje ya viaja en `errorCotizacion` (el hook lo expone y la UI
+        // lo muestra); aquí solo se deja la traza para depurar.
         console.error('Error cotizando envíos:', err);
-
-        setErrorCotizacion(err?.message ?? 'No fue posible calcular los envíos.');
-      } finally {
-        if (!cancelled) {
-          setCotizandoEnvios(false);
-        }
       }
-    };
-
-    cotizarEnvios();
+    }, 800);
 
     return () => {
-      cancelled = true;
+      cancelado = true;
+      clearTimeout(temporizador);
     };
-  }, [direccionSeleccionada, restaurantes, getQuotes, clearQuotes]);
+  }, [
+    direccionSeleccionada,
+    cartId,
+    huellaCarrito,
+    items.length,
+    sincronizandoCarrito,
+    cotizar,
+    limpiarCotizaciones,
+    getToken,
+  ]);
+
+  /*
+   * Re-cotiza con la dirección y el carrito actuales (p.ej. cuando la
+   * cotización seleccionada ya venció o cuando la petición falló).
+   */
+  const volverACotizar = async () => {
+    const token = await getToken();
+
+    if (!token) {
+      const mensaje =
+        'No fue posible validar tu sesión para cotizar el envío. Vuelve a iniciar sesión.';
+      setError(mensaje);
+      enqueueSnackbar(mensaje, { variant: 'warning' });
+      return;
+    }
+
+    try {
+      await cotizar(
+        {
+          foodCartId: cartId,
+          direccionDestinoId: direccionSeleccionada?.id ?? null,
+          direccionDestino: direccionSeleccionada?.id ? null : direccionSeleccionada,
+        },
+        token
+      );
+    } catch (err) {
+      // El mensaje se muestra desde `errorCotizacion` (Alert + snackbar).
+      console.error('Error volviendo a cotizar el envío:', err);
+    }
+  };
 
   /*
    * Si no hay productos.
@@ -588,10 +726,49 @@ const FoodCheckout = () => {
         </Alert>
       )}
 
-      {activeStep === 2 && !cotizandoEnvios && cotizacionIncompleta && (
+      {tokenError && (
+        <Alert severity="warning" sx={{ mb: 3 }} >
+          {tokenError}
+        </Alert>
+      )}
+
+      {activeStep === 2 && errorCotizacion && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              disabled={cotizandoEnvios}
+              onClick={volverACotizar}
+            >
+              Reintentar
+            </Button>
+          }
+        >
+          {errorCotizacion}
+        </Alert>
+      )}
+
+      {activeStep === 2 && !cotizandoEnvios && !errorCotizacion && cotizacionIncompleta && (
         <Alert severity="warning" sx={{ mb: 3 }} >
           No fue posible calcular el envío de: {restaurantesSinCotizacion.map((r) => r.nombre).join(', ')}.
           Regresa al paso de dirección para volver a cotizar.
+        </Alert>
+      )}
+
+      {activeStep === 2 && tablero && !puedeContinuar && (
+        <Alert severity="warning" sx={{ mb: 3 }} >
+          No hay servicio de envío disponible para uno o más restaurantes del pedido.
+          Cambia la dirección de entrega o vuelve a cotizar.
+        </Alert>
+      )}
+
+      {activeStep === 2 && hayCotizacionVencida && (
+        <Alert severity="warning" sx={{ mb: 3 }} >
+          Una o más cotizaciones de envío ya vencieron (vigencia de 15 minutos).
+          Vuelve a cotizar para continuar con el pedido.
         </Alert>
       )}
 
@@ -622,9 +799,10 @@ const FoodCheckout = () => {
             <Button
               variant="contained"
               endIcon={<ArrowForward />}
+              disabled={guardandoDireccion}
               onClick={continuarDireccion}
             >
-              Continuar
+              {guardandoDireccion ? 'Guardando dirección...' : 'Continuar'}
             </Button>
           </Stack>
         </Box>
@@ -700,7 +878,12 @@ const FoodCheckout = () => {
 
                       {
                         cotizandoEnvios ? (
-                          <CircularProgress size={18} />
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <CircularProgress size={16} />
+                            <Typography variant="body2" color="text.secondary">
+                              Cotizando...
+                            </Typography>
+                          </Stack>
                         ) : obtenerCostoEnvio(restaurante.id) != null ? (
                           <Typography fontWeight={700}>
                             ${obtenerCostoEnvio(restaurante.id).toFixed(2)}
@@ -712,6 +895,20 @@ const FoodCheckout = () => {
                         )
                       }
                     </Stack>
+
+                    {/*
+                      Opciones de envío del restaurante (Ciudadan / Uber Direct):
+                      precio, distancia y vigencia; el usuario elige una y el
+                      total se recalcula con el importe seleccionado.
+                    */}
+                    <Box sx={{ mt: 2 }}>
+                      <FoodOpcionesEnvio
+                        cotizaciones={getCotizacionesRestaurante(restaurante.id)?.cotizaciones}
+                        proveedorSeleccionado={selecciones[String(restaurante.id)] ?? null}
+                        onSeleccionar={(proveedor) => seleccionarProveedor(restaurante.id, proveedor)}
+                        vencida={seleccionVencida(restaurante.id)}
+                      />
+                    </Box>
                   </CardContent>
                 </Card>
               );
@@ -786,6 +983,16 @@ const FoodCheckout = () => {
               Regresar
             </Button>
 
+            {(hayCotizacionVencida || errorCotizacion) && (
+              <Button
+                variant="outlined"
+                disabled={cotizandoEnvios}
+                onClick={volverACotizar}
+              >
+                Volver a cotizar
+              </Button>
+            )}
+
             <Button
               variant="contained"
               endIcon={
@@ -795,10 +1002,20 @@ const FoodCheckout = () => {
                   <ArrowForward />
                 )
               }
-              disabled={procesando || cotizandoEnvios || cotizacionIncompleta}
+              disabled={procesando || cotizandoEnvios || cotizacionIncompleta || hayCotizacionVencida || !puedeContinuar}
               onClick={crearOrdenes}
             >
-              {procesando ? 'Creando órdenes...' : cotizandoEnvios ? 'Calculando envío...' : cotizacionIncompleta ? 'Envío no disponible' : 'Confirmar pedido'}
+              {procesando
+                ? 'Creando órdenes...'
+                : cotizandoEnvios
+                  ? 'Cotizando envío...'
+                  : hayCotizacionVencida
+                    ? 'Cotización vencida'
+                    : !tablero && !errorCotizacion
+                      ? 'Calculando envío...'
+                      : cotizacionIncompleta
+                        ? 'Envío no disponible'
+                        : 'Confirmar pedido'}
             </Button>
           </Stack>
         </Box>
