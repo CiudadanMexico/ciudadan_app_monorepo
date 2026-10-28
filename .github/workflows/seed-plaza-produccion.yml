@@ -119,7 +119,7 @@ jobs:
             exit 1
           fi
 
-      - name: "Ejecutar seed (--apply [--publish]) como usuario del servicio"
+      - name: "Ejecutar seed (--apply [--publish]) con el usuario de deploy"
         shell: bash
         run: |
           set -uo pipefail
@@ -127,7 +127,11 @@ jobs:
           if [ "${{ inputs.publish }}" = "true" ]; then ARGS="$ARGS --publish"; fi
           echo "Nota del operador: ${{ inputs.note }}"
           echo "Argumentos: $ARGS"
-          ssh -o BatchMode=yes polanco-tunnel "sudo -n -u alexander --preserve-env bash -s" <<'REMOTE' 2>&1 | tee seed.log
+          # El usuario de deploy (github-deploy) pertenece al grupo alexander:
+          # puede leer el env de produccion y escribir en .tmp/public. No se usa
+          # `sudo -u alexander` porque la sudoers de Polanco solo autoriza
+          # binarios concretos (systemctl, ciudadan-deploy, preflight).
+          ssh -o BatchMode=yes polanco-tunnel "bash -s" <<'REMOTE' 2>&1 | tee seed.log
           set -a; . /var/www/shared/ciudadan_backend.env; set +a
           cd /var/www/releases/ciudadan_backend/current/ciudadan_backend_26
 
