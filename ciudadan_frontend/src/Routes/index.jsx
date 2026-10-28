@@ -24,6 +24,7 @@ import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
 import ComunidadRoute from '../Pages/ComunidadRoute.jsx';
+import ComunidadFeed from '../Pages/ComunidadFeed.jsx';
 import CrearComunidad from '../Pages/CrearComunidad.jsx';
 import IntegrarmeComunidad from '../Pages/IntegrarmeComunidad.jsx';
 import GenRoute from '../Pages/GenRoute.jsx';
@@ -1281,15 +1282,12 @@ const Rutas = () => {
     />
     <Route
       path='/comunidad/feed'
-      element={(
-        <SocialSectionPage
-          sectionKey='feed'
-          title='Feed'
-          description='Abre el feed social de Ciudadan.'
-          note='Esta pantalla queda conectada al nuevo Social Shell.'
-          primaryActionLabel='Ir a Asamblea'
-        />
-      )}
+      element={<ComunidadFeed />}
+    />
+    {/* /comunidades: feed real de publicaciones (antes esta ruta daba 404) */}
+    <Route
+      path='/comunidades'
+      element={<ComunidadFeed />}
     />
     <Route
       path='/comunidad/chats'

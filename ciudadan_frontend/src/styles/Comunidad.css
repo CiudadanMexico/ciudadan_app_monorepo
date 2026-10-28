@@ -96,6 +96,19 @@
   text-decoration: none;
   transition: all 0.3s ease-in-out;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+}
+
+.join-button.neutro {
+  background-color: #ffffff;
+  color: #000;
+  border: 2px solid #6d6e71;
+}
+
+.join-button.neutro:hover {
+  background-color: #f2f2f2;
 }
 
 .join-button.whatsapp {
@@ -122,6 +135,85 @@
   font-size: 1.1rem;
   color: #6d6e71;
   font-weight: 600;
+}
+
+
+/* ------------------------------------------------------------------
+   Feed real de la comunidad (/comunidades y /comunidad/feed).
+   Reutiliza la identidad visual de esta misma hoja: fondo amarillo
+   suave, panel blanco con borde gris, botones redondeados y pie gris.
+   ------------------------------------------------------------------ */
+
+.comunidad-container--feed {
+  flex-direction: column;
+  align-items: center;
+}
+
+.comunidad-content--feed {
+  max-width: 900px;
+  text-align: left;
+}
+
+.comunidad-feed__encabezado {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.comunidad-feed__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.comunidad-feed__item {
+  border: 1px solid rgba(109, 110, 113, 0.35);
+  border-radius: 1.25rem;
+  background: #ffffff;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.comunidad-feed__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.comunidad-feed__autor {
+  font-weight: 700;
+  color: #000;
+}
+
+.comunidad-feed__fecha {
+  font-size: 0.9rem;
+  color: #6d6e71;
+}
+
+.comunidad-feed__texto {
+  margin: 0;
+}
+
+.comunidad-feed__imagen {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 1rem;
+  margin: 0.75rem 0;
+}
+
+.comunidad-feed__estado {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.comunidad-feed__estado p {
+  margin-bottom: 1rem;
 }
 
   
