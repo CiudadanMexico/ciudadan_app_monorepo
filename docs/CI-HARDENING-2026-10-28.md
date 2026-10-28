@@ -1,7 +1,7 @@
 # CI Hardening — auditoría de `jest.config.js`, variantes del loader y endurecimiento de CI (2026-10-28)
 
 - **Fecha:** 2026-10-28
-- **Rama:** `feature/ci-hardening-1028` (creada desde `origin/main` = `56672b6`)
+- **Rama:** `feature/ci-hardening-1028` (creada desde `origin/main` = `56672b6`; en el pase de cierre rebased sobre `origin/main` = `79ad28e`, que ya integra este mismo trabajo vía `ce299fb`)
 - **Base de la auditoría forense:** `origin/main` = **`9f4eabd`** (main ya purgado: merge de `4d1aec7` "purga urgente del backdoor" + `b9681b0` con la guardia `check-payload-ofuscado.js`). `9f4eabd` es **ancestro** de `56672b6`, que es el `origin/main` vigente al momento de este pase (ya incluye las integraciones de `feature/comunidad-feed-real-1028`, `feature/fleet-status-1028`, `feature/smoke-release-1028` y `feature/seeder-publish-fix-1028`).
 - **Estado del clon de trabajo:** el clon original del agente estaba en la base vieja `6fe67bb`, donde `api.js` todavía existía en la raíz. La rama de este trabajo se **reconstruyó desde `origin/main`**; `api.js` no existe en el árbol ni en ningún commit de la rama, y el bloque ofuscado de `auth0.js` no se reintrodujo.
 - **Alcance:** auditoría de `jest.config.js` (tarea 1), búsqueda de las variantes A/B/C (tarea 2), endurecimiento de CI (tarea 3), pruebas negativas (tarea 4) y este informe (tarea 5).

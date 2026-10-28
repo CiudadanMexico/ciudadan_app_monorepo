@@ -105,6 +105,23 @@ test('la guardia actual del repo pasa (arbol limpio)', () => {
   assert.match(res.stdout, /Guardia OK/);
 });
 
+test('detecta un api.js RASTREADO en un repo git temporal (modo repo, igual que CI)', (t) => {
+  // Reproduce el escenario real de CI: el payload llega como archivo versionado
+  // en el checkout del PR (no como archivo suelto en disco), de modo que la
+  // guardia debe detectarlo tambien en modo repo (git ls-files).
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  escribir(dir, 'api.js', '// MUESTRA INERTE: no es codigo malicioso.\nmodule.exports = {};\n');
+  const add = spawnSync('git', ['-C', dir, 'add', 'api.js'], { encoding: 'utf8' });
+  assert.equal(add.status, 0, `git add fallo: ${add.stderr}`);
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, /api\.js/);
+  assert.match(res.stderr, /archivo prohibido/);
+});
+
 test('un directorio inexistente es error de uso (exit 2)', () => {
   const res = spawnSync(process.execPath, [GUARDIA, '/tmp/no-existe-ci-guardia-xyz'], { encoding: 'utf8' });
   assert.equal(res.status, 2);
