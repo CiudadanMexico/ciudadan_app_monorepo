@@ -101,6 +101,22 @@ jobs:
             echo "::error::P4 no esta en PRIMARY_POLANCO: no se escribe en produccion."
             exit 1
           }
+          # No correr el seed mientras haya un deploy en curso en Polanco: el
+          # prune del deploy puede borrar la release que el seed esta usando
+          # (el 2026-10-28 dejo el seed colgado con la release eliminada).
+          for i in $(seq 1 60); do
+            if ssh -o BatchMode=yes polanco-tunnel "pgrep -f ciudadan-deploy" >/dev/null 2>&1; then
+              echo "Hay un deploy en curso en Polanco; esperando ($i/30)..."
+              sleep 20
+            else
+              break
+            fi
+          done
+          if ssh -o BatchMode=yes polanco-tunnel "pgrep -f ciudadan-deploy" >/dev/null 2>&1; then
+            echo "::error::Sigue un deploy en curso en Polanco: no se ejecuta el seed ahora."
+            exit 1
+          fi
+          echo "Sin deploys en curso: el seed puede usar la release actual."
           echo "PREFLIGHT_OK (release $SHA, P4 PRIMARY_POLANCO)" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: "Preflight 2: categorias de tienda (si faltan, el seed aborta a medias)"
@@ -108,10 +124,18 @@ jobs:
         run: |
           set -uo pipefail
           ssh -o BatchMode=yes polanco-tunnel bash -s <<'REMOTE' | tee categorias.log
-          for slug in computacion electronica-y-tecnologia; do
-            n=$(curl -s "http://127.0.0.1:33332/api/store-categories?filters%5Bslug%5D%5B%24eq%5D=$slug" \
-                | grep -o '"id":[0-9]*' | head -1)
-            echo "categoria $slug -> ${n:-NO_ENCONTRADA}"
+          # Tras un deploy el API puede tardar en levantar: se reintenta.
+          for intento in $(seq 1 12); do
+            LISTO=1
+            for slug in computacion electronica-y-tecnologia; do
+              n=$(curl -s --max-time 15 "http://127.0.0.1:33332/api/store-categories?filters%5Bslug%5D%5B%24eq%5D=$slug" \
+                  | grep -o '"id":[0-9]*' | head -1)
+              if [ -z "$n" ]; then LISTO=0; fi
+              echo "categoria $slug -> ${n:-NO_ENCONTRADA}"
+            done
+            [ "$LISTO" = "1" ] && break
+            echo "API de produccion aun no lista (intento $intento/12); esperando 15s..."
+            sleep 15
           done
           REMOTE
           if grep -q "NO_ENCONTRADA" categorias.log; then
@@ -152,8 +176,22 @@ jobs:
                 const c = new Client(cfg);
                 try {
                   await c.connect();
-                  const r = await c.query("select u.id, u.email from up_users u join up_users_role_link l on l.user_id = u.id join up_roles r on r.id = l.role_id where r.name = $1 order by u.id limit 1", ["admin"]);
-                  if (r.rows.length) console.log(r.rows[0].id + "|" + r.rows[0].email);
+                  // El nombre de la tabla puente y de la columna de roles varian
+                  // entre instalaciones: se prueban candidatas y se usa la
+                  // primera que responda.
+                  const cands = [
+                    "select u.id, u.email from up_users u join up_users_roles_links l on l.up_users_id = u.id join up_roles r on r.id = l.up_roles_id where r.type in ($$admin$$,$$root$$) order by u.id limit 1",
+                    "select u.id, u.email from up_users u join up_users_roles_links l on l.user_id = u.id join up_roles r on r.id = l.role_id where r.type in ($$admin$$,$$root$$) order by u.id limit 1",
+                    "select id, email from up_users where coalesce(roles_extra::text, $$$$) ~* $$(admin|root)$$ order by id limit 1",
+                    "select id, email from up_users where coalesce(roles::text, $$$$) ~* $$(admin|root)$$ order by id limit 1"
+                  ];
+                  for (const q of cands) {
+                    try {
+                      const r = await c.query(q);
+                      if (r.rows.length) { console.log(r.rows[0].id + "|" + r.rows[0].email); return; }
+                    } catch (e) { /* siguiente candidata */ }
+                  }
+                  console.log("ERR|no se encontro owner admin");
                 } catch (e) { console.log("ERR|" + e.message); }
                 finally { await c.end().catch(() => {}); }
               })();
