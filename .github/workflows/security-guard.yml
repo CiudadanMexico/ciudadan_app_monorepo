@@ -1,0 +1,46 @@
+# Guardia de seguridad CI: bloquea payloads ofuscados / backdoors.
+#
+# Se ejecuta en CADA pull_request y en CADA push a main, SIN filtro de paths:
+# un api.js reinyectado en la raiz (o un .js nuevo en cualquier carpeta) debe
+# romper el pipeline aunque no toque ciudadan_backend_26/**.
+#
+# Detecta: api.js en la raiz, marcadores del packer (global['!'],
+# while(!![]){try{, constructor Function oculto) y lineas de >5 KB en .js.
+#
+# No usa pull_request_target: el codigo del PR se ejecuta como codigo del PR,
+# sin secretos ni permisos de escritura.
+name: Guardia de payloads ofuscados
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Permisos minimos: solo lectura del contenido del repo.
+permissions:
+  contents: read
+
+jobs:
+  guardia:
+    name: "Guardia — payloads ofuscados (repo completo)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: "Guardia de payloads ofuscados"
+        run: node ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js
+
+      - name: "Pruebas negativas de la guardia (muestras inertes en temporal)"
+        run: node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js

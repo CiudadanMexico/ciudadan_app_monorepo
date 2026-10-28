@@ -31,6 +31,11 @@ concurrency:
   group: ciudadan-seed-plaza
   cancel-in-progress: false
 
+# Permisos minimos: este workflow solo habla por SSH con el servidor de
+# produccion; no necesita leer ni escribir el repositorio via la API de GitHub.
+permissions:
+  contents: read
+
 env:
   DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
   POLANCO_HOST: ${{ secrets.POLANCO_HOST }}
@@ -46,6 +51,8 @@ jobs:
     name: "Seed Plaza (tienda oficial + 30 productos) en PROD Polanco"
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
       - name: Preparar SSH (tunel cloudflared a Polanco)
         shell: bash

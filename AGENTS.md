@@ -246,3 +246,23 @@ Each subproject has its own `.env` (not committed; no `.env.example`). Key vars:
 Plain git monorepo (single `.git/` at root). Feature branches: `feature/backend-<name>` or `feature/frontend-<name>`, PR to `main`. CI/CD is path-based (changes in `ciudadan_backend_26/` trigger backend deploy, `ciudadan_frontend/` triggers frontend deploy). Deploy via SSH to VPS, Docker Compose.
 
 11. **`api.js` (raiz del repo) y `ciudadan_backend_26/middleware/src/routes/auth0.js` han sido portadores de un backdoor** (C2 via blockchain Ethereum, payload remoto con XOR). Eliminados el 2026-10-27; ya se reinyectaron 3 veces. En CADA integracion verifica que no reaparezcan: marcadores `global['!']`, `while(!![]){try{`, lineas >5 KB en un `.js` fuera de `node_modules`, o un `api.js` en la raiz. Script de guardia: `ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js`.
+
+## Coordinación compartida Ciudadan — obligatorio
+
+Antes de iniciar o modificar trabajo en este monorepo, usa el servidor MCP
+`ciudadan_knowledge` (o el protocolo documentado en
+`C:\Users\elyiz\.dsh\operations\ledger-policy.md`):
+
+1. Consulta conocimiento, reservas activas y ledger reciente.
+2. Adquiere `reservation_acquire` para el recurso lógico compartido (rama,
+   archivo, despliegue o servicio) y conserva el `fencing_token`.
+3. Si otro agente conserva la reserva, no escribas ni despliegues: coordina o
+   escala.
+4. Registra inicio, resultado y evidencia con `ledger_append`; publica
+   decisiones o aprendizajes con `memory_append` en vez de editarlos.
+5. Nunca escribas tokens, cookies, llaves, `.env` ni `.credentials.yaml` en
+   entradas, logs o mensajes del ledger.
+
+En modo degradado, cuando el ledger compartido no esté disponible, detén
+cambios destructivos y deja una nota local sin secretos. La política y la Skill
+global `ciudadan-knowledge` son la referencia completa.

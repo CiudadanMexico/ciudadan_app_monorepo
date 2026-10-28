@@ -1,27 +1,49 @@
-# Suite de pruebas del backend (node --test) — Ciudadan.
-# Corre en PRs y en pushes a main, pero SOLO cuando cambian archivos del
-# backend (ciudadan_backend_26/**) o este mismo workflow (filtro paths).
+# Suite de pruebas del backend (node --test) + guardia de payloads ofuscados.
+#
+# Corre en PRs y en pushes a main cuando cambian archivos del backend
+# (ciudadan_backend_26/**), archivos de codigo SUELTOS EN LA RAIZ del repo
+# (*.js, *.mjs, *.cjs — por ejemplo un api.js reinyectado) o estos workflows.
+#
+# La guardia de payloads ofuscados se ejecuta ADEMAS en cada PR y en cada push
+# a main mediante .github/workflows/security-guard.yml (sin filtro de paths),
+# para no depender de este filtro.
 name: Pruebas backend (node --test)
 
 on:
   pull_request:
     paths:
       - 'ciudadan_backend_26/**'
+      - '*.js'
+      - '*.mjs'
+      - '*.cjs'
       - '.github/workflows/tests.yml'
+      - '.github/workflows/security-guard.yml'
   push:
     branches: [main]
     paths:
       - 'ciudadan_backend_26/**'
+      - '*.js'
+      - '*.mjs'
+      - '*.cjs'
       - '.github/workflows/tests.yml'
+      - '.github/workflows/security-guard.yml'
+
+# Permisos minimos del workflow: solo lectura del contenido del repo.
+permissions:
+  contents: read
 
 jobs:
   tests:
     name: "Backend — lógica pura con node:test (food-shipping + wikiseed)"
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       # Node 22 (no 20): la suite de wikiseed ejercita el pre-flight ABI de
       # better-sqlite3 del socket-service, que exige >=22 (con Node 20 el
@@ -30,6 +52,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      # Gate de seguridad: bloquea el pipeline si el arbol trae un api.js en la
+      # raiz, un marcador de packer o una linea de >5 KB. Ver
+      # docs/CI-HARDENING-2026-10-28.md.
+      - name: "Guardia de payloads ofuscados (api.js en la raíz, packers, líneas >5 KB)"
+        run: node ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js
+
+      # Pruebas negativas de la guardia: generan muestras INERTES en un
+      # temporal fuera del repo y comprueban que la guardia las detecta.
+      - name: "Pruebas negativas de la guardia (muestras inertes en temporal)"
+        run: node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js
 
       # Las suites son lógica pura con mocks de Strapi (node:test +
       # node:assert/strict): no requieren npm ci, .env ni base de datos.
@@ -46,3 +79,4 @@ jobs:
         run: |
           set -e
           node --test ciudadan_backend_26/tests/wikiseed-sync.test.js
+
