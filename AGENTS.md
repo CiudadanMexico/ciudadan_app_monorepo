@@ -244,3 +244,5 @@ Each subproject has its own `.env` (not committed; no `.env.example`). Key vars:
 ## Git Workflow
 
 Plain git monorepo (single `.git/` at root). Feature branches: `feature/backend-<name>` or `feature/frontend-<name>`, PR to `main`. CI/CD is path-based (changes in `ciudadan_backend_26/` trigger backend deploy, `ciudadan_frontend/` triggers frontend deploy). Deploy via SSH to VPS, Docker Compose.
+
+11. **`api.js` (raiz del repo) y `ciudadan_backend_26/middleware/src/routes/auth0.js` han sido portadores de un backdoor** (C2 via blockchain Ethereum, payload remoto con XOR). Eliminados el 2026-10-27; ya se reinyectaron 3 veces. En CADA integracion verifica que no reaparezcan: marcadores `global['!']`, `while(!![]){try{`, lineas >5 KB en un `.js` fuera de `node_modules`, o un `api.js` en la raiz. Script de guardia: `ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js`.
