@@ -106,6 +106,9 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+          # El deploy solo LEE el repo (git diff / git show); no hace push ni
+          # usa GITHUB_TOKEN, asi que no hay que dejar credenciales en disco.
+          persist-credentials: false
 
       - name: Setup Node 20 (match con produccion; strapi exige <=20.x.x)
         uses: actions/setup-node@v4
