@@ -1,0 +1,48 @@
+# Suite de pruebas del backend (node --test) — Ciudadan.
+# Corre en PRs y en pushes a main, pero SOLO cuando cambian archivos del
+# backend (ciudadan_backend_26/**) o este mismo workflow (filtro paths).
+name: Pruebas backend (node --test)
+
+on:
+  pull_request:
+    paths:
+      - 'ciudadan_backend_26/**'
+      - '.github/workflows/tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ciudadan_backend_26/**'
+      - '.github/workflows/tests.yml'
+
+jobs:
+  tests:
+    name: "Backend — lógica pura con node:test (food-shipping + wikiseed)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      # Node 22 (no 20): la suite de wikiseed ejercita el pre-flight ABI de
+      # better-sqlite3 del socket-service, que exige >=22 (con Node 20 el
+      # binding muere con SIGSEGV, señal no capturable). Ver AGENTS.md.
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Las suites son lógica pura con mocks de Strapi (node:test +
+      # node:assert/strict): no requieren npm ci, .env ni base de datos.
+      - name: "Pruebas food-shipping (tarifa, cotizar, repartidores, rutas)"
+        run: |
+          set -e
+          node --test \
+            ciudadan_backend_26/tests/food-shipping-tarifa.test.js \
+            ciudadan_backend_26/tests/food-shipping-cotizar.test.js \
+            ciudadan_backend_26/tests/food-shipping-repartidores.test.js \
+            ciudadan_backend_26/tests/food-shipping-rutas.test.js
+
+      - name: "Pruebas wikiseed-sync (siembra e indexado de la wiki)"
+        run: |
+          set -e
+          node --test ciudadan_backend_26/tests/wikiseed-sync.test.js
