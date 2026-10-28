@@ -131,7 +131,9 @@ jobs:
           # puede leer el env de produccion y escribir en .tmp/public. No se usa
           # `sudo -u alexander` porque la sudoers de Polanco solo autoriza
           # binarios concretos (systemctl, ciudadan-deploy, preflight).
-          ssh -o BatchMode=yes polanco-tunnel "bash -s" <<'REMOTE' 2>&1 | tee seed.log
+          # Los argumentos se pasan al shell remoto como posicionales: las
+          # variables del shell local no cruzan el heredoc.
+          ssh -o BatchMode=yes polanco-tunnel "bash -s -- $ARGS" <<'REMOTE' 2>&1 | tee seed.log
           set -a; . /var/www/shared/ciudadan_backend.env; set +a
           cd /var/www/releases/ciudadan_backend/current/ciudadan_backend_26
 
@@ -164,7 +166,7 @@ jobs:
             echo "Owner desde env de produccion: id=$PLAZA_STORE_OWNER_ID"
           fi
 
-          NODE_ENV=production node seed/plaza-tecnologia/seed-plaza-tecnologia.js $ARGS
+          NODE_ENV=production node seed/plaza-tecnologia/seed-plaza-tecnologia.js "$@"
           RC=$?
           echo "SEED_EXIT=$RC"
           exit $RC
