@@ -1,0 +1,122 @@
+name: Seed Plaza en produccion (manual)
+
+# Ejecuta el seed idempotente de la tienda oficial "La plaza de la tecnologia a
+# tu casa" (30 productos) contra la BASE DE DATOS DE PRODUCCION en Polanco.
+#
+# Contexto: el seed solo asignaba `publishedAt` en el path CREATE (bug corregido
+# el 2026-10-28 en seed/plaza-tecnologia/publicar.js), por lo que la tienda y los
+# productos que ya existian quedaban con published_at NULL y no se servian por
+# la API publica aunque se corriera con --apply --publish.
+#
+# Escribe en Polanco (PRIMARY). Dany es standby con replicacion de PostgreSQL
+# en streaming (lag 0): lo que se escribe aqui llega solo, no se ejecuta dos veces.
+#
+# Uso: GitHub Actions > "Seed Plaza en produccion (manual)" > Run workflow.
+# La nota del operador queda en el log del run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Nota del operador (queda en el log de Actions)"
+        required: false
+        default: ""
+      publish:
+        description: "Publicar lo que falte (--publish)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ciudadan-seed-plaza
+  cancel-in-progress: false
+
+env:
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+  POLANCO_HOST: ${{ secrets.POLANCO_HOST }}
+  KH_LINES: |
+    ssh.ciudadan.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
+    [ssh.ciudadan.org]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAV0EIAO0Jiw5JfzkMyc9Sg8Rr/cAVhekXBavJ4zJoCW
+    40.233.7.3 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
+    [40.233.7.3]:22 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIxBUpdSP68eAqLuSH3hN9R3/hwN99S5c1z45303mb/I
+
+jobs:
+  seed-plaza:
+    name: "Seed Plaza (tienda oficial + 30 productos) en PROD Polanco"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Preparar SSH (tunel cloudflared a Polanco)
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+          cat > ~/.ssh/config <<'EOF'
+          Host polanco-tunnel
+            HostName ssh.ciudadan.org
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/" ~/.ssh/config
+          ssh -o BatchMode=yes polanco-tunnel true && echo "SSH polanco OK"
+
+      - name: Preflight (release con el fix + P4 en PRIMARY_POLANCO)
+        shell: bash
+        run: |
+          set -uo pipefail
+          SHA=$(ssh -o BatchMode=yes polanco-tunnel cat /var/www/releases/ciudadan_backend/CURRENT 2>/dev/null | tail -1)
+          echo "Release desplegada en Polanco: $SHA"
+          [ -n "$SHA" ] || { echo "::error::No pude leer la release desplegada."; exit 1; }
+          if ! ssh -o BatchMode=yes polanco-tunnel "test -f /var/www/releases/ciudadan_backend/current/ciudadan_backend_26/seed/plaza-tecnologia/publicar.js"; then
+            echo "::error::La release desplegada NO trae el fix de publicacion (seed/plaza-tecnologia/publicar.js). Despliega main primero."
+            exit 1
+          fi
+          P4=$(ssh -o BatchMode=yes polanco-tunnel "sudo -n /usr/local/sbin/p4-executor status" 2>&1 || true)
+          echo "$P4" | head -20
+          echo "$P4" | grep -q "PRIMARY_POLANCO" || {
+            echo "::error::P4 no esta en PRIMARY_POLANCO: no se escribe en produccion."
+            exit 1
+          }
+          echo "PREFLIGHT_OK (release $SHA, P4 PRIMARY_POLANCO)" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: "Ejecutar seed (--apply [--publish]) como usuario del servicio"
+        shell: bash
+        run: |
+          set -uo pipefail
+          ARGS="--apply"
+          if [ "${{ inputs.publish }}" = "true" ]; then ARGS="$ARGS --publish"; fi
+          echo "Nota del operador: ${{ inputs.note }}"
+          echo "Argumentos: $ARGS"
+          ssh -o BatchMode=yes polanco-tunnel "sudo -n -u alexander --preserve-env bash -lc 'set -a; . /var/www/shared/ciudadan_backend.env; set +a; cd /var/www/releases/ciudadan_backend/current/ciudadan_backend_26; NODE_ENV=production node seed/plaza-tecnologia/seed-plaza-tecnologia.js $ARGS'" 2>&1 | tee seed.log
+          if ! grep -q "Errores: 0" seed.log; then
+            echo "::error::El seed no termino con 'Errores: 0' (ver seed.log)."
+            exit 1
+          fi
+          grep -E "^(Tienda|REFRESCO|ERROR)" seed.log | head -40 | tee -a "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Verificacion (API publica de produccion)
+        shell: bash
+        run: |
+          set -uo pipefail
+          URL='https://ciudadan.org/api/products?filters[store][slug][$eq]=la-plaza-de-la-tecnologia-a-tu-casa&pagination[pageSize]=50'
+          curl -sS --max-time 40 "$URL" -o productos.json
+          node -e '
+            const fs = require("fs");
+            const j = JSON.parse(fs.readFileSync("productos.json", "utf8"));
+            const d = Array.isArray(j.data) ? j.data : [];
+            const pub = d.filter((p) => p.attributes && p.attributes.publishedAt);
+            const sin = d.filter((p) => p.attributes && !p.attributes.publishedAt);
+            const linea = "Plaza en PROD: " + d.length + " productos | publicados: " + pub.length + " | sin publicar: " + sin.length;
+            console.log(linea);
+            if (sin.length) console.log("SIN PUBLICAR: " + sin.map((p) => p.attributes.slug).join(", "));
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, linea + "\n");
+            if (d.length === 0) { console.error("La API publica no devolvio productos de la tienda Plaza."); process.exit(1); }
+            if (sin.length) { console.error("Quedan productos sin publicar."); process.exit(1); }
+          '
