@@ -7,24 +7,19 @@ import { useRoles } from '../Contexts/RolesContext';
 import { wikiService } from '../services/wikiService';
 
 import Probador from '../components/Testers/Probador.jsx';
-import MultimediaRoute from '../Pages/Multimedia/MultimediaRoute.jsx';
 
 // ---------- Páginas principales ----------
 import HomeRoute from '../Pages/HomeRoute.jsx';
 import GanaRoute from '../Pages/GanaRoute.jsx';
 import RentaUniversalPage from '../Pages/Gana/RentaUniversalPage.jsx';
-import ReciclandoPage from '../Pages/Gana/ReciclandoPage.jsx';
-import AgenciaDigitalPage from '../Pages/Gana/AgenciaDigitalPage.jsx';
 import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx';
 import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
-import DescargarConductores from '../Pages/DescargarConductores.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
 import Rompecabezas from '../components/Academia/Rompecabezas.jsx';
 import ComunidadRoute from '../Pages/ComunidadRoute.jsx';
-import ComunidadFeed from '../Pages/ComunidadFeed.jsx';
 import CrearComunidad from '../Pages/CrearComunidad.jsx';
 import IntegrarmeComunidad from '../Pages/IntegrarmeComunidad.jsx';
 import GenRoute from '../Pages/GenRoute.jsx';
@@ -33,11 +28,6 @@ import CallbackPage from '../Pages/CallbackPage.jsx';
 import RegistroPasajero from '../Pages/RegistroPasajero.jsx';
 
 import Membresias from '../Pages/Membresias.jsx';
-import MembresiasDetalles from '../Pages/MembresiasDetalles.jsx';
-import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
-import SociosEstatalesPage from '../Pages/SociosEstatales/SociosEstatalesPage.jsx';
-import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx';
-
 import MiMembresia from '../Pages/MiMembresia.jsx';
 import MarketPlace from '../Pages/MarketPlace/MarketPlace.jsx';
 import ProductosPage from '../Pages/MarketPlace/ProductosPage.jsx';
@@ -70,14 +60,6 @@ import SkillsManagement from '../Pages/CoWork/Skills/SkillsManagement.jsx';
 import VerificarUsuarios from '../Pages/CoWork/Verificacion/VerificarUsuarios.jsx';
 
 import NavBar from '../components/NavBar/NavBar.jsx';
-
-// ---------- Generación Fundadora 2026 ----------
-import GeneracionFundadoraPage from '../Pages/Generation/GeneracionFundadoraPage.jsx';
-import HackabotPage from '../Pages/Generation/HackabotPage.jsx';
-import VallecatnipPage from '../Pages/Generation/VallecatnipPage.jsx';
-import CreadoresPage from '../Pages/Generation/CreadoresPage.jsx';
-import AliadosPage from '../Pages/Generation/AliadosPage.jsx';
-import RegistroGeneracionPage from '../Pages/Generation/RegistroGeneracionPage.jsx';
 import RequisitosConductor from '../components/Taxiz/RequisitosConductor.jsx';
 import Academia from '../components/Academia/Academia.jsx';
 import LmAi from '../components/Asistente/LmAi.jsx';
@@ -111,21 +93,7 @@ import ITokens from '../Pages/Cartera/ITokens.jsx';
 import Catalogo from '../Pages/Cartera/FreeBoocks/Catalogo.jsx';
 import CrearCarteraPage from '../Pages/Cartera/CrearCarteraPage.jsx';
 import Coowork from '../Pages/Coowork/Coowork.jsx';
-import ProfesoresPage from '../Pages/Coowork/ProfesoresPage.jsx';
 import Agencia from '../Pages/Coowork/Agencia.jsx';
-import MiAgenciaTareas from '../Pages/Coowork/MiAgenciaTareas.jsx';
-import MiAgencia from '../Pages/Coowork/MiAgencia.jsx';
-import CapitalHumano from '../Pages/Coowork/CapitalHumano.jsx';
-import ConfiguracionAgencia from '../Pages/Coowork/ConfiguracionAgencia.jsx';
-import TareasHerramientas from '../Pages/Coowork/TareasHerramientas.jsx';
-import HabilidadesHub from '../Pages/Coowork/HabilidadesHub.jsx';
-import Clientes from '../Pages/Coowork/Clientes.jsx';
-import Agentes from '../Pages/Coowork/Agentes.jsx';
-import Postulaciones from '../Pages/Coowork/Postulaciones.jsx';
-import Candidatos from '../Pages/Candidatos.jsx';
-import Identidad from '../Pages/Identidad.jsx';
-import Votaciones from '../Pages/Votaciones.jsx';
-import Objetos from '../Pages/Objetos.jsx';
 
 // Taxis (pasajero / conductor / trip)
 import Pasajero from '../components/Taxis/Pasajero.jsx';
@@ -145,7 +113,6 @@ import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
 import AnunciosRemunerados from '../Pages/AnunciosRemunerados/AnunciosRemunerados.jsx';
 import ComunidadPage from '../Pages/ComunidadPage.jsx';
-import CiudadaneandoPage from '../Pages/Comunidad/CiudadaneandoPage.jsx';
 import Referir from '../Pages/Comunidad/Referir.jsx';
 import SocialSectionPage from '../Pages/Comunidad/SocialSectionPage.jsx';
 
@@ -171,15 +138,11 @@ import Compras from '../Pages/MarketPlace/Compras.jsx';
 import UsuarioPage from '../Pages/Usuarios/UsuarioPage';
 
 import PreRegistroConductor2 from '../components/Taxiz/PreRegistroConductor2.jsx';
-import ExpedienteConductor from '../components/Taxiz/ExpedienteConductor.jsx';
 import ConductoresAgencia from '../components/Cowork/ConductoresAgencia.jsx';
 import DriverVerificationPage from '../Pages/Taxis/DriverVerificationPage.jsx';
-import QuieroRepartir from '../components/Repartidor/QuieroRepartir.jsx';
-import EstadoRepartidor from '../components/Repartidor/EstadoRepartidor.jsx';
 import TestToken from '../components/TestToken.jsx';
 import FinalizarCompraProducto from '../Pages/MarketPlace/FinalizarCompraProducto.jsx';
 import MarketPage from '../Pages/MarketPlace/MarketPage.jsx';
-import VenderPage from '../Pages/MarketPlace/VenderPage.jsx';
 import RegistroRestaurante from '../Pages/Food/RegistroRestaurante.jsx';
 import Restaurant from '../Pages/Food/Restaurant.jsx';
 import ComprarFoodProduct from '../Pages/Food/ComprarFoodProduct.jsx';
@@ -239,7 +202,6 @@ const WikiWrapper = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [doc, setDoc] = useState(null);
-  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -254,12 +216,12 @@ const WikiWrapper = () => {
       for (const candidate of candidates) {
         try {
           const found = await wikiService.getDocument(candidate);
-          if (found && !cancelled) { setDoc(found); setCargando(false); return; }
+          if (found && !cancelled) { setDoc(found); return; }
         } catch (e) {
           /* intentar siguiente sección */
         }
       }
-      if (!cancelled) { setDoc(null); setCargando(false); }
+      if (!cancelled) setDoc(null);
     })();
 
     return () => { cancelled = true; };
@@ -274,9 +236,32 @@ const WikiWrapper = () => {
     if (last) navigate(`/wiki/${last}`);
   };
 
-  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} cargando={cargando} />;
+  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
 };
 
+// Guía de usuario (ruta /wiki/ayuda): carga help/guia-usuario.md
+const WikiAyudaRoute = () => {
+  const navigate = useNavigate();
+  const [doc, setDoc] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    wikiService
+      .getDocument('wiki/help/guia-usuario.md')
+      .then((found) => { if (!cancelled) setDoc(found); })
+      .catch(() => { if (!cancelled) setDoc(null); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleNavigateDocument = (path) => {
+    const normalized = String(path || '').replace(/^\/+/, '').replace(/\.md$/i, '');
+    const parts = normalized.split('/').filter(Boolean);
+    const last = parts.length ? parts[parts.length - 1] : normalized;
+    if (last) navigate(`/wiki/${last}`);
+  };
+
+  return <WikiViewer document={doc} onNavigateDocument={handleNavigateDocument} />;
+};
 
 // Layout para Wiki
 const WikiLayout = ({ children }) => (
@@ -284,45 +269,6 @@ const WikiLayout = ({ children }) => (
     <div style={{ paddingTop: '64px' }}>{children}</div>
   </>
 );
-
-// Redirect legacy /herramientas/* -> /coowork/admin/herramientas/* (canonica nueva).
-const HerramientaRedirect = () => {
-  const { slug = '', categoria = null } = useParams();
-  const destino = categoria
-    ? `/coowork/admin/herramientas/${categoria}/${slug}`
-    : `/coowork/admin/herramientas/${slug}`;
-  return <Navigate replace to={destino} />;
-};
-
-// Resuelve /coowork/admin/herramientas/:categoria/:slug a la página dedicada de la
-// herramienta (el slug manda; la categoría se usa en pasos posteriores para
-// organizarlas). Desconocido -> vuelve al grid de herramientas.
-// Redirect compat /coowork/herramientas/:categoria/:slug -> /coowork/admin/herramientas/:categoria/:slug.
-const HerramientaRedirectCompat = () => {
-  const { categoria = '', slug = '' } = useParams();
-  return <Navigate replace to={`/coowork/admin/herramientas/${categoria}/${slug}`} />;
-};
-
-const HERRAMIENTA_POR_SLUG = {
-  'mi-agencia': MiAgencia,
-  'calificar-tarea': CalificarTarea,
-  'corregir-tarea': CorregirTarea,
-  'gestionar-tareas': GestionTareas,
-  'resolver-apelaciones': ResolverApelaciones,
-  'agregar-tarea': AgregarTarea,
-  'asignar-tarea': AsignarTareaPage,
-  'agregar-socio': AgregarSocio,
-  'gestionar-habilidades': HabilidadesHub,
-  'verificar-usuarios': VerificarUsuarios,
-  'conductores': ConductoresAgencia,
-  'agentes': Agentes,
-};
-const HerramientaDedicada = () => {
-  const { slug = '' } = useParams();
-  const Pagina = HERRAMIENTA_POR_SLUG[String(slug)];
-  if (!Pagina) return <Navigate replace to='/coowork/admin/herramientas' />;
-  return <Pagina />;
-};
 
 const TripViewRoute = () => {
   const { user } = useAuth0();
@@ -398,81 +344,32 @@ const Rutas = () => {
     return <Prelanzamiento />;
   }
 
-  // Landing de descarga de la app de conductores (campañas / QR en eventos).
-  if (hostname === 'descargar.ciudadan.org') {
-    return <DescargarConductores />;
-  }
-
   return (
     <Routes>
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
-      <Route path='/descargar' element={<DescargarConductores />} />
-      <Route path='/descargar-conductores' element={<DescargarConductores />} />
-    <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
-    {/* RUTAS NORMALES */}
-    <Route
-      path='/'
-      element={<HomeRoute />}
-    />
-    <Route
-      path='/crear-comunidad'
-      element={<CrearComunidad />}
-    />
-    <Route
-      path='/integrarme-comunidad'
-      element={<IntegrarmeComunidad />}
-    />
-    <Route
-      path='/probador'
-      element={<Probador />}
-    />
 
-    {/* Multimedia (Bloque 5C) */}
-    <Route
-      path='/multimedia'
-      element={<MultimediaRoute />}
-    />
-    <Route
-      path='/registrar'
-      element={<ReferirAlias />}
-    />
-
-    {/* Generación Fundadora 2026 */}
-    <Route
-      path='/generacion-fundadora'
-      element={<GeneracionFundadoraPage />}
-    />
-    <Route
-      path='/hackabot'
-      element={<HackabotPage />}
-    />
-    {/* Legacy: el concepto interhackaton se reemplaza totalmente por hackabot */}
-    <Route
-      path='/interhackaton'
-      element={<Navigate to='/hackabot' replace />}
-    />
-
-    {/* Postulación pública a socio de una agencia (Coowork) */}
-    <Route
-      path='/candidatos'
-      element={<Candidatos />}
-    />
-    <Route
-      path='/vallecatnip'
-      element={<VallecatnipPage />}
-    />
-    <Route
-      path='/creadores'
-      element={<CreadoresPage />}
-    />
-    <Route
-      path='/aliados'
-      element={<AliadosPage />}
-    />
-    <Route
-      path='/generacion-fundadora/registro'
-      element={<RegistroGeneracionPage />}
-    />
+      <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
+      {/* RUTAS NORMALES */}
+      <Route
+        path='/'
+        element={<HomeRoute />}
+      />
+      <Route
+        path='/crear-comunidad'
+        element={<CrearComunidad />}
+      />
+      <Route
+        path='/integrarme-comunidad'
+        element={<IntegrarmeComunidad />}
+      />
+      <Route
+        path='/probador'
+        element={<Probador />}
+      />
+      <Route
+        path='/registrar'
+        element={<ReferirAlias />}
+      />
 
       {/* Callback / Auth */}
       <Route
@@ -490,108 +387,80 @@ const Rutas = () => {
         element={<Notificacion />}
       />
 
-    {/* Gana / GanaRoute */}
-    <Route
-      path='/gana'
-      element={<GanaRoute />}
-    />
-    <Route
-      path='/gana/ver-anuncios'
-      element={<AnunciosRemunerados />}
-    />
-    <Route
-      path='/gana/renta-universal'
-      element={<RentaUniversalPage />}
-    />
-    <Route
-      path='/gana/reciclando'
-      element={<ReciclandoPage />}
-    />
-    <Route
-      path='/gana/agencias'
-      element={<AgenciaDigitalPage />}
-    />
-    <Route
-      path='/gana/lideresverificadores'
-      element={<LideresVerificadoresPage />}
-    />
-    <Route
-      path='/gana/lideresverificadores/registro'
-      element={<RedireccionPrelanzamiento tipo='lider' />}
-    />
-    {/* Taxis */}
-    <Route
-      path='/taxis'
-      element={<TaxisRoute />}
-    />
-    <Route
-      path='/taxis/conductor/registro'
-      element={<PreRegistroConductor2 />}
-    />
-    <Route
-      path='/taxis/conductor/preregistro'
-      element={<PreRegistroConductor2 />}
-    />
-    <Route
-      path='/taxis/conductor/esperando'
-      element={<Conductor />}
-    />
-    <Route
-      path='/taxis/conductor/requisitos'
-      element={<RequisitosConductor />}
-    />
-    <Route
-      path='/taxis/conductor/expediente'
-      element={<ExpedienteConductor />}
-    />
-    <Route
-      path='/taxis/pasajero/registro'
-      element={<RegistroPasajero />}
-    />
-    <Route
-      path='/taxis/pasajero/viaje'
-      element={<Pasajero />}
-    />
-    <Route
-      path='/taxis/viajes/historial'
-      element={<HistorialViajes />}
-    />
-    <Route
-      path='/taxis/viaje/:travelId'
-      element={<TripViewRoute />}
-    />
-    <Route
-      path='/taxis/viaje-gratis'
-      element={<VerifyFreeTrip />}
-    />
+      {/* Gana / GanaRoute */}
+      <Route
+        path='/gana'
+        element={<GanaRoute />}
+      />
+      <Route
+        path='/gana/ver-anuncios'
+        element={<AnunciosRemunerados />}
+      />
+      <Route
+        path='/gana/renta-universal'
+        element={<RentaUniversalPage />}
+      />
+      <Route
+        path='/gana/lideresverificadores'
+        element={<LideresVerificadoresPage />}
+      />
+      <Route
+        path='/gana/lideresverificadores/registro'
+        element={<RedireccionPrelanzamiento tipo='lider' />}
+      />
+      {/* Taxis */}
 
-    {/* Repartidores (MVP de registro/verificación/activación, api::delivery-registration):
-        sin PrivateRoute en el repo, cada vista se autoguarda (login con returnTo
-        dentro de QuieroRepartir/EstadoRepartidor) y el backend protege todo. */}
-    <Route
-      path='/repartidor/registro'
-      element={<QuieroRepartir />}
-    />
-    <Route
-      path='/repartidor/estado'
-      element={<EstadoRepartidor />}
-    />
 
-    {/* Conductores de agencia: '/herramientas/conductores' es la que navega la app
-        (DriverVerificationPage) y '/herramientas/agencia/conductores' es alias
-        por si algún enlace antiguo la usa */}
-    <Route
-      path='/herramientas/conductores'
-      element={<ConductoresAgencia />}
-    />
-    <Route
-      path='/herramientas/agencia/conductores'
-      element={<ConductoresAgencia />}
-    />
-    <Route
-      path='/validations/:validationId/review'
-      element={<DriverVerificationPage />}
-    />
+      {/* Taxis */}
+      <Route
+        path='/taxis'
+        element={<TaxisRoute />}
+      />
+      <Route
+        path='/taxis/conductor/registro'
+        element={<RedireccionPrelanzamiento tipo='conductor' />}
+      />
+      <Route
+        path='/taxis/conductor/preregistro'
+        element={<RedireccionPrelanzamiento tipo='conductor' />}
+      />
+      <Route
+        path='/taxis/conductor/esperando'
+        element={<Conductor />}
+      />
+      <Route
+        path='/taxis/conductor/requisitos'
+        element={<RequisitosConductor />}
+      />
+      <Route
+        path='/taxis/pasajero/registro'
+        element={<RegistroPasajero />}
+      />
+      <Route
+        path='/taxis/pasajero/viaje'
+        element={<Pasajero />}
+      />
+      <Route
+        path='/taxis/viajes/historial'
+        element={<HistorialViajes />}
+      />
+      <Route
+        path='/taxis/viaje/:travelId'
+        element={<TripViewRoute />}
+      />
+      <Route
+        path='/taxis/viaje-gratis'
+        element={<VerifyFreeTrip />}
+      />
+
+      <Route
+        path='/herramientas/conductores'
+        element={<ConductoresAgencia />}
+      />
+      <Route
+        path='/validations/:validationId/review'
+        element={<DriverVerificationPage />}
+      />
 
       {/* Food / Restaurantes */}
       <Route
@@ -627,116 +496,96 @@ const Rutas = () => {
         element={<RestaurantesRoute />}
       />
 
-    {/* Market / Marketplace / MarketRoute */}
-    <Route
-      path='/market/vender'
-      element={<VenderPage />}
-    />
-    <Route
-      path='/market'
-      element={<MarketPage />}
-    />
-    <Route
-      path='/marketplaces'
-      element={<MarketPage />}
-    />
-    <Route
-      path='/market/tiendas-oficiales'
-      element={<MarketPage />}
-    />
-    <Route
-      path='/market/tiendas-no-oficiales'
-      element={<MarketPage />}
-    />
-    <Route
-      path='/marketplaces/tiendas-oficiales'
-      element={<MarketPage />}
-    />
-    <Route
-      path='/marketplaces/tiendas-no-oficiales'
-      element={<MarketPage />}
-    />
-    <Route
-      path='/market/producto/:slug'
-      element={<Producto />}
-    />
-    <Route
-      path='/market/store/:slug'
-      element={<Tienda />}
-    >
+      {/* Market / Marketplace / MarketRoute */}
       <Route
-        path='agregar-producto'
+        path='/market'
+        element={<MarketPage />}
+      />
+      <Route
+        path='/marketplaces'
+        element={<MarketPage />}
+      />
+      <Route
+        path='/market/producto/:slug'
+        element={<Producto />}
+      />
+      <Route
+        path='/market/store/:slug'
+        element={<Tienda />}
+      >
+        <Route
+          path='agregar-producto'
+          element={<AgregarProducto />}
+        />
+        <Route
+          path='pedidos'
+          element={<MisProductos />}
+        />
+        <Route
+          path='entregados'
+          element={<PedidosEntregados />}
+        />
+        <Route
+          path='productos'
+          element={<AgregarProducto />}
+        />
+        <Route
+          path='preguntas-producto'
+          element={<MisProductos />}
+        />
+        <Route
+          path='pagos'
+          element={<PagosTienda />}
+        />
+        <Route
+          path='configuracion'
+          element={<ConfiguracionTienda />}
+        />
+        <Route
+          path='saldo-logistico'
+          element={<SaldoLogistico />}
+        />
+      </Route>
+      <Route
+        path='/registro-vendedor'
+        element={<RegistroTienda />}
+      />
+      <Route
+        path='/agregar-producto'
         element={<AgregarProducto />}
       />
       <Route
-        path='pedidos'
-        element={<MisProductos />}
+        path='/carrito'
+        element={<Carrito />}
       />
       <Route
-        path='entregados'
-        element={<PedidosEntregados />}
+        path='/carrito/finalizar'
+        element={<FinalizarCompra />}
       />
       <Route
-        path='productos'
-        element={<AgregarProducto />}
+        path='/carrito/comida/checkout'
+        element={<FoodCheckout />}
       />
       <Route
-        path='preguntas-producto'
-        element={<MisProductos />}
+        path='/compras/*'
+        element={<Compras />}
       />
       <Route
-        path='pagos'
-        element={<PagosTienda />}
+        path='/productos/*'
+        element={<ProductosPage />}
       />
       <Route
-        path='configuracion'
-        element={<ConfiguracionTienda />}
+        path='/productos/eliminar/:slug'
+        element={<EliminarProductoWrapper />}
       />
-      <Route 
-        path='saldo-logistico'
-        element={<SaldoLogistico />}
+      <Route
+        path='/productos/eliminar/:slug'
+        element={<EliminarProductoWrapper />}
       />
-    </Route>
-    <Route
-      path='/registro-vendedor'
-      element={<RegistroTienda />}
-    />
-    <Route
-      path='/agregar-producto'
-      element={<AgregarProducto />}
-    />
-    <Route
-      path='/carrito'
-      element={<Carrito />}
-    />
-    <Route
-      path='/carrito/finalizar'
-      element={<FinalizarCompra />}
-    />
-    <Route
-      path='/carrito/comida/checkout'
-      element={<FoodCheckout />}
-    />
-    <Route
-      path='/compras/*'
-      element={<Compras />}
-    />
-    <Route
-      path='/productos/*'
-      element={<ProductosPage />}
-    />
-    <Route
-      path='/productos/eliminar/:slug'
-      element={<EliminarProductoWrapper />}
-    />
-    <Route
-      path='/productos/eliminar/:slug'
-      element={<EliminarProductoWrapper />}
-    />
-    <Route
-      path='/market/comprar/:slug'
-      element={<FinalizarCompraProducto />}
-    />
+      <Route
+        path='/market/comprar/:slug'
+        element={<FinalizarCompraProducto />}
+      />
 
       {/* Cartera / OpWallet */}
       <Route
@@ -769,320 +618,74 @@ const Rutas = () => {
         element={<PreRegistroConductor2 />}
       />
 
-    {/* Academia / Coowork */}
-    <Route
-      path='/academia'
-      element={<Rompecabezas />}
-    />
-    <Route
-      path='/academias'
-      element={<Academia />}
-    />
-    <Route
-      path='/academia/taxis'
-      element={<Academia />}
-    />
-    {/* ================= Coowork: enrutamiento profundo =================
-        La URL manda: Coowork deriva tab/subTab de ella. :vista pasa el
-        segmento a useParams (paths fijos NO pasan params: ese fue el bug
-        que dejaba el contenido congelado). Las /herramientas/* viejas
-        quedan como redirects a /coowork/admin/herramientas/* (compat). */}
-    <Route
-      path='/coowork'
-      element={<Coowork />}
-    />
-    {/* Deep-link a Tareas Especializadas: /coowork/especializadas/multimedia
-        (antes que :vista para que no la capture la genérica) */}
-    <Route
-      path='/coowork/especializadas/:areaSlug'
-      element={<Coowork />}
-    />
-    {/* Grid de Herramientas (canonica): /coowork/admin/herramientas -> Coowork tab socio/subTab 1.
-        Deep-link directo a la tab para admin/root/socio/colaborador/becario. */}
-    <Route
-      path='/coowork/admin/herramientas'
-      element={<Coowork />}
-    />
-    {/* Herramientas: forma actual (raíz) y forma futura (con categoría).
-        /coowork/herramientas/:slug  hoy;  /coowork/herramientas/:categoria/:slug  mañana.
-        OJO: estas renderizan la página dedicada (HerramientaDedicada), NO <Coowork/>;
-        el grid de Herramientas vive dentro de Coowork en /coowork/admin/herramientas.
-        Van ANTES que /coowork/:vista para que el slug no caiga en `vista`. */}
-    <Route
-      path='/coowork/herramientas/:slug'
-      element={<Navigate replace to='/coowork/admin/herramientas' />}
-    />
-    <Route
-      path='/coowork/herramientas/:categoria/:slug'
-      element={<HerramientaRedirectCompat />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/:slug'
-      element={<HerramientaDedicada />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/:categoria/:slug'
-      element={<HerramientaDedicada />}
-    />
-    {/* Todas las vistas: tareas-generales|especializadas|tareas-socio|
-        herramientas|bitacora|pagos|verificar-conductores|verificar-repartidores|
-        auditorias|mis-tareas */}
-    <Route
-      path='/coowork/:vista'
-      element={<Coowork />}
-    />
-    {/* Masters Ciudadan (vista previa) */}
-    <Route
-      path='/coowork/profesores'
-      element={<ProfesoresPage />}
-    />
-    {/* Alias legacy: /coowork/socio -> /coowork/tareas-socio */}
-    <Route
-      path='/coowork/socio'
-      element={<Navigate replace to='/coowork/tareas-socio' />}
-    />
-    {/* TodoToken: tareas PUBLICADAS por el socio dentro de su Agencia Ciudadan */}
-    <Route
-      path='/coowork/mi-agencia/tareas'
-      element={<MiAgenciaTareas />}
-    />
+      {/* Academia / Coowork */}
+      <Route
+        path='/academia'
+        element={<Rompecabezas />}
+      />
+      <Route
+        path='/academias'
+        element={<Academia />}
+      />
+      <Route
+        path='/academia/taxis'
+        element={<Academia />}
+      />
+      <Route
+        path='/coowork'
+        element={<Coowork />}
+      />
+      {/* Alias: los Líderes/Verificadores de Conductores y Socios se dirigen aquí */}
+      <Route
+        path='/coowork/socio'
+        element={<Coowork />}
+      />
+      <Route
+        path='/asignar-tarea'
+        element={<AsignarTareaPage />}
+      />
+      <Route
+        path='/herramientas/mi-agencia'
+        element={<Agencia />}
+      />
+      <Route
+        path='/herramientas/calificar-tarea'
+        element={<CalificarTarea />}
+      />
+      <Route
+        path='/herramientas/corregir-tarea'
+        element={<CorregirTarea />}
+      />
+      <Route
+        path='/herramientas/gestionar-tareas'
+        element={<GestionTareas />}
+      />
+      <Route
+        path='/herramientas/resolver-apelaciones'
+        element={<ResolverApelaciones />}
+      />
+      <Route
+        path='/herramientas/agregar-tarea'
+        element={<AgregarTarea />}
+      />
 
-    {/* Fichas navegables de tokens (Id-Token / Vote-Token / Object-Token) */}
-    <Route
-      path='/identidad'
-      element={<Identidad />}
-    />
-    <Route
-      path='/votaciones'
-      element={<Votaciones />}
-    />
-    <Route
-      path='/objetos'
-      element={<Objetos />}
-    />
-    <Route
-      path='/asignar-tarea'
-      element={<AsignarTareaPage />}
-    />
-    {/* Herramientas dedicadas CANONICAS bajo /coowork/admin/herramientas/*.
-        El grid vive dentro de Coowork en esa misma ruta (tab socio/subTab 1). */}
-    <Route
-      path='/coowork/admin/herramientas/mi-agencia'
-      element={<MiAgencia />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/mi-agencia/agregar-socio'
-      element={<AgregarSocio />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/mi-agencia/capital-humano'
-      element={<CapitalHumano />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/mi-agencia/configuracion'
-      element={<ConfiguracionAgencia />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/clientes'
-      element={<Clientes />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas'
-      element={<TareasHerramientas />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas/calificar-tarea'
-      element={<CalificarTarea />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas/corregir-tarea'
-      element={<CorregirTarea />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas/gestionar-tareas'
-      element={<GestionTareas />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas/agregar-tarea'
-      element={<AgregarTarea />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas/asignar-tarea'
-      element={<AsignarTareaPage />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/tareas/resolver-apelaciones'
-      element={<ResolverApelaciones />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/agregar-socio'
-      element={<AgregarSocio />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/gestionar-habilidades'
-      element={<HabilidadesHub />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/habilidades/agregar'
-      element={<SkillsManagement />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/habilidades/verificar'
-      element={<VerificarUsuarios />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/conductores'
-      element={<ConductoresAgencia />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/agencia/conductores'
-      element={<ConductoresAgencia />}
-    />
-    <Route
-      path='/coowork/admin/herramientas/agentes'
-      element={<Agentes />}
-    />
-    {/* COMPAT: viejas /coowork/herramientas/* -> canonica /coowork/admin/herramientas/* */}
-    {/* Herramientas dedicadas bajo /coowork/herramientas/:slug (y futura
-        /coowork/herramientas/:categoria/:slug). El grid de Herramientas vive
-        dentro de Coowork; estas páginas son la vista dedicada de cada una. */}
-    <Route
-      path='/coowork/herramientas/mi-agencia'
-      element={<Navigate replace to='/coowork/admin/herramientas/mi-agencia' />}
-    />
-    {/* Sub-secciones de Mi Agencia (antes que la genérica :categoria/:slug) */}
-    <Route
-      path='/coowork/herramientas/mi-agencia/agregar-socio'
-      element={<Navigate replace to='/coowork/admin/herramientas/mi-agencia/agregar-socio' />}
-    />
-    <Route
-      path='/coowork/herramientas/mi-agencia/capital-humano'
-      element={<Navigate replace to='/coowork/admin/herramientas/mi-agencia/capital-humano' />}
-    />
-    <Route
-      path='/coowork/herramientas/mi-agencia/configuracion'
-      element={<Navigate replace to='/coowork/admin/herramientas/mi-agencia/configuracion' />}
-    />
-    {/* Categoría "Tareas": hub que agrupa las 5 herramientas de tareas.
-        Va antes de la ruta genérica /coowork/herramientas/:slug. */}
-    <Route
-      path='/coowork/herramientas/clientes'
-      element={<Navigate replace to='/coowork/admin/herramientas/clientes' />}
-    />
-    <Route
-      path='/coowork/herramientas/tareas'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas' />}
-    />
-    <Route
-      path='/coowork/herramientas/calificar-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/calificar-tarea' />}
-    />
-    <Route
-      path='/coowork/herramientas/corregir-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/corregir-tarea' />}
-    />
-    <Route
-      path='/coowork/herramientas/gestionar-tareas'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/gestionar-tareas' />}
-    />
-    <Route
-      path='/coowork/herramientas/resolver-apelaciones'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/resolver-apelaciones' />}
-    />
-    <Route
-      path='/coowork/herramientas/agregar-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/agregar-tarea' />}
-    />
-    <Route
-      path='/coowork/herramientas/asignar-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/asignar-tarea' />}
-    />
-    <Route
-      path='/coowork/herramientas/agregar-socio'
-      element={<Navigate replace to='/coowork/admin/herramientas/agregar-socio' />}
-    />
-    <Route
-      path='/coowork/herramientas/gestionar-habilidades'
-      element={<Navigate replace to='/coowork/admin/herramientas/gestionar-habilidades' />}
-    />
-    {/* Sub-opciones de Gestionar Habilidades:
-        - agregar   -> SkillsManagement (lista actual + nueva habilidad)
-        - verificar -> VerificarUsuarios (verificar habilidades de usuario) */}
-    <Route
-      path='/coowork/herramientas/habilidades/agregar'
-      element={<Navigate replace to='/coowork/admin/herramientas/habilidades/agregar' />}
-    />
-    <Route
-      path='/coowork/herramientas/habilidades/verificar'
-      element={<Navigate replace to='/coowork/admin/herramientas/habilidades/verificar' />}
-    />
-    <Route
-      path='/coowork/herramientas/verificar-usuarios'
-      element={<Navigate replace to='/coowork/admin/herramientas/habilidades/verificar' />}
-    />
-    <Route
-      path='/coowork/herramientas/conductores'
-      element={<Navigate replace to='/coowork/admin/herramientas/conductores' />}
-    />
-    <Route
-      path='/coowork/herramientas/agencia/conductores'
-      element={<Navigate replace to='/coowork/admin/herramientas/conductores' />}
-    />
+      <Route
+        path='/herramientas/asignar-tarea'
+        element={<AsignarTareaPage />}
+      />
+      <Route
+        path='/herramientas/agregar-socio'
+        element={<AgregarSocio />}
+      />
+      <Route
+        path='/herramientas/gestionar-habilidades'
+        element={<SkillsManagement />}
+      />
+      <Route
+        path='/herramientas/verificar-usuarios'
+        element={<VerificarUsuarios />}
+      />
 
-    <Route
-      path='/herramientas/mi-agencia'
-      element={<Navigate replace to='/coowork/admin/herramientas/mi-agencia' />}
-    />
-    <Route
-      path='/herramientas/calificar-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/calificar-tarea' />}
-    />
-    <Route
-      path='/herramientas/corregir-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/corregir-tarea' />}
-    />
-    <Route
-      path='/herramientas/gestionar-tareas'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/gestionar-tareas' />}
-    />
-    <Route
-      path='/herramientas/resolver-apelaciones'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/resolver-apelaciones' />}
-    />
-    <Route
-      path='/herramientas/agregar-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/agregar-tarea' />}
-    />
-
-    <Route
-      path='/herramientas/asignar-tarea'
-      element={<Navigate replace to='/coowork/admin/herramientas/tareas/asignar-tarea' />}
-    />
-    <Route
-      path='/herramientas/agregar-socio'
-      element={<Navigate replace to='/coowork/admin/herramientas/agregar-socio' />}
-    />
-    <Route
-      path='/herramientas/gestionar-habilidades'
-      element={<Navigate replace to='/coowork/admin/herramientas/gestionar-habilidades' />}
-    />
-    <Route
-      path='/herramientas/verificar-usuarios'
-      element={<Navigate replace to='/coowork/admin/herramientas/habilidades/verificar' />}
-    />
-    <Route
-      path='/herramientas/postulaciones'
-      element={<Postulaciones />}
-    />
-    {/* Conductores y resto de herramientas legacy -> prefijo /coowork */}
-    <Route
-      path='/herramientas/:slug'
-      element={<HerramientaRedirect />}
-    />
-    <Route
-      path='/herramientas/:categoria/:slug'
-      element={<HerramientaRedirect />}
-    />
       {/* Perfil / Usuario */}
       <Route
         path='/perfil/:username'
@@ -1107,60 +710,59 @@ const Rutas = () => {
         element={<MiUbicacion />}
       />
 
-    {/* Info / Wiki / Help */}
-    {/* /wiki redirige a la wiki principal (main) */}
-    <Route
-      path='/wiki'
-      element={<Navigate to='/wiki/main' replace />}
-    />
-    {/* Guía de usuario del sitio en /wiki/ayuda: mismo visor con las 3
-        pestañas que /wiki/help (abierto en Ayuda), no solo la guía suelta. */}
-    <Route
-      path='/wiki/ayuda'
-      element={<WikiApp section='help' />}
-    />
-    {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
-    <Route
-      path='/wiki/main'
-      element={<WikiApp section='main' />}
-    />
-    <Route
-      path='/wiki/help'
-      element={<WikiApp section='help' />}
-    />
-    <Route
-      path='/wiki/faq'
-      element={<WikiApp section='faq' />}
-    />
-    {/* Cualquier otro documento por slug */}
-    <Route
-      path='/wiki/:slug'
-      element={<WikiWrapper />}
-    />
-    <Route
-      path='/quienes-somos'
-      element={<Navigate to='/wiki/ayuda' replace />}
-    />
-    <Route
-      path='/ayuda'
-      element={<Navigate to='/wiki/ayuda' replace />}
-    />
-    <Route
-      path='/documentacion-transparencia'
-      element={<Navigate to='/wiki/ayuda' replace />}
-    />
-    <Route
-      path='/info/quienes'
-      element={<QuienesSomos />}
-    />
-    <Route
-      path='/info/faq'
-      element={<PreguntasFrecuentes />}
-    />
-    <Route
-      path='/preguntas-frecuentes'
-      element={<PreguntasFrecuentes />}
-    />
+      {/* Info / Wiki / Help */}
+      {/* /wiki redirige a la wiki principal (main) */}
+      <Route
+        path='/wiki'
+        element={<Navigate to='/wiki/main' replace />}
+      />
+      {/* Guía de usuario del sitio en /wiki/ayuda */}
+      <Route
+        path='/wiki/ayuda'
+        element={<WikiAyudaRoute />}
+      />
+      {/* Secciones del visor: /wiki/main, /wiki/help, /wiki/faq */}
+      <Route
+        path='/wiki/main'
+        element={<WikiApp />}
+      />
+      <Route
+        path='/wiki/help'
+        element={<WikiApp />}
+      />
+      <Route
+        path='/wiki/faq'
+        element={<WikiApp />}
+      />
+      {/* Cualquier otro documento por slug */}
+      <Route
+        path='/wiki/:slug'
+        element={<WikiWrapper />}
+      />
+      <Route
+        path='/quienes-somos'
+        element={<Navigate to='/wiki/ayuda' replace />}
+      />
+      <Route
+        path='/ayuda'
+        element={<Navigate to='/wiki/ayuda' replace />}
+      />
+      <Route
+        path='/documentacion-transparencia'
+        element={<Navigate to='/wiki/ayuda' replace />}
+      />
+      <Route
+        path='/info/quienes'
+        element={<QuienesSomos />}
+      />
+      <Route
+        path='/info/faq'
+        element={<PreguntasFrecuentes />}
+      />
+      <Route
+        path='/preguntas-frecuentes'
+        element={<PreguntasFrecuentes />}
+      />
 
       {/* Eventos */}
       <Route
@@ -1220,31 +822,11 @@ const Rutas = () => {
         element={<Contenido />}
       />
 
-    {/* Membresías */}
-    <Route
-      path='/membresias/detalles'
-      element={<MembresiasDetalles />}
-    />
-    <Route
-      path='/membresias'
-      element={<Membresias />}
-    />
-    {/* Alias obligatorio de la landing «Vende en Ciudadan»: reutiliza la pagina real
-        de membresias sin inventar precios ni paquetes. */}
-    <Route
-      path='/membresias/negocios'
-      element={<Membresias />}
-    />
-
-    {/* Socios Estatales */}
-    <Route
-      path='/socios-estatales'
-      element={<SociosEstatalesPage />}
-    />
-    <Route
-      path='/socios-estatales/:estado'
-      element={<SocioEstatalEstado />}
-    />
+      {/* Membresías */}
+      <Route
+        path='/membresias'
+        element={<Membresias />}
+      />
 
       <Route
         path='/membresias/pagar/*'
@@ -1271,127 +853,122 @@ const Rutas = () => {
         element={<ActivaTuMembresia />}
       />
 
-    {/* Comunidad */}
-    <Route
-      path='/comunidad'
-      element={<ComunidadRoute />}
-    />
-    <Route
-      path='/comunidad/ciudadaneando'
-      element={<CiudadaneandoPage />}
-    />
-    <Route
-      path='/comunidad/feed'
-      element={<ComunidadFeed />}
-    />
-    {/* /comunidades: feed real de publicaciones (antes esta ruta daba 404) */}
-    <Route
-      path='/comunidades'
-      element={<ComunidadFeed />}
-    />
-    <Route
-      path='/comunidad/chats'
-      element={(
-        <SocialSectionPage
-          sectionKey='chats'
-          title='Chats'
-          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
-          note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
-          primaryActionLabel='Ir a Asamblea'
-        />
-      )}
-    />
-    <Route
-      path='/comunidad/chats/:conversationId'
-      element={(
-        <SocialSectionPage
-          sectionKey='chats'
-          title='Chats'
-          description='Abre las conversaciones de Telegram integradas en Ciudadan.'
-          note='La conversación ocupa el espacio principal de Social.'
-          primaryActionLabel='Ir a Asamblea'
-        />
-      )}
-    />
-    <Route
-      path='/comunidad/contactos'
-      element={(
-        <SocialSectionPage
-          sectionKey='contactos'
-          title='Contactos'
-          description='Abre la agenda y los contactos integrados.'
-          note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
-          primaryActionLabel='Ir a Asamblea'
-        />
-      )}
-    />
-    <Route
-      path='/comunidad/grupos'
-      element={(
-        <SocialSectionPage
-          sectionKey='grupos'
-          title='Grupos'
-          description='Pantalla provisional para grupos.'
-          note='Este espacio queda listo para conectar los grupos del ecosistema social.'
-          primaryActionLabel='Ir a Asamblea'
-        />
-      )}
-    />
-    <Route
-      path='/comunidad/nuevo-anuncio-programado'
-      element={<Anuncios />}
-    />
-    <Route
-      path='/comunidad/mis-anuncios'
-      element={<Anuncios />}
-    />
-    <Route
-      path='/comunidad/mis-anuncios/:slug'
-      element={<Anuncios />}
-    >
+      {/* Comunidad */}
       <Route
-        path='programados'
+        path='/comunidad'
+        element={<ComunidadRoute />}
+      />
+      <Route
+        path='/comunidad/feed'
+        element={(
+          <SocialSectionPage
+            sectionKey='feed'
+            title='Feed'
+            description='Abre el feed social de Ciudadan.'
+            note='Esta pantalla queda conectada al nuevo Social Shell.'
+            primaryActionLabel='Ir a Asamblea'
+          />
+        )}
+      />
+      <Route
+        path='/comunidad/chats'
+        element={(
+          <SocialSectionPage
+            sectionKey='chats'
+            title='Chats'
+            description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+            note='Si todavía no está conectada la bandeja, esta ruta funciona como punto de entrada.'
+            primaryActionLabel='Ir a Asamblea'
+          />
+        )}
+      />
+      <Route
+        path='/comunidad/chats/:conversationId'
+        element={(
+          <SocialSectionPage
+            sectionKey='chats'
+            title='Chats'
+            description='Abre las conversaciones de Telegram integradas en Ciudadan.'
+            note='La conversación ocupa el espacio principal de Social.'
+            primaryActionLabel='Ir a Asamblea'
+          />
+        )}
+      />
+      <Route
+        path='/comunidad/contactos'
+        element={(
+          <SocialSectionPage
+            sectionKey='contactos'
+            title='Contactos'
+            description='Abre la agenda y los contactos integrados.'
+            note='Aquí podrás centralizar personas, enlaces y accesos frecuentes.'
+            primaryActionLabel='Ir a Asamblea'
+          />
+        )}
+      />
+      <Route
+        path='/comunidad/grupos'
+        element={(
+          <SocialSectionPage
+            sectionKey='grupos'
+            title='Grupos'
+            description='Pantalla provisional para grupos.'
+            note='Este espacio queda listo para conectar los grupos del ecosistema social.'
+            primaryActionLabel='Ir a Asamblea'
+          />
+        )}
+      />
+      <Route
+        path='/comunidad/nuevo-anuncio-programado'
         element={<Anuncios />}
       />
       <Route
-        path='historial'
+        path='/comunidad/mis-anuncios'
         element={<Anuncios />}
       />
       <Route
-        path='configuracion'
+        path='/comunidad/mis-anuncios/:slug'
         element={<Anuncios />}
+      >
+        <Route
+          path='programados'
+          element={<Anuncios />}
+        />
+        <Route
+          path='historial'
+          element={<Anuncios />}
+        />
+        <Route
+          path='configuracion'
+          element={<Anuncios />}
+        />
+      </Route>
+      <Route
+        path='/referir'
+        element={<Referir />}
       />
-    </Route>
-    <Route
-      path='/referir'
-      element={<Referir />}
-    />
-    <Route
-      path='/referir/*'
-      element={<Referir />}
-    />
-    <Route
-      path='/agregar-club/:club'
-      element={<Referir />}
-    />
+      <Route
+        path='/referir/*'
+        element={<Referir />}
+      />
+      <Route
+        path='/agregar-club/:club'
+        element={<Referir />}
+      />
 
-    {/* Misc / Tests */}
-    <Route
-      path='/candidatos'
-      element={<Candidatos />}
-    />
-    <Route
-      path='/notificationtester'
-      element={<NotificationTester />}
-    />
-    <Route
-      path='/precargador'
-      element={<PreCargador />}
-    />
-    <Route
-      path='/prueba'
-      element={<Prueba />}
-    />
+      {/* Misc / Tests */}
+      <Route
+        path='/notificationtester'
+        element={<NotificationTester />}
+      />
+      <Route
+        path='/precargador'
+        element={<PreCargador />}
+      />
+      <Route
+        path='/prueba'
+        element={<Prueba />}
+      />
 
       {/* Stripe success */}
       <Route
@@ -1399,36 +976,23 @@ const Rutas = () => {
         element={<StripeSuccessRedirect />}
       />
 
-    {/* Fallbacks / aliases */}
-    <Route
-      path='/marketplaces'
-      element={<MarketPlace />}
-    />
-    <Route
-      path='/market'
-      element={<MarketPlace />}
-    />
-
-    {/* Demo / QA interno de GeoNetworkMap — habilitado SOLO en desarrollo
-        (en el build de producción la ruta no existe, igual que otros
-        probadores internos del repo). No está en el menú público. */}
-    {process.env.NODE_ENV !== 'production' && (
+      {/* Fallbacks / aliases */}
       <Route
-        path='/dev/geo-network-map'
-        element={<GeoNetworkMapDemo />}
+        path='/marketplaces'
+        element={<MarketPlace />}
       />
-    )}
+      <Route
+        path='/market'
+        element={<MarketPlace />}
+      />
 
       <Route
         path='/testoken'
         element={<TestToken />}
       />
     </Routes>
-  );
-};
+  )
+}
+
 
 export default Rutas;
-
-
-
-

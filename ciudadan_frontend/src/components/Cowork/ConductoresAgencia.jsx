@@ -13,7 +13,6 @@ import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { resolveValidationByAgendaId } from '../../services/driverVerification/getters';
 import {
   AGENDA_ESTADO,
@@ -21,27 +20,22 @@ import {
   getAgendaEstadoLabel,
 } from '../../constants/agendaEstado';
 
-const MORADO = '#8A5CF5';
-const MORADO_OSCURO = '#6A3FCB';
-const fondo = '#0d0b1a';
-const cardBg = 'rgba(138,92,245,0.06)';
-const cardBorder = 'rgba(138,92,245,0.28)';
-const fontStack = '"Space Grotesk", "Poppins", system-ui, sans-serif';
+const neonGreen = '#00ff99';
+const darkGray = '#1a1a1a';
 
 const RowCard = styled(Paper)(({ theme }) => ({
-  backgroundColor: cardBg,
+  backgroundColor: darkGray,
   color: 'white',
   padding: theme.spacing(2),
-  border: `1px solid ${cardBorder}`,
-  borderRadius: 12,
-  transition: 'box-shadow .25s ease, transform .15s ease, border-color .25s ease',
+  border: `1px solid ${neonGreen}`,
+  borderRadius: 8,
+  transition: 'all 0.25s ease',
   cursor: 'pointer',
   display: 'flex',
   alignItems: 'center',
   gap: theme.spacing(2),
   '&:hover': {
-    boxShadow: '0 0 18px rgba(138,92,245,0.45)',
-    borderColor: MORADO,
+    boxShadow: `0 0 12px ${neonGreen}`,
     transform: 'translateY(-2px)',
   },
 }));
@@ -137,26 +131,15 @@ const ConductoresAgencia = () => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress sx={{ color: MORADO }} />
+        <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: fondo, py: { xs: 3, md: 5 }, px: 2, fontFamily: fontStack }}>
-      <Box sx={{ maxWidth: 900, mx: 'auto' }}>
-      <Button
-        startIcon={<ArrowBackIcon />}
-        onClick={() => {
-          if (window.history.length > 1) navigate(-1);
-          else navigate('/coowork/admin/herramientas');
-        }}
-        sx={{ color: '#cfcfe6', mb: 2, textTransform: 'none', fontFamily: fontStack }}
-      >
-        Volver
-      </Button>
-      <Typography variant="h4" fontWeight={900} sx={{ mb: 2, color: '#fff', fontFamily: fontStack }}>
-        <span style={{ color: MORADO }}>Conductores</span> pendientes
+    <Box sx={{ mt: 2 }}>
+      <Typography variant="h6" sx={{ mb: 2, color: 'white', fontWeight: 600 }}>
+        Conductores pendientes
       </Typography>
 
       <Grid container spacing={2}>
@@ -166,25 +149,25 @@ const ConductoresAgencia = () => {
           return (
             <Grid size={12} key={item.id}>
               <RowCard onClick={() => goToDetalle(item.id)}>
-                <DirectionsCarIcon sx={{ color: MORADO }} />
+                <DirectionsCarIcon sx={{ color: neonGreen }} />
 
                 <Box sx={{ flexGrow: 1 }}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography fontWeight={600} sx={{ color: '#fff', fontFamily: fontStack }}>{a.titulo || 'Sin título'}</Typography>
+                    <Typography fontWeight={600}>{a.titulo || 'Sin título'}</Typography>
                     <Chip size="small" {...getAgendaEstadoChipProps(a.estado)} />
                   </Stack>
 
-                  <Typography variant="body2" sx={{ opacity: 0.8, color: '#d8d8ea', fontFamily: fontStack }}>
+                  <Typography variant="body2" sx={{ opacity: 0.7 }}>
                     {a.ciudad} {a.estado ? `• ${getAgendaEstadoLabel(a.estado)}` : ''}
                   </Typography>
 
                   {a.estado === AGENDA_ESTADO.RESUBIR_ARCHIVOS && (
-                    <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5, color: '#f59e0b', fontFamily: fontStack }}>
+                    <Typography variant="body2" sx={{ opacity: 0.7, mt: 0.5, color: '#f59e0b' }}>
                       Vuelve al preregistro para reenviar los archivos faltantes.
                     </Typography>
                   )}
 
-                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.75, color: '#cfcfe6', fontFamily: fontStack }}>
+                  <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.6 }}>
                     {a.descripcion}
                   </Typography>
                 </Box>
@@ -192,7 +175,7 @@ const ConductoresAgencia = () => {
                 <Box
                   sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}
                 >
-                  <Typography variant="caption" sx={{ color: MORADO, fontWeight: 700, fontFamily: fontStack }}>
+                  <Typography variant="caption" sx={{ color: neonGreen, fontWeight: 600 }}>
                     Ver →
                   </Typography>
                   <Button
@@ -204,13 +187,12 @@ const ConductoresAgencia = () => {
                       goToVerification(item);
                     }}
                     sx={{
-                      color: MORADO,
-                      borderColor: MORADO,
+                      color: neonGreen,
+                      borderColor: neonGreen,
                       textTransform: 'none',
-                      fontFamily: fontStack,
                       '&:hover': {
-                        borderColor: MORADO_OSCURO,
-                        bgcolor: 'rgba(138,92,245,0.12)',
+                        borderColor: neonGreen,
+                        bgcolor: 'rgba(0,255,153,0.08)',
                       },
                     }}
                   >
@@ -224,24 +206,8 @@ const ConductoresAgencia = () => {
       </Grid>
 
       {data.length === 0 && (
-        <Paper
-          elevation={0}
-          sx={{
-            mt: 3,
-            p: 4,
-            textAlign: 'center',
-            borderRadius: 3,
-            bgcolor: cardBg,
-            border: `1px solid ${cardBorder}`,
-          }}
-        >
-          <DirectionsCarIcon sx={{ fontSize: 44, color: MORADO, mb: 1 }} />
-          <Typography sx={{ color: '#d8d8ea', fontFamily: fontStack }}>
-            No hay conductores pendientes
-          </Typography>
-        </Paper>
+        <Typography sx={{ mt: 3, opacity: 0.6 }}>No hay conductores pendientes</Typography>
       )}
-      </Box>
     </Box>
   );
 };
