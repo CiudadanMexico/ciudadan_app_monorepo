@@ -43,28 +43,26 @@ const Carrito = () => {
           value={tab}
           onChange={handleChange}
           variant="fullWidth"
+          textColor="inherit"
           sx={{
             borderBottom: "1px solid",
-            borderColor: "#6A1B9A",
-            "& .MuiTabs-indicator": {
-              backgroundColor: "#6A1B9A",
-            },
-            "& .MuiTab-root.Mui-selected": { color: "#6A1B9A" },
-            "& .MuiTab-root.Mui-selected .MuiTab-iconContainer": { color: "#6A1B9A" },
+            borderColor: "divider",
+            // Morado de marca (paleta Ciudadan) en el tab activo + indicador.
+            "& .MuiTab-root.Mui-selected": { color: "#8A5CF5" },
+            "& .MuiTab-root.Mui-selected .MuiSvgIcon-root": { color: "#8A5CF5" },
+            "& .MuiTabs-indicator": { backgroundColor: "#8A5CF5" },
           }}
         >
           <Tab
             icon={<ShoppingCartIcon />}
             iconPosition="start"
             label="Marketplace"
-            sx={{ color: tab === 0 ? "#6A1B9A" : "#000000", "& .MuiTab-iconContainer": { color: tab === 0 ? "#6A1B9A" : "#000000" } }}
           />
 
           <Tab
             icon={<RestaurantIcon />}
             iconPosition="start"
             label="Comida"
-            sx={{ color: tab === 1 ? "#6A1B9A" : "#000000", "& .MuiTab-iconContainer": { color: tab === 1 ? "#6A1B9A" : "#000000" } }}
           />
         </Tabs>
 

@@ -23,6 +23,21 @@ import { useRoles } from "../../Contexts/RolesContext.jsx";
 // Librerías de Google Maps declaradas como constante
 const LIBRARIES = ["places"];
 
+// --- Estándar de marca (morado Ciudadan) ---
+const MORADO = "#8A5CF5";
+const MORADO_OSCURO = "#6A3FCB";
+// Botón contenido morado (mismo look que el resto del sitio).
+const botonMorado = {
+  backgroundColor: MORADO,
+  color: "#fff",
+  textTransform: "none",
+  fontWeight: 700,
+  "&:hover": { backgroundColor: MORADO_OSCURO },
+  "&.Mui-disabled": { backgroundColor: "rgba(138,92,245,0.4)", color: "rgba(255,255,255,0.7)" },
+};
+// Spinner blanco para los botones morados.
+const spinnerBlanco = { color: "#fff" };
+
 const steps = [
   "Nombre de la tienda",
   "Datos bancarios  ",
@@ -467,7 +482,7 @@ export default function RegisterStoreStepper() {
 
   if (!isAuthenticated)
     return (
-      <Button variant="contained" onClick={loginWithRedirect}>
+      <Button variant="contained" onClick={loginWithRedirect} sx={botonMorado}>
         Inicia sesión
       </Button>
     );
@@ -477,28 +492,23 @@ export default function RegisterStoreStepper() {
       <Typography variant="h4" gutterBottom>
         Registrar Tienda
       </Typography>
-      <Stepper activeStep={activeStep} alternativeLabel>
-        {steps.map((label, index) => (
+      <Stepper
+        activeStep={activeStep}
+        alternativeLabel
+        sx={{
+          "& .MuiStepIcon-root.Mui-active": { color: MORADO },
+          "& .MuiStepIcon-root.Mui-completed": { color: MORADO },
+          "& .MuiStepIcon-text": { fill: "#fff" },
+          "& .MuiStepLabel-label.Mui-active": { color: MORADO, fontWeight: 700 },
+          "& .MuiStepLabel-label.Mui-completed": { color: MORADO, fontWeight: 600 },
+          "& .MuiStepConnector-line": { borderColor: "rgba(138,92,245,0.4)" },
+          "& .Mui-completed .MuiStepConnector-line": { borderColor: MORADO },
+          "& .Mui-active .MuiStepConnector-line": { borderColor: MORADO },
+        }}
+      >
+        {steps.map((label) => (
           <Step key={label}>
-            <StepLabel
-              sx={{
-                color: "#6A1B9A",
-                "& .MuiStepIcon-root": {
-                  color: "#6A1B9A",
-                  bgcolor: (t) => (t.completed || t.active ? "#6A1B9A" : "rgba(106, 27, 154, 0.16)"),
-                },
-                "& .MuiStepLabel-icon": {
-                  color: "#6A1B9A",
-                },
-                "& .MuiStepLabel-label": {
-                  color: "#6A1B9A",
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                },
-              }}
-            >
-              {label}
-            </StepLabel>
+            <StepLabel>{label}</StepLabel>
           </Step>
         ))}
       </Stepper>
@@ -513,8 +523,8 @@ export default function RegisterStoreStepper() {
             disabled={loading}
           />
           {error && <Typography color="error">{error}</Typography>}
-          <Button onClick={handleCheckAndCreate} disabled={!storeName || loading} variant="contained" sx={{ mt: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Siguiente"}
+          <Button onClick={handleCheckAndCreate} disabled={!storeName || loading} variant="contained" sx={{ ...botonMorado, mt: 2 }}>
+            {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Siguiente"}
           </Button>
         </Box>
       )}
@@ -558,8 +568,8 @@ export default function RegisterStoreStepper() {
             )}
           />
           {error && <Typography color="error">{error}</Typography>}
-          <Button onClick={handleUpdateBankData} disabled={loading} variant="contained" sx={{ mt: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Siguiente"}
+          <Button onClick={handleUpdateBankData} disabled={loading} variant="contained" sx={{ ...botonMorado, mt: 2 }}>
+            {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Siguiente"}
           </Button>
         </Box>
       )}
@@ -949,9 +959,10 @@ export default function RegisterStoreStepper() {
                 onClick={handleSaveDireccion}
                 disabled={loading || !direccionData.direccion || direccionData.lat === null || direccionData.lng === null}
                 variant="contained"
+                sx={botonMorado}
               >
                 {loading ? (
-                  <CircularProgress size={24} />
+                  <CircularProgress size={24} sx={{ color: "#fff" }} />
                 ) : (
                   "Guardar dirección"
                 )}
@@ -964,8 +975,8 @@ export default function RegisterStoreStepper() {
         <Box mt={2}>
           <Typography>Verificar datos</Typography>
           {error && <Typography color="error">{error}</Typography>}
-          <Button onClick={handleFinishSetup} disabled={loading} variant="contained" color="success" sx={{ mt: 2 }}>
-            {loading ? <CircularProgress size={24} /> : "Finalizar Registro"}
+          <Button onClick={handleFinishSetup} disabled={loading} variant="contained" sx={{ ...botonMorado, mt: 2 }}>
+            {loading ? <CircularProgress size={24} sx={{ color: "#fff" }} /> : "Finalizar Registro"}
           </Button>
         </Box>
       )}
@@ -975,7 +986,7 @@ export default function RegisterStoreStepper() {
           <Typography variant="h5" gutterBottom>
             🎉 Tienda lista!
           </Typography>
-          <Button variant="contained" onClick={() => handleRedirectStore(laTienda?.attributes?.slug)}>
+          <Button variant="contained" onClick={() => handleRedirectStore(laTienda?.attributes?.slug)} sx={botonMorado}>
             Ir a tu tienda
           </Button>
         </Box>
