@@ -126,3 +126,11 @@ build
 .env.*
 node_modules
 .tmp
+
+# .env.example es una plantilla SIN secretos: se versiona a propósito.
+# Debe ir DESPUÉS de las reglas `.env*` para que la negación prevalezca.
+!.env.example
+
+# Volcados accidentales de depuración (respuesta 404 de API y listado de tablas SQLite)
+/export.json
+/strapi_users.json

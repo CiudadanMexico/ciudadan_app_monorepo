@@ -25,10 +25,14 @@ yarn-error.log*
 
 .agents/
 
-/package-lock.json
+# El lockfile del frontend SÍ se versiona: CI ejecuta `npm ci`, que lo requiere.
 /yarn.lock
 
 # Cursor and Agents
 .cursor
 .agents
 /skills-lock.json
+
+# Restos de comandos ejecutados por error en la raíz del frontend
+/x
+/et --soft HEAD~2

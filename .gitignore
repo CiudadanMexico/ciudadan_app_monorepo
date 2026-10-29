@@ -26,3 +26,31 @@ ciudadan_backend_26/socket-service/wiki/
 
 # Configuracion local de la flota (puede contener rutas o claves)
 scripts/fleet-status.env
+
+# ── Higiene del repo (2026-10-28) ──
+# Solo se ignora el lockfile de la RAÍZ del monorepo. Los lockfiles de cada
+# subproyecto SÍ se versionan: CI usa `npm ci`, que los necesita.
+/package-lock.json
+# ── Higiene del repo (2026-10-28) ──────────────────────────────────────────
+# Logs de ejecución y stack dumps de herramientas (nunca se versionan)
+*.log
+*.stackdump
+# Backups de archivos (p. ej. manifest.json.bk)
+*.bk
+# Bytecode y caché de Python
+__pycache__/
+*.pyc
+# Configuración local de Obsidian (las notas .md de wikiseed SÍ se versionan)
+.obsidian/
+# Bases de Obsidian (archivos .base, no son notas .md)
+wikiseed/*.base
+# Artefactos de build empaquetados en la raíz del monorepo
+/build_artifacts*.zip
+# Salida de comandos suelta en la raíz (p. ej. `git log > main`)
+/main
+# Salidas de terminal volcadas a archivo en la raíz (netstat, avisos)
+/puertos.txt
+/anuncio.txt
+# Nota .md huérfana en la raíz de wikiseed (0 B, solo la referencia Obsidian).
+# Los .md publicables viven en wikiseed/{main,help,faq}/ y README.md sí se versiona.
+wikiseed/Como Usar Wikilinks.md
