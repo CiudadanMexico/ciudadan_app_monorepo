@@ -195,3 +195,58 @@ payload; todos lo arrastraron**.
 - Correlatos ya mergeados: `docs/CI-HARDENING-2026-10-28.md` (auditoría de
   `jest.config.js`, variantes y workflows) y
   `docs/SEGURIDAD-OFUSCACION-2026-10-27.md` §6.2 (5 generaciones de blob).
+
+---
+
+## 7. Cierre de integraciones (2026-10-29)
+
+Al integrar por fin las ramas de la sprint 1028 se detecto que **las 4 ramas de
+comunidad/higiene nunca habian llegado a `main`**: sus commits (`8b2a62a`,
+`6d262c6`, `b58bb2b`, `aaf2500`) no eran ancestros de `main`. Se fusionaron con
+`--no-ff` en `35786c0`.
+
+### 7.1 Ramas: de 82 a 3
+
+| Estado previo | Ramas | Decision |
+|---|---|---|
+| Integradas en `main` (0 commits unicos) | 75 | Se creo un tag annotated `forense/<rama>` por cada una y se borro la rama |
+| Con commits unicos | 5 | Ver 7.2 |
+|(main + 2 ramas de rescate) | - | Estado final |
+
+Las 80 ramas quedan **como tags annotated `forense/*`**: cada tag apunta al
+commit exacto del tip de la rama, asi que la evidencia forense (incluido el
+`api.js` con el payload, recuperable con
+`git show forense/feature-taxis-trips^{}:api.js`) queda intacta pero **fuera del
+alcance de un `git merge` accidental**.
+
+### 7.2 Las 5 ramas con commits unicos
+
+| Rama | `auth0.js` / `api.js` | Trabajo util | Decision |
+|---|---|---|---|
+| `integration/revision-adrian1` | Limpios | Todo ya identico en `main` (Carrito, RegisterStoreStepper, guardia) | Tag + borrar |
+| `feature/frontend-daniel-sepulveda` | `api.js` contaminado | `CalificarCompras.jsx` ya identico en `main` | Tag + borrar |
+| `feature/agente1-adrian-loginredirect` | `api.js` contaminado | Solo `docs/AGENTS.md` y `docs/README.md`, y **mas viejos** que `main` | Tag + borrar |
+| `feature/integracion-hackabot` | `api.js` contaminado | `Candidatos.jsx`, `RegistrationField.jsx` (WIP protegido) | Rescate a `rescate/hackabot-1028` + tag + borrar |
+| `feature/taxis-trips` | `api.js` contaminado | `DriverVerificationPage.jsx`, `Routes/index.jsx`, `ConductoresAgencia.jsx`, `components.d.ts` | Rescate a `rescate/taxis-trips-1028` + tag + borrar |
+
+Las dos ramas `rescate/*` nacieron desde `main` y traen **solo** los archivos con
+valor, sin `api.js` ni el bloque final de `auth0.js`; ambas pasan la guardia
+`check-payload-ofuscado.js` (2075 archivos OK). Los backups
+`.after-turn-*` / `.green.backup` de hackabot quedaron solo en el tag forense:
+son instantaneas de trabajo, no codigo.
+
+### 7.3 Regla que queda
+
+Ninguna rama con `api.js` en la raiz debe fusionarse **tal cual**: se extrae
+archivo por archivo a una rama `rescate/*` que arranque desde `main`, se pasa la
+guardia y se revisa. El tag `forense/*` conserva la rama original para auditoria.
+
+### 7.4 Estado del remoto tras el cierre
+
+```
+origin/main
+origin/rescate/hackabot-1028
+origin/rescate/taxis-trips-1028
+```
+
+80 tags `forense/*` (annotated) con la evidencia completa.
