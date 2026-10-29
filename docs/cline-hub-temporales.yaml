@@ -1,0 +1,313 @@
+# Registro cline-hub — flota temporal de agentes (2026-10-29)
+#
+# Contenido listo para integrar por el operador en ~/.dsh/infrastructure/agents.yaml.
+# NO contiene ningun valor de llave: solo fingerprints sha256/8 (8 hex) calculados
+# sobre providers.nvidia.settings.apiKey.
+#
+# Procedencia:
+#   - 13 contenedores / 3 nodos / 8 fingerprints: inventario del operador (encargo T4).
+#   - verified_live=true solo para temporal3-agent1 (unico contenedor observable desde aqui).
+#   - Los demas: "a verificar por el operador" (no verificables desde dentro del contenedor).
+#
+# Documento acompanante: docs/CLINE-HUB-TEMPORALES-2026-10-29.md
+
+schema_version: 1
+generated_at: "2026-10-29"
+generated_by: "temporal3-agent1"
+source_branch: "feature/cline-hub-temporales-1029"
+source_document: "docs/CLINE-HUB-TEMPORALES-2026-10-29.md"
+
+project: "ciudadan_app_monorepo"
+workspace_path: "/workspace/ciudadan_app_monorepo"
+provider: "nvidia"
+model: "minimaxai/minimax-m3.1-flash"
+fingerprint_algorithm: "sha256/8"
+
+# Regla de asignacion vigente (ver seccion 5 del documento acompanante):
+#   1) una llave por contenedor como objetivo de diseño;
+#   2) nunca dos contenedores del mismo nodo con la misma llave;
+#   3) los pares que comparten llave se forman SIEMPRE entre nodos distintos.
+key_assignment_rule: "una llave por contenedor; los pares compartidos son siempre entre nodos distintos"
+rotation_procedure: "docs/CLINE-HUB-TEMPORALES-2026-10-29.md#6-procedimiento-de-rotacion-de-llaves-paso-a-paso"
+reassignment_procedure: "docs/CLINE-HUB-TEMPORALES-2026-10-29.md#7-procedimiento-de-reasignacion-llave-agotada-o-revocada"
+retired_key_procedure: "docs/CLINE-HUB-TEMPORALES-2026-10-29.md#8-la-llave-anterior-af772e0c--que-hay-que-hacer-con-ella"
+verification:
+  method: "fingerprint sha256/8 sobre providers.nvidia.settings.apiKey; el valor nunca se imprime"
+  live_verified_container: "temporal3-agent1"
+  live_verified_fingerprint: "b22834c4"
+  live_verified_model: "minimaxai/minimax-m3.1-flash"
+  live_verified_file_mode: "0600"
+  value_transport: "stdin"
+
+fleet:
+  node_count: 3
+  container_count: 13
+  key_count: 8
+  keys_available: 9
+  keys_discarded_as_duplicate: 1
+
+nodes:
+  - id: "temporal-1"
+    ip: "160.34.219.124"
+    containers:
+      - "temporal1-agent1"
+      - "temporal1-agent2"
+      - "temporal1-agent3"
+      - "temporal1-agent4"
+  - id: "temporal-2"
+    ip: "163.192.153.145"
+    containers:
+      - "temporal2-agent1"
+      - "temporal2-agent2"
+      - "temporal2-agent3"
+      - "temporal2-agent4"
+      - "temporal2-agent5"
+      - "temporal2-agent6"
+  - id: "temporal-3"
+    ip: "159.54.133.219"
+    containers:
+      - "temporal3-agent1"
+      - "temporal3-agent2"
+      - "temporal3-agent3"
+
+agents:
+  - id: "temporal1-agent1"
+    node: "temporal-1"
+    node_ip: "160.34.219.124"
+    container: "temporal1-agent1"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/comunidad-whatsapp-config-1028"
+    status: "en pausa"
+    task: "Configuracion de comunidad / WhatsApp"
+    task_source: "derivada de la rama"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "be302fbf"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal1-agent2"
+    node: "temporal-1"
+    node_ip: "160.34.219.124"
+    container: "temporal1-agent2"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/food-cotizaciones-frontend"
+    status: "entregado"
+    task: "Cotizaciones de envio del modulo Food (frontend)"
+    task_source: "integrada en main (0e5f6c1)"
+    sentinel: "DONE-food2"
+    sentinel_status: "declarado por el operador"
+    key_fingerprint: "e133df92"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal1-agent3"
+    node: "temporal-1"
+    node_ip: "160.34.219.124"
+    container: "temporal1-agent3"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/triage-ramas-1027"
+    status: "entregado"
+    task: "Triage de ramas del monorepo"
+    task_source: "documento docs/TRIAGE-RAMAS-2026-10-27.md"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "b22834c4"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal1-agent4"
+    node: "temporal-1"
+    node_ip: "160.34.219.124"
+    container: "temporal1-agent4"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/integracion-hackabot"
+    status: "en curso (WIP)"
+    task: "Integracion de Hackabot"
+    task_source: "derivada de la rama"
+    sentinel: null
+    sentinel_status: "WIP: aun sin centinela DONE-*"
+    key_fingerprint: "5891d41f"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal2-agent1"
+    node: "temporal-2"
+    node_ip: "163.192.153.145"
+    container: "temporal2-agent1"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/comunidad-feed-real-1028"
+    status: "en pausa"
+    task: "Feed real de comunidad"
+    task_source: "derivada de la rama"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "b89c7369"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal2-agent2"
+    node: "temporal-2"
+    node_ip: "163.192.153.145"
+    container: "temporal2-agent2"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/ci-hardening-1028"
+    status: "entregado"
+    task: "Hardening de CI"
+    task_source: "documento docs/CI-HARDENING-2026-10-28.md"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "e501c48d"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal2-agent3"
+    node: "temporal-2"
+    node_ip: "163.192.153.145"
+    container: "temporal2-agent3"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/comunidad-chats-contactos-1028"
+    status: "en pausa"
+    task: "Chats de comunidad y contactos"
+    task_source: "derivada de la rama"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "e57baf5f"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal2-agent4"
+    node: "temporal-2"
+    node_ip: "163.192.153.145"
+    container: "temporal2-agent4"
+    project: "ciudadan_app_monorepo"
+    branch: "integration/revision-adrian1"
+    status: "entregada (subsumida por main)"
+    task: "Revision de la instancia adrian1"
+    task_source: "derivada de la rama"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "3505a459"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal2-agent5"
+    node: "temporal-2"
+    node_ip: "163.192.153.145"
+    container: "temporal2-agent5"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/ci-hardening-1028"
+    status: "en pausa"
+    task: "Hardening de CI (rama compartida con temporal2-agent2)"
+    task_source: "derivada de la rama"
+    sentinel: null
+    sentinel_status: "no declarado por el operador"
+    key_fingerprint: "be302fbf"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal2-agent6"
+    node: "temporal-2"
+    node_ip: "163.192.153.145"
+    container: "temporal2-agent6"
+    project: "ciudadan_app_monorepo"
+    branch: null
+    status: "libre"
+    task: "sin asignar"
+    task_source: "sin rama en el workspace"
+    sentinel: null
+    sentinel_status: "no aplica (agente libre)"
+    key_fingerprint: "e133df92"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal3-agent1"
+    node: "temporal-3"
+    node_ip: "159.54.133.219"
+    container: "temporal3-agent1"
+    project: "ciudadan_app_monorepo"
+    branch: "main"
+    branch_note: "rama del workspace cuando el operador levanto el inventario; durante el encargo T4 el workspace esta en feature/cline-hub-temporales-1029"
+    status: "entregado"
+    task: "Forense de reinyeccion del backdoor y purga"
+    task_source: "documento docs/FORENSE-REINYECCION-2026-10-28.md"
+    sentinel: "DONE-forense"
+    sentinel_status: "declarado por el operador (/tmp/DONE-forense presente)"
+    key_fingerprint: "b22834c4"
+    verified_live: true
+    notes: "unico contenedor verificado en vivo: fingerprint b22834c4, modelo minimaxai/minimax-m3.1-flash, providers.json 0600 (root:root); llave anterior af772e0c ausente de la config activa"
+
+  - id: "temporal3-agent2"
+    node: "temporal-3"
+    node_ip: "159.54.133.219"
+    container: "temporal3-agent2"
+    project: "ciudadan_app_monorepo"
+    branch: "feature/inventario-secretos-1028"
+    status: "entregado"
+    task: "Inventario post-incidente de secretos y plan de rotacion"
+    task_source: "documento docs/ROTACION-SECRETOS-2026-10-28.md"
+    sentinel: "DONE-secrets"
+    sentinel_status: "declarado por el operador"
+    key_fingerprint: "5891d41f"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+  - id: "temporal3-agent3"
+    node: "temporal-3"
+    node_ip: "159.54.133.219"
+    container: "temporal3-agent3"
+    project: "ciudadan_app_monorepo"
+    branch: null
+    status: "libre"
+    task: "sin asignar"
+    task_source: "sin rama en el workspace"
+    sentinel: null
+    sentinel_status: "no aplica (agente libre)"
+    key_fingerprint: "b89c7369"
+    verified_live: false
+    notes: "a verificar por el operador"
+
+# Llaves compartidas por dos contenedores SIEMPRE de nodos distintos.
+shared_keys:
+  - fingerprint: "be302fbf"
+    agents: ["temporal1-agent1", "temporal2-agent5"]
+    nodes: ["temporal-1", "temporal-2"]
+  - fingerprint: "e133df92"
+    agents: ["temporal1-agent2", "temporal2-agent6"]
+    nodes: ["temporal-1", "temporal-2"]
+  - fingerprint: "b22834c4"
+    agents: ["temporal1-agent3", "temporal3-agent1"]
+    nodes: ["temporal-1", "temporal-3"]
+  - fingerprint: "5891d41f"
+    agents: ["temporal1-agent4", "temporal3-agent2"]
+    nodes: ["temporal-1", "temporal-3"]
+  - fingerprint: "b89c7369"
+    agents: ["temporal2-agent1", "temporal3-agent3"]
+    nodes: ["temporal-2", "temporal-3"]
+
+# Llaves con un solo contenedor (no comparten con nadie).
+exclusive_keys:
+  - fingerprint: "e501c48d"
+    agents: ["temporal2-agent2"]
+  - fingerprint: "e57baf5f"
+    agents: ["temporal2-agent3"]
+  - fingerprint: "3505a459"
+    agents: ["temporal2-agent4"]
+
+# Llaves retiradas: solo el fingerprint, nunca el valor.
+retired_keys:
+  - fingerprint: "af772e0c"
+    status: "pendiente de revocacion en NVIDIA"
+    priority: "P0"
+    reason: "Llave anterior de la flota; legible desde la configuracion del contenedor (P0 en docs/ROTACION-SECRETOS-2026-10-28.md, secciones 2.3 y 2.4)"
+    action: "Revocar en NVIDIA y purgar de las rutas de cada contenedor"
+    must_revoke_in_nvidia: true
+    found_in:
+      - "/etc/agent/env/cline.env"
+      - "/workspace/.cline/data/settings/providers.json.bak-20261028"
+    found_in_scope: "verificado solo en temporal3-agent1"
+    live_evidence:
+      - "barrido por fingerprint: 2 coincidencias en temporal3-agent1"
+      - "no esta en la configuracion activa (providers.json usa b22834c4)"
+      - "sin coincidencias del patron de llave en los logs del contenedor"
+    not_verified: "si sigue viva en NVIDIA (sin acceso al panel) y el estado en los otros 12 contenedores"
