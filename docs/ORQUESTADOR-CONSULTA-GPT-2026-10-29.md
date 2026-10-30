@@ -576,3 +576,67 @@ node C:\yii\tools\consultar-gpt-web.mjs "Responde solo: OK"   # chat directo
 
 Si la extensión Chrome pierde la conexión durante el reinicio, reconecta sola (el WS al 8765 se
 re-establece desde el service worker); si no, recargar la pestaña de `chatgpt.com` lo fuerza.
+
+---
+
+## 18. Estado del vigilante de entregables tras el P0 (2026-10-30 ~05:30)
+
+El P0 quedo **probado en produccion**, no solo escrito:
+
+| Entregable | Resultado |
+|---|---|
+| `feature/integracion-hackabot` (t1a4) | **INTEGRADO en main** (`33fea80`, modo parche limpio `git am`) — la via automatica se conserva |
+| `feature/rotacion-secretos-proc-1029` (t2a4) | **NO integrado**: el parche no aplica sobre `main` (rama con base vieja) -> queda **pendiente de revision manual** con evidencia en `C:\yii\tools\revision-feature_rotacion-secretos-proc-1029.md` |
+| `feature/cuarentena-ramas-1029` (t1a2) | en curso |
+
+Eso es exactamente el comportamiento pedido: **nunca** se reescriben archivos de `main` a ciegas;
+cuando el parche no aplica, el entregable se documenta para que una persona lo decida.
+
+### 18.1 Correcciones al modo evidencia (tres bugs reales)
+
+1. `git archive` **aborta entero** si algun path del diff no existe en ese ref (p. ej. `anuncio.txt`,
+   borrado por la rama): no habia tar y el reporte salia vacio. El modo evidencia ya **no descarga
+   tar**: consulta en el contenedor el blob-id de cada archivo en la rama y en la base
+   (`git rev-parse --verify --quiet`) y lo compara con el de `origin/main` en el clon local.
+2. `git rev-parse` **imprime el argumento en stdout** cuando no resuelve el objeto, y eso partia la
+   linea de salida en dos. Con `--verify --quiet` la salida es limpia (`AUSENTE` cuando no existe).
+3. El script se ejecutaba en el **host** del nodo, no dentro del contenedor (el repo vive en
+   `/workspace` del contenedor). Ahora viaja por `docker exec -i` con el script en base64.
+
+Ademas, el vigilante ya no reintenta lo que **ya** esta integrado: comprueba
+`git merge-base --is-ancestor origin/<rama> origin/main` antes de integrar (el centinela `DONE`
+sigue en el contenedor aunque el entregable ya este en `main`).
+
+### 18.2 El vigilante vive como tarea programada
+
+`C:\yii\tools\vigilar-entregables.ps1`murio con el primer reinicio del DSH (era hijo de su arbol de
+procesos). Ahora corre como **tarea programada** `Ciudadan-Vigilante-Entregables`
+(wrapper `C:\yii\tools\run-vigilante.cmd`, log `C:\yii\tools\logs\vigilar-entregables.log`), igual
+que el propio DSH: sobrevive a los reinicios y se relanza con `schtasks /run`.
+
+### 18.3 El puente: el parche funciono, pero la pagina de ChatGPT se quedo colgada
+
+Tras el reinicio, el parche quedo **vivo y verificado** en el log del DSH:
+
+```
+[dsh-chatgpt-web] GenerateOptions sin equivalente en la UI de ChatGPT, se ignoran: maxTokens,purpose
+```
+
+O sea: la peticion **ya no se rechaza** (era la causa del `null` en los subagentes). Lo que quedo
+pendiente fue del lado del navegador:
+
+- La extension **si** quedo conectada (WS + `hello` al puente nuevo) y recibio la orden.
+- El content script respondio `accepted: true` al instante; el cuelgue estaba en
+  `observeGeneration` (la pagina de ChatGPT no empezo a generar) y **la senal de error nunca
+  llego al puente**: ni el plugin registraba errores ni el publicador escribia mas que exitos.
+- Recuperacion aplicada: recargar la extension en `chrome://extensions`.
+
+Mejoras aplicadas al plugin para que esto no vuelva a ser invisible:
+
+- `console.log` de la **etapa** del puente (`navigating`, `ready`, `sent`, `generating`).
+- `console.error` del **error del puente** (`WORKER_NAVIGATION`, `WORKER_BUSY`, `BRIDGE_*`).
+- **Watchdog de 5 min**: si el puente no responde, se aborta la generacion y se libera la extension
+  (antes el cuelgue era infinito y dejaba el `activeRequest` de la extension ocupado, de modo que
+  todo lo demas respondia `WORKER_BUSY`).
+
+Tests: `test/adapter.test.ts` **11/11 OK**, `tsc --noEmit` limpio, `npm run build` OK.
