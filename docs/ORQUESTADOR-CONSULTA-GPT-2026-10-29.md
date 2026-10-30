@@ -513,3 +513,66 @@ eso como "origen caído", no como "subdominio sin configurar" (que sería un dia
 3. **Copia en `Downloads`**: el `.docx` original sigue en `C:\Users\elyiz\Downloads\` con el
    secreto en claro. No se borró (no hay orden de limpieza de disco), pero conviene eliminarlo o
    moverlo al almacén.
+
+---
+
+## 17. Decisiones del ROOT de esta ronda y cambios aplicados (2026-10-29 ~19:00)
+
+| Decisión | ROOT | Estado |
+|---|---|---|
+| Rotar las 4 credenciales del harness expuestas en la transcripción | **No rotar (riesgo aceptado)** | Deuda de seguridad **registrada y aceptada explícitamente**. Hecho comprobable: la flota (8 fingerprints) **no** está afectada; el alcance es el harness local |
+| Parchar el adaptador para que GPT funcione como subagente (`workflow`) + reiniciar el DSH 3080 | **Sí, ahora** | Aplicado (§17.2) |
+| Bloquear el fallback quirúrgico automático del watcher (P0 del consultor) | **Sí, ya** | Aplicado (§17.1) |
+
+### 17.1 P0 aplicado: el fallback quirúrgico automático queda BLOQUEADO
+
+`C:\yii\tools\integrar-quirurgico.ps1` gana un modo `-SoloEvidencia` que **no** modifica el repo,
+**no** commitea, **no** mergea y **no** pushea: calcula qué archivos aplicaría la integración
+quirúrgica y cuáles quedarían fuera (porque `main` los cambió desde la base) y deja el reporte en
+`C:\yii\tools\revision-<rama>.md`.
+
+`C:\yii\tools\vigilar-entregables.ps1` deja de invocar el merge automático: cuando `git am` falla,
+genera la evidencia y marca el entregable como **"pendiente de revisión manual"** en
+`C:\yii\tools\ESTADO-AGENTES.md`.
+
+Motivo (del consultor, y confirmado por el estado real del día): `main` se movió **4 veces** el
+29-oct por hilos distintos; un merge archivo por archivo sin revisión humana puede pisar trabajo
+ajeno. El flujo `git am` (parche limpio) **sigue siendo automático** cuando aplica: solo se bloquea
+el camino que reescribe archivos.
+
+### 17.2 Parche del adaptador `dsh-chatgpt-web`
+
+**Problema**: `assertSupportedRequest` (src/adapter.ts) rechazaba la petición completa si
+`GenerateOptions` traía `purpose`, `reasoningEffort`, `temperature`, `maxTokens` o `stop`. El
+harness **siempre** manda `purpose`, así que **todo** subagente con proveedor `chatgpt-web` moría
+antes de despachar (por eso las sondas devolvían `null`).
+
+**Cambio**: esos campos se **ignoran** (la UI de ChatGPT decide sus propios parámetros) y se avisa
+**una sola vez por combinación** en el log del plugin. Se mantienen los errores reales:
+`sessionId` obligatorio, modelo distinto de `auto`, e imágenes.
+
+Verificación: `npx tsx --test test/adapter.test.ts` → **11/11 OK** (el test actualizado comprueba
+que la petición llega al transporte y termina en `finish`); `tsc --noEmit` sin errores; `npm run
+build` genera `lib/adapter.js` con el parche. El perfil web enlaza el paquete por
+`link:C:/yii/ciudadan-chatgpt-bridge/src/dsh-chatgpt-web`, así que el reinicio carga el código nuevo.
+
+> Nota operativa: `npx tsx --test test/*.test.ts` (suite completa) **se queda colgado** por un
+> handle abierto — hay procesos `tsx --test` vivos desde el 23-oct. No es efecto de este parche:
+> se valida archivo por archivo.
+
+### 17.3 Reinicio del DSH 3080 (procedimiento)
+
+`C:\Users\elyiz\AppData\Local\Ciudadan\iniciar-dsh-3080.ps1` es un **supervisor en loop**: si el
+puerto 3080 está libre, arranca `dsh web --port 3080`; si no, espera 5 s. Por eso el reinicio es
+**terminar el proceso** y no tocar la tarea programada.
+
+Verificación posterior (el token nuevo se lee del log; el cliente toma **el último** que encuentra):
+
+```powershell
+node C:\yii\tools\consultar-gpt-web.mjs "Responde solo: OK"   # chat directo
+# y la sonda de subagente, que es la que antes fallaba:
+#   workflow -> agent(p, { provider: 'chatgpt-web', model: 'auto' })
+```
+
+Si la extensión Chrome pierde la conexión durante el reinicio, reconecta sola (el WS al 8765 se
+re-establece desde el service worker); si no, recargar la pestaña de `chatgpt.com` lo fuerza.
