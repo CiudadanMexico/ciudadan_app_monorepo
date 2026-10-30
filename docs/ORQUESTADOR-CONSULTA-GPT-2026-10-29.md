@@ -674,3 +674,21 @@ Estado actual del tablero (`C:\yii\tools\ESTADO-AGENTES.md`):
 | hackabot (Candidatos.jsx + build) | ya integrado en main (`33fea80`, modo parche) |
 | plan de cuarentena de las 66 ramas | en curso |
 | runbook de rotacion de los 20 P0 | **pendiente de revision manual** (P0 activo) con evidencia en `C:\yii\tools\revision-feature_rotacion-secretos-proc-1029.md` |
+
+### 19. El limite real del puente: el prompt no cabe en el compositor (2026-10-30 ~09:30)
+
+Con el parche del adaptador vivo (la peticion ya no se rechaza: "GenerateOptions ... se ignoran"), los subagentes `chatgpt-web` **respondieron bien** ("SUBAGENTE_OK", "SUBAGENTE_OK_2"), pero el cliente directo seguia colgado. La traza nueva (longitudes, sin contenido) dio la causa:
+
+```
+[dsh-chatgpt-web] peticion: plan=new prompt=50938 chars tools=40 toolSection=31256 chars
+```
+
+**El prompt pesaba 50 938 caracteres**, muy por encima del limite del compositor de ChatGPT (~32 k). La causa era que el presupuesto de transporte (32 KB) recortaba **el historial**, pero la seccion de herramientas (31 KB: el JSON Schema completo de 40 herramientas) se anadia **despues**, fuera del presupuesto. Contexto, en tres correcciones:
+
+1. **La seccion de herramientas se reserva antes de construir el prompt** (`plan(..., reserveChars)`): el historial se recorta en consecuencia y el prompt total respeta el limite.
+2. **Catalogo compacto**: cada herramienta se describe con nombre, proposito y parametros (tipo/obligatoriedad/enum) en vez del JSON Schema completo. La seccion paso de 31 256 a **14 017** chars y el prompt total de 50 938 a **27 343** chars (ya dentro del limite). El esquema completo sigue validandose en el lado DSH al ejecutar el contrato.
+3. **Pagina**: antes de escribir se limpia el compositor (se quitan adjuntos pegados y se vacia el editor) y para texto grande se usa ProseMirror en vez del pegado sintetico. Motivo: el pegado de ChatGPT convierte el texto en un adjunto "Texto pegado(...).txt" y deja el compositor vacio; ademas ese adjunto **queda pegado** y ensucia los intentos siguientes (por eso, tras fallar el cliente directo, tambien fallo el subagente). Si el texto no llega al compositor, ahora se falla de inmediato con `composer did not accept the prompt text` en vez de esperar 120 s a que "no empiece la generacion".
+
+Version de la extension: **0.1.12** (recargar en `chrome://extensions` para que tombe el arreglo de pagina).
+
+Ademas, el vigilante de entregables dejo de abrir una ventana de consola cada 5 minutos: la tarea usaba un `.cmd` directo con `LogonType=Interactive` (el `<Hidden>true</Hidden>` del XML solo oculta la tarea en el programador, NO la consola). Ahora la tarea ejecuta `wscript.exe` con un lanzador `.vbs` de estilo de ventana 0, como las demas tareas propias del DSH.
