@@ -47,29 +47,63 @@ const RegistrationField = ({ field, value, error, disabled, onChange }) => {
     label: field.label,
     required: Boolean(field.required),
     error: Boolean(error),
-    helperText: error || field.placeholder || ' ',
+    helperText: error || field.helperText || field.placeholder || ' ',
     disabled,
     fullWidth: true,
     sx: inputSx,
   };
 
   switch (field.type) {
-    case 'select':
+    case 'select': {
+      // Las opciones pueden ser cadenas (registro de Generación) u objetos
+      // { value, label } (catálogos del backend: áreas, agencias).
+      const opciones = (field.options || []).map((option) =>
+        option && typeof option === 'object'
+          ? { value: String(option.value), label: option.label ?? String(option.value) }
+          : { value: String(option), label: String(option) }
+      );
+
+      // Si el valor actual ya no está entre las opciones (catálogo vacío o
+      // recargado), se resetea a '' para no dejar el Select fuera de rango.
+      const valor = opciones.some((opcion) => opcion.value === String(value))
+        ? String(value)
+        : '';
+
+      // Catálogo vacío: se muestra un campo deshabilitado con la explicación
+      // (helperText) en vez de un desplegable sin opciones.
+      if (opciones.length === 0) {
+        return (
+          <TextField
+            select
+            name={field.name}
+            value=""
+            disabled
+            SelectProps={{ displayEmpty: true }}
+            {...commonProps}
+          >
+            <MenuItem value="" sx={{ color: '#111' }}>
+              Sin opciones disponibles
+            </MenuItem>
+          </TextField>
+        );
+      }
+
       return (
         <TextField
           select
           name={field.name}
-          value={value || ''}
+          value={valor}
           onChange={(e) => onChange(field.name, e.target.value)}
           {...commonProps}
         >
-          {(field.options || []).map((option) => (
-            <MenuItem key={option} value={option} sx={{ color: '#111' }}>
-              {option}
+          {opciones.map((opcion) => (
+            <MenuItem key={opcion.value} value={opcion.value} sx={{ color: '#111' }}>
+              {opcion.label}
             </MenuItem>
           ))}
         </TextField>
       );
+    }
 
     case 'textarea':
       return (
@@ -126,10 +160,20 @@ const RegistrationField = ({ field, value, error, disabled, onChange }) => {
               type="file"
               hidden
               name={field.name}
-              accept=".pdf,.doc,.docx,image/*"
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
               onChange={(e) => onChange(field.name, e.target.files?.[0] || null)}
             />
           </Button>
+          {value && (
+            <Button
+              size="small"
+              onClick={() => onChange(field.name, null)}
+              disabled={disabled}
+              sx={{ color: GEN_COLORS.textoSecundario, ml: 1, textTransform: 'none' }}
+            >
+              Quitar
+            </Button>
+          )}
           <FormHelperText error={Boolean(error)} sx={{ color: error ? undefined : GEN_COLORS.textoSecundario }}>
             {error || field.helperText || 'PDF, Word o imagen. Máx. 10 MB.'}
           </FormHelperText>
