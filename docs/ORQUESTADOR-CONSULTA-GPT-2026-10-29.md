@@ -640,3 +640,37 @@ Mejoras aplicadas al plugin para que esto no vuelva a ser invisible:
   todo lo demas respondia `WORKER_BUSY`).
 
 Tests: `test/adapter.test.ts` **11/11 OK**, `tsc --noEmit` limpio, `npm run build` OK.
+
+### 18.4 El vigilante, operativo y sin carreras (2026-10-30 ~06:30)
+
+Cuatro problemas reales encontrados al poner el P0 en produccion, con su correccion:
+
+1. **Carrera de repositorio**: el vigilante y la sesion principal usaban el mismo clon
+   (`C:\yii\ciudadan_app_monorepo`); una sesion que commitea mientras el vigilante hace
+   `checkout -B aceptacion/<rama>` se lleva por delante el commit (pasó: un commit de docs
+   acabo en la rama de aceptacion). Ahora el vigilante tiene su propio **worktree**:
+   `C:\yii\ciudadan_app_monorepo-vigilante` (`git worktree add --detach ... origin/main`).
+2. **El vigilante murio con el DSH**: era hijo del arbol de procesos del DSH. Ahora corre como
+   **tarea programada** `Ciudadan-Vigilante-Entregables` (cada 5 minutos, en modo `-UnaVez`:
+   una pasada y sale), que ejecuta el Scheduler y no el DSH. Cada pasada escribe en su propio
+   log `C:\yii\tools\logs\vigilante-<timestamp>.log` y hay un **cerrojo** (`vigilante.lock`)
+   que impide pasadas solapadas.
+3. **Captura anidada que rompe los comandos nativos**: invocar `& script.ps1` (en el mismo
+   proceso) con su stdout redirigido hace que, dentro del script, cualquier comando nativo
+   falle con `StandardOutputEncoding is only supported when standard output is redirected`
+   (se perdia el inventario de archivos). El invoker del modo evidencia ahora lo lanza como
+   **proceso hijo** (`pwsh -NoProfile -File ...`) y la salida de `git`/`ssh` va a archivos.
+4. **Reintentos de lo ya integrado**: el centinela `DONE` sigue en el contenedor aunque el
+   entregable ya este en `main`. Ahora, antes de integrar, se consulta el marcador explicito
+   `C:\yii\tools\integrados-vigilante.json` y las referencias **remotas** (`origin/aceptacion/<rama>`,
+   `origin/<rama>`); ademas el modo evidencia devuelve codigo 10 cuando el contenido de la rama
+   ya esta en `main`. Tras integrar, la rama de aceptacion **se publica en el remoto** (deja
+   constancia de que se integro).
+
+Estado actual del tablero (`C:\yii\tools\ESTADO-AGENTES.md`):
+
+| Entregable | Estado |
+|---|---|
+| hackabot (Candidatos.jsx + build) | ya integrado en main (`33fea80`, modo parche) |
+| plan de cuarentena de las 66 ramas | en curso |
+| runbook de rotacion de los 20 P0 | **pendiente de revision manual** (P0 activo) con evidencia en `C:\yii\tools\revision-feature_rotacion-secretos-proc-1029.md` |
