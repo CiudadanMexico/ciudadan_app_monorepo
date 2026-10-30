@@ -14,45 +14,46 @@ const INV_BASE = `${STRAPI_URL}/api/invitaciones`;
 
 /**
  * Crea una postulación de candidato a socio.
- * @param {Object} data { nombre_completo, email, telefono, codigo_pais, area (id), descripcion, cv (File, opcional) }
+ *
+ * El endpoint es público (POST /api/postulacion-socios, auth:false) y el
+ * backend es el dueño del estado: aquí solo se mandan los datos que el
+ * visitante puede completar (los ids de área/agencia van como número).
+ *
+ * @param {Object} data { nombre_completo, email, telefono, codigo_pais, area (id), agencia (id), descripcion, consentimiento (bool), cv (File, opcional) }
+ * @param {string|null} token Token Auth0 (opcional: la ruta es pública).
  */
 export async function crearPostulacionSocio(data, token = null) {
   const payload = {
-    data: {
-      nombre_completo: data.nombre_completo,
-      email: data.email,
-      telefono: data.telefono,
-      codigo_pais: data.codigo_pais,
-      area: data.area || null,
-      agencia: data.agencia || null,
-      descripcion: data.descripcion || '',
-      estado: 'pendiente',
-      fecha_solicitud: new Date().toISOString(),
-      metadata: data.metadata || {},
-      publishedAt: new Date().toISOString(),
-    },
+    nombre_completo: data.nombre_completo,
+    email: data.email,
+    telefono: data.telefono,
+    codigo_pais: data.codigo_pais,
+    area: data.area ? Number(data.area) : null,
+    agencia: data.agencia ? Number(data.agencia) : null,
+    descripcion: data.descripcion || '',
+    // El consentimiento lo marca el visitante en el formulario: aquí sólo se
+    // propaga su valor real (el backend lo exige para aceptar la postulación).
+    consentimiento: data.consentimiento === true,
   };
 
-  // El CV (media) no se puede crear desde una URL sin el pipeline de uploads:
-  // el backend acepta { nombre, tipo, dataBase64 } vía FormData en la misma
-  // petición. Se envía como campo `files.cv`.
+  // El CV (media) viaja en la misma petición como FormData con el prefijo
+  // `files.` (convención de Strapi). No se fija Content-Type: el navegador
+  // debe poner el boundary del multipart.
   const form = new FormData();
-  form.append('data', JSON.stringify(payload.data));
+  form.append('data', JSON.stringify(payload));
   if (data.cv) {
     form.append('files.cv', data.cv, data.cv.name);
   }
 
-  const res = await fetch(`${BASE}`, {
-    method: 'POST',
-    ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
-    body: form,
-  });
-
-  const json = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(json?.error?.message || 'No se pudo enviar tu postulación');
-  }
-  return json;
+  return fetchJson(
+    BASE,
+    {
+      method: 'POST',
+      ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      body: form,
+    },
+    'No se pudo enviar tu postulación'
+  );
 }
 
 /** Postulaciones de la agencia del usuario autenticado (root: todas). */

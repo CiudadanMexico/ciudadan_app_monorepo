@@ -1,6 +1,6 @@
 /**
  * RegistrationField — renderiza UN campo del formulario según su tipo
- * (text, email, tel, url, select, textarea, consent). Config-driven:
+ * (text, email, tel, url, select, textarea, consent, file). Config-driven:
  * los campos provienen de REGISTRATION en generationFounderConfig.js.
  * Accesibilidad: labels reales de MUI, errores en texto, focus visible.
  */
@@ -11,7 +11,9 @@ import {
   Checkbox,
   FormHelperText,
   Box,
+  Button,
 } from '@mui/material';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { GEN_COLORS } from '../GenerationTheme';
 
 const inputSx = {
@@ -45,29 +47,63 @@ const RegistrationField = ({ field, value, error, disabled, onChange }) => {
     label: field.label,
     required: Boolean(field.required),
     error: Boolean(error),
-    helperText: error || field.placeholder || ' ',
+    helperText: error || field.helperText || field.placeholder || ' ',
     disabled,
     fullWidth: true,
     sx: inputSx,
   };
 
   switch (field.type) {
-    case 'select':
+    case 'select': {
+      // Las opciones pueden ser cadenas (registro de Generación) u objetos
+      // { value, label } (catálogos del backend: áreas, agencias).
+      const opciones = (field.options || []).map((option) =>
+        option && typeof option === 'object'
+          ? { value: String(option.value), label: option.label ?? String(option.value) }
+          : { value: String(option), label: String(option) }
+      );
+
+      // Si el valor actual ya no está entre las opciones (catálogo vacío o
+      // recargado), se resetea a '' para no dejar el Select fuera de rango.
+      const valor = opciones.some((opcion) => opcion.value === String(value))
+        ? String(value)
+        : '';
+
+      // Catálogo vacío: se muestra un campo deshabilitado con la explicación
+      // (helperText) en vez de un desplegable sin opciones.
+      if (opciones.length === 0) {
+        return (
+          <TextField
+            select
+            name={field.name}
+            value=""
+            disabled
+            SelectProps={{ displayEmpty: true }}
+            {...commonProps}
+          >
+            <MenuItem value="" sx={{ color: '#111' }}>
+              Sin opciones disponibles
+            </MenuItem>
+          </TextField>
+        );
+      }
+
       return (
         <TextField
           select
           name={field.name}
-          value={value || ''}
+          value={valor}
           onChange={(e) => onChange(field.name, e.target.value)}
           {...commonProps}
         >
-          {(field.options || []).map((option) => (
-            <MenuItem key={option} value={option} sx={{ color: '#111' }}>
-              {option}
+          {opciones.map((opcion) => (
+            <MenuItem key={opcion.value} value={opcion.value} sx={{ color: '#111' }}>
+              {opcion.label}
             </MenuItem>
           ))}
         </TextField>
       );
+    }
 
     case 'textarea':
       return (
@@ -100,6 +136,47 @@ const RegistrationField = ({ field, value, error, disabled, onChange }) => {
             label={<span style={{ color: GEN_COLORS.textoSecundario, fontSize: '0.9rem' }}>{field.label}</span>}
           />
           {error && <FormHelperText error>{error}</FormHelperText>}
+        </Box>
+      );
+
+    case 'file':
+      // Subida de archivo (CV). `value` es el File seleccionado o null.
+      return (
+        <Box sx={{ mt: 1 }}>
+          <Button
+            component="label"
+            variant="outlined"
+            startIcon={<AttachFileIcon />}
+            disabled={disabled}
+            sx={{
+              color: GEN_COLORS.texto,
+              borderColor: error ? '#ef5350' : 'rgba(255,255,255,0.2)',
+              textTransform: 'none',
+              '&:hover': { borderColor: GEN_COLORS.verde },
+            }}
+          >
+            {value?.name || field.label}
+            <input
+              type="file"
+              hidden
+              name={field.name}
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp"
+              onChange={(e) => onChange(field.name, e.target.files?.[0] || null)}
+            />
+          </Button>
+          {value && (
+            <Button
+              size="small"
+              onClick={() => onChange(field.name, null)}
+              disabled={disabled}
+              sx={{ color: GEN_COLORS.textoSecundario, ml: 1, textTransform: 'none' }}
+            >
+              Quitar
+            </Button>
+          )}
+          <FormHelperText error={Boolean(error)} sx={{ color: error ? undefined : GEN_COLORS.textoSecundario }}>
+            {error || field.helperText || 'PDF, Word o imagen. Máx. 10 MB.'}
+          </FormHelperText>
         </Box>
       );
 

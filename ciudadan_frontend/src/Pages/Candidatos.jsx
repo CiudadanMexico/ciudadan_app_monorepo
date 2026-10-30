@@ -1,378 +1,441 @@
-// src/Pages/Candidatos.jsx
-// Formulario público de postulación a socio (/candidatos).
-// Reutiliza estilos del sitio: PurpleButton + paleta morada + MUI.
+/**
+ * /candidatos — postulación a socio.
+ *
+ * Identidad visual de la Generación Fundadora (verde sobre fondo oscuro) y
+ * campos reutilizados de RegistrationField. El correo se toma de la cuenta
+ * Auth0 cuando hay sesión; si no la hay, se puede escribir a mano (la ruta
+ * POST /api/postulacion-socios es pública). El teléfono usa bandera de país.
+ */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth0 } from '@auth0/auth0-react';
 import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  Grid2 as Grid,
   Alert,
+  Box,
+  Button,
   CircularProgress,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Grid2 as Grid,
+  Stack,
+  Typography,
 } from '@mui/material';
-import PhoneIcon from '@mui/icons-material/Phone';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import SendIcon from '@mui/icons-material/Send';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SendIcon from '@mui/icons-material/Send';
+import LoginIcon from '@mui/icons-material/Login';
 
-import PurpleButton from '../components/common/PurpleButton.jsx';
+import RegistrationField from '../components/Generation/registro/RegistrationField';
 import paises from '../assets/paises.json';
 import { getAvailableRootAreas, getAgencias } from '../services/cowork/queryServices.js';
 import { crearPostulacionSocio } from '../services/cowork/candidatosService.js';
+import {
+  GEN_COLORS,
+  GEN_FONTS,
+  ctaPrimarySx,
+  ctaSecondarySx,
+  pageContainerSx,
+} from '../components/Generation/GenerationTheme';
 
-const MORADO = '#8A5CF5';
-const fondo = '#0d0b1a';
+const MAX_CV_BYTES = 10 * 1024 * 1024;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const inputSx = {
-  '& .MuiOutlinedInput-root': {
-    color: '#fff',
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    '& fieldset': { borderColor: 'rgba(255,255,255,0.18)' },
-    '&:hover fieldset': { borderColor: MORADO },
-    '&.Mui-focused fieldset': { borderColor: MORADO },
+// Extensiones de CV admitidas — las mismas que valida el backend
+// (postulacion-socio → validarCv). Se repiten aquí para avisar al usuario
+// antes de enviar, no para decidir la seguridad (eso es del servidor).
+const CV_EXTENSIONS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.webp'];
+
+// Config de campos (uno por tipo soportado por RegistrationField).
+// `area` y `agencia` son catálogos del backend: si el catálogo está vacío
+// el campo deja de ser obligatorio (ver `campos` más abajo).
+const CAMPOS = [
+  { name: 'email', label: 'Correo electrónico', type: 'email', required: true, half: true },
+  { name: 'nombre', label: 'Nombre', type: 'text', required: true, half: true, validate: 'name' },
+  { name: 'apellidos', label: 'Apellidos', type: 'text', required: true, half: true, validate: 'name' },
+  { name: 'area', label: 'Área de interés', type: 'select', required: true, half: true },
+  { name: 'agencia', label: 'Agencia a la que te postulas', type: 'select', required: true, half: true },
+  { name: 'telefono', label: 'Teléfono / WhatsApp', type: 'tel', required: true },
+  { name: 'descripcion', label: '¿Por qué quieres ser socio?', type: 'textarea', required: true },
+  { name: 'cv', label: 'Subir CV', type: 'file', helperText: 'PDF, Word o imagen. Máx. 10 MB.' },
+  {
+    name: 'consentimiento',
+    label: 'Acepto que Ciudadan use estos datos para evaluar mi postulación.',
+    type: 'consent',
+    required: true,
   },
-  '& .MuiInputLabel-root': { color: '#cfcfe6' },
-  '& .MuiInputLabel-root.Mui-focused': { color: MORADO },
-};
+];
 
-const labelProps = { sx: { color: '#cfcfe6' } };
+const attr = (o, campo) => (o?.attributes?.[campo] ?? o?.[campo] ?? null);
 
 export default function Candidatos() {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading, user, loginWithRedirect } = useAuth0();
 
-  const [form, setForm] = useState({
-    nombre_completo: '',
-    email: '',
-    codigo_pais: '+52',
-    telefono: '',
-    area: '',
-    agencia: '',
-    descripcion: '',
-  });
-  const [cv, setCv] = useState(null);
+  const [values, setValues] = useState({});
+  const [errors, setErrors] = useState({});
   const [areas, setAreas] = useState([]);
   const [agencias, setAgencias] = useState([]);
-  const [loadingAreas, setLoadingAreas] = useState(true);
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState(null);
+  const [cargandoCatalogos, setCargandoCatalogos] = useState(true);
+  const [errorCatalogos, setErrorCatalogos] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [enviado, setEnviado] = useState(false);
+  const [codigoPais, setCodigoPais] = useState('+52');
 
-  const getToken = useCallback(async () => null, []);
+  const paisSel = useMemo(
+    () => paises.find((p) => p.code === codigoPais) || paises[0],
+    [codigoPais]
+  );
+
+  // Áreas y agencias son catálogos del backend: se inyectan como opciones.
+  const campos = useMemo(
+    () =>
+      CAMPOS.map((campo) => {
+        if (campo.name === 'area') {
+          return {
+            ...campo,
+            options: areas,
+            required: areas.length > 0,
+            helperText:
+              areas.length > 0
+                ? undefined
+                : 'Todavía no hay áreas publicadas. Cuéntanos tu perfil en la descripción.',
+          };
+        }
+        if (campo.name === 'agencia') {
+          return {
+            ...campo,
+            options: agencias,
+            required: agencias.length > 0,
+            helperText:
+              agencias.length > 0
+                ? undefined
+                : 'Todavía no hay agencias publicadas. Revisaremos tu postulación manualmente.',
+          };
+        }
+        return campo;
+      }),
+    [areas, agencias]
+  );
+
+  const cargarCatalogos = useCallback(async () => {
+    setCargandoCatalogos(true);
+    setErrorCatalogos('');
+    try {
+      const [jAreas, jAgencias] = await Promise.all([getAvailableRootAreas(), getAgencias()]);
+      setAreas(
+        (Array.isArray(jAreas?.data) ? jAreas.data : []).map((a) => ({
+          value: String(a.id),
+          label: attr(a, 'name') || `Área ${a.id}`,
+        }))
+      );
+      setAgencias(
+        (Array.isArray(jAgencias?.data) ? jAgencias.data : []).map((g) => ({
+          value: String(g.id),
+          label: attr(g, 'nombre') || `Agencia ${g.id}`,
+        }))
+      );
+    } catch {
+      setAreas([]);
+      setAgencias([]);
+      setErrorCatalogos(
+        'No pudimos cargar las áreas y agencias. Reintenta para poder continuar con tu postulación.'
+      );
+    } finally {
+      setCargandoCatalogos(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelado = false;
-    const cargar = async () => {
-      setLoadingAreas(true);
-      try {
-        const token = await getToken();
-        const [jsonAreas, jsonAgencias] = await Promise.all([
-          getAvailableRootAreas(token),
-          getAgencias(token),
-        ]);
-        if (cancelado) return;
-        const data = Array.isArray(jsonAreas?.data) ? jsonAreas.data : [];
-        setAreas(
-          data.map((a) => ({
-            id: a.id,
-            nombre: a.attributes?.name ?? a.name ?? `Área ${a.id}`,
-          }))
-        );
-        const ag = Array.isArray(jsonAgencias?.data) ? jsonAgencias.data : [];
-        setAgencias(
-          ag.map((g) => ({
-            id: g.id,
-            nombre: g.attributes?.nombre ?? g.nombre ?? `Agencia ${g.id}`,
-          }))
-        );
-      } catch {
-        if (!cancelado) {
-          setAreas([]);
-          setAgencias([]);
-        }
-      } finally {
-        if (!cancelado) setLoadingAreas(false);
+    cargarCatalogos();
+  }, [cargarCatalogos]);
+
+  // Con sesión iniciada el correo viene de la cuenta (solo lectura).
+  useEffect(() => {
+    if (!isAuthenticated || !user?.email) return;
+    setValues((prev) => ({ ...prev, email: user.email }));
+  }, [isAuthenticated, user]);
+
+  const handleChange = (name, value) => {
+    setValues((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const validate = () => {
+    const next = {};
+    campos.forEach((campo) => {
+      const valor = values[campo.name];
+
+      if (campo.required && (valor === undefined || valor === '' || valor === null || valor === false)) {
+        next[campo.name] = 'Este campo es obligatorio.';
+        return;
       }
-    };
-    cargar();
-    return () => {
-      cancelado = true;
-    };
-  }, [getToken]);
 
-  const set = (campo) => (e) => setForm((prev) => ({ ...prev, [campo]: e.target.value }));
+      if (campo.type === 'email' && valor && !EMAIL_RE.test(String(valor).trim())) {
+        next.email = 'Escribe un correo electrónico válido.';
+      }
 
-  const errores = useMemo(() => {
-    const e = {};
-    if (!form.nombre_completo.trim()) e.nombre_completo = 'Escribe tu nombre completo';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Correo no válido';
-    if (!form.telefono.trim()) e.telefono = 'Escribe tu teléfono';
-    if (!form.area) e.area = 'Selecciona un área';
-    if (!form.agencia) e.agencia = 'Selecciona una agencia';
-    return e;
-  }, [form]);
+      if (campo.validate === 'name' && valor) {
+        const texto = String(valor).trim();
+        if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ'’\- ]+$/.test(texto)) {
+          next[campo.name] = 'Solo letras, espacios, guiones y apóstrofes.';
+        } else if (texto.replace(/[\s'’\-]+/g, '').length < 2) {
+          next[campo.name] = 'Escribe al menos 2 letras.';
+        } else if (texto.length > 60) {
+          next[campo.name] = 'Máximo 60 caracteres.';
+        }
+      }
 
-  const valido = Object.keys(errores).length === 0;
+      if (campo.name === 'telefono' && valor) {
+        if (String(valor).replace(/\D/g, '').length < 8) {
+          next.telefono = 'Escribe un teléfono válido.';
+        }
+      }
+
+      // CV opcional, pero si se adjunta debe respetar tipo y límite anunciado.
+      if (campo.name === 'cv' && valor) {
+        if (valor.size > MAX_CV_BYTES) {
+          next.cv = 'El CV supera 10 MB. Sube un archivo más ligero.';
+        } else {
+          const extension = `.${String(valor.name || '').split('.').pop()?.toLowerCase()}`;
+          if (!CV_EXTENSIONS.includes(extension)) {
+            next.cv = 'El CV debe ser PDF, Word o una imagen (JPG, PNG o WEBP).';
+          }
+        }
+      }
+    });
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!valido || enviando) return;
-    setEnviando(true);
-    setError(null);
+    if (!validate()) return;
+
+    setSubmitting(true);
+    setSubmitError('');
     try {
+      const tel = String(values.telefono || '').replace(/\D/g, '');
+      // Contrato de crearPostulacionSocio: objeto plano; el servicio arma el
+      // FormData (data + files.cv). No enviar un FormData crudo: el servicio
+      // no sabe leerlo y la postulación llegaría vacía.
+      // Sólo viajan datos del visitante: el estado, las fechas y el metadata
+      // los fija el backend (no son negociables desde el cliente).
       await crearPostulacionSocio({
-        nombre_completo: form.nombre_completo.trim(),
-        email: form.email.trim(),
-        codigo_pais: form.codigo_pais,
-        telefono: form.telefono.trim(),
-        area: form.area,
-        agencia: form.agencia,
-        descripcion: form.descripcion.trim(),
-        cv,
-        metadata: { origen: 'web-candidatos' },
+        nombre_completo: `${(values.nombre || '').trim()} ${(values.apellidos || '').trim()}`.trim(),
+        email: (values.email || user?.email || '').trim(),
+        codigo_pais: paisSel.code,
+        telefono: tel,
+        area: values.area || null,
+        agencia: values.agencia || null,
+        descripcion: (values.descripcion || '').trim(),
+        consentimiento: values.consentimiento === true,
+        cv: values.cv || null,
       });
       setEnviado(true);
     } catch (err) {
-      setError(err.message || 'No se pudo enviar tu postulación');
+      setSubmitError(err?.message || 'No se pudo enviar la postulación. Intenta de nuevo.');
     } finally {
-      setEnviando(false);
+      setSubmitting(false);
     }
   };
 
+  const enviarOtra = () => {
+    setValues(isAuthenticated && user?.email ? { email: user.email } : {});
+    setErrors({});
+    setSubmitError('');
+    setEnviado(false);
+  };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ ...pageContainerSx, display: 'flex', justifyContent: 'center', pt: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   if (enviado) {
     return (
-      <Box sx={{ minHeight: '100vh', bgcolor: fondo, py: { xs: 4, md: 8 }, px: 2 }}>
-        <Paper
-          elevation={10}
-          sx={{
-            maxWidth: 560,
-            mx: 'auto',
-            p: { xs: 3, md: 5 },
-            borderRadius: 4,
-            bgcolor: 'rgba(255,255,255,0.03)',
-            border: `1px solid ${MORADO}`,
-            textAlign: 'center',
-          }}
-        >
-          <Typography variant="h5" fontWeight={800} color="#fff" gutterBottom>
-            ¡Gracias por postularte! 🎉
+      <Box sx={{ ...pageContainerSx, px: { xs: 2, sm: 3 }, py: { xs: 4, md: 6 } }}>
+        <Box sx={{ maxWidth: 720, mx: 'auto' }}>
+          <Typography variant="h4" sx={{ fontFamily: GEN_FONTS.display, fontWeight: 700, mb: 1.5 }}>
+            ¡Gracias por postularte!
           </Typography>
-          <Typography color="#cfcfe6" sx={{ mb: 3 }}>
+          <Typography sx={{ color: GEN_COLORS.textoSecundario, mb: 3, lineHeight: 1.6 }}>
             Recibimos tu postulación. El equipo de la agencia la revisará y te contactará.
           </Typography>
-          <Stack direction="row" spacing={2} justifyContent="center">
-            <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/')} sx={{ color: '#cfcfe6' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <Button
+              variant="text"
+              onClick={() => navigate('/')}
+              startIcon={<ArrowBackIcon />}
+              sx={ctaSecondarySx}
+            >
               Volver al inicio
             </Button>
-            <PurpleButton onClick={() => setEnviado(false)}>Enviar otra</PurpleButton>
+            <Button variant="contained" onClick={enviarOtra} sx={ctaPrimarySx}>
+              Enviar otra postulación
+            </Button>
           </Stack>
-        </Paper>
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: fondo, py: { xs: 4, md: 8 }, px: 2 }}>
-      <Box sx={{ maxWidth: 680, mx: 'auto' }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ color: '#cfcfe6', mb: 2 }}>
+    <Box sx={{ ...pageContainerSx, px: { xs: 2, sm: 3 }, py: { xs: 4, md: 6 } }}>
+      <Box sx={{ maxWidth: 760, mx: 'auto' }}>
+        <Button
+          variant="text"
+          onClick={() => navigate(-1)}
+          startIcon={<ArrowBackIcon />}
+          sx={{ ...ctaSecondarySx, mb: 2, px: 2 }}
+        >
           Volver
         </Button>
 
-        <Typography variant="h4" fontWeight={900} color="#fff" gutterBottom>
-          Postúlate como <span style={{ color: MORADO }}>socio</span>
+        <Typography variant="h4" sx={{ fontFamily: GEN_FONTS.display, fontWeight: 700 }}>
+          Postularte a socio
         </Typography>
-        <Typography color="#cfcfe6" sx={{ mb: 4 }}>
-          Únete a una agencia Ciudadan. Llena el formulario y nos pondremos en contacto contigo.
+        <Typography sx={{ color: GEN_COLORS.textoSecundario, mt: 1, mb: 3, lineHeight: 1.6 }}>
+          Únete a una agencia Ciudadan. Llena el formulario y revisaremos tu postulación.
         </Typography>
 
-        <Paper
-          component="form"
-          onSubmit={handleSubmit}
-          elevation={10}
-          sx={{
-            p: { xs: 3, md: 4 },
-            borderRadius: 4,
-            bgcolor: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.10)',
-          }}
-        >
-          <Stack spacing={2.5}>
-            {error && <Alert severity="error">{error}</Alert>}
-
-            <TextField
-              label="Nombre completo"
-              value={form.nombre_completo}
-              onChange={set('nombre_completo')}
-              error={!!errores.nombre_completo}
-              helperText={errores.nombre_completo}
-              fullWidth
-              sx={inputSx}
-              InputLabelProps={labelProps}
-            />
-
-            <TextField
-              label="Correo electrónico"
-              type="email"
-              value={form.email}
-              onChange={set('email')}
-              error={!!errores.email}
-              helperText={errores.email}
-              fullWidth
-              sx={inputSx}
-              InputLabelProps={labelProps}
-            />
-
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 4, sm: 3 }}>
-                <FormControl fullWidth sx={inputSx}>
-                  <InputLabel sx={{ color: '#cfcfe6' }}>País</InputLabel>
-                  <Select
-                    label="País"
-                    value={form.codigo_pais}
-                    onChange={set('codigo_pais')}
-                    renderValue={(val) => {
-                      const p = paises.find((x) => x.code === val);
-                      return (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <img src={p?.flag} alt={val} style={{ width: 22, height: 15, borderRadius: 2 }} />
-                          {val}
-                        </Box>
-                      );
-                    }}
-                  >
-                    {paises.map((p) => (
-                      <MenuItem key={p.code} value={p.code}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <img src={p.flag} alt={p.label} style={{ width: 22, height: 15, borderRadius: 2 }} />
-                          {p.code} · {p.label}
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 8, sm: 9 }}>
-                <TextField
-                  label="Teléfono / WhatsApp"
-                  value={form.telefono}
-                  onChange={set('telefono')}
-                  error={!!errores.telefono}
-                  helperText={errores.telefono}
-                  fullWidth
-                  sx={inputSx}
-                  InputLabelProps={labelProps}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PhoneIcon sx={{ color: MORADO }} fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-            </Grid>
-
-            <FormControl fullWidth error={!!errores.area} sx={inputSx}>
-              <InputLabel sx={{ color: '#cfcfe6' }}>Área de interés</InputLabel>
-              <Select
-                label="Área de interés"
-                value={form.area}
-                onChange={set('area')}
-                endAdornment={
-                  loadingAreas ? <CircularProgress size={18} sx={{ mr: 3, color: MORADO }} /> : null
-                }
-              >
-                {areas.map((a) => (
-                  <MenuItem key={a.id} value={String(a.id)}>
-                    {a.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errores.area && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                  {errores.area}
-                </Typography>
-              )}
-            </FormControl>
-
-            <FormControl fullWidth error={!!errores.agencia} sx={inputSx}>
-              <InputLabel sx={{ color: '#cfcfe6' }}>Agencia a la que te postulas</InputLabel>
-              <Select
-                label="Agencia a la que te postulas"
-                value={form.agencia}
-                onChange={set('agencia')}
-                endAdornment={
-                  loadingAreas ? <CircularProgress size={18} sx={{ mr: 3, color: MORADO }} /> : null
-                }
-              >
-                {agencias.map((g) => (
-                  <MenuItem key={g.id} value={String(g.id)}>
-                    {g.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errores.agencia && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                  {errores.agencia}
-                </Typography>
-              )}
-            </FormControl>
-
-            <TextField
-              label="¿Por qué quieres ser socio? (opcional)"
-              value={form.descripcion}
-              onChange={set('descripcion')}
-              multiline
-              minRows={3}
-              fullWidth
-              sx={inputSx}
-              InputLabelProps={labelProps}
-            />
-
-            <Box>
+        {!isAuthenticated && (
+          <Alert
+            severity="info"
+            icon={<LoginIcon />}
+            sx={{ mb: 3, bgcolor: 'rgba(25,215,156,0.08)', color: GEN_COLORS.texto }}
+            action={
               <Button
-                component="label"
-                variant="outlined"
-                startIcon={<AttachFileIcon />}
-                sx={{
-                  color: '#fff',
-                  borderColor: 'rgba(255,255,255,0.25)',
-                  textTransform: 'none',
-                  '&:hover': { borderColor: MORADO },
-                }}
+                color="inherit"
+                size="small"
+                onClick={() => loginWithRedirect({ appState: { target: '/candidatos' } })}
               >
-                {cv ? cv.name : 'Subir CV (extracto)'}
-                <input
-                  type="file"
-                  hidden
-                  accept=".pdf,.doc,.docx,image/*"
-                  onChange={(e) => setCv(e.target.files?.[0] || null)}
-                />
+                Iniciar sesión
               </Button>
-              <Typography variant="caption" color="#9a9ab5" sx={{ display: 'block', mt: 0.5 }}>
-                PDF, Word o imagen. Máx. 10 MB.
-              </Typography>
-            </Box>
+            }
+          >
+            Puedes postularte sin cuenta, pero si inicias sesión rellenamos tu correo automáticamente.
+          </Alert>
+        )}
 
-            <PurpleButton
-              type="submit"
-              fullWidth
-              disabled={!valido || enviando}
-              startIcon={enviando ? <CircularProgress size={18} color="inherit" /> : <SendIcon />}
-              sx={{ py: 1.3, mt: 1 }}
+        {errorCatalogos && (
+          <Alert
+            severity="warning"
+            sx={{ mb: 2, bgcolor: 'rgba(245,196,0,0.08)', color: GEN_COLORS.texto }}
+            action={
+              <Button color="inherit" size="small" onClick={cargarCatalogos}>
+                Reintentar
+              </Button>
+            }
+          >
+            {errorCatalogos}
+          </Alert>
+        )}
+
+        {!errorCatalogos && !cargandoCatalogos && areas.length === 0 && agencias.length === 0 && (
+          <Alert
+            severity="info"
+            sx={{ mb: 2, bgcolor: 'rgba(25,215,156,0.08)', color: GEN_COLORS.texto }}
+          >
+            Todavía no hay áreas ni agencias publicadas: puedes enviar tu postulación
+            sin seleccionarlas y la revisamos personalmente.
+          </Alert>
+        )}
+
+        {submitError && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2, bgcolor: 'rgba(239,83,80,0.08)', color: GEN_COLORS.texto }}
+          >
+            {submitError}
+          </Alert>
+        )}
+
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={{ xs: 2, md: 2.5 }}>
+            {campos.map((campo) => (
+              <Grid key={campo.name} size={{ xs: 12, sm: campo.half ? 6 : 12 }}>
+                {campo.name === 'telefono' && (
+                  <Box sx={{ mb: 1.5 }}>
+                    <Typography
+                      component="span"
+                      sx={{
+                        display: 'block',
+                        color: GEN_COLORS.textoSecundario,
+                        fontSize: '0.8rem',
+                        mb: 0.5,
+                      }}
+                    >
+                      País del teléfono: {paisSel.label} ({paisSel.code})
+                    </Typography>
+                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                      {paises.map((pais) => (
+                        <Button
+                          key={pais.code}
+                          size="small"
+                          onClick={() => setCodigoPais(pais.code)}
+                          aria-label={`País ${pais.label}`}
+                          aria-pressed={codigoPais === pais.code}
+                          title={pais.label}
+                          sx={{
+                            p: 0.5,
+                            minWidth: 0,
+                            border: `1px solid ${
+                              codigoPais === pais.code ? GEN_COLORS.verde : 'transparent'
+                            }`,
+                            bgcolor:
+                              codigoPais === pais.code ? 'rgba(255,255,255,0.16)' : 'transparent',
+                            '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                          }}
+                        >
+                          <img
+                            src={pais.flag}
+                            alt=""
+                            style={{ width: 18, height: 12, display: 'block' }}
+                          />
+                        </Button>
+                      ))}
+                    </Stack>
+                  </Box>
+                )}
+
+                <RegistrationField
+                  field={campo}
+                  value={values[campo.name] ?? ''}
+                  error={errors[campo.name]}
+                  disabled={
+                    (campo.name === 'email' && isAuthenticated) || submitting
+                  }
+                  onChange={handleChange}
+                />
+              </Grid>
+            ))}
+          </Grid>
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 4 }}>
+            <Button
+              type="button"
+              variant="text"
+              onClick={() => navigate(-1)}
+              disabled={submitting}
+              sx={ctaSecondarySx}
             >
-              {enviando ? 'Enviando...' : 'Enviar postulación'}
-            </PurpleButton>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={submitting || cargandoCatalogos}
+              startIcon={
+                submitting ? <CircularProgress size={18} color="inherit" /> : <SendIcon />
+              }
+              sx={ctaPrimarySx}
+            >
+              {submitting ? 'Enviando…' : 'Enviar postulación'}
+            </Button>
           </Stack>
-        </Paper>
+        </Box>
       </Box>
     </Box>
   );
