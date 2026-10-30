@@ -453,3 +453,63 @@ contaminada es un vector de ataque, no solo un problema de higiene.
    puntos únicos de falla aunque la GUI deje de depender de un DSH.
 9. **Overwrite de Cloudflare**: el `PUT` de configuración borra reglas ajenas si no se fusiona bien
    → reservar por túnel y releer después de publicar.
+
+---
+
+## 16. Estado real de los subdominios (verificado por API el 2026-10-29)
+
+El token de API de Cloudflare que el operador había creado fue **localizado**
+(`C:\Users\elyiz\Downloads\tolen_autodeployer_cloudflare.docx`), **instalado** en
+`~/.dsh/secrets/cloudflare-api-token.txt` con ACL sin herencia (solo `YIZUZ\elyiz` y `SYSTEM`) y
+**verificado** con `GET /user/tokens/verify` → `active`, id `db06cd5c…`, **sin expiración**.
+
+Cliente: `C:\yii\tools\cloudflare-api.mjs` (lee el token del archivo de secretos; **nunca** por
+argv ni por variables de entorno, para que no aparezca en `ps`).
+
+```bash
+node C:\yii\tools\cloudflare-api.mjs verify|accounts|zones|tunnels|config <id>|routes|dns [filtro]
+```
+
+### 16.1 Hallazgos que corrigen/supervisan la premisa
+
+| Premisa | Realidad verificada |
+|---|---|
+| «A algunos agentes falta configurarle el subdominio» | **Los 13 tienen todo**: ingress en el túnel + CNAME en DNS, para frontend, backend y socket (39 hostnames) |
+| «Hay que decidir A/B/C de subdominios» | Ya hay **un túnel por nodo** (`temporal-1/2/3`, healthy, 4 conexiones) → la recomendación de GPT de separar por nodo **ya se cumple**; no hay que rehacer nada |
+| «El token/API ya existía» | Existía en `Downloads` como `.docx`, no en el almacén de secretos; ya instalado con ACL |
+
+Identificadores canónicos (no secretos):
+
+- account `9a00f494de172e969c6498971bcdc3aa`
+- zone `ciudadan.org` = `ebdaa743538f55296d6edad8a85d260f`
+- túneles de la flota: `temporal-1` `e76638b0-99a2-4d8f-9d45-e2f5d7195809` ·
+  `temporal-2` `826e8e51-5402-4385-ace7-efbb996ed0b9` ·
+  `temporal-3` `30291f10-edc9-42b1-8345-76d2a10317a0`
+- patrón de puertos ya presente en la configuración: frontend `3100+i`, backend `4100+i`, socket `5100+i`
+
+### 16.2 Chequeo activo de los 13 frontends (HEAD, 2026-10-29 ~18:40)
+
+| Agente | Estado |
+|---|---|
+| temporal1-agent1..4 | 200 OK |
+| temporal2-agent1 | **502** (origen no responde en `3101`; túnel sano) |
+| temporal2-agent2..6 | 200 OK |
+| temporal3-agent1 | 200 OK |
+| temporal3-agent2 | **502** (origen no responde en `3101`) |
+| temporal3-agent3 | 200 OK |
+
+**11/13 sirven.** Los 2 con 502 son el caso exacto del estado `origin_unreachable` del modelo de
+GPT: el DNS y el ingress están bien; **falta el proceso en el contenedor**. La card debe mostrar
+eso como "origen caído", no como "subdominio sin configurar" (que sería un diagnóstico falso).
+
+### 16.3 Riesgos del token
+
+1. **Sin expiración**: un token de API sin caducidad es una deuda de seguridad; conviene fijarle
+   expiración (o rotarlo por calendario).
+2. **Alcance excesivo**: el token ve las **5 zonas** de la cuenta (`ciudadan.org`,
+   `elotromundial.mx`, `guematrialab.online`, `independientes.mx`, `marihuanas.club`). La
+   recomendación de mínimo privilegio (solo `ciudadan.org`, solo DNS + Tunnel) implica recrear el
+   token con permisos acotados.
+3. **Copia en `Downloads`**: el `.docx` original sigue en `C:\Users\elyiz\Downloads\` con el
+   secreto en claro. No se borró (no hay orden de limpieza de disco), pero conviene eliminarlo o
+   moverlo al almacén.
