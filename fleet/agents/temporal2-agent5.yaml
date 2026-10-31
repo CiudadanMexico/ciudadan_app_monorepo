@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal2-agent5
+node: temporal-2
+runtime: docker-cline
+contenedor: temporal2-agent5
+proyecto: ciudadan_app_monorepo
+rama: "feature/comunidad-grupos-1028"
+ssh: "ssh -p 2205 yizuz@163.192.153.145"
+tarea:
+  estado: activa
+  descripcion: ""
+  declarada_en: "2026-10-28T09:50:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Revision adrian1 encadenada en 429 (Too Many Requests) sin cambios en el arbol. Watchdog pwsh-834 la revive cada 8 min con tope de 1 sesion por host. Pendiente de que el proveedor libere cuota.

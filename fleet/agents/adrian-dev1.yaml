@@ -1,0 +1,16 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: adrian-dev1
+node: adrian-perez-aux-1
+runtime: cline-directo
+contenedor: [object Object]
+proyecto: ciudadan_app_monorepo
+rama: "main (integradora)"
+tarea:
+  estado: sin_tarea
+  descripcion: ""
+  declarada_en: "2026-10-26T00:00:00-06:00"
+confianza_inventario: historical
+notas: >-
+    Registrado en cline-hub (polanco 8443). Integración de aux-1 YA publicada en main (fb22eca → a6bfb90, 26-oct) — riesgo resuelto.

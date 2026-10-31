@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal3-agent3
+node: temporal-3
+runtime: docker-cline
+contenedor: temporal3-agent3
+proyecto: ciudadan_app_monorepo
+rama: "feature/fleet-status-1028"
+ssh: "ssh -p 2203 yizuz@159.54.133.219"
+tarea:
+  estado: sin_tarea
+  descripcion: ""
+  declarada_en: "2026-10-28T11:05:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Sprint 8-tareas (hilo yizuz) el script de estado de flota lo_resolvio el operador en local (la sesion cayo por 429). Rama feature/fleet-status-1028 (commit e58e1b4, YA PUSHEADA) scripts/fleet-status.mjs (tabla + --json, 13 contenedores, tolera caidos) + docs/FLEET-STATUS.md. Verificado contra la flota real 13/13 UP. Agente libre.

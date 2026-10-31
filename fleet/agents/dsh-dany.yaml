@@ -1,0 +1,13 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: dsh-dany
+node: daniel-core-vnic
+runtime: instancia-dsh
+tarea:
+  estado: sin_tarea
+  descripcion: ""
+  declarada_en: "2026-10-26T12:56:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Controlador DSH remoto del equipo; memoria operativa instalada en Bloque 1 (DSH_HOME=/home/dsh-dany/.dsh).

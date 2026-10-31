@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal1-agent3
+node: temporal-1
+runtime: docker-cline
+contenedor: temporal1-agent3
+proyecto: ciudadan_app_monorepo
+rama: "feature/seeder-publish-fix-1028"
+ssh: "ssh -p 2203 yizuz@160.34.219.124"
+tarea:
+  estado: sin_tarea
+  descripcion: ""
+  declarada_en: "2026-10-28T11:05:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Sprint 8-tareas (hilo yizuz) el fix del seeder --publish lo_resolvio el operador en local (la sesion Cline cayo por 429 de NVIDIA). Rama feature/seeder-publish-fix-1028 (commit 450f4b4, YA PUSHEADA) helper publicar.js + 4 puntos de publicacion (create/update de tienda y productos) + test de regresion 7/7. Agente libre.

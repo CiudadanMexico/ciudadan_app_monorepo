@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal3-agent2
+node: temporal-3
+runtime: docker-cline
+contenedor: temporal3-agent2
+proyecto: ciudadan_app_monorepo
+rama: "feature/inventario-secretos-1028"
+ssh: "ssh -p 2202 yizuz@159.54.133.219"
+tarea:
+  estado: activa
+  descripcion: ""
+  declarada_en: "2026-10-28T10:53:39-06:00"
+confianza_inventario: verified
+notas: >-
+    Secretos cierre por el operador ROOT. El agente redacto docs/ROTACION-SECRETOS-2026-10-28.md (142 lineas, 21 P0 + 6 P1, sin valores) y fue integracion manual al no poder commitear por 429; merge 16b8f6c en main. La rotacion de secretos NO se ejecuto queda pendiente de autorizacion explicita del usuario.

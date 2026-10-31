@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal1-agent1
+node: temporal-1
+runtime: docker-cline
+contenedor: temporal1-agent1
+proyecto: ciudadan_app_monorepo
+rama: "feature/comunidad-whatsapp-config-1028"
+ssh: "ssh -p 2201 yizuz@160.34.219.124"
+tarea:
+  estado: activa
+  descripcion: "WhatsApp configurable en Comunidad (CTA de ComunidadPage.jsx via getPublicConfig + auditoria de hardcodes)"
+  declarada_en: "2026-10-28T11:05:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Sprint 8-tareas (hilo yizuz) la tarea de WhatsApp se RELOCALIZO aqui desde temporal2-agent2 (el otro hilo reasigno ese contenedor a CI-hardening). Config AISLADA /workspace/.cline-agente con llave propia (la global la borra el otro hilo). Sesion tmux tarea-comunidad-whatsapp, modelo minimaxai/minimax-m3.1-flash (nvidia). Log /workspace/logs/comunidad-whatsapp.log. Sin push (empuja el operador).

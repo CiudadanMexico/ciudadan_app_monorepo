@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal1-agent2
+node: temporal-1
+runtime: docker-cline
+contenedor: temporal1-agent2
+proyecto: ciudadan_app_monorepo
+rama: "feature/food-cotizaciones-frontend"
+ssh: "ssh -p 2202 yizuz@160.34.219.124"
+tarea:
+  estado: activa
+  descripcion: ""
+  declarada_en: "2026-10-28T10:53:39-06:00"
+confianza_inventario: verified
+notas: >-
+    Food ENTREGADO e INTEGRADO en main (0e5f6c1, 2026-10-28). Cotizaciones de envio en el checkout contra el contrato real del backend FoodCheckout.jsx, FoodOpcionesEnvio.jsx, useCotizacionesEnvio.js, cotizacionesEnvioService.js y doc. 3 commits (de945b7, 282be66, 4ca019f). Build verificado con GENERATE_SOURCEMAP=false NODE_OPTIONS=--max-old-space-size=3584 por tope de 4.75 GiB del cgroup. El push desde el contenedor fallo por credenciales (esperado) integracion por parche desde el clon operador.

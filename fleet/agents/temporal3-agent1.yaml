@@ -1,0 +1,15 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal3-agent1
+node: temporal-3
+runtime: docker-cline
+contenedor: temporal3-agent1
+proyecto: ciudadan_app_monorepo
+rama: "feature/forense-reinyeccion-1027"
+ssh: "ssh -p 2201 yizuz@159.54.133.219"
+tarea:
+  estado: activa
+  descripcion: ""
+  declarada_en: "2026-10-28T10:53:39-06:00"
+confianza_inventario: historical

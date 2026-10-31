@@ -188,15 +188,34 @@ La simulación **no toca ningún agente real**: `simular` inyecta una observaci�
 - No decide con IA: el modelo, si interviene, solo puede interpretar una incidencia ya
   detectada por regla.
 
-## 8. Siguientes fases (pendientes de OK)
+## 8. Fases — estado a 2026-10-31
 
-| # | Fase | Qué falta |
-|---|---|---|
-| F1 | Heartbeat por agente en los nodos | Hoy el heartbeat se deriva del sondeo central; falta que cada nodo publique su propio heartbeat (fichero JSON) para sobrevivir a una caída del colector. Requiere desplegar un script de solo lectura en los 3 nodos → **necesita OK**. |
-| F2 | Señal de progreso nativa de Cline | Hoy el progreso se infiere de git + logs. Falta el evento estructurado de la API de Cline. |
-| F3 | `fleet/agents/*.yaml` en el monorepo | Mover el inventario a git (fuente común acordada) y versionarlo. |
-| F4 | Panel DSH en la GUI (`dsh-fleet-panel`) | Mostrar el estado dentro del DSH en vez de solo en Markdown. |
-| F5 | `.well-known/ciudadan-fleet.json` | Exposición pública del estado de la flota (solo lectura, sin datos sensibles). |
+| # | Fase | Estado | Qué se hizo |
+|---|---|---|---|
+| F1 | Heartbeat por nodo | **Hecha** (con OK explícito del operador) | Script de solo lectura `fleet-heartbeat.sh` desplegado en los 3 temporales (`~/.ciudadan-fleet/`), publicación atómica con `flock` + validación JSON previa, `crontab` cada minuto. El monitor lee `heartbeat.json` (ciclo de 2 s en vez de 7 s) y cae al sondeo directo si el heartbeat envejece. |
+| F2 | Señal de progreso nativa de Cline | **Hecha** | El hub de Cline emite eventos JSON `run.heartbeat` cada ~30 s con `ts` y `sessionId`; la sesión se escribe en `.cline/data/sessions/<id>/<id>.json`. De ahí salen `alive_ts` (runtime en marcha) y `progress_ts` = `max(session_ts, último commit)`. **Se descartó `/workspace/logs/*.log` como señal de progreso**: lo escribe un *health poll* cada 60 s y hacía que ningún agente pudiera detectarse como atascado. |
+| F3 | `fleet/agents/*.yaml` en git | **Hecha** | 18 YAML (uno por agente) + `fleet/README.md` en el monorepo. El monitor los lee como fuente principal (respaldo: `~/.dsh/infrastructure/agents.yaml`). Separación: el YAML es **declaración** (identidad, nodo, tarea); el **estado real** lo calcula el monitor y se publica en el tablero y en la instantánea, para no ensuciar git con cambios por minuto. |
+| F4 | Panel DSH en la GUI (`dsh-fleet-panel`) | Pendiente de OK | Mostrar el estado dentro del DSH en vez de solo en Markdown. Exige tocar el shell web y **reconstruir los artefactos web**; no se hace sin OK explícito. |
+| F5 | `.well-known/ciudadan-fleet.json` | Pendiente de OK | Exposición pública del estado de la flota (solo lectura, sin datos sensibles). Depende de F4. |
+
+### 8.1 Consecuencia de F2+F3 en el estado real (31-oct-2026)
+
+Al pasar de la señal inferida a la señal nativa, el monitor detectó **9 agentes
+declarados `busy` que no trabajan desde el 28-oct**: el runtime de Cline está
+en marcha pero sin progreso, o directamente sin runtime en marcha. Las 9
+incidencias se acusaron recibo (ACK) al revisarlas, para no generar ruido, y
+quedan visibles en el tablero. La causa es que el inventario declaraba `busy`
+con fecha del 28-oct: por eso F3 mete `tarea.declarada_en` y `tarea.estado`
+(`activa` · `pausada` · `sin_tarea`) en git, para que cerrar o pausar una
+tarea sea un cambio explícito y no una decisión deducida.
+
+### 8.2 Reglas de aviso agrupadas
+
+Un fallo de una pasada genera **un solo mensaje** al agente decisor con la
+lista de incidencias nuevas, y **un solo toast** al humano en el escalamiento
+(nueve toasts a la vez serían ruido y el aviso perdería sentido). El reintento
+al decisor está limitado a **uno** por incidencia; después, el escalamiento a
+los 300 s sin ACK es el que actúa.
 
 Riesgos a vigilar: el umbral de 15 min puede generar falsos positivos en tareas de
 compilación larga → por eso las excepciones por agente son configurables y la regla exige

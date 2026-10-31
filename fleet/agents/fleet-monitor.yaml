@@ -1,0 +1,13 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: fleet-monitor
+node: yizuz
+runtime: monitor
+tarea:
+  estado: sin_tarea
+  descripcion: ""
+  declarada_en: "2026-10-30T21:17:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Monitor programatico de la flota (SIN IA para decidir) sondea los 13 contenedores cline por SSH en modo solo lectura y las sesiones DSH por la API session/list del 3080; clasifica con maquina de estados determinista (WORKING/WAITING/IDLE/SUSPECT/STALLED/DOWN/FAILED/UNOBSERVABLE); abre incidencias en SQLite (C\\yii\\tools\\fleet\\estado), avisa primero al agente decisor por session/prompt y escala al humano (toast de Windows) solo si no hay ACK en 300 s. Tablero C\\yii\\tools\\ESTADO-FLETA.md. Roadmap docs/MONITOR-FLOTA-PROGRAMATICO-2026-10-30.md (commit 13b1f46).

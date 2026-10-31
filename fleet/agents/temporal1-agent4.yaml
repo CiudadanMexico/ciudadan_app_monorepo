@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal1-agent4
+node: temporal-1
+runtime: docker-cline
+contenedor: temporal1-agent4
+proyecto: ciudadan_app_monorepo
+rama: "feature/integracion-hackabot"
+ssh: "ssh -p 2204 yizuz@160.34.219.124"
+tarea:
+  estado: activa
+  descripcion: ""
+  declarada_en: "2026-10-28T10:53:39-06:00"
+confianza_inventario: historical
+notas: >-
+    Hackabot WIP en curso. Checkpoint 9eb80bb ya elimino api.js y dejo auth0.js limpio (11ae417b), pero la reescritura de Candidatos.jsx (573 lineas) quedo sin finalizar, por eso NO se integro a ciegas. Watchdog pwsh-833 lo revive cada 8 min con instruccion de completar la reescritura y verificar el build del frontend antes de cerrar.

@@ -1,0 +1,13 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: cline-hub
+node: polanco-server
+runtime: servicio-registro
+tarea:
+  estado: sin_tarea
+  descripcion: ""
+  declarada_en: "2026-10-26T00:00:00-06:00"
+confianza_inventario: historical
+notas: >-
+    La flota temporal (13 contenedores) NO está registrada en el hub. Código sin git remote (solo /home/polanco/cline-hub y copias bajo /srv/kompa/wikis/projects). Contraseña del panel hardcodeada en deploy/state.sh → rotar (pendiente).

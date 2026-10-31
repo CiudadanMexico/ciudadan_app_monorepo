@@ -1,0 +1,17 @@
+# Declaracion del agente. Estado real: lo calcula el monitor de flota
+# (C:\yii\tools\fleet\fleet.mjs) y se publica en ESTADO-FLETA.md.
+# Editar a mano solo para cambiar la declaracion (nueva tarea, pausa, cierre).
+agent_id: temporal2-agent3
+node: temporal-2
+runtime: docker-cline
+contenedor: temporal2-agent3
+proyecto: ciudadan_app_monorepo
+rama: "feature/comunidad-chats-contactos-1028"
+ssh: "ssh -p 2203 yizuz@163.192.153.145"
+tarea:
+  estado: activa
+  descripcion: ""
+  declarada_en: "2026-10-28T09:50:00-06:00"
+confianza_inventario: verified
+notas: >-
+    Sprint 8-tareas (hilo yizuz) Chats + Contactos de Comunidad (placeholder -> funcional end-to-end contra Strapi), solo archivos nuevos en components/Comunidad/Chats/ y /Contactos/ + servicios propios; enganche al contenedor de pestanas documentado. Sesion tmux tarea-comunidad-chats-contactos. Log /workspace/logs/comunidad-chats-contactos.log.
