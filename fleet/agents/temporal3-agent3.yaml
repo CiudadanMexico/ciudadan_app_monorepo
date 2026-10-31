@@ -7,7 +7,6 @@ runtime: docker-cline
 contenedor: temporal3-agent3
 proyecto: ciudadan_app_monorepo
 rama: "feature/fleet-status-1028"
-ssh: "ssh -p 2203 yizuz@159.54.133.219"
 tarea:
   estado: sin_tarea
   descripcion: ""

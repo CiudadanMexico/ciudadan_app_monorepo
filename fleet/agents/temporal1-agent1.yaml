@@ -7,7 +7,6 @@ runtime: docker-cline
 contenedor: temporal1-agent1
 proyecto: ciudadan_app_monorepo
 rama: "feature/comunidad-whatsapp-config-1028"
-ssh: "ssh -p 2201 yizuz@160.34.219.124"
 tarea:
   estado: activa
   descripcion: "WhatsApp configurable en Comunidad (CTA de ComunidadPage.jsx via getPublicConfig + auditoria de hardcodes)"

@@ -1,0 +1,50 @@
+{
+  "schema": "ciudadan-fleet-monitor-v1",
+  "descripcion": "Configuracion del monitor programatico de la flota. Sin IA: solo reglas y umbrales. Copia este archivo como config.json y ajusta hosts, rutas y excepciones. NO se versiona config.json porque contiene la infraestructura (host, usuario) de la flota.",
+  "umbrales": {
+    "heartbeatSospechosoSeg": 90,
+    "heartbeatNoObservableSeg": 180,
+    "progresoSinAvanceSeg": 900,
+    "checksFallidosParaStalled": 2,
+    "escalamientoHumanoSeg": 300,
+    "escalamientoCriticoSeg": 60,
+    "reintentoNotificacionSeg": 180,
+    "esperaAckDecisionSeg": 300
+  },
+  "notificacion": {
+    "agenteDecisor": "auto",
+    "canalHumano": "toast-windows",
+    "incluirEvidencia": true,
+    "maxLineasEvidencia": 6
+  },
+  "inventario": {
+    "agentes": "C:\\Users\\<usuario>\\.dsh\\infrastructure\\agents.yaml",
+    "nodos": "C:\\Users\\<usuario>\\.dsh\\infrastructure\\nodes.yaml",
+    "git": "<ruta>\\ciudadan_app_monorepo\\fleet\\agents"
+  },
+  "rutas": {
+    "estado": "<ruta>\\fleet\\estado",
+    "inbox": "<ruta>\\fleet\\inbox",
+    "tablero": "<ruta>\\ESTADO-FLETA.md",
+    "log": "<ruta>\\logs\\fleet-monitor.log"
+  },
+  "nodos": {
+    "nodo-1": {
+      "host": "<host-o-ip>",
+      "user": "<usuario-ssh>",
+      "puerto": 22,
+      "timeoutSeg": 25
+    }
+  },
+  "observacion": {
+    "consultaDshSesiones": true,
+    "consultaContenedores": true,
+    "timeoutDshSeg": 15
+  },
+  "excepciones": {
+    "agente-con-tarea-larga": {
+      "progresoSinAvanceSeg": 1800,
+      "motivo": "tarea larga declarada"
+    }
+  }
+}

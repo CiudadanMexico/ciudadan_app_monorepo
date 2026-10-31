@@ -7,7 +7,6 @@ runtime: docker-cline
 contenedor: temporal2-agent3
 proyecto: ciudadan_app_monorepo
 rama: "feature/comunidad-chats-contactos-1028"
-ssh: "ssh -p 2203 yizuz@163.192.153.145"
 tarea:
   estado: activa
   descripcion: ""

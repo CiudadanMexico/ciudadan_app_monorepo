@@ -7,7 +7,6 @@ runtime: docker-cline
 contenedor: temporal1-agent2
 proyecto: ciudadan_app_monorepo
 rama: "feature/food-cotizaciones-frontend"
-ssh: "ssh -p 2202 yizuz@160.34.219.124"
 tarea:
   estado: activa
   descripcion: ""

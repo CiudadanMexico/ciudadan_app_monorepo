@@ -7,7 +7,6 @@ runtime: docker-cline
 contenedor: temporal1-agent3
 proyecto: ciudadan_app_monorepo
 rama: "feature/seeder-publish-fix-1028"
-ssh: "ssh -p 2203 yizuz@160.34.219.124"
 tarea:
   estado: sin_tarea
   descripcion: ""
