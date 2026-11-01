@@ -104,25 +104,28 @@ El único punto donde Strapi toca la wiki es
 
 ### 3.2 Estado honesto de la conexión
 
-> **Las dos superficies NO están sincronizadas automáticamente.**
+> **Las superficies se sincronizan automáticamente durante el deploy.**
 > Este repo contiene la **fuente** (`wikiseed/` + `tokenContent.js`) y el
-> **contrato** de integración. La wiki **viva** sólo tiene un documento después
-> de sincronizarlo contra el destino configurado.
+> **contrato** de integración. El artefacto de producción incluye `wikiseed/`;
+> después de instalar el release, el pipeline ejecuta la sincronización de
+> copia + índice con Node 22 y valida el resultado. Si esa validación falla,
+> el deploy termina con error.
 
-**Lo que falta exactamente para publicar en la wiki viva** (una sola vez, o
-cuando cambie el contenido):
+Para una ejecución manual o diagnóstico:
 
 ```bash
-node wikiseed/sync-wikis.js          # copia lo que falte o cambie
-node wikiseed/sync-wikis.js --dry-run  # para revisar sin escribir
+node wikiseed/sync-wikis.js --dry-run  # revisar sin escribir
+node wikiseed/sync-wikis.js            # copia + indexa
 ```
 
 Requisitos: `STRAPI_URL` accesible **o** `WIKI_ROOT_PATH` definido, y que
-`site-setting.wikis_path` (o el fallback) apunte a un destino real.
+`site-setting.wikis_path` (o el fallback) apunte a un destino real. En
+producción se usa `wikiseed/sync-wikis-production.js`, que resuelve el layout
+del release y comprueba archivos + índice SQLite.
 
-Mientras no se sincronice, la ficha muestra el enlace a la sección y el mensaje
-*"Este documento todavía no está publicado en la wiki"* en lugar de inventar
-contenido.
+Mientras el pipeline no haya completado una sincronización válida, la ficha
+muestra el enlace a la sección y el mensaje *"Este documento todavía no está
+publicado en la wiki"* en lugar de inventar contenido.
 
 ---
 
@@ -377,23 +380,20 @@ node wikiseed/sync-wikis.js            # --dry-run para revisar sin escribir
 | 4 | `REACT_APP_SOCKET_URL` apunta a otra instancia | la instancia local pide la wiki a otra URL | .env local → `http://localhost:33035` (.env no versionado) |
 | 5 | `wikis_path` no configurado | cae al default (`/var/www/apps/wikis`) | configurar `site-setting.wikis_path` en Strapi o `WIKI_ROOT_PATH` |
 
-**Para la INSTANCIA DE PRODUCCIÓN (`socket-adrianperez2.ciudadan.org`):**
+**Para producción (flujo vigente):**
 
-> ⚠️ El seed **nunca se sincronizó en producción**: localmente se sembraron
-> la BD local (`ciudadadan.db`) y el disco local (`/var/www/apps/wikis`), que
-> no son los de producción. Además el `dist/` de producción probablemente tiene
-> el bug 2. La ejecución de esto en producción **queda pendiente** (no se
-> despliega desde este bloque). Procedimiento exacto a ejecutar allá:
+> El deploy empaqueta `wikiseed/`, activa el release y ejecuta
+> `wikiseed/sync-wikis-production.js` con Node 22 y el usuario efectivo del
+> socket-service. La envoltura copia + indexa y valida hashes, filas de
+> `documents` y conteos. Cualquier error deja el pipeline en estado fallido.
+> El runbook completo está en `docs/WIKI-SEED-SETUP.md` §9.
+
+Comando manual equivalente dentro de un release instalado:
 
 ```bash
-# en el host de producción
-cd socket-service && npm run build          # regenera dist con WikiPaths
-# reiniciar el servicio de socket de producción
-node wikiseed/sync-wikis.js --dry-run        # revisar destino (ver "Destino: ...")
-node wikiseed/sync-wikis.js                  # copiar + indexar en la BD PRODUCCIÓN
-# verificar:
-#   GET https://socket-<entorno>.ciudadan.org/wiki/help  → cartera* en el árbol
-#   GET https://socket-<entorno>.ciudadan.org/wiki/help/cartera-labory.md → 200
+/opt/node22/current/bin/node wikiseed/sync-wikis-production.js --dry-run
+/opt/node22/current/bin/node wikiseed/sync-wikis-production.js
+/opt/node22/current/bin/node wikiseed/sync-wikis-production.js --verify
 ```
 
 **Verificación de "una fuente, dos presentaciones":** si el socket no responde,

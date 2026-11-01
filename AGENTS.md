@@ -15,11 +15,11 @@ Monorepo (plain git, no workspace tooling) for **Ciudadan**, a Spanish-language 
 > **La wiki está SEMBRADA, CONFIGURADA y VERIFICADA end-to-end.**
 > Runbook completo: **`docs/WIKI-SEED-SETUP.md`** (arquitectura, siembra, rutas, verificación).
 
-- **Wiki**: 32 documentos sembrados (main 2 / help 29 / faq 1) en la raíz física
-  `socket-service/wiki/` (gitignored; se resuelve vía `WIKI_ROOT_PATH` del env del
-  watchdog de la instancia `/etc/agent/env/services.env`, con la fuente canónica
-  `site_settings.wikis_path` configurada en Strapi). El árbol sale de la tabla
-  `documents` de `ciudadadan.db` → `GET :33032/wiki/<sección>`.
+- **Wiki**: 35 documentos versionados en `wikiseed/` (main 2 / help 32 / faq 1);
+  el artefacto de producción los publica en la raíz física externa
+  (`site_settings.wikis_path`; fallback `WIKI_ROOT_PATH`/default) y reindexa
+  `documents` en `ciudadadan.db` al arrancar el socket de cada deploy. El árbol sale de esa
+  tabla → `GET :33032/wiki/<sección>`.
 - **⚠️ REGLA DE ORO — Node 22**: todo lo que toque `ciudadadan.db` o el
   `better-sqlite3` del socket-service DEBE correr con `/opt/node22/bin/node`
   (el paquete exige `>=22`; con Node 20 el `require` pasa pero **usar** el binding
@@ -32,7 +32,7 @@ Monorepo (plain git, no workspace tooling) for **Ciudadan**, a Spanish-language 
   `pagos_laborys` eliminada del schema), `seed/seed.js` (HTML → `blocks` +
   `publishedAt`; sus POST anónimos requieren el permiso público `create` de
   `publicacion`, otorgado solo en la BD local de dev).
-  Suite de verificación: `node --test ciudadan_backend_26/tests/wikiseed-sync.test.js` (8/8).
+  Suite de verificación: `node --test ciudadan_backend_26/tests/wikiseed-sync.test.js ciudadan_backend_26/tests/wikiseed-sync-production.test.js ciudadan_backend_26/tests/wikiseed-sync-startup.test.js` (16/16).
 
 ## Commands
 

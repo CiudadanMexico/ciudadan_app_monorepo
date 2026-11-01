@@ -28,8 +28,10 @@
  *   - escribe SOLO la BD (`writeToDisk: false`), no reescribe el archivo;
  *   - reutiliza el código real en vez de duplicar SQL aquí.
  *
- * El índice sólo se toca si el archivo quedó copiado/actualizado, así que un
- * `--dry-run` no modifica nada y un sync sin cambios no reescribe la BD.
+ * El índice se toca después de cada copia/actualización. Si el destino ya
+ * tenía exactamente el mismo contenido, una segunda pasada también verifica
+ * (reindexa) la fila en SQLite: así un sync también repara un índice faltante
+ * o desfasado. `--dry-run` no modifica nada.
  *
  * Uso:
  *   node wikiseed/sync-wikis.js [--dry-run] [--force]
@@ -270,10 +272,25 @@ async function main(argv = process.argv.slice(2), deps = {}) {
   const force = argv.includes('--force');
   const strapiUrl = process.env.STRAPI_URL || '';
   const leerDestino = deps.resolverDestino || resolverDestino;
+  const indexar = deps.indexarDocumento || indexarDocumento;
 
   const stats = { copiados: 0, sinCambios: 0, omitidos: 0, indexados: 0, sinIndexar: 0 };
   const { destino, origen } = await leerDestino(strapiUrl);
   console.log(`Destino: ${destino} (origen: ${origen})${dryRun ? ' [dry-run]' : ''}`);
+
+  // En producción, una sección ausente o vacía es un artefacto inválido: no
+  // debe abrirse el socket con una wiki parcialmente sembrada. El script base
+  // conserva su modo tolerante para uso local, pero el wrapper de release
+  // exige las tres secciones.
+  const seccionesVacias = SECTIONS.filter((seccion) => {
+    const dir = path.join(SEED_DIR, seccion);
+    return !fs.existsSync(dir) || listarMd(dir).length === 0;
+  });
+  if (deps.exigirSeccionesCompletas && seccionesVacias.length > 0) {
+    throw new Error(
+      `Seed de wiki incompleto; faltan documentos en: ${seccionesVacias.join(', ')}`
+    );
+  }
 
   for (const seccion of SECTIONS) {
     const dirOrigen = path.join(SEED_DIR, seccion);
@@ -289,10 +306,32 @@ async function main(argv = process.argv.slice(2), deps = {}) {
       const fuente = path.join(dirOrigen, relativo);
       const meta = path.join(dirDestino, relativo);
       const existe = fs.existsSync(meta);
-      if (existe && !force && sha256(fuente) === sha256(meta)) {
+      const destinoIgual = existe && sha256(fuente) === sha256(meta);
+
+      if (destinoIgual && !force) {
         stats.sinCambios += 1;
+        // El archivo físico ya coincide, pero el índice SQLite puede haberse
+        // perdido o quedado desfasado. Reindexar es idempotente y permite
+        // que un sync de producción repare también el árbol, no sólo el disco.
+        if (!dryRun) {
+          const rutaLogica = `wiki/${seccion}/${relativo}`;
+          const res = await indexar(rutaLogica, fs.readFileSync(meta, 'utf-8'));
+          if (res.ok && res.indexado) {
+            stats.indexados += 1;
+            console.log(`   indexado: ${rutaLogica}`);
+          } else if (res.ok) {
+            console.log(`   ya indexado (sin cambios): ${rutaLogica}`);
+          } else {
+            stats.sinIndexar += 1;
+            console.warn(
+              `   ⚠ no se pudo indexar ${rutaLogica} (${res.motivo}). ` +
+                'El watcher lo indexará al arrancar el socket-service.'
+            );
+          }
+        }
         continue;
       }
+
       if (!dryRun) {
         fs.mkdirSync(path.dirname(meta), { recursive: true });
         fs.copyFileSync(fuente, meta);
@@ -304,7 +343,7 @@ async function main(argv = process.argv.slice(2), deps = {}) {
       // archivo copiado NO aparece en el árbol. Idempotente por hash.
       if (!dryRun) {
         const rutaLogica = `wiki/${seccion}/${relativo}`;
-        const res = await indexarDocumento(rutaLogica, fs.readFileSync(meta, 'utf-8'));
+        const res = await indexar(rutaLogica, fs.readFileSync(meta, 'utf-8'));
         if (res.ok && res.indexado) {
           stats.indexados += 1;
           console.log(`   indexado: ${rutaLogica}`);
@@ -314,7 +353,7 @@ async function main(argv = process.argv.slice(2), deps = {}) {
           stats.sinIndexar += 1;
           console.warn(
             `   ⚠ no se pudo indexar ${rutaLogica} (${res.motivo}). ` +
-              'El archivo quedó copiado; el watcher lo indexará al arrancar el socket-service.'
+              'El watcher lo indexará al arrancar el socket-service.'
           );
         }
       }
