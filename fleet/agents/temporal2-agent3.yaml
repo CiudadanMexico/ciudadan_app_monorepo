@@ -9,8 +9,8 @@ proyecto: ciudadan_app_monorepo
 rama: "feature/comunidad-chats-contactos-1028"
 tarea:
   estado: activa
-  descripcion: ""
-  declarada_en: "2026-10-28T09:50:00-06:00"
+  descripcion: "Chats + Contactos de Comunidad end-to-end contra Strapi: completar el content-type conversacion (schema, controllers, services, routes), la policy is-authenticated-comunidad y el enganche del frontend. Hay trabajo sin commitear en el arbol (schema de conversacion, policy, schema de message)."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified
 notas: >-
     Sprint 8-tareas (hilo yizuz) Chats + Contactos de Comunidad (placeholder -> funcional end-to-end contra Strapi), solo archivos nuevos en components/Comunidad/Chats/ y /Contactos/ + servicios propios; enganche al contenedor de pestanas documentado. Sesion tmux tarea-comunidad-chats-contactos. Log /workspace/logs/comunidad-chats-contactos.log.

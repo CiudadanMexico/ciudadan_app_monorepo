@@ -8,7 +8,7 @@ contenedor: temporal3-agent1
 proyecto: ciudadan_app_monorepo
 rama: "feature/forense-reinyeccion-1027"
 tarea:
-  estado: activa
-  descripcion: ""
-  declarada_en: "2026-10-28T10:53:39-06:00"
+  estado: sin_tarea
+  descripcion: "Registro de la flota temporal y procedimiento de rotacion de llaves: commit 037afef ya integrado en main (2118efc). Sin trabajo pendiente."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: historical

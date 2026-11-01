@@ -9,8 +9,8 @@ proyecto: ciudadan_app_monorepo
 rama: "feature/higiene-repo-1028"
 tarea:
   estado: activa
-  descripcion: ""
-  declarada_en: "2026-10-28T09:50:00-06:00"
+  descripcion: "Limpiar la regresion de higiene: el commit 7cef897 reintroduce basura (build_artifacts.zip de 72 MB, logs, .pyc, un fichero con nombre corrupto) aunque main ya esta limpio (6d262c6). Dejar la rama sin binarios ni logs, con reglas de .gitignore completas."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified
 notas: >-
     Sprint 8-tareas (hilo yizuz) higiene del repo - sacar del tracking solo basura inequivoca (archivo 'main', logs de Windows, stackdump) + .gitignore; dudosos documentados sin tocar. Sesion tmux tarea-higiene-repo. Log /workspace/logs/higiene-repo.log.

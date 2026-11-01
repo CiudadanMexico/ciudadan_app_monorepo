@@ -9,6 +9,6 @@ proyecto: ciudadan_app_monorepo
 rama: "integration/revision-adrian1"
 tarea:
   estado: activa
-  descripcion: ""
-  declarada_en: "2026-10-28T10:53:39-06:00"
+  descripcion: "Procedimiento ejecutable de rotacion de los 20 P0 restantes del incidente: runbook con ubicacion exacta, pasos, verificacion, rollback y checklist, en dry-run por defecto. NO integrado en main (commit f9e3b7c). La ejecucion real la hace el operador con root."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: historical

@@ -9,8 +9,8 @@ proyecto: ciudadan_app_monorepo
 rama: "feature/comunidad-whatsapp-config-1028"
 tarea:
   estado: activa
-  descripcion: "WhatsApp configurable en Comunidad (CTA de ComunidadPage.jsx via getPublicConfig + auditoria de hardcodes)"
-  declarada_en: "2026-10-28T11:05:00-06:00"
+  descripcion: "Configuracion de WhatsApp en Comunidad: cerrar el cambio en ComunidadPage.jsx y el doc docs/WHATSAPP-CONFIG-2026-10-28.md. La sesion tmux esta viva e interactiva (tarea-e2e): hay que ENVIAR PROMPT a la sesion existente, no relanzar."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified
 notas: >-
     Sprint 8-tareas (hilo yizuz) la tarea de WhatsApp se RELOCALIZO aqui desde temporal2-agent2 (el otro hilo reasigno ese contenedor a CI-hardening). Config AISLADA /workspace/.cline-agente con llave propia (la global la borra el otro hilo). Sesion tmux tarea-comunidad-whatsapp, modelo minimaxai/minimax-m3.1-flash (nvidia). Log /workspace/logs/comunidad-whatsapp.log. Sin push (empuja el operador).

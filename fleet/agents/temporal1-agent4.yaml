@@ -9,8 +9,8 @@ proyecto: ciudadan_app_monorepo
 rama: "feature/integracion-hackabot"
 tarea:
   estado: activa
-  descripcion: ""
-  declarada_en: "2026-10-28T10:53:39-06:00"
+  descripcion: "Cerrar la integracion de Hackabot (postulacion de candidatos a socio): reconstruir sobre origin/main actualizado, quitar los backups (.after-turn, .green.backup) y verificar la eliminacion de payloads. 3 commits sin integrar (71aedf0, 9eb80bb, adb6d39), los dos ultimos marcados WIP."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: historical
 notas: >-
     Hackabot WIP en curso. Checkpoint 9eb80bb ya elimino api.js y dejo auth0.js limpio (11ae417b), pero la reescritura de Candidatos.jsx (573 lineas) quedo sin finalizar, por eso NO se integro a ciegas. Watchdog pwsh-833 lo revive cada 8 min con instruccion de completar la reescritura y verificar el build del frontend antes de cerrar.

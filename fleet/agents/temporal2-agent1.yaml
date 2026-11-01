@@ -9,8 +9,8 @@ proyecto: ciudadan_app_monorepo
 rama: "feature/comunidad-feed-real-1028"
 tarea:
   estado: sin_tarea
-  descripcion: ""
-  declarada_en: "2026-10-28T11:05:00-06:00"
+  descripcion: "Ruta /comunidades con feed real desde Strapi: commit 32fb90a YA integrado en main (git cherry = equivalente). Solo queda ruido de types/generated por regenerar."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified
 notas: >-
     Sprint 8-tareas (hilo yizuz) el feed real de /comunidades lo_resolvio el operador. La sesion del agente cayo por 429 con 9 archivos sin commitear; se commiteo en el contenedor (32fb90a), se extrajo y se aplico en local -> rama feature/comunidad-feed-real-1028 (commit e70987a, YA PUSHEADA) endpoint custom publicacion.comunidad-feed (controller+route+service), pagina ComunidadFeed.jsx, servicio frontend, wiring en Routes/index.jsx y Comunidad.css. Agente libre.

@@ -9,8 +9,8 @@ proyecto: ciudadan_app_monorepo
 rama: "feature/ci-hardening-1028"
 tarea:
   estado: sin_tarea
-  descripcion: ""
-  declarada_en: "2026-10-28T10:53:39-06:00"
+  descripcion: "Endurecimiento de CI y guardia de payloads: ya integrado en main (8eed351 y ce299fb). Solo queda un doc modificado en el worktree."
+  declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified
 notas: >-
     Hilo DSH principal INTEGRADO en main (ce299fb, 2026-10-28). Entrego el hardening de CI workflow security-guard.yml (guardia en cada PR y push a main, sin filtro de paths, sin pull_request_target), permisos minimos en workflows/jobs, pruebas negativas que deben detectar api.js/lineas >5KB/marcadores (7/7), y la auditoria de jest.config.js con las variantes A/B/C y la firma adicional eval + child_process/http en docs/CI-HARDENING-2026-10-28.md. Rama remota feature/ci-hardening-1028. Los 3 archivos que dejo sin commitear los commiteo el operador (9ff886f) antes de integrar.
