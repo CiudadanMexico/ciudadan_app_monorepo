@@ -20,6 +20,7 @@
 import { execFile } from 'node:child_process'
 import { readFileSync, writeFileSync, mkdirSync, existsSync, appendFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
+import { createHash } from 'node:crypto'
 
 const CFG = 'C:\\yii\\tools\\fleet\\relauncher.config.json'
 const cfg = JSON.parse(readFileSync(CFG, 'utf8'))
@@ -30,10 +31,10 @@ const raiz = dirname(CFG)
 // intermitente; sin este tope un ciclo puede quedarse vivo indefinidamente y
 // la tarea programada de Windows queda en estado "en ejecucion" para siempre
 // (resultado 267009), sin volver a lanzar nunca.
-const limiteCicloMs = (cfg.tiempoMaximoCicloSeg ?? 200) * 1000
+const limiteCicloMs = (cfg.tiempoMaximoCicloSeg ?? 210) * 1000
 const watchdog = setTimeout(() => {
   try {
-    log(`CICLO: limite global de ${cfg.tiempoMaximoCicloSeg ?? 200}s alcanzado; se corta`)
+    log(`CICLO: limite global de ${cfg.tiempoMaximoCicloSeg ?? 210}s alcanzado; se corta`)
   } catch { /* log best-effort */ }
   process.exit(3)
 }, limiteCicloMs)
@@ -70,7 +71,7 @@ function sshOnce(nodo, comando, timeoutMs) {
 // servidor deja de responder y la conexion muere por timeout). Un unico
 // intento hace que el relanzador se quede a medias; se reintenta con
 // backoff corto antes de darla por fallida.
-async function ssh(nodo, comando, timeoutMs = 45000, intentos = 3) {
+async function ssh(nodo, comando, timeoutMs = 30000, intentos = 2) {
   let ultimo = null
   for (let i = 0; i < intentos; i++) {
     ultimo = await sshOnce(nodo, comando, timeoutMs)
@@ -164,17 +165,59 @@ let lanzados = 0
 let omitidos = 0
 const porHost = {}
 
-// Prepara los helpers en cada nodo usado.
+// El estado del monitor se pide UNA vez por ciclo. Preguntarlo por agente
+// multiplicaba las conexiones SSH y el ciclo se comia el limite de tiempo.
+let overviewCache = null
+async function obtenerOverview() {
+  if (overviewCache !== null) return overviewCache
+  overviewCache = { agentes: [] }
+  const monitor = cfg.monitor
+  if (!monitor?.nodo || !monitor?.ruta) return overviewCache
+  const r = await ssh(cfg.nodos[monitor.nodo], `curl -s --max-time 25 ${monitor.ruta}`, 40000, 2)
+  if (!r.ok) {
+    log(`AVISO monitor: no se pudo leer el estado (${(r.stderr || r.error || 'sin detalle').trim().slice(0, 120)})`)
+    return overviewCache
+  }
+  try {
+    const doc = JSON.parse(r.stdout || '{}')
+    overviewCache.agentes = doc.agents || []
+  } catch (err) {
+    log(`AVISO monitor: respuesta ilegible (${String(err).slice(0, 80)})`)
+  }
+  return overviewCache
+}
+
+// Prepara los helpers en cada nodo usado. Solo se suben cuando cambian: el
+// ciclo tiene que caber en su intervalo, y subir cinco ficheros a tres nodos
+// en cada vueltaSlow consumia la mayor parte del tiempo.
+const helperHashPath = join(cfg.rutas.estado, 'helper-hashes.json')
+let helperHashes = {}
+try { helperHashes = JSON.parse(readFileSync(helperHashPath, 'utf8')) } catch { /* primera vuelta */ }
+const hashDe = (b64) => createHash('sha256').update(b64).digest('hex').slice(0, 16)
+
 const nodosUsados = [...new Set(cfg.agentes.map((a) => a.nodo))]
 for (const idNodo of nodosUsados) {
   const nodo = cfg.nodos[idNodo]
   if (!nodo) continue
-  const a = await subirHelper(nodo, 'fleet-probe.sh', probeB64)
-  const b = await subirHelper(nodo, 'fleet-launch.sh', launchB64)
-  const w = await subirHelper(nodo, 'hb-watch.sh', watchB64)
-  const c2 = await subirHelper(nodo, 'activar-heartbeat.sh', activarB64)
-  const e = await subirHelper(nodo, 'hb-ensure-nodo.sh', asegurarB64)
-  if (!a || !b || !w || !c2 || !e) log(`AVISO ${idNodo}: no se pudieron subir los helpers al nodo`)
+  const helpers = [
+    ['fleet-probe.sh', probeB64],
+    ['fleet-launch.sh', launchB64],
+    ['hb-watch.sh', watchB64],
+    ['activar-heartbeat.sh', activarB64],
+    ['hb-ensure-nodo.sh', asegurarB64],
+  ]
+  const clave = `${idNodo}:${hashDe(helpers.map((h) => h[1]).join('|'))}`
+  if (helperHashes[idNodo] === clave) continue
+  let bien = true
+  for (const [nombre, b64] of helpers) {
+    if (!await subirHelper(nodo, nombre, b64)) bien = false
+  }
+  if (bien) {
+    helperHashes[idNodo] = clave
+    try { writeFileSync(helperHashPath, JSON.stringify(helperHashes, null, 2), 'utf8') } catch { /* best-effort */ }
+  } else {
+    log(`AVISO ${idNodo}: no se pudieron subir los helpers al nodo`)
+  }
 }
 
 for (const ag of cfg.agentes) {
@@ -205,28 +248,30 @@ for (const ag of cfg.agentes) {
   const monitor = cfg.monitor
   let estadoMonitor = null
   if (monitor?.nodo && monitor?.ruta) {
-    const r = await ssh(cfg.nodos[monitor.nodo], `curl -s --max-time 25 ${monitor.ruta}`, 60000)
-    if (!r.ok) {
-      log(`AVISO monitor: no se pudo leer el estado (${r.error ?? r.stderr ?? 'sin detalle'}).trim().slice(0,120)`)
-    }
-    try {
-      const doc = JSON.parse(r.stdout || '{}')
-      const mon = (doc.agents || []).find((a) => a.name === ag.contenedor || a.name === ag.agent_id)
-      if (mon) {
-        estadoMonitor = { estado: mon.estado_programatico, motivo: mon.estado_motivo || null }
-      } else {
-        log(`AVISO monitor: ${ag.contenedor} no aparece en el overview`)
-      }
-    } catch (err) {
-      log(`AVISO monitor: respuesta ilegible (${String(err).slice(0,80)})`)
+    const overview = await obtenerOverview()
+    const mon = overview.agentes.find((a) => a.name === ag.contenedor || a.name === ag.agent_id)
+    if (mon) {
+      estadoMonitor = { estado: mon.estado_programatico, motivo: mon.estado_motivo || null }
+    } else {
+      log(`AVISO monitor: ${ag.contenedor} no aparece en el overview`)
     }
   }
 
   // 3) Sesion viva: nunca relanzar encima de una sesion en curso, salvo que
   //    el monitor la declare colgada.
+  //    Sin monitor disponible se aplica la regla local equivalente: si la
+  //    sesion tmux NO existe, el agente no esta corriendo y hay que
+  //    relanzarlo; si existe, no se toca (no se puede afirmar que este muerto).
   const sesionViva = info.tmux.includes(ag.sesion)
   const colgado = estadoMonitor && ['STALLED', 'DOWN', 'UNOBSERVABLE'].includes(estadoMonitor.estado)
+  const sinSesion = !sesionViva
   let reiniciando = false
+  if (!estadoMonitor && sinSesion && (info.headless ?? 0) === 0) {
+    log(`ACTUA ${ag.agent_id}: el monitor no respondio y no hay sesion '${ag.sesion}'; se relanza por regla local`)
+    reiniciando = true
+    // No es un fallo del agente: no consume intentos de backoff.
+    estado.intentos[ag.agent_id] = { intentos: 0, ultimo: 0 }
+  }
   if (sesionViva && !colgado) {
     log(`SKIP ${ag.agent_id}: la sesion '${ag.sesion}' esta viva (monitor=${estadoMonitor?.estado ?? 'sin datos'})`)
     omitidos++
