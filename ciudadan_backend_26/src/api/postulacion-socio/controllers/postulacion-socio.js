@@ -13,6 +13,7 @@
  *   (revisada/contactada/aceptada/rechazada) + notas + auditoría.
  */
 
+const fs = require('fs');
 const path = require('path');
 const { createCoreController } = require('@strapi/strapi').factories;
 
@@ -95,6 +96,30 @@ const leerCuerpo = (ctx) => {
 };
 
 /**
+ * Tamaño real del CV en bytes.
+ *
+ * IMPORTANTE: formidable v1 NO rellena `file.size` (lo inicializa a 0 y
+ * nunca lo actualiza: los bytes se acumulan en `self._fileSize`, que es del
+ * formulario completo, no del fichero). Por eso `file.size` no sirve para
+ * validar el límite de 10 MB: hay que medir el fichero temporal que dejó
+ * formidable en `file.path`.
+ *
+ * @returns {number} tamaño en bytes (0 si no se puede determinar).
+ */
+const sizeEnBytes = (file) => {
+  if (typeof file?.size === 'number' && file.size > 0) return file.size;
+  if (typeof file?.path === 'string' && file.path) {
+    try {
+      return fs.statSync(file.path).size;
+    } catch {
+      // Si el fichero ya no está en disco no se puede medir: se continúa.
+      return 0;
+    }
+  }
+  return 0;
+};
+
+/**
  * Valida el CV recibido (opcional).
  * @returns {{file: Object|null}|{error: string}}
  */
@@ -114,9 +139,14 @@ const validarCv = (raw) => {
     return { error: 'El CV debe ser PDF, Word o una imagen (JPG, PNG o WEBP).' };
   }
 
-  const size = Number(file?.size) || 0;
+  const size = sizeEnBytes(file);
   if (size > MAX_CV_BYTES) {
     return { error: 'El CV supera el límite de 10 MB.' };
+  }
+  // plugin-upload guarda `file.size` en los metadatos del media (sizeInBytes).
+  // Sin esto se registraría siempre 0, porque formidable v1 no lo rellena.
+  if (!file.size) {
+    file.size = size;
   }
 
   // Si el navegador no mandó el Content-Type, lo deducimos de la extensión.
