@@ -4,7 +4,7 @@
 agent_id: adrian-dev1
 node: adrian-perez-aux-1
 runtime: cline-directo
-contenedor: [object Object]
+contenedor: null
 proyecto: ciudadan_app_monorepo
 rama: "main (integradora)"
 tarea:
