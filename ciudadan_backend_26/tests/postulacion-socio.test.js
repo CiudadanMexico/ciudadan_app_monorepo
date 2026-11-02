@@ -33,7 +33,7 @@ const {
 } = require('./helpers/strapi-mock-postulacion');
 
 const controllerFactory = require('../src/api/postulacion-socio/controllers/postulacion-socio');
-const rutas = require('../src/api/postulacion-socio/routes/postulacion-socio');
+const rutas = require('../src/api/postulacion-socio/routes/01-postulacion-socio');
 const allowPublicRelations = require('../src/policies/allow-public-relations');
 const isAdminSocioOrRoot = require('../src/policies/is-admin-socio-or-root');
 
