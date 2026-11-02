@@ -39,7 +39,13 @@ Frontend servido: `/var/www/apps/frontend-ciudadan/build` (lo sirve nginx en `ci
 | `ciudadan-middleware` | middleware | `middleware/` | 33010 |
 | `ciudadan-market` | Vendure | `market/` | 4010 |
 
-Todos corren como `User=alexander` y leen `EnvironmentFile=.../ciudadan_backend_26/.env`.
+Todos corren como `User=alexander` y leen el `EnvironmentFile` compartido
+`/var/www/shared/ciudadan_backend.env` (el release no empaqueta secretos ni
+`.env`). Para la wiki, ese archivo debe incluir explícitamente:
+
+```bash
+WIKI_ROOT_PATH=/var/www/apps/wikis
+```
 
 ### Puertos (mapa final)
 
@@ -53,6 +59,7 @@ Todos corren como `User=alexander` y leen `EnvironmentFile=.../ciudadan_backend_
 
 nginx:
 - `back.ciudadan.org` → `location /socket.io/` → `localhost:33331`; resto → `localhost:33332`.
+- `socks.ciudadan.org` → `location /wiki/` → `localhost:33331` (API de la wiki).
 - `ciudadan.org` → `/var/www/apps/frontend-ciudadan/build`.
 
 > ⚠️ 33432 = strapi-marihuanas (NO tocar). 33035 = socket dev (suele estar apagado).
@@ -101,6 +108,7 @@ REACT_APP_AUTH0_CLIENT_ID=za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
 REACT_APP_AUTH0_AUDIENCE=https://api.ciudadan.org
 REACT_APP_STRAPI_URL=https://back.ciudadan.org
 REACT_APP_SOCKET_URL=https://back.ciudadan.org
+REACT_APP_WIKI_URL=https://socks.ciudadan.org
 REACT_APP_AI_URL=https://llmciudadan.org
 REACT_APP_PLACES_KEY=<places>
 REACT_APP_GOOGLE_MAPS_API_KEY=<maps>
@@ -115,7 +123,9 @@ REACT_APP_APP_ENV=production
 ```
 
 > ⚠️ STRAPI_URL NO es localhost:33432 (marihuanas). Producción = https://back.ciudadan.org.
-> SOCKET_URL = https://back.ciudadan.org (NO socks-prod, no resuelve DNS).
+> SOCKET_URL = https://back.ciudadan.org para Socket.IO/realtime.
+> WIKI_URL = https://socks.ciudadan.org: `back.ciudadan.org` reenvía `/socket.io/`
+> al socket-service, pero `/wiki/*` cae en Strapi y devuelve 404.
 
 ### 2.4 Build
 

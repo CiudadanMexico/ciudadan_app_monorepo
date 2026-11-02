@@ -251,11 +251,15 @@ jobs:
           REACT_APP_STRAPI_URL=https://back.ciudadan.org
           REACT_APP_ALCHEMY_API_KEY=
           REACT_APP_SOCKET_URL=https://back.ciudadan.org
+          # La wiki vive en el socket-service público. back.ciudadan.org sólo
+          # reenvía /socket.io/ a Strapi y devuelve 404 JSON en /wiki/*.
+          REACT_APP_WIKI_URL=https://socks.ciudadan.org
           REACT_APP_PLACES_KEY=google_maps
           ENVEOF
           CI=false npm run build
           test -f build/index.html && echo "frontend build OK"
           grep -q "ciudadan.us.auth0.com" build/static/js/main.*.js && echo "AUTH0_BAKED_OK" || { echo "::error::Auth0 no quedó horneado en el bundle"; exit 1; }
+          grep -q "socks.ciudadan.org" build/static/js/main.*.js && echo "WIKI_HOST_BAKED_OK" || { echo "::error::REACT_APP_WIKI_URL no quedó horneado en el bundle"; exit 1; }
 
       - name: Empaquetado + checksums + MANIFEST
         run: |
@@ -504,6 +508,41 @@ jobs:
             [ $fail -eq 0 ] && echo "ronda $r: 4/4 ok" || { echo "ronda $r con fallos"; exit 1; }
           done
           echo "Post-deploy: 3 rondas verdes"
+
+      - name: "FASE 11.1 — Gate UI: bundle público usa la API real de la wiki"
+        run: |
+          set -euo pipefail
+
+          # Verificar el bundle que realmente descarga el navegador. El HTML
+          # de la SPA siempre responde 200 aunque la UI quede vacía; este gate
+          # extrae su JS principal y exige que hornee el host de WikiRouter.
+          html=$(curl -fsS --max-time 30 https://www.ciudadan.org/wiki/main)
+          js=$(sed -n 's/.*src="\([^"]*\/static\/js\/main\.[A-Za-z0-9_-]*\.js\)".*/\1/p' <<<"$html" | head -1)
+          [ -n "$js" ] || { echo "::error::No se encontró el bundle main de la SPA"; exit 1; }
+          case "$js" in http*) bundle="$js" ;; *) bundle="https://www.ciudadan.org$js" ;; esac
+          curl -fsS --max-time 60 "$bundle" -o /tmp/ciudadan-main.js
+          grep -q "socks.ciudadan.org" /tmp/ciudadan-main.js \
+            || { echo "::error::El bundle público no contiene el host real de la wiki"; exit 1; }
+
+          # Y verificar el contrato/CORS que usa esa UI desde el origen público.
+          for section in main help faq; do
+            body=$(curl -fsS --max-time 30 \
+              -H 'Origin: https://www.ciudadan.org' \
+              "https://socks.ciudadan.org/wiki/$section")
+            node -e '
+              const section = process.argv[1];
+              const expected = { main: 2, help: 32, faq: 1 }[section];
+              const body = JSON.parse(process.argv[2]);
+              if (!body || body.ok !== true || !Array.isArray(body.nodes)) {
+                throw new Error(`árbol inválido para ${section}`);
+              }
+              if (body.nodes.length !== expected) {
+                throw new Error(`conteo inválido para ${section}: ${body.nodes.length}, esperado ${expected}`);
+              }
+            ' "$section" "$body" || { echo "::error::Contrato UI inválido para $section"; exit 1; }
+          done
+
+          echo "Gate UI: bundle público + CORS + contrato 2/32/1 de wiki OK"
 
   reporte:
     name: FASE 14 — Observabilidad (summary)

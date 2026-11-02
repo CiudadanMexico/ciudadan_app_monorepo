@@ -19,12 +19,12 @@ cada deploy de producción (2026-10-30). Ver §7 y §9.
 | **Carpeta física de `.md`** | Raíz FUERA del contenido versionado (gitignored), canónica desde `site_settings.wikis_path` y, en producción, `/var/www/apps/wikis/{main,help,faq}/`. Aquí viven los archivos que leen los endpoints |
 | **Strapi `api::site-setting`** | Fuente **canónica** de la ruta: `GET /api/wiki/public-config` devuelve `{ wikisPath }` desde `site_settings.wikis_path` |
 | **`wikiseed/`** (raíz del monorepo) | Seed de contenido: `main/`, `help/`, `faq/` + el script oficial **`sync-wikis.js`** y la envoltura de release **`sync-wikis-production.js`** |
-| **Frontend** | `src/services/wikiService.ts` consume `{REACT_APP_SOCKET_URL}/wiki/<sección>` (árbol → `response.data.nodes`) y `/wiki/<path>` (documento). Componentes: `WikiApp.tsx`, `WikiViewer.jsx`, `WikiTreeView.tsx`, `WikiHome.jsx`, hook `useWikiDocumento.jsx` |
+| **Frontend** | `src/services/wikiService.ts` consume `{REACT_APP_WIKI_URL}/wiki/<sección>` (producción: `https://socks.ciudadan.org`; fallback `{REACT_APP_SOCKET_URL}`) y `/wiki/<path>` (documento). Componentes: `WikiApp.tsx`, `WikiViewer.jsx`, `WikiTreeView.tsx`, `WikiHome.jsx`, hook `useWikiDocumento.jsx` |
 
 ### Resolución de la ruta física (precedencia)
 
 1. `site_settings.wikis_path` en Strapi (`GET /api/wiki/public-config`) — **canónica**
-2. `WIKI_ROOT_PATH` del entorno (`.env` del socket-service o el env que carga el watchdog)
+2. `WIKI_ROOT_PATH` del entorno (`.env` del socket-service o el env que carga el watchdog). En producción debe quedar explícito como `/var/www/apps/wikis` en el `EnvironmentFile` compartido de `ciudadan-socket-prod.service` (`/var/www/shared/ciudadan_backend.env`).
 3. Default de plataforma: `/var/www/apps/wikis` (Linux) / `./wikis` (Windows)
 
 El `WikiRootProvider` del socket-service re-verifica Strapi cada `WIKI_CONFIG_TTL_MS` (60s) y `WikiPaths.resolveWikiDiskPath()` convierte la ruta lógica `wiki/<sección>/<archivo>.md` en la ruta física (quitando el prefijo `wiki/`).
@@ -113,9 +113,15 @@ cd ciudadan_backend_26 && node --test \
 
 ## 6. Frontend
 
-- `ciudadan_frontend/.env` → `REACT_APP_SOCKET_URL=https://socket-temporal1-agent3.ciudadan.org` (túnel público del socket de la instancia).
-- `wikiService.ts` → `{REACT_APP_SOCKET_URL}/wiki/<sección>` (árbol: `{ok, section, title, nodes[]}`) y `/wiki/<path>` (documento: `{ok, documentId, title, path, rawContent}`).
-- El default `http://localhost:33035` de `wikiService.ts` solo aplica si falta la env (no es el caso de la instancia).
+- Producción: `REACT_APP_WIKI_URL=https://socks.ciudadan.org` (host público que
+  monta `/wiki` en el socket-service).
+- `wikiService.ts` → `{REACT_APP_WIKI_URL}/wiki/<sección>` (árbol: `{ok, section,
+  title, nodes[]}`) y `/wiki/<path>` (documento: `{ok, documentId, title, path,
+  rawContent}`). `REACT_APP_SOCKET_URL` queda como fallback para entornos viejos.
+- No usar `https://back.ciudadan.org/wiki`: ese vhost sólo reenvía `/socket.io/`
+  al socket-service y el resto llega a Strapi, que devuelve 404.
+- El default `http://localhost:33035` de `wikiService.ts` sólo aplica si faltan
+  ambas variables.
 
 ## 7. Evidencia histórica de la instancia temporal1-agent3 (2026-10-14)
 

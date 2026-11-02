@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Drawer, Typography, CircularProgress, Tabs, Tab } from '@mui/material';
+import { Alert, Box, Drawer, Typography, CircularProgress, Tabs, Tab } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { wikiService } from '../../services/wikiService';
 import { TreeNodeDTO, DocumentResponseDTO } from '../../types/wiki';
@@ -34,6 +34,7 @@ export default function WikiApp({ section: sectionProp }: { section?: WikiSectio
   const [tree, setTree] = useState<TreeNodeDTO[]>([]);
   const [currentDoc, setCurrentDoc] = useState<DocumentResponseDTO | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [treeError, setTreeError] = useState<string | null>(null);
 
   // Si cambia la prop (navegación entre secciones), sincronizar y limpiar doc.
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function WikiApp({ section: sectionProp }: { section?: WikiSectio
   // 1. Cargamos el árbol de la sección seleccionada
   useEffect(() => {
     setLoading(true);
+    setTreeError(null);
     wikiService
       .getSectionTree(section)
       .then((data: any) => {
@@ -53,6 +55,9 @@ export default function WikiApp({ section: sectionProp }: { section?: WikiSectio
       .catch((err) => {
         console.error(`Error al cargar árbol de la wiki (${section}):`, err);
         setTree([]);
+        setTreeError(
+          `No se pudo cargar la sección ${SECTION_LABEL[section]}. Revisa la conexión y vuelve a intentarlo.`
+        );
         setLoading(false);
       });
   }, [section]);
@@ -114,6 +119,10 @@ export default function WikiApp({ section: sectionProp }: { section?: WikiSectio
             <Box sx={{ display: 'flex', justifyContent: 'center', pt: 4 }}>
               <CircularProgress size={24} />
             </Box>
+          ) : treeError ? (
+            <Alert severity="error" sx={{ mx: 1.5 }}>
+              {treeError}
+            </Alert>
           ) : (
             <WikiTreeView
               nodes={tree}
