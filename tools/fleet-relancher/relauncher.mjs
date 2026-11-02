@@ -26,6 +26,18 @@ const cfg = JSON.parse(readFileSync(CFG, 'utf8'))
 const ahora = Date.now()
 const raiz = dirname(CFG)
 
+// Limite global del ciclo. Los SSH a los nodos se cuelgan de forma
+// intermitente; sin este tope un ciclo puede quedarse vivo indefinidamente y
+// la tarea programada de Windows queda en estado "en ejecucion" para siempre
+// (resultado 267009), sin volver a lanzar nunca.
+const limiteCicloMs = (cfg.tiempoMaximoCicloSeg ?? 200) * 1000
+const watchdog = setTimeout(() => {
+  try {
+    log(`CICLO: limite global de ${cfg.tiempoMaximoCicloSeg ?? 200}s alcanzado; se corta`)
+  } catch { /* log best-effort */ }
+  process.exit(3)
+}, limiteCicloMs)
+
 function log(line) {
   const ts = new Date().toISOString()
   try { appendFileSync(cfg.rutas.log, `${ts} ${line}\n`, 'utf8') } catch { /* log best-effort */ }
@@ -327,4 +339,5 @@ for (const idNodo of nodosUsados) {
 }
 
 log(`CICLO: lanzados=${lanzados} omitidos=${omitidos}`)
+clearTimeout(watchdog)
 process.exit(0)
