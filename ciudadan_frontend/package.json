@@ -69,11 +69,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
+    "start": "node init && craco start",
+    "build": "node init && craco build",
     "test": "craco test",
     "eject": "craco eject",
-    "dev": "craco dev",
+    "dev": "node init && craco dev",
     "images:avif": "node tools/convert-media-to-avif.js",
     "images:avif:dialog": "node tools/convert-images-interactive.js"
   },
