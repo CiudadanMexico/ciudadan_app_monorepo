@@ -6,6 +6,9 @@ node: temporal-1
 runtime: docker-cline
 contenedor: temporal1-agent1
 proyecto: ciudadan_app_monorepo
+usuario: yizuz
+sesion: t1a1-whatsapp
+cfg_dir: /workspace/.cline-agente
 rama: "feature/comunidad-whatsapp-config-1028"
 tarea:
   estado: activa

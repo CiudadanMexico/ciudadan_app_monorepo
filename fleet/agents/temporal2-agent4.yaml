@@ -6,6 +6,9 @@ node: temporal-2
 runtime: docker-cline
 contenedor: temporal2-agent4
 proyecto: ciudadan_app_monorepo
+usuario: root
+sesion: t2a4-rotacion
+cfg_dir: /workspace/.cline
 rama: "integration/revision-adrian1"
 tarea:
   estado: activa

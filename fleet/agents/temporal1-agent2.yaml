@@ -6,6 +6,9 @@ node: temporal-1
 runtime: docker-cline
 contenedor: temporal1-agent2
 proyecto: ciudadan_app_monorepo
+usuario: root
+sesion: t1a2-cuarentena
+cfg_dir: /workspace/.cline
 rama: "feature/food-cotizaciones-frontend"
 tarea:
   estado: activa

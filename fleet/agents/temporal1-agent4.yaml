@@ -6,6 +6,9 @@ node: temporal-1
 runtime: docker-cline
 contenedor: temporal1-agent4
 proyecto: ciudadan_app_monorepo
+usuario: root
+sesion: t1a4-hackabot
+cfg_dir: /workspace/.cline
 rama: "feature/integracion-hackabot"
 tarea:
   estado: activa
