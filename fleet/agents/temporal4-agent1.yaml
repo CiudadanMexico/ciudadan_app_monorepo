@@ -1,0 +1,21 @@
+# Agente temporal4-agent1 — declarado desde el panel de Agent Monitor.
+agent_id: temporal4-agent1
+node: temporal-1
+runtime: docker-cline
+contenedor: temporal4-agent1
+proyecto: ciudadan_app_monorepo
+rama: feature/t4a1-alta-desde-panel
+tarea:
+  estado: activa
+  descripcion: |
+    Alta de prueba desde el panel: valida el flujo declaracion -> git -> despliegue.
+  declarada_en: '2026-11-04'
+  fuente: panel-agent-monitor
+confianza_inventario: verified
+notas: |
+  Declarado desde el panel de Ciudadan Agent Monitor.
+  Herramientas: cline, git, craco.
+  Modelo: minimaxai/minimax-m3.1-flash.
+  Usuario del contenedor: yizuz.
+  Sesion: t4a1-alta.
+  cfg_dir: /workspace/.cline.
