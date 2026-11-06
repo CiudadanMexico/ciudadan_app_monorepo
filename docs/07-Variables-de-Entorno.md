@@ -44,7 +44,7 @@
 | `NUMBER_ID` | — | Número WhatsApp Cloud |
 | `PUBLIC_WEBHOOK_URL` | `https://chatbot.ciudadan.org/webhook` | URL webhook pública |
 | `CHATBOT_WEBHOOK_PATH` | `/webhook` | Path webhook |
-| `WIKI_ROOT_PATH` | `/home/ubuntu/apps/wikis` | Raíz de la wiki local (.md) |
+| `WIKI_ROOT_PATH` | `/var/www/apps/wikis` | Raíz física de los `.md`, fuera del proyecto/release |
 | `WIKI_CONFIG_TTL_MS` | `60000` | TTL de caché de la config de wiki desde Strapi |
 | `WIKI_CONFIG_TIMEOUT_MS` | `5000` | Timeout HTTP al leer `wikis_path` de Strapi |
 | `WEBHOOKS_POPULATE_RELATIONS` | `false` | populate en webhooks |
@@ -168,7 +168,8 @@ Sin token, `/api/mp/checkout` responde 401 contra Strapi.
 | `REACT_APP_AUTH0_CLIENT_ID` | Client ID Auth0 |
 | `REACT_APP_AUTH0_AUDIENCE` | `https://api.ciudadan.org` |
 | `REACT_APP_STRAPI_URL` | backend (default `http://localhost:33432`) |
-| `REACT_APP_SOCKET_URL` | socket (default `http://localhost:33035`) |
+| `REACT_APP_SOCKET_URL` | socket realtime (default `http://localhost:33035`) |
+| `REACT_APP_WIKI_URL` | host público de la API wiki; producción: `https://socks.ciudadan.org` |
 | `REACT_APP_AI_URL` | URL IA (http://llmciudadan.org) |
 | `REACT_APP_STRAPI_TOKEN` | token Strapi (⚠️ duplicado en el .env) |
 | `REACT_APP_GOOGLE_MAPS_API_KEY` / `REACT_APP_PLACES_KEY` / `REACT_APP_GEOCODING_KEY` | Google Maps |

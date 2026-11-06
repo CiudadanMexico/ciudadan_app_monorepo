@@ -6,9 +6,12 @@ node: temporal-1
 runtime: docker-cline
 contenedor: temporal1-agent4
 proyecto: ciudadan_app_monorepo
+usuario: root
+sesion: t1a4-hackabot
+cfg_dir: /workspace/.cline
 rama: "feature/integracion-hackabot"
 tarea:
-  estado: activa
+  estado: sin_tarea
   descripcion: "Cerrar la integracion de Hackabot (postulacion de candidatos a socio): reconstruir sobre origin/main actualizado, quitar los backups (.after-turn, .green.backup) y verificar la eliminacion de payloads. 3 commits sin integrar (71aedf0, 9eb80bb, adb6d39), los dos ultimos marcados WIP."
   declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: historical

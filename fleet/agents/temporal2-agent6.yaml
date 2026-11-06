@@ -8,9 +8,9 @@ contenedor: temporal2-agent6
 proyecto: ciudadan_app_monorepo
 rama: "feature/higiene-repo-1028"
 tarea:
-  estado: activa
-  descripcion: "Limpiar la regresion de higiene: el commit 7cef897 reintroduce basura (build_artifacts.zip de 72 MB, logs, .pyc, un fichero con nombre corrupto) aunque main ya esta limpio (6d262c6). Dejar la rama sin binarios ni logs, con reglas de .gitignore completas."
+  estado: sin_tarea
+  descripcion: "ENTREGADO el 2026-11-02: higiene del repo en feature/higiene-repo-1028, 4 commits por delante de origin/main (6c5a623, 477a7c1, 1ce09b2 y el anterior). Centinela /tmp/DONE-t2a6-higiene-repo presente. Sin binarios ni logs en el tracking y .gitignore completo. La rama queda pendiente de revision e integracion."
   declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified
 notas: >-
-    Sprint 8-tareas (hilo yizuz) higiene del repo - sacar del tracking solo basura inequivoca (archivo 'main', logs de Windows, stackdump) + .gitignore; dudosos documentados sin tocar. Sesion tmux tarea-higiene-repo. Log /workspace/logs/higiene-repo.log.
+    Sprint 8-tareas (hilo yizuz) higiene del repo - sacar del tracking solo basura inequivoca (archivo 'main', logs de Windows, stackdump) + .gitignore; dudosos documentados sin tocar. Sesion tmux tarea-higiene-repo. Log /workspace/logs/higiene-repo.log. Relanzado el 2026-11-02 tras una caida detectada por el monitor (el ciclo caida -> reinicio quedo probado con este agente).

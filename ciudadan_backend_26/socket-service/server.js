@@ -78,6 +78,7 @@ const { resolveActiveRoot } = require('./dist/config/WikiRootProvider');
 
 const WikiRouter = require("./dist/routes/WikiRouter");
 const { getUserRating } = require('./lib/calcRating');
+const { sincronizarWikiSeed } = require("./lib/wiki-seed-sync");
 
 const strapiUrl = process.env.STRAPI_URL || "";
 const strapiToken = process.env.STRAPI_TOKEN || "";
@@ -170,7 +171,8 @@ async function arrancarWiki() {
 // Re-chequeo: si `wikis_path` cambia en Strapi (tras expirar el TTL) se
 // re-apunta el watcher en caliente sin reiniciar el proceso.
 const WIKI_RECHECK_MS = Number(process.env.WIKI_CONFIG_TTL_MS) || 60000;
-arrancarWiki().finally(() => {
+
+function programarRechequeoWiki() {
   let ultimoOrigen = null;
   setInterval(async () => {
     if (!wikiWatcher) return;
@@ -185,7 +187,7 @@ arrancarWiki().finally(() => {
       console.error('🛑 [Wiki] Error re-chequeando wikis_path:', err && err.message ? err.message : err);
     }
   }, WIKI_RECHECK_MS);
-});
+}
 
 // Registrar rutas que tienes
 app.use("/", priceCalculatingRoute);
@@ -472,9 +474,30 @@ function printRoutes(appInstance) {
   });
 }
 
-// Start server (same port for sockets + webhook)
-server.listen(PORT, () => {
-  console.log(`🚀 Servidor escuchando en el puerto ${PORT}`);
-  console.log(`🌐 CORS habilitado para: ${JSON.stringify(accept)}`);
-  printRoutes(app);
-});
+// Arranque fail-closed: primero se publica + indexa el seed versionado y sólo
+// después se abre el puerto. Si la copia o SQLite quedan incompletos, el
+// proceso termina con error y systemd no presenta el socket como disponible.
+async function iniciarServidor() {
+  try {
+    const wiki = await sincronizarWikiSeed();
+    console.log(
+      `✅ [Wiki] Seed verificado: ${wiki.total} documentos ` +
+      `(main=${wiki.conteos.main}, help=${wiki.conteos.help}, faq=${wiki.conteos.faq}) ` +
+      `en ${wiki.destino}`
+    );
+    await arrancarWiki();
+    programarRechequeoWiki();
+  } catch (err) {
+    console.error('🛑 [Wiki] La sincronización del seed falló; no se abrirá el socket:', err);
+    process.exitCode = 1;
+    return;
+  }
+
+  server.listen(PORT, () => {
+    console.log(`🚀 Servidor escuchando en el puerto ${PORT}`);
+    console.log(`🌐 CORS habilitado para: ${JSON.stringify(accept)}`);
+    printRoutes(app);
+  });
+}
+
+iniciarServidor();

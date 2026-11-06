@@ -17,7 +17,7 @@ Estos son los **únicos** pendientes que bloquean el arranque del bloque 2.
 
 | # | Pendiente | Impacto | Quién/dónde se resuelve |
 |---|---|---|---|
-| **P-01** | **Sincronizar la wiki viva:** correr `node wikiseed/sync-wikis.js` contra el destino configurado para publicar los 11 documentos `cartera*.md`. Hasta entonces la wiki viva no los tiene y la sección "Saber más" muestra el aviso de "no publicado". | Sin esto, "Saber más" enlaza a la sección pero no muestra el documento inline. **La ficha funciona igual**: el contenido editorial vive en `tokenContent.js`. | Operación, una sola vez. Requiere `STRAPI_URL` accesible o `WIKI_ROOT_PATH`, y que `site-setting.wikis_path` apunte a un destino real. |
+| **P-01** | **RESUELTO — Sincronización automatizada de la wiki viva:** el artefacto de producción incluye `wikiseed/`; después del deploy, el pipeline ejecuta `sync-wikis-production.js` con Node 22 y el usuario del socket-service. La operación copia + indexa y valida archivos, filas de `documents` y conteos; cualquier fallo deja el deploy en error. | "Saber más" enlaza a la sección y muestra el documento inline cuando el deploy deja la wiki verificada. **La ficha conserva su contenido editorial** en `tokenContent.js` aunque la wiki no esté disponible. | GitHub Actions + `docs/WIKI-SEED-SETUP.md` §9. |
 | **P-02** | **Parámetros de los simuladores de Pesos MXN** (7 roles). No existen fórmulas, insumos ni unidades de estimación. | Sin ellos no hay simulador. La ficha ya anuncia los destinos como *próximamente* y **no** muestra botón. | Definición de negocio. Ver §3. |
 | **P-03** | **Reglas de uso de las equivalencias Labory→MXN** en las fichas (cuál de las dos constantes aplica, o si deben distinguirse por contexto). | Hoy cada superficie conserva la constante que ya usaba. No se inventa cifra nueva, pero quedan dos referencias distintas. | Definición de negocio + decisión técnica. Ver §4 (P-04). |
 
@@ -140,6 +140,9 @@ afirmar tasas ni exenciones universales.
 ## 5. Verificacion de los pendientes
 
 ```bash
-# Ver que falta publicar en la wiki viva (sin escribir nada):
+# Ver qué falta publicar en la wiki viva (sin escribir nada):
 node wikiseed/sync-wikis.js --dry-run
+
+# En un release de producción, validar sin escribir:
+/opt/node22/current/bin/node wikiseed/sync-wikis-production.js --verify
 ```

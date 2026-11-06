@@ -6,9 +6,12 @@ node: temporal-2
 runtime: docker-cline
 contenedor: temporal2-agent4
 proyecto: ciudadan_app_monorepo
+usuario: root
+sesion: t2a4-rotacion
+cfg_dir: /workspace/.cline
 rama: "integration/revision-adrian1"
 tarea:
-  estado: activa
+  estado: sin_tarea
   descripcion: "Procedimiento ejecutable de rotacion de los 20 P0 restantes del incidente: runbook con ubicacion exacta, pasos, verificacion, rollback y checklist, en dry-run por defecto. NO integrado en main (commit f9e3b7c). La ejecucion real la hace el operador con root."
   declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: historical

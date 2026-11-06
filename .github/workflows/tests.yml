@@ -75,8 +75,11 @@ jobs:
             ciudadan_backend_26/tests/food-shipping-repartidores.test.js \
             ciudadan_backend_26/tests/food-shipping-rutas.test.js
 
-      - name: "Pruebas wikiseed-sync (siembra e indexado de la wiki)"
+      - name: "Pruebas wikiseed-sync (siembra, release y arranque fail-closed)"
         run: |
           set -e
-          node --test ciudadan_backend_26/tests/wikiseed-sync.test.js
+          node --test \
+            ciudadan_backend_26/tests/wikiseed-sync.test.js \
+            ciudadan_backend_26/tests/wikiseed-sync-production.test.js \
+            ciudadan_backend_26/tests/wikiseed-sync-startup.test.js
 

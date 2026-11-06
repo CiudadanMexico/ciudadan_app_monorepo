@@ -54,3 +54,4 @@ wikiseed/*.base
 # Nota .md huérfana en la raíz de wikiseed (0 B, solo la referencia Obsidian).
 # Los .md publicables viven en wikiseed/{main,help,faq}/ y README.md sí se versiona.
 wikiseed/Como Usar Wikilinks.md
+config.bat

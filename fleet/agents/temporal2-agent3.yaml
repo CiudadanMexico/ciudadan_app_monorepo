@@ -6,6 +6,9 @@ node: temporal-2
 runtime: docker-cline
 contenedor: temporal2-agent3
 proyecto: ciudadan_app_monorepo
+usuario: yizuz
+sesion: t2a3-chats
+cfg_dir: /workspace/.cline
 rama: "feature/comunidad-chats-contactos-1028"
 tarea:
   estado: activa

@@ -52,6 +52,16 @@ describe('WikiApp — cada sección pide su propio árbol', () => {
     }
   );
 
+  it('muestra un error visible si la API de la wiki no responde', async () => {
+    getSectionTree.mockRejectedValueOnce(new Error('404 del host incorrecto'));
+
+    renderApp('help');
+
+    expect(
+      await screen.findByText(/No se pudo cargar la sección Ayuda/i)
+    ).toBeInTheDocument();
+  });
+
   it('sin prop cae a main (compatibilidad)', async () => {
     render(
       <MemoryRouter>

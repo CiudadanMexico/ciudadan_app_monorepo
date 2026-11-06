@@ -6,9 +6,12 @@ node: temporal-1
 runtime: docker-cline
 contenedor: temporal1-agent2
 proyecto: ciudadan_app_monorepo
+usuario: root
+sesion: t1a2-cuarentena
+cfg_dir: /workspace/.cline
 rama: "feature/food-cotizaciones-frontend"
 tarea:
-  estado: activa
+  estado: sin_tarea
   descripcion: "Cuarentena de las 66 ramas contaminadas: rehacer el inventario real de ramas del remoto, clasificar limpias/contaminadas/dudosas y dejar un procedimiento ejecutable en dry-run que renombre sin borrar. Entregado en la rama pero NO integrado en main (commit 42abca0)."
   declarada_en: "2026-11-01T13:40:00-06:00"
 confianza_inventario: verified

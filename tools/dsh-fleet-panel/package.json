@@ -1,0 +1,26 @@
+{
+  "name": "@ciudadan/dsh-client-ui-fleet",
+  "description": "Pestana 'Flota' para la sidebar derecha del DSH: estado programatico de los agentes Cline, motivo de cada estado y URL del frontend de cada agente.",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar-right",
+        "@deepseek-ai/dsh-client-ui-session"
+      ],
+      "platform": "web"
+    }
+  },
+  "license": "MIT",
+  "files": [
+    "lib/index.js",
+    "lib/client.js"
+  ]
+}
