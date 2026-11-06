@@ -7,13 +7,13 @@
 .inau-container { max-width:1200px; padding-left:clamp(20px,4.5vw,64px); padding-right:clamp(20px,4.5vw,64px); margin:0 auto; }
 .inau-eyebrow { display:block; font-size:clamp(10px, .85vw, 12px); font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:var(--cyan); }
 .inau-hero { width:min(1500px,100%); margin:auto; min-height: min(740px,calc(100svh - 96px)); display:grid; grid-template-columns: minmax(340px,.87fr) minmax(0,1.13fr); align-items:stretch; }
-.inau-hero__copy { padding:clamp(40px,6vw,100px) clamp(20px,4vw,65px); position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; }
+.inau-hero__copy { padding:clamp(28px,4.5vw,72px) clamp(20px,4vw,65px); position:relative; z-index:2; display:flex; flex-direction:column; justify-content:center; }
 .inau-hero__copy::before { content:''; position:absolute; top:12%; left:2%; width:170px; height:170px; border:1px solid rgba(100,218,206,.15); border-radius:50%; z-index:-1; box-shadow:0 0 90px rgba(121,66,170,.15); }
-.inau-hero h1 { font-size:clamp(52px,6.7vw,104px); font-weight:900; font-stretch:condensed; line-height:.95; letter-spacing:-.067em; margin:.3em 0 .22em; max-width:710px; }
+.inau-hero h1 { font-size:clamp(46px,5.8vw,84px); font-weight:900; font-stretch:condensed; line-height:.95; letter-spacing:-.067em; margin:.3em 0 .22em; max-width:710px; }
 .inau-hero h1 em { display:block; font-style:normal; color:var(--lime); }
-.inau-hero__lead { font-size:clamp(19px,2vw,28px); font-weight:650; line-height:1.25; max-width:460px; margin-bottom:18px; }
+.inau-hero__lead { font-size:clamp(17px,1.8vw,24px); font-weight:650; line-height:1.25; max-width:460px; margin-bottom:12px; }
 .inau-hero__desc { color:var(--muted); max-width:480px; line-height:1.6; font-size:clamp(15px,1.2vw,18px); }
-.inau-when { display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; margin:10px 0 26px; max-width:490px; }
+.inau-when { display:grid; grid-template-columns:1fr 1fr; gap:12px 18px; margin:8px 0 20px; max-width:490px; }
 .inau-when>div { border-top:1px solid var(--line); padding-top:12px; }
 .inau-when>div:last-child { grid-column:span 2; }
 .inau-when dt { color:#9aa5b8; text-transform:uppercase; font-size:10px; letter-spacing:.14em; margin:0 0 6px; }
