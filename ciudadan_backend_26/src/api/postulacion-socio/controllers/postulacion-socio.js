@@ -15,6 +15,7 @@
 
 const path = require('path');
 const { createCoreController } = require('@strapi/strapi').factories;
+const { crearInvitacion, notificarInvitacion } = require('../utils/invitacion');
 
 const UID = 'api::postulacion-socio.postulacion-socio';
 const ESTADOS_VALIDOS = ['pendiente', 'revisada', 'contactada', 'aceptada', 'rechazada'];
@@ -307,9 +308,54 @@ module.exports = createCoreController(UID, ({ strapi }) => ({
     };
     if (typeof notas === 'string') data.notas = notas.slice(0, 4000);
 
-    const updated = await strapi.entityService.update('api::postulacion-socio.postulacion-socio', id, { data });
+    // --- Aceptación: alta de la invitación + aviso por correo ---------------
+    // Al pasar a 'aceptada' se crea la invitación de la agencia al candidato
+    // (idempotente: una por correo+agencia) y se le avisa por correo.
+    //
+    // ORDEN IMPORTANTE: la invitación se crea ANTES de marcar la postulación
+    // como aceptada. En Strapi 4.25.9 `entityService` ignora `transacting`,
+    // así que una transacción no deshace un alta hecha por entityService; con
+    // este orden, si el alta de la invitación falla, la postulación NO queda
+    // aceptada a medias (que es lo que sí importa). Si la aceptación fallara
+    // después, quedaría una invitación «pendiente» huérfana, que es inofensiva
+    // y se puede reintentar sin duplicar (la búsqueda es idempotente).
+    const ahora = new Date().toISOString();
+    const acepta = estado === 'aceptada';
+    let invitacion = null;
+    let invitacionCreada = false;
+
+    const persistir = async () => {
+      if (acepta) {
+        const alta = await crearInvitacion({ strapi, postulacion, ahora });
+        invitacion = alta.invitacion || null;
+        invitacionCreada = Boolean(alta.creada);
+      }
+      return strapi.entityService.update(UID, id, { data });
+    };
+
+    const updated = (acepta && strapi.db && typeof strapi.db.transaction === 'function')
+      ? await strapi.db.transaction(persistir)
+      : await persistir();
+
+    // Los avisos por correo van FUERA de la transacción y son best-effort: un
+    // fallo de Brevo NUNCA puede dejar la aceptación a medias ni tumbar la
+    // operación. Solo se avisa si la invitación se creó en esta llamada (si
+    // ya existía, no se reenvía el correo: la aceptación es idempotente).
+    let correo = null;
+    if (acepta && invitacion && invitacionCreada) {
+      correo = await notificarInvitacion({ strapi, postulacion, invitacion });
+    }
 
     ctx.body = { ok: true, data: updated };
+    if (invitacion) {
+      ctx.body.invitacion = {
+        id: invitacion.id,
+        email: invitacion.email,
+        estado: invitacion.estado,
+        fecha_invitacion: invitacion.fecha_invitacion,
+      };
+    }
+    if (correo) ctx.body.correo = correo;
   },
 }));
 
