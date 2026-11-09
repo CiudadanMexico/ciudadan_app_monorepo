@@ -1,0 +1,99 @@
+# =============================================================================
+# pages.yml — Publica el frontend estático en GitHub Pages (rama gh-pages)
+# Motivación: el deploy a polanco (deploy.yml FASE 10) falla por OOM/disco en
+# el VPS; el frontend público (incl. /inauguracion) se sirve desde GitHub.
+#
+# URL resultante: https://ciudadanmexico.github.io/ciudadan_app_monorepo/
+# (con dominio custom en Settings → Pages se sirve en la raíz del dominio).
+#
+# Requiere (una vez, por un admin del repo):
+#   1. Settings → Actions → General → Workflow permissions: "Read and write"
+#      (para que el GITHUB_TOKEN pueda empujar gh-pages).
+#   2. Settings → Pages → Source: "Deploy from a branch" → `gh-pages` → `/ (root)`.
+# =============================================================================
+name: Pages — frontend estático a gh-pages
+
+on:
+  push:
+    branches: [main, pages/inauguracion-hoy]
+    paths:
+      - 'ciudadan_frontend/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-frontend
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias (mismo patrón que deploy.yml)
+        shell: bash
+        run: |
+          cd ciudadano_frontend
+          node -v && npm -v && df -h / && free -h | head -2
+          npm ci --legacy-peer-deps --no-audit --no-fund || {
+            echo "::warning::npm ci falló; fallback a npm install (runner efímero)"
+            npm install --legacy-peer-deps --no-audit --no-fund
+          }
+
+      # CRA lee REACT_APP_* de process.env al compilar: no hace falta .env.production
+      - name: Build (PUBLIC_URL=. — sirve en raíz o bajo /ciudadan_app_monorepo)
+        shell: bash
+        run: |
+          cd ciudadano_frontend
+          npm run build
+        env:
+          CI: "false"
+          PUBLIC_URL: "."
+          REACT_APP_AUTH0_DOMAIN: ciudadano.us.auth0.com
+          REACT_APP_AUTH0_CLIENT_ID: za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
+          REACT_APP_STRAPI_URL: https://back.ciudadan.org
+          REACT_APP_SOCKET_URL: https://back.ciudadan.org
+          REACT_APP_WIKI_URL: https://socks.ciudadan.org
+          REACT_APP_PLACES_KEY: google_maps
+          REACT_APP_LUMA_EVENT_URL: https://luma.com/event/evt-YkAAHIOEc2zG6Xe
+          REACT_APP_LUMA_EMBED_URL: https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
+
+      - name: Publicar build en rama gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          BUILD="$GITHUB_WORKSPACE/ciudadan_frontend/build"
+          rm -rf /tmp/gh-pages-publish
+          git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/gh-pages-publish
+          cd /tmp/gh-pages-publish
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            git fetch -q origin gh-pages
+            git checkout -q FETCH_HEAD
+          else
+            git checkout -q --orphan gh-pages
+          fi
+          git rm -rf -q . 2>/dev/null || true
+          cp -r "$BUILD"/. .
+          touch .nojekyll
+          git add -A
+          git commit -q -m "pages: build ${{ github.sha }} (automático)" || echo "sin cambios"
+          git push -q origin gh-pages
+          echo "gh-pages actualizado"
+
+# reintento 2026-11-09: verificar si npm ci en runner fue transitorio

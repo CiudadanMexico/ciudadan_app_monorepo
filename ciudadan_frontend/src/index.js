@@ -25,6 +25,25 @@ import ErrorConfigAuth0, { auth0ConfigValida } from './components/ErrorConfigAut
 import { Capacitor } from '@capacitor/core';
 import { FoodCartProvider } from './Contexts/FoodCartContext.jsx';
 
+// ==============================
+// GitHub Pages (u otro mount con prefijo): fallback SPA + basename
+// - 404.html redirige a "<base>/?ruta=<path>"; aquí restauramos la ruta real
+//   antes de que el Router lea la ubicación.
+// - El basename se detecta en runtime: en GitHub Pages proyecto el app vive
+//   bajo /ciudadan_app_monorepo; en dominio propio (raíz) queda sin prefijo.
+//   En producción normal (www.ciudadan.org) no cambia nada.
+// ==============================
+(function restaurarRutaPages() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('ruta');
+    if (q) {
+      const base = window.location.pathname.indexOf('/ciudadan_app_monorepo') === 0 ? '/ciudadan_app_monorepo' : '';
+      window.history.replaceState({}, '', base + q);
+    }
+  } catch (e) { /* no-op */ }
+})();
+const ROUTER_BASE = window.location.pathname.indexOf('/ciudadan_app_monorepo') === 0 ? '/ciudadan_app_monorepo' : undefined;
+
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
 const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
@@ -158,7 +177,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 // En su lugar se muestra un error de configuracion accionable.
 const appElement = auth0ConfigValida() ? (
   <React.StrictMode>
-    <Router>
+    <Router basename={ROUTER_BASE}>
       <ScrollToTop />
       <Auth0ProviderWithNavigate>
         <AuthProvider>

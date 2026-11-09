@@ -255,6 +255,8 @@ jobs:
           # reenvía /socket.io/ a Strapi y devuelve 404 JSON en /wiki/*.
           REACT_APP_WIKI_URL=https://socks.ciudadan.org
           REACT_APP_PLACES_KEY=google_maps
+          REACT_APP_LUMA_EVENT_URL=https://luma.com/event/evt-YkAAHIOEc2zG6Xe
+          REACT_APP_LUMA_EMBED_URL=https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
           ENVEOF
           CI=false npm run build
           test -f build/index.html && echo "frontend build OK"
