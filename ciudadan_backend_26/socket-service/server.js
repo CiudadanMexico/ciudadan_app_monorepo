@@ -474,24 +474,32 @@ function printRoutes(appInstance) {
   });
 }
 
-// Arranque fail-closed: primero se publica + indexa el seed versionado y sólo
-// después se abre el puerto. Si la copia o SQLite quedan incompletos, el
-// proceso termina con error y systemd no presenta el socket como disponible.
+// Arranque: el seed versionado (wikiseed -> raíz física viva) SOLO se sincroniza
+// cuando WIKI_SEED_SYNC=1 (primer despliegue o reset deliberado). En producción
+// la wiki vive en su propio repo (CiudadanMexico/wikis, git pull vía cron) y
+// sincronizar wikiseed en cada arranque pisaría las ediciones hechas desde Obsidian.
+// El watcher (arrancarWiki) sí arranca siempre: reindexa en caliente los cambios
+// que lleguen al disco por cualquier vía.
 async function iniciarServidor() {
-  try {
-    const wiki = await sincronizarWikiSeed();
-    console.log(
-      `✅ [Wiki] Seed verificado: ${wiki.total} documentos ` +
-      `(main=${wiki.conteos.main}, help=${wiki.conteos.help}, faq=${wiki.conteos.faq}) ` +
-      `en ${wiki.destino}`
-    );
-    await arrancarWiki();
-    programarRechequeoWiki();
-  } catch (err) {
-    console.error('🛑 [Wiki] La sincronización del seed falló; no se abrirá el socket:', err);
-    process.exitCode = 1;
-    return;
+  if (process.env.WIKI_SEED_SYNC === '1') {
+    try {
+      const wiki = await sincronizarWikiSeed();
+      console.log(
+        `✅ [Wiki] Seed verificado: ${wiki.total} documentos ` +
+        `(main=${wiki.conteos.main}, help=${wiki.conteos.help}, faq=${wiki.conteos.faq}) ` +
+        `en ${wiki.destino}`
+      );
+    } catch (err) {
+      console.error('🛑 [Wiki] La sincronización del seed falló; no se abrirá el socket:', err);
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    console.log('ℹ️ [Wiki] WIKI_SEED_SYNC no activo: se omite sincronizar wikiseed (la wiki se sirve tal cual está en la raíz viva)');
   }
+
+  await arrancarWiki();
+  programarRechequeoWiki();
 
   server.listen(PORT, () => {
     console.log(`🚀 Servidor escuchando en el puerto ${PORT}`);
