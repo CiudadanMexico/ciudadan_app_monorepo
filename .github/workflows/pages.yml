@@ -34,18 +34,27 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Instalar dependencias
-        working-directory: ciudadano_frontend
-        run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - name: Instalar dependencias (mismo patrón que deploy.yml)
+        shell: bash
+        run: |
+          cd ciudadano_frontend
+          npm ci --legacy-peer-deps --no-audit --no-fund
 
       # CRA lee REACT_APP_* de process.env al compilar: no hace falta .env.production
       - name: Build (PUBLIC_URL=. — sirve en raíz o bajo /ciudadan_app_monorepo)
-        working-directory: ciudadano_frontend
+        shell: bash
+        run: |
+          cd ciudadano_frontend
+          npm run build
         env:
           CI: "false"
           PUBLIC_URL: "."
