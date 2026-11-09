@@ -37,8 +37,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: ciudadano_frontend/package-lock.json
 
       - name: Env de producción (igual que deploy.yml + Luma)
         run: |
