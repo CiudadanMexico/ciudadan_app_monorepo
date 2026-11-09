@@ -47,7 +47,11 @@ jobs:
         shell: bash
         run: |
           cd ciudadano_frontend
-          npm ci --legacy-peer-deps --no-audit --no-fund
+          node -v && npm -v && df -h / && free -h | head -2
+          npm ci --legacy-peer-deps --no-audit --no-fund || {
+            echo "::warning::npm ci falló; fallback a npm install (runner efímero)"
+            npm install --legacy-peer-deps --no-audit --no-fund
+          }
 
       # CRA lee REACT_APP_* de process.env al compilar: no hace falta .env.production
       - name: Build (PUBLIC_URL=. — sirve en raíz o bajo /ciudadan_app_monorepo)
