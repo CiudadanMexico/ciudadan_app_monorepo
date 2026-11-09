@@ -408,6 +408,7 @@ const Rutas = () => {
     <Routes>
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
       <Route path='/inauguracion' element={<InauguracionPage />} />
+      <Route path='/inauguración' element={<InauguracionPage />} />
       <Route path='/descargar' element={<DescargarConductores />} />
       <Route path='/descargar-conductores' element={<DescargarConductores />} />
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
