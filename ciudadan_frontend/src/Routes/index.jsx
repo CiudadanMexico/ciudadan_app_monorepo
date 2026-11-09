@@ -19,6 +19,7 @@ import LideresVerificadoresPage from '../Pages/Gana/LideresVerificadoresPage.jsx
 import RedireccionPrelanzamiento from '../components/Prelanzamiento/Redireccion.jsx';
 import TaxisRoute from '../Pages/TaxisRoute.jsx';
 import Prelanzamiento from '../Pages/Prelanzamiento.jsx';
+import InauguracionPage from '../Pages/Inauguracion/InauguracionPage.jsx';
 import DescargarConductores from '../Pages/DescargarConductores.jsx';
 import RestaurantesRoute from '../Pages/RestaurantesRoute.jsx';
 import MarketRoute from '../Pages/MarketRoute.jsx';
@@ -406,6 +407,8 @@ const Rutas = () => {
   return (
     <Routes>
       <Route path='/prelanzamiento' element={<Prelanzamiento />} />
+      <Route path='/inauguracion' element={<InauguracionPage />} />
+      <Route path='/inauguración' element={<InauguracionPage />} />
       <Route path='/descargar' element={<DescargarConductores />} />
       <Route path='/descargar-conductores' element={<DescargarConductores />} />
     <Route path='/socios-estatales/registro' element={<RedireccionPrelanzamiento tipo='socio-estatal' />} />
