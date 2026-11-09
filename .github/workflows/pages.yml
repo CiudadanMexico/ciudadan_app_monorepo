@@ -1,0 +1,89 @@
+# =============================================================================
+# pages.yml — Publica el frontend estático en GitHub Pages (rama gh-pages)
+# Motivación: el deploy a polanco (deploy.yml FASE 10) falla por OOM/disco en
+# el VPS; el frontend público (incl. /inauguracion) se sirve desde GitHub.
+#
+# URL resultante: https://ciudadanmexico.github.io/ciudadan_app_monorepo/
+# (con dominio custom en Settings → Pages se sirve en la raíz del dominio).
+#
+# Requiere (una vez, en Settings → Actions → General): "Read and write
+# permissions" para el GITHUB_TOKEN, y en Settings → Pages: Source =
+# "Deploy from a branch" → rama `gh-pages` → carpeta `/ (root)`.
+# =============================================================================
+name: Pages — frontend estático a gh-pages
+
+on:
+  push:
+    branches: [main, pages/inauguracion-hoy]
+    paths:
+      - 'ciudadan_frontend/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-frontend
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: ciudadano_frontend/package-lock.json
+
+      - name: Env de producción (igual que deploy.yml + Luma)
+        run: |
+          cat > ciudadano_frontend/.env.production <<'ENVEOF'
+          REACT_APP_AUTH0_DOMAIN=ciudadan.us.auth0.com
+          REACT_APP_AUTH0_CLIENT_ID=za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
+          REACT_APP_STRAPI_URL=https://back.ciudadan.org
+          REACT_APP_ALCHEMY_API_KEY=
+          REACT_APP_SOCKET_URL=https://back.ciudadan.org
+          REACT_APP_WIKI_URL=https://socks.ciudadan.org
+          REACT_APP_PLACES_KEY=google_maps
+          REACT_APP_LUMA_EVENT_URL=https://luma.com/event/evt-YkAAHIOEc2zG6Xe
+          REACT_APP_LUMA_EMBED_URL=https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
+          ENVEOF
+
+      - name: Instalar dependencias
+        working-directory: ciudadano_frontend
+        run: npm ci --legacy-peer-deps --no-audit --no-fund
+
+      - name: Build (PUBLIC_URL relativo — sirve en raíz o bajo /repo)
+        working-directory: ciudadano_frontend
+        env:
+          CI: false
+          PUBLIC_URL: .
+        run: npm run build
+
+      - name: Publicar build en rama gh-pages
+        run: |
+          set -e
+          BUILD="$GITHUB_WORKSPACE/ciudadan_frontend/build"
+          rm -rf /tmp/gh-pages-publish
+          git clone -q --no-checkout "$GITHUB_REPOSITORY" /tmp/gh-pages-publish 2>/dev/null || true
+          cd /tmp/gh-pages-publish
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git show-ref --verify --quiet refs/heads/gh-pages; then
+            git checkout -q gh-pages
+            git rm -rf -q .
+          else
+            git checkout -q --orphan gh-pages
+            git rm -rf -q --cached . 2>/dev/null || true
+          fi
+          cp -r "$BUILD"/. .
+          touch .nojekyll
+          git add -A
+          git commit -q -m "pages: build ${{ github.sha }} (automático)" || echo "sin cambios"
+          git push -q origin gh-pages
+          echo "gh-pages actualizado"
