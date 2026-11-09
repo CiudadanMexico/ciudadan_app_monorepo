@@ -11,7 +11,8 @@
  *   (b) una linea de mas de 5 KB,
  *   (c) el marcador de version del packer,
  *   (d) el bucle de rotacion del packer,
- *   (e) un payload en un lanzador ejecutable sin extension.
+ *   (e) un payload en un lanzador ejecutable sin extension,
+ *   (f) un archivo rastreado que no se puede leer (fail-closed).
  *
  * Ejecutar: node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js
  */
@@ -148,6 +149,22 @@ test('detecta un init RASTREADO sin extension (modo repo, igual que CI)', (t) =>
   assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
   assert.match(res.stderr, / - init:/);
   assert.match(res.stderr, /linea \d+ de 6\d{3} caracteres/);
+});
+
+test('falla cerrado si un archivo rastreado no se puede leer', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  const archivo = path.join(dir, 'init');
+  fs.writeFileSync(archivo, '// temporal\n', 'utf8');
+  const add = spawnSync('git', ['-C', dir, 'add', 'init'], { encoding: 'utf8' });
+  assert.equal(add.status, 0, `git add fallo: ${add.stderr}`);
+  fs.rmSync(archivo, { force: true });
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - init:/);
+  assert.match(res.stderr, /archivo rastreado no legible/);
 });
 
 test('un directorio inexistente es error de uso (exit 2)', () => {

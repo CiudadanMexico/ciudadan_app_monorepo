@@ -19,6 +19,8 @@
  *   GUARDIA_ROOT=<ruta>  escanea otro repositorio git en modo repo (pruebas).
  *
  * Salida: 0 = limpio; 1 = deteccion (el pipeline debe fallar); 2 = error de uso.
+ * La guardia es fail-closed: un archivo rastreado que no se pueda leer se reporta
+ * como hallazgo, nunca se omite en silencio.
  */
 'use strict';
 const { execFileSync } = require('node:child_process');
@@ -85,7 +87,8 @@ function analizarArchivo(abs, rel, hallazgos) {
   let texto;
   try {
     texto = fs.readFileSync(abs, 'utf8');
-  } catch {
+  } catch (err) {
+    hallazgos.push({ ruta: rel, detalle: `archivo rastreado no legible (${err.code || 'ERROR'}); no se puede verificar su contenido` });
     return;
   }
   for (const [re, desc] of MARCADORES) {
