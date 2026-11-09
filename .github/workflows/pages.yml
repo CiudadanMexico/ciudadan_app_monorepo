@@ -83,3 +83,5 @@ jobs:
           git commit -q -m "pages: build ${{ github.sha }} (automático)" || echo "sin cambios"
           git push -q origin gh-pages
           echo "gh-pages actualizado"
+
+# reintento 2026-11-09: verificar si npm ci en runner fue transitorio
