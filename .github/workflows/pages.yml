@@ -6,9 +6,10 @@
 # URL resultante: https://ciudadanmexico.github.io/ciudadan_app_monorepo/
 # (con dominio custom en Settings → Pages se sirve en la raíz del dominio).
 #
-# Requiere (una vez, en Settings → Actions → General): "Read and write
-# permissions" para el GITHUB_TOKEN, y en Settings → Pages: Source =
-# "Deploy from a branch" → rama `gh-pages` → carpeta `/ (root)`.
+# Requiere (una vez, por un admin del repo):
+#   1. Settings → Actions → General → Workflow permissions: "Read and write"
+#      (para que el GITHUB_TOKEN pueda empujar gh-pages).
+#   2. Settings → Pages → Source: "Deploy from a branch" → `gh-pages` → `/ (root)`.
 # =============================================================================
 name: Pages — frontend estático a gh-pages
 
@@ -38,47 +39,44 @@ jobs:
         with:
           node-version: 20
 
-      - name: Env de producción (igual que deploy.yml + Luma)
-        run: |
-          cat > ciudadano_frontend/.env.production <<'ENVEOF'
-          REACT_APP_AUTH0_DOMAIN=ciudadan.us.auth0.com
-          REACT_APP_AUTH0_CLIENT_ID=za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
-          REACT_APP_STRAPI_URL=https://back.ciudadan.org
-          REACT_APP_ALCHEMY_API_KEY=
-          REACT_APP_SOCKET_URL=https://back.ciudadan.org
-          REACT_APP_WIKI_URL=https://socks.ciudadan.org
-          REACT_APP_PLACES_KEY=google_maps
-          REACT_APP_LUMA_EVENT_URL=https://luma.com/event/evt-YkAAHIOEc2zG6Xe
-          REACT_APP_LUMA_EMBED_URL=https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
-          ENVEOF
-
       - name: Instalar dependencias
         working-directory: ciudadano_frontend
         run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - name: Build (PUBLIC_URL relativo — sirve en raíz o bajo /repo)
+      # CRA lee REACT_APP_* de process.env al compilar: no hace falta .env.production
+      - name: Build (PUBLIC_URL=. — sirve en raíz o bajo /ciudadan_app_monorepo)
         working-directory: ciudadano_frontend
         env:
-          CI: false
-          PUBLIC_URL: .
+          CI: "false"
+          PUBLIC_URL: "."
+          REACT_APP_AUTH0_DOMAIN: ciudadano.us.auth0.com
+          REACT_APP_AUTH0_CLIENT_ID: za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
+          REACT_APP_STRAPI_URL: https://back.ciudadan.org
+          REACT_APP_SOCKET_URL: https://back.ciudadan.org
+          REACT_APP_WIKI_URL: https://socks.ciudadan.org
+          REACT_APP_PLACES_KEY: google_maps
+          REACT_APP_LUMA_EVENT_URL: https://luma.com/event/evt-YkAAHIOEc2zG6Xe
+          REACT_APP_LUMA_EMBED_URL: https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
         run: npm run build
 
       - name: Publicar build en rama gh-pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           BUILD="$GITHUB_WORKSPACE/ciudadan_frontend/build"
           rm -rf /tmp/gh-pages-publish
-          git clone -q --no-checkout "$GITHUB_REPOSITORY" /tmp/gh-pages-publish 2>/dev/null || true
+          git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/gh-pages-publish
           cd /tmp/gh-pages-publish
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git show-ref --verify --quiet refs/heads/gh-pages; then
-            git checkout -q gh-pages
-            git rm -rf -q .
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            git fetch -q origin gh-pages
+            git checkout -q FETCH_HEAD
           else
             git checkout -q --orphan gh-pages
-            git rm -rf -q --cached . 2>/dev/null || true
           fi
+          git rm -rf -q . 2>/dev/null || true
           cp -r "$BUILD"/. .
           touch .nojekyll
           git add -A
