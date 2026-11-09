@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "./static/css/main.ffffa8a4.css",
-    "main.js": "./static/js/main.bf216abf.js",
+    "main.js": "./static/js/main.d7235915.js",
     "static/js/312.c9816409.chunk.js": "./static/js/312.c9816409.chunk.js",
     "static/media/asistente_min.gif": "./static/media/asistente_min.48071a4d00b4fadf16ff.gif",
     "static/media/roles.png": "./static/media/roles.7de292643b81a6185167.png",
@@ -85,24 +85,24 @@
     "static/media/prelanzamiento_hero_960.webp": "./static/media/prelanzamiento_hero_960.0da9eeeb0d2ff6d95d69.webp",
     "static/media/taxi_marker.png": "./static/media/taxi_marker.503f2237c9315ff91b39.png",
     "static/media/mapa.png": "./static/media/mapa.c94fb46a888b5496821a.png",
-    "static/media/wiki.svg": "./static/media/wiki.6dd85d5fa96fb29073f0dd3f9b15ce5e.svg",
+    "static/media/wiki.svg": "./static/media/wiki.2f460fb092815f3e27c447cd45cd1eea.svg",
     "static/media/heroCommunityImage.png": "./static/media/heroCommunityImage.abe6dfd7774c5ad16d18.png",
     "static/media/alert.png": "./static/media/alert.980deef18b2196b27ea0.png",
-    "static/media/ciudadan_rosa.svg": "./static/media/ciudadan_rosa.0ba1ad145e0fb7933eda800ba1389b56.svg",
-    "static/media/faq.svg": "./static/media/faq.678063723688498d96a9fd09320f6348.svg",
-    "static/media/contacto.svg": "./static/media/contacto.f4b7e9d5de54f8d800145e77aba06e8d.svg",
-    "static/media/labory.svg": "./static/media/labory.aa489aca0d67907ae421f5b4fa38468f.svg",
+    "static/media/ciudadan_rosa.svg": "./static/media/ciudadan_rosa.2010fe2f39e850fd179a300fa06163f4.svg",
+    "static/media/faq.svg": "./static/media/faq.ea95b65ec1cd7e597d6a2a7fbee484f0.svg",
+    "static/media/contacto.svg": "./static/media/contacto.5bc96311a0e43140ca3b9ebaef4f147b.svg",
+    "static/media/labory.svg": "./static/media/labory.ebe7afbca005a2ed27003a13dcec9811.svg",
     "index.html": "./index.html",
-    "static/media/quienes.svg": "./static/media/quienes.80ba7fc538c7b9bd22618f56d2cfb6c6.svg",
-    "static/media/ayuda.svg": "./static/media/ayuda.dc70c0248e94ed89225fe6df41c72c6b.svg",
+    "static/media/quienes.svg": "./static/media/quienes.93de0e91456169bb897b633d734270d3.svg",
+    "static/media/ayuda.svg": "./static/media/ayuda.bf14a03afa382f693417afa33b533406.svg",
     "static/media/boton-robot.svg": "./static/media/boton-robot.65953802d30ddc910a8f8170349aad17.svg",
-    "static/media/youtube.svg": "./static/media/youtube.0353fbdf958e94af80cb3ddbb09c80ec.svg",
+    "static/media/youtube.svg": "./static/media/youtube.00ee935b9e4d88af4f171ef9bd2f60f7.svg",
     "main.ffffa8a4.css.map": "./static/css/main.ffffa8a4.css.map",
-    "main.bf216abf.js.map": "./static/js/main.bf216abf.js.map",
+    "main.d7235915.js.map": "./static/js/main.d7235915.js.map",
     "312.c9816409.chunk.js.map": "./static/js/312.c9816409.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ffffa8a4.css",
-    "static/js/main.bf216abf.js"
+    "static/js/main.d7235915.js"
   ]
 }
