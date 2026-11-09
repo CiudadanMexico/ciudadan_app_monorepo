@@ -6,7 +6,8 @@
 #
 # La guardia de payloads ofuscados se ejecuta ADEMAS en cada PR y en cada push
 # a main mediante .github/workflows/security-guard.yml (sin filtro de paths),
-# para no depender de este filtro.
+# para no depender de este filtro. La guardia incluye lanzadores ejecutables
+# sin extension (como `init`) para evitar payloads fuera de .js/.mjs/.cjs.
 name: Pruebas backend (node --test)
 
 on:

@@ -5,7 +5,8 @@
 # romper el pipeline aunque no toque ciudadan_backend_26/**.
 #
 # Detecta: api.js en la raiz, marcadores del packer (global['!'],
-# while(!![]){try{, constructor Function oculto) y lineas de >5 KB en .js.
+# while(!![]){try{, constructor Function oculto) y lineas de >5 KB en .js
+# o en lanzadores ejecutables sin extension (por ejemplo `init`).
 #
 # No usa pull_request_target: el codigo del PR se ejecuta como codigo del PR,
 # sin secretos ni permisos de escritura.

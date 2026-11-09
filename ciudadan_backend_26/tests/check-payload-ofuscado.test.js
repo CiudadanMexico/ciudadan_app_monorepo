@@ -10,7 +10,8 @@
  *   (a) un api.js en la raiz del arbol,
  *   (b) una linea de mas de 5 KB,
  *   (c) el marcador de version del packer,
- *   (d) el bucle de rotacion del packer.
+ *   (d) el bucle de rotacion del packer,
+ *   (e) un payload en un lanzador ejecutable sin extension.
  *
  * Ejecutar: node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js
  */
@@ -78,6 +79,18 @@ test('detecta el marcador de version del packer', (t) => {
   assert.match(res.stderr, /marcador de packer/);
 });
 
+test('detecta una linea de mas de 5 KB en un lanzador sin extension', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const larga = 'A'.repeat(6000);
+  escribir(dir, 'init', `// MUESTRA INERTE\nconst relleno = "${larga}";\n`);
+
+  const res = ejecutarGuardia(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - init:/);
+  assert.match(res.stderr, /linea \d+ de 6\d{3} caracteres/);
+});
+
 test('detecta el bucle de rotacion del packer', (t) => {
   const dir = temporal();
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
@@ -120,6 +133,21 @@ test('detecta un api.js RASTREADO en un repo git temporal (modo repo, igual que 
   assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
   assert.match(res.stderr, /api\.js/);
   assert.match(res.stderr, /archivo prohibido/);
+});
+
+test('detecta un init RASTREADO sin extension (modo repo, igual que CI)', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  const larga = 'A'.repeat(6000);
+  escribir(dir, 'init', `// MUESTRA INERTE\nconst relleno = "${larga}";\n`);
+  const add = spawnSync('git', ['-C', dir, 'add', 'init'], { encoding: 'utf8' });
+  assert.equal(add.status, 0, `git add fallo: ${add.stderr}`);
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - init:/);
+  assert.match(res.stderr, /linea \d+ de 6\d{3} caracteres/);
 });
 
 test('un directorio inexistente es error de uso (exit 2)', () => {

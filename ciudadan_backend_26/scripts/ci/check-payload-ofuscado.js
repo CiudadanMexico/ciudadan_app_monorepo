@@ -5,6 +5,8 @@
  * Contexto: api.js (raiz) y ciudadan_backend_26/middleware/src/routes/auth0.js fueron
  * portadores de un backdoor (C2 via blockchain, payload remoto XOR) que se reinyecto
  * varias veces entre 2026-08 y 2026-10 (ver docs/SEGURIDAD-OFUSCACION-2026-10-27.md).
+ * También se detectaron payloads en lanzadores `init` sin extensión; por eso la
+ * guardia analiza scripts JavaScript y TODO archivo rastreado sin extensión.
  *
  * Uso:
  *   node ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js              # escanea el repo
@@ -26,7 +28,7 @@ const path = require('node:path');
 const RAIZ = path.resolve(process.env.GUARDIA_ROOT || path.join(__dirname, '..', '..', '..'));
 const MAX_LINEA = 5000;
 const RUTAS_PROHIBIDAS = ['api.js'];
-const EXTENSIONES = ['.js', '.mjs', '.cjs'];
+const EXTENSIONES = new Set(['.js', '.mjs', '.cjs']);
 const IGNORAR_DIRS = new Set(['node_modules', '.git']);
 const MARCADORES = [
   [/global\['!'\]/, "marcador de version del packer (global['!'])"],
@@ -74,7 +76,11 @@ function archivosEnDirectorio(base) {
 // --- Analisis ----------------------------------------------------------------
 
 function analizarArchivo(abs, rel, hallazgos) {
-  if (!EXTENSIONES.includes(path.extname(abs))) return;
+  const extension = path.extname(abs);
+  // Los lanzadores `init` son JavaScript ejecutable pero no tienen extension.
+  // Analizar tambien los archivos sin extension evita que un payload se oculte
+  // en un script ejecutable con extension vacia.
+  if (!EXTENSIONES.has(extension) && extension !== '') return;
   if (path.basename(abs) === 'check-payload-ofuscado.js') return; // la guardia no se detecta a si misma
   let texto;
   try {
