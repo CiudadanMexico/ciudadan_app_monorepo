@@ -147,6 +147,14 @@ jobs:
     needs: [p4-arbiter-gate, build-frontend]
     timeout-minutes: 25
     steps:
+      - name: Checkout del instalador versionado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/deploy
+
       - name: Setup SSH Polanco
         shell: bash
         run: |
