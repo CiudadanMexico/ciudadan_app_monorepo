@@ -34,7 +34,9 @@ read_current() {
 }
 
 write_state() {
-  local name="$1" value="$2" tmp="$REL_FE/.${name}.tmp.$$"
+  local name="$1"
+  local value="$2"
+  local tmp="$REL_FE/.${name}.tmp.$$"
   printf '%s\n' "$value" > "$tmp"
   mv -f "$tmp" "$REL_FE/$name"
 }
