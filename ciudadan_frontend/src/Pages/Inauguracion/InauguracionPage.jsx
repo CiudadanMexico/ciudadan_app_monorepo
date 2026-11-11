@@ -67,7 +67,7 @@ export default function InauguracionPage() {
   useSeo({
     title: 'Ciudadan 6.0 · El futuro se habita · 21 de noviembre',
     description: 'Gran encuentro inaugural Ciudadan 6.0. Ecoaldeas productivas, inteligencia artificial, economía cooperativa, Asamblea Cero y noche electrónica. 21 de noviembre, 17:00, Aura Hub CDMX.',
-    ogImage: `${window.location.origin}/inauguracion/compartir.jpg`,
+    ogImage: `${window.location.origin}/social/ciudadan-inauguracion.jpg`,
     canonical: `${window.location.origin}/inauguracion`,
   });
   useEffect(() => {

@@ -77,6 +77,8 @@ nginx:
 
 El frontend NO se construye en el servidor (pocos recursos). Se construye en una máquina local con Node 20 y se sube el `build/`.
 
+> **Regla operativa permanente (incidente 2026-11-10):** un cambio frontend-only NO debe ejecutar `npm ci` del backend/socket/middleware en Polanco. Eso satura RAM/swap, deja procesos en D-state por I/O y bloquea deploys durante horas. Para frontend-only usa `.github/workflows/deploy-frontend-only.yml`: build en el runner con Node 20, artefacto con `MANIFEST.json` + `checksums.sha256`, upload por `github-deploy`, release nuevo en `/var/www/releases/ciudadan_frontend/<sha>` y flip atómico de `current` con rollback a `PREVIOUS`. No reinicies backend ni socket. Además, ningún `public/<ruta>/` puede colisionar con una ruta SPA (`/inauguracion`), porque `try_files` sirve el directorio físico antes que el fallback de `/index.html`.
+
 ### 2.1 Preparar máquina local
 
 ```powershell

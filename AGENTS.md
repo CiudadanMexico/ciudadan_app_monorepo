@@ -240,6 +240,7 @@ Each subproject has its own `.env` (not committed; no `.env.example`). Key vars:
     (idempotente). No existe `/apps/wikialgo`.
 14. **Node 22 for anything touching `ciudadadan.db` / socket-service's `better-sqlite3`** — the package declares `engines.node >=22`; with Node 20 the `require` works but *using* the binding **SIGSEGVs** (uncatchable signal). Use `/opt/node22/bin/node`. `wikiseed/sync-wikis.js` has an ABI pre-flight that reports `abi-incompatible` gracefully.
 15. **The wiki does NOT list the disk** — its tree comes from the `documents` table of `ciudadadan.db`. Copying `.md` files into the wiki root is not enough; run `wikiseed/sync-wikis.js` (copies + indexes, idempotent). Full runbook: `docs/WIKI-SEED-SETUP.md`.
+16. **Frontend-only production deploys never run `npm ci` on Polanco** (2026-11-10 incident: backend reinstall on the low-resource VPS caused D-state I/O stalls, swap exhaustion and multi-hour deploy lockups). Build in the GitHub runner with Node 20 and deploy via `.github/workflows/deploy-frontend-only.yml`, which flips `/var/www/releases/ciudadan_frontend/current` atomically with rollback. Also never leave a physical `public/<spa-route>/` directory (e.g. `public/inauguracion/`), because Nginx `try_files` serves it before the SPA fallback and the route goes blank.
 
 ## Git Workflow
 
