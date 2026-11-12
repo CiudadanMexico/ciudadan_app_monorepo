@@ -14,6 +14,12 @@ on:
         type: boolean
         required: false
         default: false
+      scope:
+        description: "Alcance forzado del deploy: auto decide por rutas tocadas; frontend solo hace flip del frontend; full es el pipeline completo"
+        type: choice
+        required: false
+        default: "auto"
+        options: ["auto", "frontend", "full"]
 
 # Permisos minimos: el deploy solo necesita LEER el contenido del repo
 # (checkout). Los secretos de despliegue viajan por SSH, no por la API de GitHub.
@@ -89,10 +95,62 @@ jobs:
               exit 1 ;;
           esac
 
-  build-and-gate:
-    name: Build + tests rápidos + migration gate
+  determine-scope:
+    name: "Scope — decidir frontend-only vs full"
     runs-on: ubuntu-latest
     needs: p4-arbiter-gate
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      scope: ${{ steps.scope.outputs.scope }}
+      files: ${{ steps.scope.outputs.files }}
+    steps:
+      - name: Checkout con historia completa para diff
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Calcular alcance
+        id: scope
+        run: |
+          set -uo pipefail
+          requested="${{ inputs.scope }}"
+          [ -n "$requested" ] || requested="auto"
+          before="${{ github.event.before }}"
+          after="${{ github.sha }}"
+          if [ "$requested" != "auto" ]; then
+            scope="$requested"
+            files="(forced:$requested)"
+          else
+            files=""
+            if [ -n "$before" ] && ! printf '%s' "$before" | grep -q '^0+$'; then
+              files=$(git diff --name-only --diff-filter=ACMR "$before" "$after" 2>/dev/null || true)
+            fi
+            if [ -z "$files" ]; then
+              files=$(git diff --name-only --diff-filter=ACMR HEAD^ HEAD 2>/dev/null || true)
+            fi
+            backend=$(printf '%s\n' "$files" | grep -E '^(ciudadan_backend_26|wikiseed)/' || true)
+            front=$(printf '%s\n' "$files" | grep -E '^ciudadan_frontend/' || true)
+            if [ -n "$backend" ]; then
+              scope=full
+            elif [ -n "$front" ]; then
+              scope=frontend
+            else
+              scope=none
+            fi
+          fi
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          echo "files=$(printf '%s' "$files" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          echo "::notice::scope=$scope files=$(printf '%s' "$files" | tr '\n' ' ')"
+
+  build-and-gate:
+    name: Build + tests rápidos + migration gate (full)
+    runs-on: ubuntu-latest
+    needs: [p4-arbiter-gate, determine-scope]
+    if: needs.determine-scope.outputs.scope == 'full'
     timeout-minutes: 40
     permissions:
       contents: read
@@ -549,7 +607,7 @@ jobs:
   reporte:
     name: FASE 14 — Observabilidad (summary)
     runs-on: ubuntu-latest
-    needs: [p4-arbiter-gate, build-and-gate, canary-daniel, deploy-polanco]
+    needs: [p4-arbiter-gate, determine-scope, build-and-gate, canary-daniel, deploy-polanco, frontend-build, frontend-deploy-polanco]
     if: always()
     permissions:
       contents: read
@@ -560,13 +618,216 @@ jobs:
           ## Deploy Ciudadan — resumen
           | Campo | Valor |
           |---|---|
+          | Alcance | \`${{ needs.determine-scope.outputs.scope }}\` |
+          | Archivos | \`${{ needs.determine-scope.outputs.files }}\` |
           | SHA | \`${{ needs.build-and-gate.outputs.sha }}\` |
           | Anterior | \`${{ needs.build-and-gate.outputs.deployed }}\` |
           | Gate P4 | ${{ needs.p4-arbiter-gate.outputs.gate }} (${{ needs.p4-arbiter-gate.outputs.p4_state }}) |
           | Gate migraciones | ${{ needs.build-and-gate.outputs.gate }} |
-          | Build | ${{ needs.build-and-gate.result }} |
+          | Build full | ${{ needs.build-and-gate.result }} |
           | Canary Daniel (ARM64) | ${{ needs.canary-daniel.result }} |
-          | Deploy Polanco | ${{ needs.deploy-polanco.result }} |
+          | Deploy Polanco full | ${{ needs.deploy-polanco.result }} |
+          | Build frontend-only | ${{ needs.frontend-build.result }} |
+          | Deploy frontend-only | ${{ needs.frontend-deploy-polanco.result }} |
           | Actor | ${{ github.actor }} |
           | Nota | ${{ github.event.inputs.note }} |
           EOF
+
+  frontend-build:
+    name: Build frontend-only + checksums (runner)
+    runs-on: ubuntu-latest
+    needs: [p4-arbiter-gate, determine-scope]
+    if: needs.determine-scope.outputs.scope == 'frontend'
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    outputs:
+      sha: ${{ steps.meta.outputs.sha }}
+    steps:
+      - name: Checkout del SHA exacto
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Guardia de payloads ofuscados
+        run: node ciudadanos_backend_26/scripts/ci/check-payload-ofuscado.js || node ciudadanos_backend_26/scripts/ci/check-payload-ofuscado.js
+
+      - name: Meta
+        id: meta
+        run: echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build frontend
+        run: |
+          set -euo pipefail
+          cd ciudadan_frontend
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          cat > .env.production <<'ENVEOF'
+          REACT_APP_AUTH0_DOMAIN=ciudadan.us.auth0.com
+          REACT_APP_AUTH0_CLIENT_ID=za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
+          REACT_APP_STRAPI_URL=https://back.ciudadan.org
+          REACT_APP_ALCHEMY_API_KEY=
+          REACT_APP_SOCKET_URL=https://back.ciudadan.org
+          REACT_APP_WIKI_URL=https://socks.ciudadan.org
+          REACT_APP_PLACES_KEY=google_maps
+          REACT_APP_LUMA_EVENT_URL=https://luma.com/event/evt-YkAAHIOEc2zG6Xe
+          REACT_APP_LUMA_EMBED_URL=https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
+          ENVEOF
+          CI=false npm run build
+          test -f build/index.html
+          test ! -e build/inauguracion
+          grep -R -q "ciudadan.us.auth0.com" build/static/js/main.*.js
+          grep -R -q "evt-YkAAHIOEc2zG6Xe" build/static/js/main.*.js
+          echo "FRONTEND_BUILD_OK"
+
+      - name: Empaquetar frontend + MANIFEST + checksums
+        run: |
+          set -euo pipefail
+          SHA="${GITHUB_SHA}"
+          ROOT=$(mktemp -d)
+          STAGE="$ROOT/ciudadan-release"
+          mkdir -p "$STAGE"
+          cp -a ciudadan_frontend/build "$STAGE/ciudadan_frontend_build"
+          cat > "$STAGE/MANIFEST.json" <<EOF
+          { "sha": "$SHA", "built": "$(date -u +%FT%TZ)", "actor": "${{ github.actor }}", "run": "${{ github.run_id }}", "components": ["ciudadan_frontend_build"] }
+          EOF
+          (cd "$STAGE" && find . -type f ! -name checksums.sha256 -print0 | sort -z | xargs -0 sha256sum > checksums.sha256)
+          tar -czf "ciudadan-frontend-$SHA.tar.gz" -C "$STAGE" .
+          sha256sum "ciudadan-frontend-$SHA.tar.gz"
+
+      - name: Guardar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: citizens-frontend-release
+          path: citizens-frontend-${{ github.sha }}.tar.gz
+          retention-days: 14
+          if-no-files-found: error
+
+  frontend-deploy-polanco:
+    name: Flip frontend-only + healthchecks + rollback automático
+    runs-on: ubuntu-latest
+    needs: [p4-arbiter-gate, determine-scope, frontend-build]
+    if: needs.determine-scope.outputs.scope == 'frontend'
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout del instalador versionado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            scripts/deploy
+
+      - name: Setup SSH Polanco
+        shell: bash
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$KH_LINES" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /usr/local/bin/cloudflared
+          chmod +x /usr/local/bin/cloudflared
+          cat > ~/.ssh/config <<'EOF'
+          Host polanco-tunnel
+            HostName ssh.ciudadan.org
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ProxyCommand /usr/local/bin/cloudflared access ssh --hostname %h
+          Host daniel-direct
+            HostName DANIELHOST
+            User DEPLOYUSER
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+          sed -i "s/DEPLOYUSER/$DEPLOY_USER/; s/DANIELHOST/$DANIEL_HOST/" ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Re-gate P4 antes de mutar
+        run: |
+          set -euo pipefail
+          out=$(ssh -o BatchMode=yes -o ConnectTimeout=20 daniel-direct "sudo -n /usr/local/sbin/p4-executor status")
+          state=$(sed -n 's/.*arbol: state=\([A-Z_]*\).*/\1/p' <<<"$out" | head -1)
+          [ "$state" = "PRIMARY_POLANCO" ] || { echo "::error::P4 cambió a ${state:-UNREACHABLE}" >&2; exit 1; }
+          echo "P4 PRIMARY_POLANCO"
+
+      - name: Pre-gate de salud relevante
+        id: pre-health
+        run: |
+          set -euo pipefail
+          for url in \
+            https://www.ciudadan.org/ \
+            https://back.ciudadan.org/admin \
+            'https://socks.ciudadan.org/socket.io/?EIO=4&transport=polling'; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "$url")
+            case "$code" in 2*|3*) : ;; *) echo "::error::Pre-gate falló: $url ($code)" >&2; exit 1 ;; esac
+          done
+          fingerprint=$(ssh -o BatchMode=yes polanco-tunnel "systemctl show citizens-backend-prod citizens-socket-prod -p Id -p ActiveState -p MainPID -p NRestarts --no-pager")
+          echo "$fingerprint"
+          echo "$fingerprint" > pre-services.txt
+          grep -q 'ActiveState=active' pre-services.txt
+
+      - name: Descargar artefacto firmado por el job de build
+        uses: actions/download-artifact@v4
+        with:
+          name: citizens-frontend-release
+          path: .
+
+      - name: Subir artefacto e instalador
+        run: |
+          set -euo pipefail
+          scp -o BatchMode=yes "ciudadan-frontend-${{ needs.frontend-build.outputs.sha }}.tar.gz" "polanco-tunnel:/home/$DEPLOY_USER/uploads/"
+          scp -o BatchMode=yes scripts/deploy/ciudadan-frontend-release.sh "polanco-tunnel:/home/$DEPLOY_USER/uploads/ciudadan-frontend-release.sh"
+
+      - name: Instalar y hacer flip atómico
+        run: |
+          set -euo pipefail
+          sha="${{ needs.frontend-build.outputs.sha }}"
+          ssh -o BatchMode=yes polanco-tunnel "chmod 0755 /home/$DEPLOY_USER/uploads/ciudadan-frontend-release.sh && /home/$DEPLOY_USER/uploads/ciudadan-frontend-release.sh install '$sha' '/home/$DEPLOY_USER/uploads/ciudadan-frontend-$sha.tar.gz'"
+
+      - name: Verificar producción pública
+        run: |
+          set -euo pipefail
+          sha="${{ needs.frontend-build.outputs.sha }}"
+          root=$(curl -fsS --max-time 30 "https://www.ciudadan.org/?deploy=$sha")
+          bundle=$(sed -n 's/.*src="\([^"]*\/static\/js\/main\.[A-Za-z0-9_-]*\.js\)".*/\1/p' <<<"$root" | head -1)
+          [ -n "$bundle" ] || { echo "::error::No se encontró bundle público" >&2; exit 1; }
+          curl -fsS --max-time 60 "https://www.ciudadan.org$bundle" -o /tmp/ciudadan-main.js
+          grep -q 'SE HABITA' /tmp/ciudadan-main.js
+          grep -q 'evt-YkAAHIOEc2zG6Xe' /tmp/ciudadan-main.js
+          grep -q 'https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple' /tmp/ciudadan-main.js
+          for path in /inauguracion /inauguraci%C3%B3n; do
+            code=$(curl -sS -o /tmp/route.html -w '%{http_code}' --max-time 30 "https://www.ciudadan.org$path?deploy=$sha")
+            [ "$code" = 200 ] || { echo "::error::$path devolvió $code" >&2; exit 1; }
+            grep -q "$bundle" /tmp/route.html
+          done
+          echo "RUTAS_Y_BUNDLE_OK $bundle"
+
+      - name: Confirmar backend/socket sin reinicios
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes polanco-tunnel "systemctl show citizens-backend-prod citizens-socket-prod -p Id -p ActiveState -p MainPID -p NRestarts --no-pager" > post-services.txt
+          cat post-services.txt
+          diff -u pre-services.txt post-services.txt
+
+      - name: Marcar LAST_GOOD
+        run: |
+          sha="${{ needs.frontend-build.outputs.sha }}"
+          ssh -o BatchMode=yes polanco-tunnel "/home/$DEPLOY_USER/uploads/ciudadan-frontend-release.sh mark-good '$sha'"
+
+      - name: Rollback automático si falla el deploy
+        if: failure()
+        run: |
+          ssh -o BatchMode=yes polanco-tunnel "/home/$DEPLOY_USER/uploads/ciudadan-frontend-release.sh rollback" || true
+          ssh -o BatchMode=yes polanco-tunnel "/home/$DEPLOY_USER/uploads/ciudadan-frontend-release.sh status" || true
