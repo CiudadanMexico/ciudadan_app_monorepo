@@ -554,7 +554,41 @@ module.exports = createCoreController('api::ad-session.ad-session', ({ strapi })
       });
     });
 
-    ctx.body = { data: { completed: true, valid: true, reward: true, recompensa } };
+    // --- INTEGRACIÓN ENTREGA A: Conceder viaje gratis al completar 5 videos ---
+    // Verificar si la sesión se completó (todos los items terminales) y tiene exactamente
+    // 5 items completados (el requisito para viaje gratis por video).
+    const sesionActualizada = await strapi.entityService.findOne('api::ad-session.ad-session', Number(id), {
+      populate: { items: { filters: { estado: 'completed' } } },
+    });
+    const completedItems = sesionActualizada?.items?.filter((it) => it.estado === 'completed') || [];
+    const totalItems = await strapi.db.query('api::ad-session-item.ad-session-item').count({
+      where: { sesion: { id: Number(id) } },
+    });
+    const todosCompletados = completedItems.length === totalItems && totalItems === 5;
+
+    let freeTripGranted = false;
+    let freeTripResult = null;
+    if (todosCompletados) {
+      try {
+        const freeTripService = strapi.service('api::free-trip-entitlement.free-trip-entitlement');
+        freeTripResult = await freeTripService.grantFreeTripByVideo(sesion.usuario.id, Number(id));
+        freeTripGranted = freeTripResult.success;
+      } catch (err) {
+        strapi.log.error('Error concediendo viaje gratis por video:', err);
+        // No fallar la request principal si falla el viaje gratis
+      }
+    }
+
+    ctx.body = {
+      data: {
+        completed: true,
+        valid: true,
+        reward: true,
+        recompensa,
+        freeTripGranted,
+        freeTrip: freeTripResult?.entitlement || null,
+      }
+    };
   },
 
   /**

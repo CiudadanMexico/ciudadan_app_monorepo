@@ -1,0 +1,73 @@
+{
+  "kind": "collectionType",
+  "collectionName": "free_trip_entitlements",
+  "info": {
+    "singularName": "free-trip-entitlement",
+    "pluralName": "free-trip-entitlements",
+    "displayName": "Free Trip Entitlement",
+    "description": "Entitlements de viajes gratis para pasajeros (fuente: video o QR)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "usuario": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "free_trip_entitlements"
+    },
+    "fuente": {
+      "type": "enumeration",
+      "enum": ["video", "qr"],
+      "required": true,
+      "comment": "Origen del viaje gratis: video (5 anuncios) o qr (tarjeta física)"
+    },
+    "estado": {
+      "type": "enumeration",
+      "enum": ["pendiente", "activo", "usado", "expirado", "cancelado"],
+      "default": "pendiente",
+      "required": true,
+      "comment": "pendiente = concedido pero no activado en viaje; activo = asignado a viaje en curso; usado = completado; expirado = QR vencido; cancelado = admin"
+    },
+    "max_descuento_mxn": {
+      "type": "decimal",
+      "default": 100,
+      "required": true,
+      "comment": "Descuento máximo aplicable en este viaje gratis (configurable via site-setting)"
+    },
+    "sesion_origen": {
+      "type": "string",
+      "comment": "ID de la ad-session que generó este entitlement (fuente: video)"
+    },
+    "qr_card_id": {
+      "type": "string",
+      "comment": "ID de la tarjeta física QR escaneada (fuente: qr)"
+    },
+    "qr_scaneado_en": {
+      "type": "datetime",
+      "comment": "Timestamp cuando se escaneó el QR"
+    },
+    "qr_expira_en": {
+      "type": "datetime",
+      "comment": "Fecha de expiración del QR (configurable via site-setting: taxi_free_trip_qr_validity_days)"
+    },
+    "viaje_usado_en": {
+      "type": "string",
+      "comment": "ID del viaje (viaje) donde se aplicó el descuento"
+    },
+    "creado_en": {
+      "type": "datetime",
+      "required": true
+    },
+    "activado_en": {
+      "type": "datetime",
+      "comment": "Cuando pasó de pendiente a activo (asignado a viaje)"
+    },
+    "usado_en": {
+      "type": "datetime",
+      "comment": "Cuando se completó el viaje con el descuento aplicado"
+    }
+  }
+}

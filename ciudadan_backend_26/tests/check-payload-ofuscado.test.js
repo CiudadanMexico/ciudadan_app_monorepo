@@ -12,7 +12,10 @@
  *   (c) el marcador de version del packer,
  *   (d) el bucle de rotacion del packer,
  *   (e) un payload en un lanzador ejecutable sin extension,
- *   (f) un archivo rastreado que no se puede leer (fail-closed).
+ *   (f) un archivo rastreado que no se puede leer (fail-closed),
+ *   (g) un payload staged con el worktree limpio,
+ *   (h) un init fuera de la allowlist exacta,
+ *   (i) un modo Git no regular (symlink/gitlink).
  *
  * Ejecutar: node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js
  */
@@ -164,7 +167,73 @@ test('falla cerrado si un archivo rastreado no se puede leer', (t) => {
   const res = ejecutarGuardiaEnRepo(dir);
   assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
   assert.match(res.stderr, / - init:/);
-  assert.match(res.stderr, /archivo rastreado no legible/);
+  assert.match(res.stderr, /archivo rastreado ausente o no legible/);
+});
+
+test('detecta payload staged aunque el worktree este limpio', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  const larga = 'A'.repeat(6000);
+  const archivo = path.join(dir, 'init');
+  fs.writeFileSync(archivo, `// MUESTRA INERTE STAGED\nconst relleno = "${larga}";\n`, 'utf8');
+  const add = spawnSync('git', ['-C', dir, 'add', 'init'], { encoding: 'utf8' });
+  assert.equal(add.status, 0, `git add fallo: ${add.stderr}`);
+  fs.writeFileSync(archivo, '// worktree limpio\n', 'utf8');
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - init:/);
+  assert.match(res.stderr, /indice Git/);
+  assert.match(res.stderr, /linea \d+ de 6\d{3} caracteres/);
+});
+
+test('rechaza un init fuera de la allowlist exacta', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  const rel = 'ciudadan_frontend/init';
+  fs.mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
+  fs.writeFileSync(path.join(dir, rel), '// MUESTRA INERTE\n', 'utf8');
+  const add = spawnSync('git', ['-C', dir, 'add', rel], { encoding: 'utf8' });
+  assert.equal(add.status, 0, `git add fallo: ${add.stderr}`);
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - ciudadan_frontend\/init:/);
+  assert.match(res.stderr, /no coincide con el blob limpio allowlisted/);
+});
+
+test('rechaza un init en una ruta fuera de la allowlist', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  fs.writeFileSync(path.join(dir, 'init'), '// inocuo pero no allowlisted\n', 'utf8');
+  const add = spawnSync('git', ['-C', dir, 'add', 'init'], { encoding: 'utf8' });
+  assert.equal(add.status, 0, `git add fallo: ${add.stderr}`);
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - init:/);
+  assert.match(res.stderr, /init fuera de la allowlist exacta de rutas/);
+});
+
+test('rechaza un modo Git no regular sin inspeccionar su contenido', (t) => {
+  const dir = temporal();
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  spawnSync('git', ['init', '-q', dir], { encoding: 'utf8' });
+  const blob = spawnSync('git', ['-C', dir, 'hash-object', '-w', '--stdin'], {
+    encoding: 'utf8',
+    input: 'destino\n',
+  });
+  assert.equal(blob.status, 0, `hash-object fallo: ${blob.stderr}`);
+  const update = spawnSync('git', ['-C', dir, 'update-index', '--add', '--cacheinfo', `120000,${blob.stdout.trim()},link.js`], { encoding: 'utf8' });
+  assert.equal(update.status, 0, `update-index fallo: ${update.stderr}`);
+
+  const res = ejecutarGuardiaEnRepo(dir);
+  assert.equal(res.status, 1, `la guardia debe fallar; stderr: ${res.stderr}`);
+  assert.match(res.stderr, / - link\.js:/);
+  assert.match(res.stderr, /modo Git no regular/);
 });
 
 test('un directorio inexistente es error de uso (exit 2)', () => {

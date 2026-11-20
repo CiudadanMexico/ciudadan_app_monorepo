@@ -35,6 +35,61 @@
     },
     "whatsapp_number": {
       "type": "string"
+    },
+    "taxi_driver_free_trips_count": {
+      "type": "integer",
+      "default": 5,
+      "comment": "Cantidad de viajes gratis que obtiene un conductor al activar la modalidad promocional (pago a 1 mes con 100 tarjetas físicas)"
+    },
+    "taxi_free_trip_max_discount_mxn": {
+      "type": "decimal",
+      "default": 100,
+      "comment": "Descuento máximo en MXN que cubre un viaje gratis (tope de $100 MXN)"
+    },
+    "taxi_free_trip_qr_validity_days": {
+      "type": "integer",
+      "default": 30,
+      "comment": "Días de validez de una tarjeta física QR para viaje gratis desde su activación"
+    },
+    "taxi_card_production_fee_mxn": {
+      "type": "decimal",
+      "default": 5,
+      "comment": "Costo de producción por tarjeta física (impresión en talleres Algarín)"
+    },
+    "taxi_card_shipping_fee_mxn": {
+      "type": "decimal",
+      "default": 0,
+      "comment": "Costo de envío del kit de 5000 tarjetas al Líder Verificador (cubierto por Skydropx)"
+    },
+    "taxi_free_trip_leader_commission_pct": {
+      "type": "decimal",
+      "default": 10,
+      "comment": "Porcentaje de comisión del Líder Verificador sobre membresías efectivamente cobradas (10%)"
+    },
+    "taxi_free_trip_state_partner_commission_pct": {
+      "type": "decimal",
+      "default": 5,
+      "comment": "Porcentaje de comisión del Socio Estatal sobre membresías de su estado (5%)"
+    },
+    "leader_card_kit_price_mxn": {
+      "type": "decimal",
+      "default": 500,
+      "comment": "Precio del kit de 5000 tarjetas físicas para Líder Verificador ($500 MXN + envío)"
+    },
+    "state_partner_entry_fee_min_mxn": {
+      "type": "decimal",
+      "default": 10000,
+      "comment": "Cuota de ingreso mínima para Socio Estatal ($10,000 MXN)"
+    },
+    "state_partner_entry_fee_max_mxn": {
+      "type": "decimal",
+      "default": 20000,
+      "comment": "Cuota de ingreso máxima para Socio Estatal ($20,000 MXN)"
+    },
+    "state_partner_max_msi_months": {
+      "type": "integer",
+      "default": 12,
+      "comment": "Meses sin intereses máximos para pago de cuota de ingreso Socio Estatal (hasta 12 MSI)"
     }
   }
 }

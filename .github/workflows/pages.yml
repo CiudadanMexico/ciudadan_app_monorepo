@@ -4,7 +4,6 @@
 # el VPS; el frontend público (incl. /inauguracion) se sirve desde GitHub.
 #
 # URL resultante: https://ciudadanmexico.github.io/ciudadan_app_monorepo/
-# (con dominio custom en Settings → Pages se sirve en la raíz del dominio).
 #
 # Requiere (una vez, por un admin del repo):
 #   1. Settings → Actions → General → Workflow permissions: "Read and write"
@@ -15,35 +14,74 @@ name: Pages — frontend estático a gh-pages
 
 on:
   push:
-    branches: [main, pages/inauguracion-hoy]
+    branches: [main]
     paths:
       - 'ciudadan_frontend/**'
       - '.github/workflows/pages.yml'
+      - 'ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js'
+      - 'ciudadan_backend_26/tests/check-payload-ofuscado.test.js'
   workflow_dispatch:
 
+# El permiso de escritura se concede únicamente al job que publica gh-pages.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: pages-frontend
   cancel-in-progress: true
 
 jobs:
-  build-and-publish:
+  guard:
+    name: "Gate de seguridad — índice Git + worktree"
+    # Nunca publicar desde otra rama: el contenido y la guardia deben venir de main.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Instalar dependencias (mismo patrón que deploy.yml)
+      # El checkout debe ser limpio y el guard debe pasar antes de que otro job
+      # instale dependencias o ejecute el compilador.
+      - name: "Verificar checkout limpio y guardia fail-closed"
+        shell: bash
+        run: |
+          set -e
+          git diff --quiet
+          git diff --cached --quiet
+          test -z "$(git status --porcelain --untracked-files=no)"
+          node ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js
+          node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js
+
+  build:
+    name: "Build frontend sin source maps"
+    needs: guard
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
         shell: bash
         run: |
           cd ciudadano_frontend
@@ -53,15 +91,19 @@ jobs:
             npm install --legacy-peer-deps --no-audit --no-fund
           }
 
-      # CRA lee REACT_APP_* de process.env al compilar: no hace falta .env.production
+      # CRA lee REACT_APP_* de process.env al compilar: no hace falta .env.production.
       - name: Build (PUBLIC_URL=. — sirve en raíz o bajo /ciudadan_app_monorepo)
         shell: bash
         run: |
           cd ciudadano_frontend
-          npm run build
+          # Invocar CRACO directamente: no ejecutar `node init` desde package.json.
+          # La guardia anterior ya validó el índice Git y el worktree.
+          ./node_modules/.bin/craco build
         env:
           CI: "false"
           PUBLIC_URL: "."
+          # Los source maps añaden ~34 MB y han agotado `syncing_files` en Pages.
+          GENERATE_SOURCEMAP: "false"
           REACT_APP_AUTH0_DOMAIN: ciudadano.us.auth0.com
           REACT_APP_AUTH0_CLIENT_ID: za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
           REACT_APP_STRAPI_URL: https://back.ciudadan.org
@@ -71,29 +113,52 @@ jobs:
           REACT_APP_LUMA_EVENT_URL: https://luma.com/event/evt-YkAAHIOEc2zG6Xe
           REACT_APP_LUMA_EMBED_URL: https://lu.ma/embed/event/evt-YkAAHIOEc2zG6Xe/simple
 
-      - name: Publicar build en rama gh-pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Guardar artefacto del build"
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-build
+          path: ciudadano_frontend/build
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: "Publicar artefacto en gh-pages"
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      # Sólo este job obtiene capacidad de escritura. actions/checkout conserva la
+      # credencial sólo dentro de este repositorio para el push final.
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: publish
+          fetch-depth: 1
+          persist-credentials: true
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: pages-build
+          path: publish/site
+
+      - name: "Publicar build en rama gh-pages"
         run: |
           set -e
-          BUILD="$GITHUB_WORKSPACE/ciudadan_frontend/build"
-          rm -rf /tmp/gh-pages-publish
-          git clone -q "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/gh-pages-publish
-          cd /tmp/gh-pages-publish
+          cd "$GITHUB_WORKSPACE/publish"
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
+          cp -R site/. .
+          rm -rf site
+          touch .nojekyll
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
-            git fetch -q origin gh-pages
-            git checkout -q FETCH_HEAD
-          else
-            git checkout -q --orphan gh-pages
-          fi
-          git rm -rf -q . 2>/dev/null || true
-          cp -r "$BUILD"/. .
-          touch .nojekyll
           git add -A
-          git commit -q -m "pages: build ${{ github.sha }} (automático)" || echo "sin cambios"
-          git push -q origin gh-pages
+          if git diff --cached --quiet; then
+            echo "sin cambios"
+            exit 0
+          fi
+          git commit -m "pages: build ${{ github.sha }} (automático)"
+          git push origin HEAD:gh-pages
           echo "gh-pages actualizado"
-
-# reintento 2026-11-09: verificar si npm ci en runner fue transitorio

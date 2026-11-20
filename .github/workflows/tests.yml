@@ -7,7 +7,8 @@
 # La guardia de payloads ofuscados se ejecuta ADEMAS en cada PR y en cada push
 # a main mediante .github/workflows/security-guard.yml (sin filtro de paths),
 # para no depender de este filtro. La guardia incluye lanzadores ejecutables
-# sin extension (como `init`) para evitar payloads fuera de .js/.mjs/.cjs.
+# sin extension (como `init`), analiza el indice Git y aplica una allowlist
+# exacta a los cuatro init revisados.
 name: Pruebas backend (node --test)
 
 on:
@@ -28,6 +29,7 @@ on:
       - '*.cjs'
       - '.github/workflows/tests.yml'
       - '.github/workflows/security-guard.yml'
+  workflow_dispatch:
 
 # Permisos minimos del workflow: solo lectura del contenido del repo.
 permissions:
@@ -37,7 +39,7 @@ jobs:
   tests:
     name: "Backend — lógica pura con node:test (food-shipping + wikiseed)"
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
