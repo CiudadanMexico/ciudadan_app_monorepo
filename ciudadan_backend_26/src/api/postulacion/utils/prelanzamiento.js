@@ -1,7 +1,7 @@
 'use strict';
 
 const ESTADOS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
-const CIERRE = Date.parse('2026-10-09T00:00:00-06:00');
+const CIERRE = Date.parse('2026-12-13T23:59:59-06:00');
 const normalizarTelefono = value => {
   let digits = String(value || '').replace(/\D/g, '');
   if (digits.length === 13 && digits.startsWith('521')) digits = digits.slice(3);
@@ -32,7 +32,7 @@ function validarRegistro(input, now = Date.now()) {
     data[key] = input[key];
     if (!choices.includes(input[key])) errors[key] = 'Selecciona una opción válida.';
   };
-  if (now >= CIERRE) errors.general = 'El registro de prelanzamiento cerró el 9 de octubre de 2026.';
+  if (now >= CIERRE) errors.general = 'El registro de prelanzamiento cerró el 13 de diciembre de 2026.';
   opcion('tipo', ['conductor', 'lider', 'socio-estatal']);
   texto('nombre', 3, 160);
   data.telefono = normalizarTelefono(input.telefono);

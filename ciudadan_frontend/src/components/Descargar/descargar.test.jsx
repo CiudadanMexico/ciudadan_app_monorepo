@@ -22,15 +22,16 @@ describe('precios y textos de la landing de descarga', () => {
   });
 
   test('la fecha de lanzamiento siempre sale de launch_at', () => {
-    const vista = formatearLanzamiento('2026-10-09T16:00:00.000Z', new Date('2026-09-28T12:00:00Z'));
+    const vista = formatearLanzamiento('2026-12-13T16:00:00.000Z', new Date('2026-11-28T12:00:00Z'));
     expect(vista.anio).toBe(2026);
-    expect(vista.mesCorto).toBe('OCT');
-    expect(vista.larga).toMatch(/octubre/);
+    expect(vista.mesCorto).toBe('DIC');
+    expect(vista.larga).toMatch(/diciembre/);
     expect(vista.esFuturo).toBe(true);
-    expect(vista.diasRestantes).toBe(12);
-    // El día numérico corresponde a la hora de la CDMX (09:00 del 9 de octubre).
-    expect(vista.dia).toBe(9);
-    expect(formatearLanzamiento('2026-10-09T16:00:00.000Z', new Date('2026-10-10T12:00:00Z')).esFuturo).toBe(false);
+    // Diferencia: 15 días + 4 horas → Math.ceil = 16
+    expect(vista.diasRestantes).toBe(16);
+    // El día numérico corresponde a la hora de la CDMX (10:00 del 13 de diciembre).
+    expect(vista.dia).toBe(13);
+    expect(formatearLanzamiento('2026-12-13T16:00:00.000Z', new Date('2026-12-14T12:00:00Z')).esFuturo).toBe(false);
   });
 
   test('sin fecha de lanzamiento no se inventa nada', () => {
@@ -80,10 +81,10 @@ describe('servicio de descarga', () => {
       promotionDurationMonths: 12,
       currency: 'MXN',
     });
-    expect(normalizarConfig({ regularMonthlyPrice: 600, promotional_monthly_price: '350.5', launch_at: '2026-10-09T16:00:00Z' })).toMatchObject({
+    expect(normalizarConfig({ regularMonthlyPrice: 600, promotional_monthly_price: '350.5', launch_at: '2026-12-13T16:00:00Z' })).toMatchObject({
       regularMonthlyPrice: 600,
       promotionalMonthlyPrice: 350.5,
-      launchAt: '2026-10-09T16:00:00.000Z',
+      launchAt: '2026-12-13T16:00:00.000Z',
     });
     expect(normalizarConfig({ apk: { disponible: true, tamano_mb: 148.4, version: 1 } }).apk).toEqual({ disponible: true, version: '1', tamanoMb: 148.4 });
     expect(normalizarConfig({ apk: { disponible: false } }).apk.tamanoMb).toBeNull();
@@ -161,7 +162,7 @@ describe('landing /descargar', () => {
       promotionalMonthlyPrice: 320,
       promotionDurationMonths: 12,
       promotionActive: true,
-      launchAt: '2026-10-09T16:00:00.000Z',
+      launchAt: '2026-12-13T16:00:00.000Z',
       apk: { disponible: true, version: '1.4.2', tamanoMb: 148.4 },
     }));
     render(<MemoryRouter><DescargarConductores /></MemoryRouter>);

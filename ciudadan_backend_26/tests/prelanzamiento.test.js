@@ -29,7 +29,7 @@ test('rechaza estados asignados, consentimiento ausente y campos condicionales',
   const result = validarRegistro({ ...base, tipo: 'socio-estatal', estado: 'Ciudad de México', estadoSolicitado: 'Estado de México', consentimiento: false }, CIERRE - 1);
   for (const key of ['estado', 'estadoSolicitado', 'consentimiento', 'experiencia', 'nodo']) assert.ok(result.errors[key]);
 });
-test('cierra exactamente a medianoche del 9 de octubre en CDMX', () => {
+test('cierra exactamente a medianoche del 13 de diciembre en CDMX', () => {
   assert.ok(validarRegistro({ ...base, tipo: 'conductor', ...modalidades.conductor }, CIERRE).errors.general);
 });
 test('descarta campos arbitrarios y URLs no HTTP', () => {

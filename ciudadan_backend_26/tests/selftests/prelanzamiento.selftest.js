@@ -14,9 +14,9 @@ const {
   normalizarTelefono,
 } = require('../../src/api/postulacion/utils/prelanzamiento');
 
-// Fecha previa al cierre (9 de octubre de 2026) para que no salte errors.general.
-const ANTES_DEL_CIERRE = Date.parse('2026-10-01T12:00:00-06:00');
-const DESPUES_DEL_CIERRE = Date.parse('2026-10-10T00:00:00-06:00');
+// Fecha previa al cierre (13 de diciembre de 2026) para que no salte errors.general.
+const ANTES_DEL_CIERRE = Date.parse('2026-12-01T12:00:00-06:00');
+const DESPUES_DEL_CIERRE = Date.parse('2026-12-14T00:00:00-06:00');
 
 const base = () => ({
   tipo: 'socio-estatal',
@@ -65,7 +65,7 @@ console.log('ok 4: conductor sin correo → sin error');
 assert.ok(/CDMX/.test(errors.estado), 'CDMX sigue bloqueado como residencia');
 ({ errors } = validar({}, DESPUES_DEL_CIERRE));
 assert.ok(/cerró/.test(errors.general), 'después del cierre se rechaza');
-console.log('ok 5: reglas existentes intactas (CDMX asignado, cierre 9-oct-2026)');
+console.log('ok 5: reglas existentes intactas (CDMX asignado, cierre 13-dic-2026)');
 
 // 6. Helpers puros.
 assert.strictEqual(normalizarEmail('A@B.CO'), 'a@b.co');
