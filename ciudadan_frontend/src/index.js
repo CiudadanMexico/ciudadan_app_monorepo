@@ -57,20 +57,12 @@ const AppWrapper = () => {
   const { isLoading } = useAuth0();
   const location = useLocation();
 
-  const hostname = window.location.hostname;
-  const dominiosPrelanzamiento = [
-    "taxis.ciudadan.org",
-    "lideres.ciudadan.org",
-    "socios.ciudadan.org",
-  ];
-  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
-
   if (isLoading) {
     return <PreLoader />;
   }
 
   const isWikiRoute = location.pathname.startsWith('/wiki');
-  const isPrelanzamiento = location.pathname.replace(/\/$/, '') === '/prelanzamiento' || isDomainPrelanzamiento;
+  const isPrelanzamiento = location.pathname.replace(/\/$/, '') === '/prelanzamiento';
 
   const sectionMap = {
     productos: 'market',
@@ -83,27 +75,6 @@ const AppWrapper = () => {
 
   const pathSection = location.pathname.split('/').filter(Boolean)[0];
   const siteSection = sectionMap[pathSection] ?? pathSection ?? '';
-
-  if (isDomainPrelanzamiento) {
-    // Si viene por subdominio, forzamos la vista de Prelanzamiento
-    // pero mantenemos el wrapper para consistencia de Providers si fuera necesario
-    return (
-      <Box
-        id="ciudadan-app"
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          minHeight: "100dvh",
-          overflowX: "clip",
-        }}
-      >
-        <Box sx={{ flex: 1 }}>
-          <Rutas />
-        </Box>
-      </Box>
-    );
-  }
 
   return (
     <Box

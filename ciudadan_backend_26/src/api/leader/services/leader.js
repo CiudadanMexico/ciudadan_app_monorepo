@@ -52,10 +52,11 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
 
   /**
    * Genera QR personalizado para el líder
+   * Apunta a la página de activación de membresía del conductor con el código de referido
    */
   generateLeaderQR(leaderId, referralCode) {
     const baseUrl = process.env.FRONTEND_URL || 'https://taxis.ciudadan.org';
-    return `${baseUrl}/registro/conductor?ref=${referralCode}&leader=${leaderId}`;
+    return `${baseUrl}/activatumembresia?ref=${referralCode}&leader=${leaderId}`;
   },
 
   /**

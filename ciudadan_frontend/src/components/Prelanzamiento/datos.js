@@ -5,7 +5,15 @@ export const TIPOS = [
 ];
 export const ESTADOS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
 export const ASIGNADOS = ['Ciudad de México', 'Estado de México'];
-export const CIERRE = Date.parse('2026-10-09T00:00:00-06:00');
+
+// Campaña Fundadores: fecha límite 13 de diciembre de 2026, zona horaria America/Mexico_City
+// Primer mes gratis, 12 mensualidades a $300 MXN, luego precio ordinario vigente
+export const FUNDADORES_CIERRE = Date.parse('2026-12-13T23:59:59-06:00');
+export const FUNDADORES_PRECIO_PROMO = 300;
+export const FUNDADORES_MESES_PROMO = 12;
+export const FUNDADORES_PRIMER_MES_GRATIS = true;
+export const PRECIO_ORDINARIO = 500;
+export const PRECIO_PROMO = 300;
 const ES_EMAIL = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 export const esTipo = value => TIPOS.some(tipo => tipo.value === value);
 export const normalizarTelefono = value => {

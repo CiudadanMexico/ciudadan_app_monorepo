@@ -18,7 +18,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
 
   /**
    * POST /api/driver-membership/create
-   * Body: { plan: 'normal'|'promo', activationMode: 'pay_now'|'pay_later', driverId? }
+   * Body: { plan: 'normal'|'promo', activationMode: 'pay_now'|'pay_later', driverId?, referralCode?, leaderId? }
    * Crea una nueva membresía para el conductor autenticado
    */
   async create(ctx) {
@@ -27,7 +27,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
       return ctx.throw(401, 'Usuario no autenticado');
     }
 
-    const { plan, activationMode, driverId } = ctx.request.body || {};
+    const { plan, activationMode, driverId, referralCode, leaderId } = ctx.request.body || {};
 
     if (!plan || !['normal', 'promo'].includes(plan)) {
       return ctx.throw(400, 'Plan inválido: debe ser "normal" o "promo"');
@@ -68,8 +68,28 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
     let referredByLeaderId = null;
     let statePartnerId = null;
 
-    // Si el conductor tiene agencia, buscar leader asociado
-    if (driver.agency) {
+    // Prioridad 1: referralCode y leaderId desde el QR del líder
+    if (referralCode && leaderId) {
+      // Verificar que el leaderId coincida con el referralCode
+      const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
+      if (leader && leader.referral_code === referralCode) {
+        referredByLeaderId = leaderId;
+      } else {
+        strapi.log.warn('Leader ID no coincide con referral code:', { referralCode, leaderId });
+      }
+    } else if (referralCode) {
+      // Prioridad 2: solo referralCode, buscar leader por código
+      const leaders = await strapi.entityService.findMany('api::leader.leader', {
+        filters: { referral_code: referralCode, status: 'active' },
+        limit: 1,
+      });
+      if (leaders.length > 0) {
+        referredByLeaderId = leaders[0].id;
+      }
+    }
+
+    // Prioridad 3: Si el conductor tiene agencia, buscar leader asociado
+    if (!referredByLeaderId && driver.agency) {
       const agency = await strapi.entityService.findOne('api::agencia.agencia', driver.agency, {
         populate: ['leader'],
       });

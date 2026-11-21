@@ -43,6 +43,7 @@ import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx'
 import LideresRegistro from '../Pages/Lideres/LideresRegistro.jsx';
 import LideresDashboard from '../Pages/Lideres/LideresDashboard.jsx';
 import LideresKit from '../Pages/Lideres/LideresKit.jsx';
+import LideresQR from '../Pages/Lideres/LideresQR.jsx';
 
 // Socios Estatales (Taxi 6.0)
 import SociosRegistro from '../Pages/Socios/SociosRegistro.jsx';
@@ -151,6 +152,7 @@ import MembershipCheckout from '../components/Membresias/MembershipCheckout.jsx'
 import MercadoPagoRetorno from '../components/Membresias/MercadoPagoRetorno.jsx';
 import ProbarMembresia from '../components/Membresias/ProbarMembresia.jsx';
 import ActivaTuMembresia from '../components/Membresias/ActivaTuMembresia.jsx';
+import ActivaTuMembresiaDriver from '../components/Membresias/ActivaTuMembresiaDriver.jsx';
 
 // Anuncios / Comunidad
 import Anuncios from '../Pages/Anuncios/Anuncios.jsx';
@@ -398,20 +400,23 @@ const TripViewRoute = () => {
 
 const Rutas = () => {
   const hostname = window.location.hostname;
-  const dominiosPrelanzamiento = [
-    "taxis.ciudadan.org",
-    "lideres.ciudadan.org",
-    "socios.ciudadan.org",
-  ];
-  const isDomainPrelanzamiento = dominiosPrelanzamiento.includes(hostname);
-
-  if (isDomainPrelanzamiento) {
-    return <Prelanzamiento />;
-  }
 
   // Landing de descarga de la app de conductores (campañas / QR en eventos).
   if (hostname === 'descargar.ciudadan.org') {
     return <DescargarConductores />;
+  }
+
+  // Subdominios de producción: cada uno tiene su propia raíz
+  if (hostname === 'taxis.ciudadan.org') {
+    return <TaxisRoute />;
+  }
+
+  if (hostname === 'lideres.ciudadan.org') {
+    return <LideresDashboard />;
+  }
+
+  if (hostname === 'socios.ciudadan.org') {
+    return <SociosDashboard />;
   }
 
   return (
@@ -1274,7 +1279,7 @@ const Rutas = () => {
     />
     <Route
       path='/qr'
-      element={<LideresDashboard />}
+      element={<LideresQR />}
     />
 
     {/* Socios Estatales (Taxi 6.0) - Subdomain: socios.ciudadan.org */}
@@ -1313,7 +1318,7 @@ const Rutas = () => {
       />
       <Route
         path='/activatumembresia'
-        element={<ActivaTuMembresia />}
+        element={<ActivaTuMembresiaDriver />}
       />
 
     {/* Comunidad */}

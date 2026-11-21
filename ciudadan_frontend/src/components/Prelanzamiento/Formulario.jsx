@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Checkbox, FormControlLabel, MenuItem, TextField, Typography } from '@mui/material';
-import { ASIGNADOS, CIERRE, ESTADOS, TIPOS, normalizarTelefono, validarFormulario } from './datos';
+import { ASIGNADOS, ESTADOS, TIPOS, FUNDADORES_CIERRE, normalizarTelefono, validarFormulario } from './datos';
 import { registrarPrelanzamiento } from '../../services/prelanzamientoService';
 
 const CONFIRMACION = {
@@ -45,7 +45,7 @@ export default function Formulario({ tipo, cambiarTipo, origen, utm, lider, what
       setTimeout(() => formRef.current?.querySelector('[aria-invalid="true"], input[name="consentimiento"]')?.focus(), 0);
       return;
     }
-    if (Date.now() >= CIERRE) { setError('El prelanzamiento ya cerró.'); return; }
+    if (Date.now() >= FUNDADORES_CIERRE) { setError('La campaña de fundadores ya cerró.'); return; }
     lock.current = true;
     setSending(true);
     try {
@@ -70,7 +70,7 @@ export default function Formulario({ tipo, cambiarTipo, origen, utm, lider, what
     <input type='hidden' name='url_origen' value={origen} />
     <input type='hidden' name='utm' value={JSON.stringify(utm)} />
     <Typography component='h2' variant='h4'>Regístrate antes del lanzamiento</Typography>
-    <p className='pre-muted'>Lanzamiento oficial: <strong>9 de octubre de 2026</strong></p>
+    <p className='pre-muted'>Lanzamiento oficial: <strong>13 de diciembre de 2026</strong></p>
     <p>Todos los campos son obligatorios, excepto quién te invitó.</p>
     {cerrado && <Alert severity='info'>El registro de prelanzamiento ha finalizado.</Alert>}
     {error && <Alert severity='error' role='alert' sx={{ mb: 2 }}>{error}</Alert>}

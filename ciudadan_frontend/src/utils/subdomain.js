@@ -14,8 +14,16 @@ export const VALID_SUBDOMAINS = ['taxis', 'lideres', 'socios', 'api', 'descargar
 export const DEFAULT_SUBDOMAIN = 'taxis';
 
 /**
+ * Bandera de staging para permitir ?subdomain= en túneles de prueba.
+ * Solo debe ser true en entornos de staging/desarrollo controlados.
+ * En producción NUNCA debe ser true.
+ */
+export const STAGING_SUBDOMAIN_OVERRIDE = process.env.REACT_APP_STAGING_SUBDOMAIN_OVERRIDE === 'true';
+
+/**
  * Detecta el subdominio actual basado en window.location.hostname
- * En desarrollo local, puede usar query param ?subdomain= o header personalizado
+ * En desarrollo local, puede usar query param ?subdomain= solo si STAGING_SUBDOMAIN_OVERRIDE=true.
+ * En producción, solo usa el hostname real.
  */
 export function getCurrentSubdomain() {
   if (typeof window === 'undefined') {
@@ -25,8 +33,8 @@ export function getCurrentSubdomain() {
   const hostname = window.location.hostname;
   const searchParams = new URLSearchParams(window.location.search);
 
-  // En desarrollo local, permitir override por query param
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  // En desarrollo local, permitir override por query param SOLO en staging
+  if ((hostname === 'localhost' || hostname === '127.0.0.1') && STAGING_SUBDOMAIN_OVERRIDE) {
     const paramSubdomain = searchParams.get('subdomain');
     if (paramSubdomain && VALID_SUBDOMAINS.includes(paramSubdomain)) {
       return paramSubdomain;
@@ -39,7 +47,7 @@ export function getCurrentSubdomain() {
     return 'local';
   }
 
-  // Dominios de producción
+  // Dominios de producción (ciudadan.org)
   if (hostname.includes('ciudadan.org')) {
     const parts = hostname.split('.');
     if (parts.length >= 3) {

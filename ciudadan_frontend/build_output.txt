@@ -1,0 +1,12 @@
+
+> ciudadan-app@0.1.0 build
+> node init && craco build
+
+Creating an optimized production build...
+Failed to compile.
+
+[eslint] 
+src\components\Membresias\ActivaTuMembresiaDriver.jsx
+Syntax error: Unexpected token (360:20) (360:20)
+
+
