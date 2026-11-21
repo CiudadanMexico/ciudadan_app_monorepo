@@ -144,6 +144,7 @@ import Pasajero from '../components/Taxis/Pasajero.jsx';
 import Conductor from '../components/Taxis/Conductor.jsx';
 import TripView from '../components/Taxiz/TripView.jsx';
 import HistorialViajes from '../components/Taxis/HistorialViajes.jsx';
+import FundadoresPage from '../Pages/Taxis/FundadoresPage.jsx';
 
 //import QrScanner from '../components/Agencias/QrScanner.jsx';
 
@@ -406,17 +407,60 @@ const Rutas = () => {
     return <DescargarConductores />;
   }
 
-  // Subdominios de producción: cada uno tiene su propia raíz
+  // Subdominios de producción: cada uno tiene su propio árbol de rutas completo
   if (hostname === 'taxis.ciudadan.org') {
-    return <TaxisRoute />;
+    return (
+      <Routes>
+        <Route path='/' element={<TaxisRoute />} />
+        <Route path='/fundadores' element={<FundadoresPage />} />
+        <Route path='/conductor/registro' element={<PreRegistroConductor2 />} />
+        <Route path='/conductor/preregistro' element={<PreRegistroConductor2 />} />
+        <Route path='/conductor/esperando' element={<Conductor />} />
+        <Route path='/conductor/requisitos' element={<RequisitosConductor />} />
+        <Route path='/conductor/expediente' element={<ExpedienteConductor />} />
+        <Route path='/pasajero/registro' element={<RegistroPasajero />} />
+        <Route path='/pasajero/viaje' element={<Pasajero />} />
+        <Route path='/viajes/historial' element={<HistorialViajes />} />
+        <Route path='/viaje/:travelId' element={<TripViewRoute />} />
+        <Route path='/viaje-gratis' element={<VerifyFreeTrip />} />
+        <Route path='/membresias' element={<Membresias />} />
+        <Route path='/mi-membresia' element={<MiMembresia />} />
+        <Route path='/activatumembresia' element={<ActivaTuMembresiaDriver />} />
+        {/* Rutas de membresía/pago compartidas */}
+        <Route path='/membresias/pagar/*' element={<ProbarMembresia />} />
+        <Route path='/membresias/pago/plan/:planId' element={<ProbarMembresia />} />
+        <Route path='/membresias/adquirir/*' element={<MembershipCheckout />} />
+        <Route path='/membresias/retorno' element={<MercadoPagoRetorno />} />
+        <Route path='/membresias/detalles' element={<MembresiasDetalles />} />
+      </Routes>
+    );
   }
 
   if (hostname === 'lideres.ciudadan.org') {
-    return <LideresDashboard />;
+    return (
+      <Routes>
+        {/* Landing público de registro de líderes */}
+        <Route path='/registro' element={<LideresRegistro />} />
+        {/* Rutas protegidas - requieren autenticación y rol leader */}
+        <Route path='/' element={<LideresDashboard />} />
+        <Route path='/dashboard' element={<LideresDashboard />} />
+        <Route path='/kit' element={<LideresKit />} />
+        <Route path='/qr' element={<LideresQR />} />
+      </Routes>
+    );
   }
 
   if (hostname === 'socios.ciudadan.org') {
-    return <SociosDashboard />;
+    return (
+      <Routes>
+        {/* Landing público de registro de socios estatales */}
+        <Route path='/socios/registro' element={<SociosRegistro />} />
+        {/* Rutas protegidas - requieren autenticación y rol state_partner */}
+        <Route path='/' element={<SociosDashboard />} />
+        <Route path='/socios/dashboard' element={<SociosDashboard />} />
+        <Route path='/socios/pago-cuota' element={<SociosPagoCuota />} />
+      </Routes>
+    );
   }
 
   return (

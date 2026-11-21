@@ -84,7 +84,7 @@ jobs:
       - name: Instalar dependencias
         shell: bash
         run: |
-          cd ciudadano_frontend
+          cd ciudadan_frontend
           node -v && npm -v && df -h / && free -h | head -2
           npm ci --legacy-peer-deps --no-audit --no-fund || {
             echo "::warning::npm ci falló; fallback a npm install (runner efímero)"
@@ -95,7 +95,7 @@ jobs:
       - name: Build (PUBLIC_URL=. — sirve en raíz o bajo /ciudadan_app_monorepo)
         shell: bash
         run: |
-          cd ciudadano_frontend
+          cd ciudadan_frontend
           # Invocar CRACO directamente: no ejecutar `node init` desde package.json.
           # La guardia anterior ya validó el índice Git y el worktree.
           ./node_modules/.bin/craco build
@@ -104,7 +104,7 @@ jobs:
           PUBLIC_URL: "."
           # Los source maps añaden ~34 MB y han agotado `syncing_files` en Pages.
           GENERATE_SOURCEMAP: "false"
-          REACT_APP_AUTH0_DOMAIN: ciudadano.us.auth0.com
+          REACT_APP_AUTH0_DOMAIN: ciudadan.us.auth0.com
           REACT_APP_AUTH0_CLIENT_ID: za265MeRdxMKuPqzdPSTL7lHL0yyg5bd
           REACT_APP_STRAPI_URL: https://back.ciudadan.org
           REACT_APP_SOCKET_URL: https://back.ciudadan.org
@@ -117,7 +117,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pages-build
-          path: ciudadano_frontend/build
+          path: ciudadan_frontend/build
           if-no-files-found: error
           retention-days: 1
 
