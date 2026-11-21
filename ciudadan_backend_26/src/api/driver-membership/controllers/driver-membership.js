@@ -301,7 +301,8 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
   async mercadopagoWebhook(ctx) {
     try {
       const service = strapi.service('api::driver-membership.driver-membership');
-      const result = await service.handleMercadoPagoWebhook(ctx.request.body);
+      // Pasar ctx para validación de firma
+      const result = await service.handleMercadoPagoWebhook(ctx, ctx.request.body);
       ctx.body = result;
     } catch (err) {
       strapi.log.error('Error en webhook MP:', err);

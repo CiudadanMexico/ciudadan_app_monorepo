@@ -250,7 +250,8 @@ module.exports = createCoreController('api::leader.leader', ({ strapi }) => ({
   async mercadopagoWebhook(ctx) {
     try {
       const mpService = strapi.service('api::mercado-pago.mercado-pago');
-      const result = await mpService.handleWebhook(ctx.request.body);
+      // Pasar ctx para validación de firma
+      const result = await mpService.handleWebhook(ctx, ctx.request.body);
 
       // Si es pago aprobado, buscar el líder por externalReference y confirmar compra
       if (result.ok && result.type === 'payment_approved' && result.externalReference) {
@@ -273,4 +274,4 @@ module.exports = createCoreController('api::leader.leader', ({ strapi }) => ({
     }
   },
 
-}));
+});

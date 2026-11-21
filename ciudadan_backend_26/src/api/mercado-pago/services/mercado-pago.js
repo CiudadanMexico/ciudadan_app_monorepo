@@ -261,11 +261,77 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
   },
 
   /**
-   * Procesa webhook de Mercado Pago
+   * Valida la firma del webhook de Mercado Pago
+   * @param {Object} ctx - Contexto de Koa con headers y body
+   * @returns {boolean} true si la firma es válida
+   */
+  validateWebhookSignature(ctx) {
+    const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+    if (!secret) {
+      strapi.log.warn('MERCADO_PAGO_WEBHOOK_SECRET no configurado, saltando validación de firma');
+      return true; // Permitir si no hay secret configurado (para desarrollo)
+    }
+
+    const signature = ctx.request.header['x-signature'];
+    const requestId = ctx.request.header['x-request-id'];
+
+    if (!signature || !requestId) {
+      strapi.log.warn('Webhook MP sin headers de firma');
+      return false;
+    }
+
+    // Extraer timestamp y hash de la firma
+    // Formato: ts=1234567890,v1=a1b2c3d4...
+    const parts = signature.split(',');
+    let ts = null, v1 = null;
+    for (const part of parts) {
+      const [key, value] = part.split('=');
+      if (key === 'ts') ts = value;
+      if (key === 'v1') v1 = value;
+    }
+
+    if (!ts || !v1) {
+      strapi.log.warn('Formato de firma MP inválido');
+      return false;
+    }
+
+    // Verificar que el timestamp no sea muy antiguo (5 min)
+    const now = Math.floor(Date.now() / 1000);
+    if (Math.abs(now - parseInt(ts)) > 300) {
+      strapi.log.warn('Timestamp de webhook MP fuera de rango');
+      return false;
+    }
+
+    // Construir manifest para verificar
+    const manifest = `id:${requestId};request-id:${requestId};ts:${ts};`;
+    const crypto = require('crypto');
+    const expectedHash = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
+
+    // Comparar hashes (timing-safe)
+    const providedHash = Buffer.from(v1, 'utf8');
+    const expectedHashBuf = Buffer.from(expectedHash, 'utf8');
+
+    if (providedHash.length !== expectedHashBuf.length ||
+        !crypto.timingSafeEqual(providedHash, expectedHashBuf)) {
+      strapi.log.warn('Firma de webhook MP inválida');
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
+   * Procesa webhook de Mercado Pago con validación de firma
+   * @param {Object} ctx - Contexto de Koa
    * @param {Object} payload - Payload del webhook
    * @returns {Object} Resultado del procesamiento
    */
-  async handleWebhook(payload) {
+  async handleWebhook(ctx, payload) {
+    // Validar firma si viene del contexto
+    if (ctx && !this.validateWebhookSignature(ctx)) {
+      return { ok: false, error: 'Firma inválida' };
+    }
+
     const { type, data } = payload;
 
     switch (type) {

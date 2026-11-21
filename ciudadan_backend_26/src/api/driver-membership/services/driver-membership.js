@@ -499,19 +499,13 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
 
   /**
    * Webhook de Mercado Pago
+   * @param {Object} ctx - Contexto de Koa (para validación de firma)
+   * @param {Object} payload - Payload del webhook
    */
-  async handleMercadoPagoWebhook(payload) {
-    const { type, data } = payload;
-
-    switch (type) {
-      case 'payment':
-        return this.handlePaymentWebhook(data.id);
-      case 'preapproval':
-        return this.handlePreapprovalWebhook(data.id);
-      default:
-        strapi.log.info(`Webhook MP no manejado: ${type}`);
-        return { ok: true };
-    }
+  async handleMercadoPagoWebhook(ctx, payload) {
+    // Usar el servicio compartido de Mercado Pago
+    const mpService = strapi.service('api::mercado-pago.mercado-pago');
+    return mpService.handleWebhook(ctx, payload);
   },
 
   async handlePaymentWebhook(paymentId) {

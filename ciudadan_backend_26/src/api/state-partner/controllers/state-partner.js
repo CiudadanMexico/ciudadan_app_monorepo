@@ -295,7 +295,8 @@ module.exports = createCoreController('api::state-partner.state-partner', ({ str
   async mercadopagoWebhook(ctx) {
     try {
       const mpService = strapi.service('api::mercado-pago.mercado-pago');
-      const result = await mpService.handleWebhook(ctx.request.body);
+      // Pasar ctx para validación de firma
+      const result = await mpService.handleWebhook(ctx, ctx.request.body);
 
       // Si es pago aprobado, buscar el socio por externalReference y activar
       if (result.ok && result.type === 'payment_approved' && result.externalReference) {
