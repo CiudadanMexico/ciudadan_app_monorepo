@@ -2559,6 +2559,59 @@ export interface ApiComentarioPublicacionComentarioPublicacion
   };
 }
 
+export interface ApiCommissionPaymentCommissionPayment
+  extends Schema.CollectionType {
+  collectionName: 'commission_payments';
+  info: {
+    singularName: 'commission-payment';
+    pluralName: 'commission-payments';
+    displayName: 'Commission Payment';
+    description: 'Registro de comisiones para L\u00EDderes Verificadores y Socios Estatales';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    membership: Attribute.Relation<
+      'api::commission-payment.commission-payment',
+      'manyToOne',
+      'api::driver-membership.driver-membership'
+    >;
+    recipient_type: Attribute.Enumeration<['leader', 'state_partner']> &
+      Attribute.Required;
+    recipient: Attribute.Relation<
+      'api::commission-payment.commission-payment',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    amount_mxn: Attribute.Decimal & Attribute.Required;
+    percentage: Attribute.Decimal & Attribute.Required;
+    concept: Attribute.Enumeration<
+      ['driver_membership', 'trip_commission', 'leader_kit_purchase']
+    > &
+      Attribute.Required;
+    status: Attribute.Enumeration<['pending', 'paid', 'cancelled']> &
+      Attribute.DefaultTo<'pending'>;
+    paid_at: Attribute.DateTime;
+    payment_reference: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::commission-payment.commission-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::commission-payment.commission-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiConfiguracionSistemaConfiguracionSistema
   extends Schema.CollectionType {
   collectionName: 'configuraciones_sistemas';
@@ -3408,6 +3461,11 @@ export interface ApiDriverDriver extends Schema.CollectionType {
       'oneToOne',
       'api::vehicle.vehicle'
     >;
+    membership: Attribute.Relation<
+      'api::driver.driver',
+      'oneToOne',
+      'api::driver-membership.driver-membership'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -3521,6 +3579,83 @@ export interface ApiDriverLocationDriverLocation extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::driver-location.driver-location',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiDriverMembershipDriverMembership
+  extends Schema.CollectionType {
+  collectionName: 'driver_memberships';
+  info: {
+    singularName: 'driver-membership';
+    pluralName: 'driver-memberships';
+    displayName: 'Driver Membership';
+    description: 'Membres\u00EDa mensual de conductores ($500/$300 promo) con 2 modalidades de activaci\u00F3n';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    driver: Attribute.Relation<
+      'api::driver-membership.driver-membership',
+      'oneToOne',
+      'api::driver.driver'
+    >;
+    user: Attribute.Relation<
+      'api::driver-membership.driver-membership',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    plan: Attribute.Enumeration<['normal', 'promo']> & Attribute.Required;
+    activation_mode: Attribute.Enumeration<['pay_now', 'pay_later']> &
+      Attribute.Required;
+    status: Attribute.Enumeration<
+      ['pending', 'active', 'past_due', 'cancelled', 'expired']
+    > &
+      Attribute.DefaultTo<'pending'>;
+    price_mxn: Attribute.Decimal & Attribute.Required;
+    currency: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    billing_cycle: Attribute.Enumeration<['monthly']> &
+      Attribute.DefaultTo<'monthly'>;
+    current_period_start: Attribute.DateTime;
+    current_period_end: Attribute.DateTime;
+    next_payment_date: Attribute.DateTime;
+    last_payment_date: Attribute.DateTime;
+    last_payment_amount: Attribute.Decimal;
+    mercado_pago_subscription_id: Attribute.String;
+    mercado_pago_preapproval_id: Attribute.String;
+    mercado_pago_customer_id: Attribute.String;
+    free_trips_granted: Attribute.Integer & Attribute.DefaultTo<0>;
+    physical_cards_granted: Attribute.Integer & Attribute.DefaultTo<0>;
+    promo_expires_at: Attribute.DateTime;
+    failed_payments_count: Attribute.Integer & Attribute.DefaultTo<0>;
+    last_failed_payment_at: Attribute.DateTime;
+    cancelled_at: Attribute.DateTime;
+    cancellation_reason: Attribute.String;
+    referred_by_leader: Attribute.Relation<
+      'api::driver-membership.driver-membership',
+      'manyToOne',
+      'api::leader.leader'
+    >;
+    state_partner: Attribute.Relation<
+      'api::driver-membership.driver-membership',
+      'manyToOne',
+      'api::state-partner.state-partner'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::driver-membership.driver-membership',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::driver-membership.driver-membership',
       'oneToOne',
       'admin::user'
     > &
@@ -4533,6 +4668,59 @@ export interface ApiFoodShippingFoodShippingQuote
   };
 }
 
+export interface ApiFreeTripEntitlementFreeTripEntitlement
+  extends Schema.CollectionType {
+  collectionName: 'free_trip_entitlements';
+  info: {
+    singularName: 'free-trip-entitlement';
+    pluralName: 'free-trip-entitlements';
+    displayName: 'Free Trip Entitlement';
+    description: 'Entitlements de viajes gratis para pasajeros (fuente: video o QR)';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    usuario: Attribute.Relation<
+      'api::free-trip-entitlement.free-trip-entitlement',
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    fuente: Attribute.Enumeration<['video', 'qr']> & Attribute.Required;
+    estado: Attribute.Enumeration<
+      ['pendiente', 'activo', 'usado', 'expirado', 'cancelado']
+    > &
+      Attribute.Required &
+      Attribute.DefaultTo<'pendiente'>;
+    max_descuento_mxn: Attribute.Decimal &
+      Attribute.Required &
+      Attribute.DefaultTo<100>;
+    sesion_origen: Attribute.String;
+    qr_card_id: Attribute.String;
+    qr_scaneado_en: Attribute.DateTime;
+    qr_expira_en: Attribute.DateTime;
+    viaje_usado_en: Attribute.String;
+    creado_en: Attribute.DateTime & Attribute.Required;
+    activado_en: Attribute.DateTime;
+    usado_en: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::free-trip-entitlement.free-trip-entitlement',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::free-trip-entitlement.free-trip-entitlement',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiGenWalletGenWallet extends Schema.CollectionType {
   collectionName: 'gen_wallets';
   info: {
@@ -4745,6 +4933,71 @@ export interface ApiLaborysPaymentLaborysPayment extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::laborys-payment.laborys-payment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiLeaderLeader extends Schema.CollectionType {
+  collectionName: 'leaders';
+  info: {
+    singularName: 'leader';
+    pluralName: 'leaders';
+    displayName: 'Leader (L\u00EDder Verificador)';
+    description: 'L\u00EDder Verificador: 10% comisi\u00F3n sobre membres\u00EDas, kit 5000 tarjetas $500 + env\u00EDo';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::leader.leader',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    > &
+      Attribute.Required;
+    email: Attribute.Email & Attribute.Required;
+    phone: Attribute.String;
+    full_name: Attribute.String & Attribute.Required;
+    status: Attribute.Enumeration<
+      ['candidate', 'active', 'suspended', 'rejected']
+    > &
+      Attribute.DefaultTo<'candidate'>;
+    state: Attribute.String;
+    city: Attribute.String;
+    referral_code: Attribute.String & Attribute.Unique;
+    qr_code: Attribute.String;
+    qr_image: Attribute.Media<'images'>;
+    total_referred_drivers: Attribute.Integer & Attribute.DefaultTo<0>;
+    active_referred_drivers: Attribute.Integer & Attribute.DefaultTo<0>;
+    total_commissions_earned: Attribute.Decimal & Attribute.DefaultTo<0>;
+    pending_commissions: Attribute.Decimal & Attribute.DefaultTo<0>;
+    paid_commissions: Attribute.Decimal & Attribute.DefaultTo<0>;
+    kit_purchased: Attribute.Boolean & Attribute.DefaultTo<false>;
+    kit_purchase_date: Attribute.DateTime;
+    kit_cards_received: Attribute.Integer & Attribute.DefaultTo<0>;
+    cards_distributed: Attribute.Integer & Attribute.DefaultTo<0>;
+    whatsapp_group_joined: Attribute.Boolean & Attribute.DefaultTo<false>;
+    testing_started_at: Attribute.DateTime;
+    testing_ends_at: Attribute.DateTime;
+    activated_at: Attribute.DateTime;
+    bank_account: Attribute.JSON;
+    tax_info: Attribute.JSON;
+    mercado_pago_preference_id: Attribute.String;
+    mercado_pago_payment_id: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::leader.leader',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::leader.leader',
       'oneToOne',
       'admin::user'
     > &
@@ -5136,6 +5389,37 @@ export interface ApiMembresiasTipoMembresiasTipo extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::membresias-tipo.membresias-tipo',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiMercadoPagoMercadoPago extends Schema.CollectionType {
+  collectionName: 'mercado_pago_configs';
+  info: {
+    singularName: 'mercado-pago';
+    pluralName: 'mercado-pagos';
+    displayName: 'Mercado Pago';
+    description: 'Configuraci\u00F3n y logs de Mercado Pago (API de servicio)';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    config: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::mercado-pago.mercado-pago',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::mercado-pago.mercado-pago',
       'oneToOne',
       'admin::user'
     > &
@@ -5812,7 +6096,7 @@ export interface ApiProductoProducto extends Schema.CollectionType {
     marca: Attribute.String;
     store_category: Attribute.Relation<
       'api::producto.producto',
-      'oneToOne',
+      'manyToOne',
       'api::store-categorie.store-categorie'
     >;
     imagenes: Attribute.Media<'images' | 'files' | 'videos' | 'audios', true>;
@@ -5826,7 +6110,7 @@ export interface ApiProductoProducto extends Schema.CollectionType {
     store_email: Attribute.String;
     store: Attribute.Relation<
       'api::producto.producto',
-      'oneToOne',
+      'manyToOne',
       'api::store.store'
     >;
     stripe_product_id: Attribute.String;
@@ -6490,6 +6774,23 @@ export interface ApiSiteSettingSiteSetting extends Schema.SingleType {
     verifier_candidates_whatsapp_group_url: Attribute.String;
     wikis_path: Attribute.String;
     whatsapp_number: Attribute.String;
+    taxi_driver_free_trips_count: Attribute.Integer & Attribute.DefaultTo<5>;
+    taxi_free_trip_max_discount_mxn: Attribute.Decimal &
+      Attribute.DefaultTo<100>;
+    taxi_free_trip_qr_validity_days: Attribute.Integer &
+      Attribute.DefaultTo<30>;
+    taxi_card_production_fee_mxn: Attribute.Decimal & Attribute.DefaultTo<5>;
+    taxi_card_shipping_fee_mxn: Attribute.Decimal & Attribute.DefaultTo<0>;
+    taxi_free_trip_leader_commission_pct: Attribute.Decimal &
+      Attribute.DefaultTo<10>;
+    taxi_free_trip_state_partner_commission_pct: Attribute.Decimal &
+      Attribute.DefaultTo<5>;
+    leader_card_kit_price_mxn: Attribute.Decimal & Attribute.DefaultTo<500>;
+    state_partner_entry_fee_min_mxn: Attribute.Decimal &
+      Attribute.DefaultTo<10000>;
+    state_partner_entry_fee_max_mxn: Attribute.Decimal &
+      Attribute.DefaultTo<20000>;
+    state_partner_max_msi_months: Attribute.Integer & Attribute.DefaultTo<12>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -6586,6 +6887,68 @@ export interface ApiSkydropxRechargeAccountSkydropxRechargeAccount
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::skydropx-recharge-account.skydropx-recharge-account',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiSkydropxShipmentSkydropxShipment
+  extends Schema.CollectionType {
+  collectionName: 'skydropx_shipments';
+  info: {
+    singularName: 'skydropx-shipment';
+    pluralName: 'skydropx-shipments';
+    displayName: 'Skydropx Shipment';
+    description: 'Registro local de env\u00EDos Skydropx para tracking y auditor\u00EDa';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    skydropx_id: Attribute.String & Attribute.Required & Attribute.Unique;
+    tracking_number: Attribute.String;
+    carrier: Attribute.String;
+    service_level: Attribute.String;
+    status: Attribute.Enumeration<
+      [
+        'created',
+        'label_generated',
+        'picked_up',
+        'in_transit',
+        'out_for_delivery',
+        'delivered',
+        'exception',
+        'cancelled',
+        'returned'
+      ]
+    > &
+      Attribute.DefaultTo<'created'>;
+    reference: Attribute.String;
+    from_address: Attribute.JSON;
+    to_address: Attribute.JSON;
+    parcel: Attribute.JSON;
+    contents: Attribute.JSON;
+    insurance_amount: Attribute.Decimal;
+    rate_amount: Attribute.Decimal;
+    rate_currency: Attribute.String & Attribute.DefaultTo<'MXN'>;
+    label_url: Attribute.String;
+    created_at_skydropx: Attribute.DateTime;
+    delivered_at: Attribute.DateTime;
+    exception_details: Attribute.JSON;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::skydropx-shipment.skydropx-shipment',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::skydropx-shipment.skydropx-shipment',
       'oneToOne',
       'admin::user'
     > &
@@ -6690,6 +7053,71 @@ export interface ApiSolicitudplantaSolicitudplanta
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::solicitudplanta.solicitudplanta',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiStatePartnerStatePartner extends Schema.CollectionType {
+  collectionName: 'state_partners';
+  info: {
+    singularName: 'state-partner';
+    pluralName: 'state-partners';
+    displayName: 'State Partner (Socio Estatal)';
+    description: 'Socio Estatal: 5% comisi\u00F3n sobre membres\u00EDas de su estado, cuota ingreso $10-20K (hasta 12 MSI)';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    user: Attribute.Relation<
+      'api::state-partner.state-partner',
+      'oneToOne',
+      'plugin::users-permissions.user'
+    > &
+      Attribute.Required;
+    email: Attribute.Email & Attribute.Required;
+    phone: Attribute.String;
+    full_name: Attribute.String & Attribute.Required;
+    company_name: Attribute.String;
+    rfc: Attribute.String;
+    state: Attribute.String & Attribute.Required & Attribute.Unique;
+    status: Attribute.Enumeration<
+      ['pending_payment', 'active', 'suspended', 'cancelled']
+    > &
+      Attribute.DefaultTo<'pending_payment'>;
+    entry_fee_mxn: Attribute.Decimal & Attribute.Required;
+    entry_fee_paid_at: Attribute.DateTime;
+    entry_fee_payment_method: Attribute.String;
+    entry_fee_msi_months: Attribute.Integer;
+    commission_pct: Attribute.Decimal & Attribute.DefaultTo<5>;
+    total_drivers_in_state: Attribute.Integer & Attribute.DefaultTo<0>;
+    active_drivers_in_state: Attribute.Integer & Attribute.DefaultTo<0>;
+    total_commissions_earned: Attribute.Decimal & Attribute.DefaultTo<0>;
+    pending_commissions: Attribute.Decimal & Attribute.DefaultTo<0>;
+    paid_commissions: Attribute.Decimal & Attribute.DefaultTo<0>;
+    bank_account: Attribute.JSON;
+    tax_info: Attribute.JSON;
+    contract_signed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    contract_signed_at: Attribute.DateTime;
+    contract_document: Attribute.Media<'files' | 'images'>;
+    activated_at: Attribute.DateTime;
+    mercado_pago_preapproval_id: Attribute.String;
+    mercado_pago_customer_id: Attribute.String;
+    mercado_pago_subscription_id: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::state-partner.state-partner',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::state-partner.state-partner',
       'oneToOne',
       'admin::user'
     > &
@@ -6840,6 +7268,12 @@ export interface ApiStoreStore extends Schema.CollectionType {
         };
       }> &
       Attribute.DefaultTo<false>;
+    descripcion: Attribute.Text &
+      Attribute.SetPluginOptions<{
+        i18n: {
+          localized: true;
+        };
+      }>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -7753,6 +8187,7 @@ declare module '@strapi/types' {
       'api::codigosreferido.codigosreferido': ApiCodigosreferidoCodigosreferido;
       'api::cofepristramite.cofepristramite': ApiCofepristramiteCofepristramite;
       'api::comentario-publicacion.comentario-publicacion': ApiComentarioPublicacionComentarioPublicacion;
+      'api::commission-payment.commission-payment': ApiCommissionPaymentCommissionPayment;
       'api::configuracion-sistema.configuracion-sistema': ApiConfiguracionSistemaConfiguracionSistema;
       'api::configuracion-usuario.configuracion-usuario': ApiConfiguracionUsuarioConfiguracionUsuario;
       'api::contenido.contenido': ApiContenidoContenido;
@@ -7768,6 +8203,7 @@ declare module '@strapi/types' {
       'api::driver.driver': ApiDriverDriver;
       'api::driver-launch-lead.driver-launch-lead': ApiDriverLaunchLeadDriverLaunchLead;
       'api::driver-location.driver-location': ApiDriverLocationDriverLocation;
+      'api::driver-membership.driver-membership': ApiDriverMembershipDriverMembership;
       'api::driver-membership-config.driver-membership-config': ApiDriverMembershipConfigDriverMembershipConfig;
       'api::driver-verifier-candidacy.driver-verifier-candidacy': ApiDriverVerifierCandidacyDriverVerifierCandidacy;
       'api::enlace.enlace': ApiEnlaceEnlace;
@@ -7785,11 +8221,13 @@ declare module '@strapi/types' {
       'api::food-product-variant.food-product-variant': ApiFoodProductVariantFoodProductVariant;
       'api::food-restaurant.food-restaurant': ApiFoodRestaurantFoodRestaurant;
       'api::food-shipping.food-shipping-quote': ApiFoodShippingFoodShippingQuote;
+      'api::free-trip-entitlement.free-trip-entitlement': ApiFreeTripEntitlementFreeTripEntitlement;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::generation-application.generation-application': ApiGenerationApplicationGenerationApplication;
       'api::invitacion.invitacion': ApiInvitacionInvitacion;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;
+      'api::leader.leader': ApiLeaderLeader;
       'api::license-catalog.license-catalog': ApiLicenseCatalogLicenseCatalog;
       'api::lista-suscripcion.lista-suscripcion': ApiListaSuscripcionListaSuscripcion;
       'api::logistics-balance.logistics-balance': ApiLogisticsBalanceLogisticsBalance;
@@ -7798,6 +8236,7 @@ declare module '@strapi/types' {
       'api::media.media-upload': ApiMediaMediaUpload;
       'api::membresia.membresia': ApiMembresiaMembresia;
       'api::membresias-tipo.membresias-tipo': ApiMembresiasTipoMembresiasTipo;
+      'api::mercado-pago.mercado-pago': ApiMercadoPagoMercadoPago;
       'api::message.message': ApiMessageMessage;
       'api::my-agency.my-agency': ApiMyAgencyMyAgency;
       'api::notificacion.notificacion': ApiNotificacionNotificacion;
@@ -7823,8 +8262,10 @@ declare module '@strapi/types' {
       'api::site-setting.site-setting': ApiSiteSettingSiteSetting;
       'api::skill.skill': ApiSkillSkill;
       'api::skydropx-recharge-account.skydropx-recharge-account': ApiSkydropxRechargeAccountSkydropxRechargeAccount;
+      'api::skydropx-shipment.skydropx-shipment': ApiSkydropxShipmentSkydropxShipment;
       'api::solicitudafiliacion.solicitudafiliacion': ApiSolicitudafiliacionSolicitudafiliacion;
       'api::solicitudplanta.solicitudplanta': ApiSolicitudplantaSolicitudplanta;
+      'api::state-partner.state-partner': ApiStatePartnerStatePartner;
       'api::store.store': ApiStoreStore;
       'api::store-categorie.store-categorie': ApiStoreCategorieStoreCategorie;
       'api::tarea.tarea': ApiTareaTarea;

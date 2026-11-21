@@ -32,7 +32,8 @@ function validarRegistro(input, now = Date.now()) {
     data[key] = input[key];
     if (!choices.includes(input[key])) errors[key] = 'Selecciona una opción válida.';
   };
-  if (now >= CIERRE) errors.general = 'El registro de prelanzamiento cerró el 13 de diciembre de 2026.';
+  // Solo la campaña de Fundadores cierra el 13 dic 2026; el registro ordinario sigue abierto
+  const campañaCerrada = now >= CIERRE;
   opcion('tipo', ['conductor', 'lider', 'socio-estatal']);
   texto('nombre', 3, 160);
   data.telefono = normalizarTelefono(input.telefono);
@@ -62,7 +63,7 @@ function validarRegistro(input, now = Date.now()) {
   if (data.tipo === 'socio-estatal') {
     const disponibles = ESTADOS.filter(e => !['Ciudad de México', 'Estado de México'].includes(e));
     opcion('estadoSolicitado', disponibles);
-    if (!disponibles.includes(data.estado)) errors.estado = 'CDMX y Estado de México ya están asignados.';
+    if (!disponibles.includes(data.estadoSolicitado)) errors.estadoSolicitado = 'CDMX y Estado de México ya están asignados.';
     texto('experiencia', 10, 2000);
     opcion('nodo', ['si', 'parcial', 'no']);
   }
@@ -78,7 +79,7 @@ function validarRegistro(input, now = Date.now()) {
     });
   }
   data.fecha = new Date(now).toISOString();
-  data.promocionReservada = data.tipo === 'conductor' && now < CIERRE;
+  data.promocionReservada = data.tipo === 'conductor' && !campañaCerrada;
   data.seguimiento = 'pendiente';
   return { data, errors };
 }

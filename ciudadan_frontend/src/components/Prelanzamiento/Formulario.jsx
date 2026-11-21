@@ -4,8 +4,8 @@ import { ASIGNADOS, ESTADOS, TIPOS, FUNDADORES_CIERRE, normalizarTelefono, valid
 import { registrarPrelanzamiento } from '../../services/prelanzamientoService';
 
 const CONFIRMACION = {
-  conductor: 'Registramos tu solicitud antes del lanzamiento para que puedas obtener la membresía promocional de $300 MXN mensuales durante tu primer año. Nuestro equipo te contactará para completar tu incorporación.',
-  lider: 'Registramos tu solicitud para convertirte en uno de los 200 líderes fundadores. Nuestro equipo te contactará para explicarte cómo comenzar a formar tu red.',
+  conductor: 'Registramos tu solicitud en la campaña de fundadores para que puedas obtener la membresía promocional: primer mes gratis y 12 mensualidades a $300 MXN. Nuestro equipo te contactará para completar tu incorporación.',
+  lider: 'Registramos tu solicitud para convertirte en líder fundador. Nuestro equipo te contactará para explicarte cómo comenzar a formar tu red.',
   'socio-estatal': 'Registramos tu solicitud de socio estatal. Nuestro equipo revisará la disponibilidad del estado y se pondrá en contacto contigo para continuar el proceso.',
 };
 
@@ -69,8 +69,8 @@ export default function Formulario({ tipo, cambiarTipo, origen, utm, lider, what
     <input type='hidden' name='modalidad' value={tipo} />
     <input type='hidden' name='url_origen' value={origen} />
     <input type='hidden' name='utm' value={JSON.stringify(utm)} />
-    <Typography component='h2' variant='h4'>Regístrate antes del lanzamiento</Typography>
-    <p className='pre-muted'>Lanzamiento oficial: <strong>13 de diciembre de 2026</strong></p>
+    <Typography component='h2' variant='h4'>Regístrate en la campaña de fundadores</Typography>
+    <p className='pre-muted'>Cierre de la promoción de fundadores: <strong>13 de diciembre de 2026</strong></p>
     <p>Todos los campos son obligatorios, excepto quién te invitó.</p>
     {cerrado && <Alert severity='info'>El registro de prelanzamiento ha finalizado.</Alert>}
     {error && <Alert severity='error' role='alert' sx={{ mb: 2 }}>{error}</Alert>}

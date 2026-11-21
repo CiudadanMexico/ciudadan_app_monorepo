@@ -15,8 +15,7 @@
     "usuario": {
       "type": "relation",
       "relation": "manyToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "free_trip_entitlements"
+      "target": "plugin::users-permissions.user"
     },
     "fuente": {
       "type": "enumeration",

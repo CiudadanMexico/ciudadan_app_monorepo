@@ -29,7 +29,7 @@ const FundadoresPage = () => {
       {/* Hero Section */}
       <Box sx={{ textAlign: 'center', mb: 6, px: 2 }}>
         <Chip
-          label={`Lanzamiento: ${formatDate(FUNDADORES_CIERRE)}`}
+          label={`Cierre de promoción: ${formatDate(FUNDADORES_CIERRE)}`}
           size="large"
           color="warning"
           variant="outlined"

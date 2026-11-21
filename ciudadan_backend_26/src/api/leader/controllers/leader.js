@@ -274,4 +274,4 @@ module.exports = createCoreController('api::leader.leader', ({ strapi }) => ({
     }
   },
 
-});
+}));  // cierra objeto, arrow function, createCoreController
