@@ -1,0 +1,75 @@
+{
+  "kind": "collectionType",
+  "collectionName": "skydropx_shipments",
+  "info": {
+    "singularName": "skydropx-shipment",
+    "pluralName": "skydropx-shipments",
+    "displayName": "Skydropx Shipment",
+    "description": "Registro local de envíos Skydropx para tracking y auditoría"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "skydropx_id": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "carrier": {
+      "type": "string"
+    },
+    "service_level": {
+      "type": "string"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["created", "label_generated", "picked_up", "in_transit", "out_for_delivery", "delivered", "exception", "cancelled", "returned"],
+      "default": "created"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "from_address": {
+      "type": "json"
+    },
+    "to_address": {
+      "type": "json"
+    },
+    "parcel": {
+      "type": "json"
+    },
+    "contents": {
+      "type": "json"
+    },
+    "insurance_amount": {
+      "type": "decimal"
+    },
+    "rate_amount": {
+      "type": "decimal"
+    },
+    "rate_currency": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "label_url": {
+      "type": "string"
+    },
+    "created_at_skydropx": {
+      "type": "datetime"
+    },
+    "delivered_at": {
+      "type": "datetime"
+    },
+    "exception_details": {
+      "type": "json"
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

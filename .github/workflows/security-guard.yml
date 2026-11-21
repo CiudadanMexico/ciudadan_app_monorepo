@@ -4,9 +4,9 @@
 # un api.js reinyectado en la raiz (o un .js nuevo en cualquier carpeta) debe
 # romper el pipeline aunque no toque ciudadan_backend_26/**.
 #
-# Detecta: api.js en la raiz, marcadores del packer (global['!'],
-# while(!![]){try{, constructor Function oculto) y lineas de >5 KB en formatos
-# ejecutables, incluidos lanzadores sin extension (por ejemplo `init`).
+# Detecta: api.js en la raiz, marcadores conocidos de packers, constructor
+# Function oculto y lineas de >5 KB en formatos ejecutables o de configuracion,
+# incluidos lanzadores sin extension (por ejemplo `init`).
 # Revisa los blobs del indice Git y el worktree: un payload staged con disco
 # limpio tambien bloquea. Los cuatro init permitidos tienen allowlist exacta
 # de OID Git + SHA-256; cualquier otro init, modo Git o error de lectura falla.

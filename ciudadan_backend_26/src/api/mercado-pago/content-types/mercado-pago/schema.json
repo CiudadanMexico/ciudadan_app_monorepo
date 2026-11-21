@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mercado_pago_configs",
+  "info": {
+    "singularName": "mercado-pago",
+    "pluralName": "mercado-pagos",
+    "displayName": "Mercado Pago",
+    "description": "Configuración y logs de Mercado Pago (API de servicio)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "config": {
+      "type": "json"
+    }
+  }
+}

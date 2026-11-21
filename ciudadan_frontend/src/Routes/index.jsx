@@ -39,6 +39,16 @@ import GeoNetworkMapDemo from '../Pages/Dev/GeoNetworkMapDemo.jsx';
 import SociosEstatalesPage from '../Pages/SociosEstatales/SociosEstatalesPage.jsx';
 import SocioEstatalEstado from '../Pages/SociosEstatales/SocioEstatalEstado.jsx';
 
+// Líderes Verificadores (Taxi 6.0)
+import LideresRegistro from '../Pages/Lideres/LideresRegistro.jsx';
+import LideresDashboard from '../Pages/Lideres/LideresDashboard.jsx';
+import LideresKit from '../Pages/Lideres/LideresKit.jsx';
+
+// Socios Estatales (Taxi 6.0)
+import SociosRegistro from '../Pages/Socios/SociosRegistro.jsx';
+import SociosDashboard from '../Pages/Socios/SociosDashboard.jsx';
+import SociosPagoCuota from '../Pages/Socios/SociosPagoCuota.jsx';
+
 import MiMembresia from '../Pages/MiMembresia.jsx';
 import MarketPlace from '../Pages/MarketPlace/MarketPlace.jsx';
 import ProductosPage from '../Pages/MarketPlace/ProductosPage.jsx';
@@ -1247,6 +1257,38 @@ const Rutas = () => {
     <Route
       path='/socios-estatales/:estado'
       element={<SocioEstatalEstado />}
+    />
+
+    {/* Líderes Verificadores (Taxi 6.0) - Subdomain: lideres.ciudadan.org */}
+    <Route
+      path='/registro'
+      element={<LideresRegistro />}
+    />
+    <Route
+      path='/dashboard'
+      element={<LideresDashboard />}
+    />
+    <Route
+      path='/kit'
+      element={<LideresKit />}
+    />
+    <Route
+      path='/qr'
+      element={<LideresDashboard />}
+    />
+
+    {/* Socios Estatales (Taxi 6.0) - Subdomain: socios.ciudadan.org */}
+    <Route
+      path='/socios/registro'
+      element={<SociosRegistro />}
+    />
+    <Route
+      path='/socios/dashboard'
+      element={<SociosDashboard />}
+    />
+    <Route
+      path='/socios/pago-cuota'
+      element={<SociosPagoCuota />}
     />
 
       <Route

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import { AuthProvider } from './Contexts/AuthContext';
 import { RolesProvider } from './Contexts/RolesContext';
+import { SubdomainProvider } from './Contexts/SubdomainContext';
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
@@ -86,11 +87,22 @@ const AppWrapper = () => {
   if (isDomainPrelanzamiento) {
     // Si viene por subdominio, forzamos la vista de Prelanzamiento
     // pero mantenemos el wrapper para consistencia de Providers si fuera necesario
-    return (<><ScrollToTop /><Rutas /></>);
-    // Nota: Rutas ya maneja la lógica de <Route path='/prelanzamiento' element={<Prelanzamiento />} />
-    // pero para que el subdominio muestre Prelanzamiento sin que el usuario escriba /prelanzamiento,
-    // necesitamos que Rutas sepa que debe renderizar Prelanzamiento.
-    // Para evitar cambiar Rutas, podemos envolver el renderizado.
+    return (
+      <Box
+        id="ciudadan-app"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+          minHeight: "100dvh",
+          overflowX: "clip",
+        }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Rutas />
+        </Box>
+      </Box>
+    );
   }
 
   return (
@@ -183,24 +195,26 @@ const appElement = auth0ConfigValida() ? (
         <AuthProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es">
             <RolesProvider>
-              {/* SnackbarProvider FUERA de NotificationsProvider: éste necesita
-                  consumir useSnackbar() para implementar la API de toast.
-                  `Components` SOLO define las variantes `notif-*` que usa
-                  useNotifications() -> look de marca (morado + verde neón). Las
-                  variantes por defecto (useSnackbar legacy) siguen igual. */}
-              <SnackbarProvider
-                maxSnack={3}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                Components={NOTIF_TOAST_COMPONENTS}
-              >
-                <NotificationsProvider>
-                  <CartProvider>
-                    <FoodCartProvider>
-                      <AppWrapper />
-                    </FoodCartProvider>
-                  </CartProvider>
-                </NotificationsProvider>
-              </SnackbarProvider>
+              <SubdomainProvider>
+                {/* SnackbarProvider FUERA de NotificationsProvider: éste necesita
+                    consumir useSnackbar() para implementar la API de toast.
+                    `Components` SOLO define las variantes `notif-*` que usa
+                    useNotifications() -> look de marca (morado + verde neón). Las
+                    variantes por defecto (useSnackbar legacy) siguen igual. */}
+                <SnackbarProvider
+                  maxSnack={3}
+                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  Components={NOTIF_TOAST_COMPONENTS}
+                >
+                  <NotificationsProvider>
+                    <CartProvider>
+                      <FoodCartProvider>
+                        <AppWrapper />
+                      </FoodCartProvider>
+                    </CartProvider>
+                  </NotificationsProvider>
+                </SnackbarProvider>
+              </SubdomainProvider>
             </RolesProvider>
           </LocalizationProvider>
         </AuthProvider>

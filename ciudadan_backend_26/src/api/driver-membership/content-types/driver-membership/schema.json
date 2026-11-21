@@ -1,0 +1,117 @@
+{
+  "kind": "collectionType",
+  "collectionName": "driver_memberships",
+  "info": {
+    "singularName": "driver-membership",
+    "pluralName": "driver-memberships",
+    "displayName": "Driver Membership",
+    "description": "Membresía mensual de conductores ($500/$300 promo) con 2 modalidades de activación"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "driver": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver.driver",
+      "inversedBy": "membership"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "plan": {
+      "type": "enumeration",
+      "enum": ["normal", "promo"],
+      "required": true
+    },
+    "activation_mode": {
+      "type": "enumeration",
+      "enum": ["pay_now", "pay_later"],
+      "required": true,
+      "comment": "pay_now = paga hoy, 0 viajes gratis; pay_later = paga en 1 mes, 5 viajes gratis + 100 tarjetas QR"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "active", "past_due", "cancelled", "expired"],
+      "default": "pending"
+    },
+    "price_mxn": {
+      "type": "decimal",
+      "required": true
+    },
+    "currency": {
+      "type": "string",
+      "default": "MXN"
+    },
+    "billing_cycle": {
+      "type": "enumeration",
+      "enum": ["monthly"],
+      "default": "monthly"
+    },
+    "current_period_start": {
+      "type": "datetime"
+    },
+    "current_period_end": {
+      "type": "datetime"
+    },
+    "next_payment_date": {
+      "type": "datetime"
+    },
+    "last_payment_date": {
+      "type": "datetime"
+    },
+    "last_payment_amount": {
+      "type": "decimal"
+    },
+    "mercado_pago_subscription_id": {
+      "type": "string"
+    },
+    "mercado_pago_preapproval_id": {
+      "type": "string"
+    },
+    "mercado_pago_customer_id": {
+      "type": "string"
+    },
+    "free_trips_granted": {
+      "type": "integer",
+      "default": 0
+    },
+    "physical_cards_granted": {
+      "type": "integer",
+      "default": 0
+    },
+    "promo_expires_at": {
+      "type": "datetime",
+      "comment": "Cuándo expira el precio promocional ($300)"
+    },
+    "failed_payments_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "last_failed_payment_at": {
+      "type": "datetime"
+    },
+    "cancelled_at": {
+      "type": "datetime"
+    },
+    "cancellation_reason": {
+      "type": "string"
+    },
+    "referred_by_leader": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::leader.leader",
+      "comment": "Líder Verificador que refirió a este conductor"
+    },
+    "state_partner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::state-partner.state-partner",
+      "comment": "Socio Estatal del estado del conductor"
+    }
+  }
+}

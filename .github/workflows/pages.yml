@@ -58,7 +58,7 @@ jobs:
           set -e
           git diff --quiet
           git diff --cached --quiet
-          test -z "$(git status --porcelain --untracked-files=no)"
+          test -z "$(git status --porcelain)"
           node ciudadan_backend_26/scripts/ci/check-payload-ofuscado.js
           node --test ciudadan_backend_26/tests/check-payload-ofuscado.test.js
 
@@ -142,15 +142,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: pages-build
-          path: publish/site
+          path: pages-site
 
       - name: "Publicar build en rama gh-pages"
         run: |
           set -e
           cd "$GITHUB_WORKSPACE/publish"
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
-          cp -R site/. .
-          rm -rf site
+          cp -R "$GITHUB_WORKSPACE/pages-site"/. .
+          rm -rf "$GITHUB_WORKSPACE/pages-site"
           touch .nojekyll
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

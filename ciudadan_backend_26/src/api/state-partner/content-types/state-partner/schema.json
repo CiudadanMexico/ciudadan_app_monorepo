@@ -1,0 +1,127 @@
+{
+  "kind": "collectionType",
+  "collectionName": "state_partners",
+  "info": {
+    "singularName": "state-partner",
+    "pluralName": "state-partners",
+    "displayName": "State Partner (Socio Estatal)",
+    "description": "Socio Estatal: 5% comisión sobre membresías de su estado, cuota ingreso $10-20K (hasta 12 MSI)"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string",
+      "required": true
+    },
+    "company_name": {
+      "type": "string",
+      "comment": "Razón social de la empresa/organización"
+    },
+    "rfc": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "comment": "Estado que representa (único por estado)"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending_payment", "active", "suspended", "cancelled"],
+      "default": "pending_payment"
+    },
+    "entry_fee_mxn": {
+      "type": "decimal",
+      "required": true,
+      "comment": "Cuota de ingreso pagada ($10,000 - $20,000)"
+    },
+    "entry_fee_paid_at": {
+      "type": "datetime"
+    },
+    "entry_fee_payment_method": {
+      "type": "string",
+      "comment": "mercado_pago, transferencia, etc."
+    },
+    "entry_fee_msi_months": {
+      "type": "integer",
+      "comment": "Meses sin intereses si pagó con MSI (hasta 12)"
+    },
+    "commission_pct": {
+      "type": "decimal",
+      "default": 5,
+      "comment": "Porcentaje de comisión sobre membresías del estado (5%)"
+    },
+    "total_drivers_in_state": {
+      "type": "integer",
+      "default": 0
+    },
+    "active_drivers_in_state": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_commissions_earned": {
+      "type": "decimal",
+      "default": 0
+    },
+    "pending_commissions": {
+      "type": "decimal",
+      "default": 0
+    },
+    "paid_commissions": {
+      "type": "decimal",
+      "default": 0
+    },
+    "bank_account": {
+      "type": "json",
+      "comment": "Datos bancarios: { banco, cuenta, clabe, titular }"
+    },
+    "tax_info": {
+      "type": "json",
+      "comment": "Info fiscal: { rfc, regimen, uso_cfdi }"
+    },
+    "contract_signed": {
+      "type": "boolean",
+      "default": false
+    },
+    "contract_signed_at": {
+      "type": "datetime"
+    },
+    "contract_document": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files", "images"]
+    },
+    "activated_at": {
+      "type": "datetime"
+    },
+    "mercado_pago_preapproval_id": {
+      "type": "string",
+      "comment": "ID de preapproval (suscripción) en Mercado Pago"
+    },
+    "mercado_pago_customer_id": {
+      "type": "string",
+      "comment": "ID de cliente en Mercado Pago"
+    },
+    "mercado_pago_subscription_id": {
+      "type": "string",
+      "comment": "ID de suscripción en Mercado Pago"
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 module.exports = [
   'strapi::errors',
-/*  {
+  {
     name: 'strapi::cors',
     config: {
       origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
@@ -26,12 +26,7 @@ module.exports = [
   'strapi::session',
   'strapi::favicon',
   'strapi::public',
- */
-  // Aquí sólo registramos el custom middleware por su nombre
-
-
-/*  {
-    name: 'global::auth0jwt',
-    config: {},
-  }, */
+  // Custom middlewares
+  'global::subdomain',
+  'global::rbac-subdomain',
 ];

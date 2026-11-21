@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "commission_payments",
+  "info": {
+    "singularName": "commission-payment",
+    "pluralName": "commission-payments",
+    "displayName": "Commission Payment",
+    "description": "Registro de comisiones para Líderes Verificadores y Socios Estatales"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "membership": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::driver-membership.driver-membership"
+    },
+    "recipient_type": {
+      "type": "enumeration",
+      "enum": ["leader", "state_partner"],
+      "required": true
+    },
+    "recipient": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "amount_mxn": {
+      "type": "decimal",
+      "required": true
+    },
+    "percentage": {
+      "type": "decimal",
+      "required": true
+    },
+    "concept": {
+      "type": "enumeration",
+      "enum": ["driver_membership", "trip_commission", "leader_kit_purchase"],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "paid", "cancelled"],
+      "default": "pending"
+    },
+    "paid_at": {
+      "type": "datetime"
+    },
+    "payment_reference": {
+      "type": "string"
+    }
+  }
+}

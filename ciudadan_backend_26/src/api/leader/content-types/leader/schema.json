@@ -1,0 +1,123 @@
+{
+  "kind": "collectionType",
+  "collectionName": "leaders",
+  "info": {
+    "singularName": "leader",
+    "pluralName": "leaders",
+    "displayName": "Leader (Líder Verificador)",
+    "description": "Líder Verificador: 10% comisión sobre membresías, kit 5000 tarjetas $500 + envío"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string",
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["candidate", "active", "suspended", "rejected"],
+      "default": "candidate"
+    },
+    "state": {
+      "type": "string",
+      "comment": "Estado donde opera el líder"
+    },
+    "city": {
+      "type": "string"
+    },
+    "referral_code": {
+      "type": "string",
+      "unique": true,
+      "comment": "Código único de referido para compartir"
+    },
+    "qr_code": {
+      "type": "string",
+      "comment": "QR personalizado del líder para registro de conductores"
+    },
+    "qr_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "total_referred_drivers": {
+      "type": "integer",
+      "default": 0
+    },
+    "active_referred_drivers": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_commissions_earned": {
+      "type": "decimal",
+      "default": 0
+    },
+    "pending_commissions": {
+      "type": "decimal",
+      "default": 0
+    },
+    "paid_commissions": {
+      "type": "decimal",
+      "default": 0
+    },
+    "kit_purchased": {
+      "type": "boolean",
+      "default": false
+    },
+    "kit_purchase_date": {
+      "type": "datetime"
+    },
+    "kit_cards_received": {
+      "type": "integer",
+      "default": 0
+    },
+    "cards_distributed": {
+      "type": "integer",
+      "default": 0
+    },
+    "whatsapp_group_joined": {
+      "type": "boolean",
+      "default": false
+    },
+    "testing_started_at": {
+      "type": "datetime"
+    },
+    "testing_ends_at": {
+      "type": "datetime"
+    },
+    "activated_at": {
+      "type": "datetime"
+    },
+    "bank_account": {
+      "type": "json",
+      "comment": "Datos bancarios para pago de comisiones: { banco, cuenta, clabe, titular }"
+    },
+    "tax_info": {
+      "type": "json",
+      "comment": "Info fiscal: { rfc, regimen, uso_cfdi }"
+    },
+    "mercado_pago_preference_id": {
+      "type": "string",
+      "comment": "ID de preferencia de pago en Mercado Pago"
+    },
+    "mercado_pago_payment_id": {
+      "type": "string",
+      "comment": "ID de pago en Mercado Pago"
+    }
+  }
+}

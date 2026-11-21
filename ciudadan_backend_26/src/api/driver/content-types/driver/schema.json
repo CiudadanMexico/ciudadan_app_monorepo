@@ -306,6 +306,12 @@
       "relation": "oneToOne",
       "target": "api::vehicle.vehicle",
       "inversedBy": "driver"
+    },
+    "membership": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::driver-membership.driver-membership",
+      "inversedBy": "driver"
     }
   }
 }
