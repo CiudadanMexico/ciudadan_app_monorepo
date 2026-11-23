@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Ciudadan 6.0</title></head>
+<body>
+<script>
+// GitHub Pages sirve 404.html para rutas desconocidas: reenviamos a la raíz
+// de la app conservando la ruta en ?ruta= para que index.js la restaure.
+(function () {
+  var base = location.pathname.indexOf('/ciudadan_app_monorepo') === 0 ? '/ciudadan_app_monorepo' : '';
+  var ruta = location.pathname.slice(base.length) || '/';
+  location.replace(base + '/?ruta=' + encodeURIComponent(ruta));
+})();
+</script>
+</body>
+</html>

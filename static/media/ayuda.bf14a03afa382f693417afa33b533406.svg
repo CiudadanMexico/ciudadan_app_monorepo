@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 345" width="448" height="345">
+  <g fill="none" stroke="#39ff14" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Hoja frontal -->
+    <path d="M109 264
+             L132 99
+             Q135 80 156 80
+             L282 80
+             Q303 80 299 100
+             L274 253
+             Q271 270 252 270
+             L126 270
+             Q105 270 109 264Z"
+          stroke-width="10"/>
+
+    <!-- Hoja posterior -->
+    <path d="M118 285
+             Q103 286 94 278
+             Q86 270 89 255
+             L126 101"
+          stroke-width="10"/>
+    <path d="M118 285
+             L271 285
+             Q287 285 290 269
+             L317 145
+             Q320 131 311 130"
+          stroke-width="10"/>
+
+    <!-- Línea inferior frontal -->
+    <path d="M116 263 L252 263" stroke-width="20"/>
+
+    <!-- Signo de interrogación -->
+    <path d="M181 143
+             Q184 117 207 113
+             Q231 109 239 123
+             Q247 137 240 150
+             Q236 158 225 165
+             Q211 174 209 188"
+          stroke-width="25"/>
+    <path d="M199 220 L202 220" stroke-width="26"/>
+  </g>
+</svg>
