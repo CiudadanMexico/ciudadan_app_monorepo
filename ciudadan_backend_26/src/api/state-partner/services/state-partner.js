@@ -11,8 +11,59 @@
  */
 
 const { createCoreService } = require('@strapi/strapi').factories;
+const crypto = require('crypto');
 
 module.exports = createCoreService('api::state-partner.state-partner', ({ strapi }) => ({
+
+  /**
+   * Genera un ID de idempotencia único
+   */
+  generateIdempotencyKey(partnerId, operation, referenceId) {
+    const timestamp = Date.now().toString(36);
+    const hash = crypto.createHash('sha256')
+      .update(`${partnerId}:${operation}:${referenceId}:${timestamp}`)
+      .digest('hex')
+      .slice(0, 16);
+    return `idem_${partnerId}_${operation}_${hash}`;
+  },
+
+  /**
+   * Verifica y registra idempotencia
+   * @returns {boolean} true si es la primera vez, false si ya se procesó
+   */
+  async checkAndRecordIdempotency(idempotencyKey, operationType) {
+    try {
+      await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+        data: {
+          key: idempotencyKey,
+          operation_type: operationType,
+          processed_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
+      return true;
+    } catch (err) {
+      if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
+        strapi.log.warn(`Operación duplicada detectada: ${idempotencyKey} (${operationType})`);
+        return false;
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Valida que el socio estatal pertenezca al usuario autenticado
+   * @returns {Object|null} El socio si pertenece al usuario, null si no
+   */
+  async authorizePartnerAccess(userId, partnerId) {
+    const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId, {
+      populate: ['user'],
+    });
+    if (!partner || partner.user?.id !== userId) {
+      return null;
+    }
+    return partner;
+  },
 
   /**
    * Obtiene la configuración desde site-setting
@@ -46,7 +97,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
   },
 
   /**
-   * Postularse como Socio Estatal
+   * Postularse como Socio Estatal (con autorización)
    */
   async apply(userId, userData) {
     const config = await this.getConfig();
@@ -97,16 +148,26 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
   },
 
   /**
-   * Procesa pago de cuota de ingreso
+   * Procesa pago de cuota de ingreso (con autorización e idempotencia)
    */
-  async processEntryFeePayment(partnerId, paymentData) {
-    const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId);
+  async processEntryFeePayment(userId, partnerId, paymentData) {
+    const partner = await this.authorizePartnerAccess(userId, partnerId);
     if (!partner) {
-      throw new Error('Socio Estatal no encontrado');
+      throw new Error('No autorizado: el socio estatal no pertenece al usuario');
     }
 
     if (partner.status !== 'pending_payment') {
       throw new Error('La cuota ya fue procesada');
+    }
+
+    // Idempotencia por payment_id
+    if (paymentData.payment_id) {
+      const idempotencyKey = this.generateIdempotencyKey(partnerId, 'entry_fee', paymentData.payment_id);
+      const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'state_partner_entry_fee');
+      if (!isFirst) {
+        strapi.log.info(`Pago de cuota ya procesado (idempotente): partnerId=${partnerId}, paymentId=${paymentData.payment_id}`);
+        return { ok: true, duplicate: true };
+      }
     }
 
     // Verificar monto
@@ -119,6 +180,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
         status: 'active',
         entry_fee_paid_at: new Date().toISOString(),
         entry_fee_payment_method: paymentData.method || 'mercado_pago',
+        mercado_pago_payment_id: paymentData.payment_id || null,
         activated_at: new Date().toISOString(),
         publishedAt: new Date().toISOString(),
       },
@@ -134,9 +196,17 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
   },
 
   /**
-   * Procesa comisión por membresía en el estado
+   * Procesa comisión por membresía en el estado (con idempotencia)
    */
   async processMembershipCommission(partnerId, membershipId, amount) {
+    // Idempotencia
+    const idempotencyKey = this.generateIdempotencyKey(partnerId, 'commission', membershipId);
+    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'state_partner_commission');
+    if (!isFirst) {
+      strapi.log.info(`Comisión ya procesada (idempotente): partnerId=${partnerId}, membershipId=${membershipId}`);
+      return { ok: true, duplicate: true };
+    }
+
     const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId);
     if (!partner || partner.status !== 'active') return;
 
@@ -153,7 +223,6 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
       },
     });
 
-    // Registrar en commission-payment
     try {
       await strapi.entityService.create('api::commission-payment.commission-payment', {
         data: {
@@ -206,17 +275,14 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
   },
 
   /**
-   * Obtiene dashboard del Socio Estatal
+   * Obtiene dashboard del Socio Estatal (con autorización)
    */
-  async getDashboard(partnerId) {
-    const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId, {
-      populate: ['user'],
-    });
+  async getDashboard(userId, partnerId) {
+    const partner = await this.authorizePartnerAccess(userId, partnerId);
     if (!partner) return null;
 
     const config = await this.getConfig();
 
-    // Comisiones
     const pendingCommissions = await strapi.entityService.findMany('api::commission-payment.commission-payment', {
       filters: { recipient_type: 'state_partner', recipient: partner.user?.id, status: 'pending' },
       sort: ['createdAt:desc'],
@@ -228,7 +294,6 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
       limit: 20,
     });
 
-    // Conductores en el estado
     const drivers = await strapi.entityService.findMany('api::driver.driver', {
       filters: { state: partner.state, membership: { status: { $in: ['active', 'pending'] } } },
       populate: ['membership', 'user', 'membership.referred_by_leader'],
@@ -236,7 +301,6 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
       limit: 50,
     });
 
-    // Líderes en el estado
     const leaders = await strapi.entityService.findMany('api::leader.leader', {
       filters: { state: partner.state, status: 'active' },
       sort: ['createdAt:desc'],

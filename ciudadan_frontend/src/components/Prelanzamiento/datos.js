@@ -6,9 +6,9 @@ export const TIPOS = [
 export const ESTADOS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
 export const ASIGNADOS = ['Ciudad de México', 'Estado de México'];
 
-// Campaña Fundadores: fecha límite 13 de diciembre de 2026, zona horaria America/Mexico_City
+// Campaña Fundadores: corte promocional exacto a las 00:00 del 14 de diciembre de 2026, hora Ciudad de México (UTC-6)
 // Primer mes gratis, 12 mensualidades a $300 MXN, luego precio ordinario vigente
-export const FUNDADORES_CIERRE = Date.parse('2026-12-13T23:59:59-06:00');
+export const FUNDADORES_CIERRE = Date.parse('2026-12-14T00:00:00-06:00');
 export const FUNDADORES_PRECIO_PROMO = 300;
 export const FUNDADORES_MESES_PROMO = 12;
 export const FUNDADORES_PRIMER_MES_GRATIS = true;

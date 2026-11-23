@@ -16,6 +16,56 @@ const crypto = require('crypto');
 module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
 
   /**
+   * Genera un ID de idempotencia único
+   */
+  generateIdempotencyKey(leaderId, operation, referenceId) {
+    const timestamp = Date.now().toString(36);
+    const hash = crypto.createHash('sha256')
+      .update(`${leaderId}:${operation}:${referenceId}:${timestamp}`)
+      .digest('hex')
+      .slice(0, 16);
+    return `idem_${leaderId}_${operation}_${hash}`;
+  },
+
+  /**
+   * Verifica y registra idempotencia
+   * @returns {boolean} true si es la primera vez, false si ya se procesó
+   */
+  async checkAndRecordIdempotency(idempotencyKey, operationType) {
+    try {
+      await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+        data: {
+          key: idempotencyKey,
+          operation_type: operationType,
+          processed_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
+      return true;
+    } catch (err) {
+      if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
+        strapi.log.warn(`Operación duplicada detectada: ${idempotencyKey} (${operationType})`);
+        return false;
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Valida que el líder pertenezca al usuario autenticado
+   * @returns {Object|null} El líder si pertenece al usuario, null si no
+   */
+  async authorizeLeaderAccess(userId, leaderId) {
+    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId, {
+      populate: ['user'],
+    });
+    if (!leader || leader.user?.id !== userId) {
+      return null;
+    }
+    return leader;
+  },
+
+  /**
    * Obtiene la configuración desde site-setting
    */
   async getConfig() {
@@ -52,7 +102,6 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
 
   /**
    * Genera QR personalizado para el líder
-   * Apunta a la página de activación de membresía del conductor con el código de referido
    */
   generateLeaderQR(leaderId, referralCode) {
     const baseUrl = process.env.FRONTEND_URL || 'https://taxis.ciudadan.org';
@@ -60,12 +109,12 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Crea un candidato a Líder Verificador
+   * Crea un candidato a Líder Verificador (con autorización)
    */
   async createCandidate(userId, userData) {
     const config = await this.getConfig();
     const referralCode = this.generateReferralCode();
-    const qrCode = this.generateLeaderQR(null, referralCode); // leaderId se actualiza después
+    const qrCode = this.generateLeaderQR(null, referralCode);
 
     const candidate = await strapi.entityService.create('api::leader.leader', {
       data: {
@@ -84,13 +133,11 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       },
     });
 
-    // Actualizar QR con el ID real
     const finalQR = this.generateLeaderQR(candidate.id, referralCode);
     await strapi.entityService.update('api::leader.leader', candidate.id, {
       data: { qr_code: finalQR },
     });
 
-    // Generar imagen QR
     const qrImageUrl = await this.generateQRImage(finalQR);
     if (qrImageUrl) {
       await strapi.entityService.update('api::leader.leader', candidate.id, {
@@ -98,7 +145,6 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       });
     }
 
-    // Emitir evento
     strapi.eventHub?.emit('leader_candidate_created', {
       leaderId: candidate.id,
       userId,
@@ -114,7 +160,6 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
    */
   async generateQRImage(qrData) {
     try {
-      // Usar API de QR code (goqr.me o similar)
       const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
       return qrUrl;
     } catch (err) {
@@ -148,15 +193,20 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Activa a un Líder Verificador (después de pasar la prueba)
+   * Activa a un Líder Verificador (con autorización)
    */
-  async activateLeader(leaderId) {
+  async activateLeader(userId, leaderId) {
+    const leader = await this.authorizeLeaderAccess(userId, leaderId);
+    if (!leader) {
+      throw new Error('No autorizado: el líder no pertenece al usuario');
+    }
+
     const progress = await this.checkCandidateProgress(leaderId);
     if (!progress.eligible) {
       throw new Error('El candidato no cumple los requisitos para activarse');
     }
 
-    const leader = await strapi.entityService.update('api::leader.leader', leaderId, {
+    const updated = await strapi.entityService.update('api::leader.leader', leaderId, {
       data: {
         status: 'active',
         activated_at: new Date().toISOString(),
@@ -169,7 +219,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       totalReferred: leader.total_referred_drivers,
     });
 
-    return leader;
+    return updated;
   },
 
   /**
@@ -190,11 +240,10 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       },
     });
 
-    // Si era candidato, verificar si ya puede activarse
     if (leader.status === 'candidate') {
       const progress = await this.checkCandidateProgress(leaderId);
       if (progress.eligible) {
-        await this.activateLeader(leaderId);
+        await this.activateLeader(leader.user.id, leaderId);
       }
     }
 
@@ -208,9 +257,17 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Procesa comisión por membresía activada
+   * Procesa comisión por membresía activada (con idempotencia)
    */
   async processMembershipCommission(leaderId, membershipId, amount) {
+    // Idempotencia: usar membershipId como referencia
+    const idempotencyKey = this.generateIdempotencyKey(leaderId, 'commission', membershipId);
+    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_commission');
+    if (!isFirst) {
+      strapi.log.info(`Comisión ya procesada (idempotente): leaderId=${leaderId}, membershipId=${membershipId}`);
+      return { ok: true, duplicate: true };
+    }
+
     const config = await this.getConfig();
     const commission = (amount * config.commissionPct) / 100;
 
@@ -228,7 +285,6 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       },
     });
 
-    // Registrar en commission-payment
     try {
       await strapi.entityService.create('api::commission-payment.commission-payment', {
         data: {
@@ -255,12 +311,15 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Compra del kit de 5000 tarjetas
-   * paymentData: { payment_id, amount, method }
+   * Compra del kit de 5000 tarjetas (con autorización e idempotencia)
+   * Verifica el pago con Mercado Pago antes de confirmar
    */
-  async purchaseCardKit(leaderId, paymentData = {}) {
-    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
-    if (!leader || leader.status !== 'active') {
+  async purchaseCardKit(userId, leaderId, paymentData = {}) {
+    const leader = await this.authorizeLeaderAccess(userId, leaderId);
+    if (!leader) {
+      throw new Error('No autorizado: el líder no pertenece al usuario');
+    }
+    if (leader.status !== 'active') {
       throw new Error('Solo líderes activos pueden comprar el kit');
     }
     if (leader.kit_purchased) {
@@ -268,6 +327,42 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
     }
 
     const config = await this.getConfig();
+    const totalAmount = config.kitPrice + config.cardShippingFee;
+
+    // Verificar pago con Mercado Pago si se proporciona payment_id
+    let verifiedPayment = null;
+    if (paymentData.payment_id) {
+      // Idempotencia por payment_id
+      const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', paymentData.payment_id);
+      const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
+      if (!isFirst) {
+        strapi.log.info(`Compra de kit ya procesada (idempotente): leaderId=${leaderId}, paymentId=${paymentData.payment_id}`);
+        return { ok: true, duplicate: true };
+      }
+
+      // Verificar pago real con MP
+      const mpService = strapi.service('api::mercado-pago.mercado-pago');
+      const payment = await mpService.getPayment(paymentData.payment_id);
+      if (!payment) {
+        throw new Error('Pago no encontrado en Mercado Pago');
+      }
+      if (payment.status !== 'approved') {
+        throw new Error(`Pago no aprobado: ${payment.status}`);
+      }
+      if (Number(payment.transaction_amount) !== Number(totalAmount)) {
+        throw new Error(`Monto incorrecto: esperado ${totalAmount}, recibido ${payment.transaction_amount}`);
+      }
+      if (payment.external_reference !== leaderId) {
+        throw new Error('Referencia externa no coincide con el líder');
+      }
+      if (payment.currency_id !== 'MXN') {
+        throw new Error('Moneda incorrecta');
+      }
+
+      verifiedPayment = payment;
+    } else {
+      throw new Error('payment_id requerido para verificar la compra del kit');
+    }
 
     // Crear envío via Skydropx
     const shippingData = await this.createSkydropxShipment({
@@ -276,18 +371,17 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       shippingFee: config.cardShippingFee,
     });
 
-    // Preparar datos de actualización
+    if (!shippingData) {
+      strapi.log.warn('No se pudo crear envío Skydropx, pero el pago fue verificado');
+    }
+
     const updateData = {
       kit_purchased: true,
       kit_purchase_date: new Date().toISOString(),
       kit_cards_received: 5000,
+      mercado_pago_payment_id: verifiedPayment.id,
       publishedAt: new Date().toISOString(),
     };
-
-    // Guardar info de Mercado Pago si viene en paymentData
-    if (paymentData.payment_id) {
-      updateData.mercado_pago_payment_id = paymentData.payment_id;
-    }
 
     await strapi.entityService.update('api::leader.leader', leaderId, {
       data: updateData,
@@ -298,15 +392,16 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       kitPrice: config.kitPrice,
       shippingId: shippingData?.id,
       trackingNumber: shippingData?.tracking_number,
-      paymentId: paymentData.payment_id,
-      paymentMethod: paymentData.method,
+      paymentId: verifiedPayment.id,
+      paymentMethod: verifiedPayment.payment_method_id,
+      amount: verifiedPayment.transaction_amount,
     });
 
-    return { success: true, shipping: shippingData };
+    return { success: true, shipping: shippingData, payment: verifiedPayment };
   },
 
   /**
-   * Crea envío en Skydropx
+   * Crea envío en Skydropx (fix: usar config correcto)
    */
   async createSkydropxShipment({ leader, items, shippingFee }) {
     const apiKey = process.env.SKYDROPX_API_KEY;
@@ -314,6 +409,8 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       strapi.log.warn('SKYDROPX_API_KEY no configurado');
       return null;
     }
+
+    const config = await this.getConfig(); // Fix: obtener config local
 
     const shipmentData = {
       shipment: {
@@ -337,7 +434,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
           quantity: item.quantity,
           value: item.value,
         })),
-        insurance_amount: config.kitPrice + shippingFee,
+        insurance_amount: config.kitPrice + shippingFee, // Fix: usar config.kitPrice
         reference: `leader-kit-${leader.id}-${Date.now()}`,
       },
     };
@@ -366,17 +463,14 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Obtiene dashboard del líder
+   * Obtiene dashboard del líder (con autorización)
    */
-  async getDashboard(leaderId) {
-    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId, {
-      populate: ['user'],
-    });
+  async getDashboard(userId, leaderId) {
+    const leader = await this.authorizeLeaderAccess(userId, leaderId);
     if (!leader) return null;
 
     const config = await this.getConfig();
 
-    // Comisiones pendientes y pagadas
     const pendingCommissions = await strapi.entityService.findMany('api::commission-payment.commission-payment', {
       filters: { recipient_type: 'leader', recipient: leader.user?.id, status: 'pending' },
       sort: ['createdAt:desc'],
@@ -388,7 +482,6 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       limit: 20,
     });
 
-    // Conductores referidos recientes
     const referredDrivers = await strapi.entityService.findMany('api::driver.driver', {
       filters: { membership: { referred_by_leader: leaderId } },
       populate: ['membership', 'user'],
@@ -434,6 +527,129 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
         ends_at: leader.testing_ends_at,
       } : null,
     };
+  },
+
+  /**
+   * Webhook de Mercado Pago para líder
+   */
+  async handleMercadoPagoWebhook(ctx, payload) {
+    const mpService = strapi.service('api::mercado-pago.mercado-pago');
+    const result = await mpService.handleWebhook(ctx, payload);
+
+    if (!result.ok) {
+      return result;
+    }
+
+    // Procesar según el tipo de evento validado
+    switch (result.type) {
+      case 'payment_approved':
+        // Verificar si es compra de kit
+        if (result.metadata?.purpose === 'leader_kit' || result.externalReference) {
+          await this.handleKitPaymentSuccess(result.externalReference, {
+            amount: result.amount,
+            paymentId: result.paymentId,
+            payerEmail: result.payerEmail,
+            paymentMethod: result.paymentMethod,
+            paymentType: result.paymentType,
+          });
+        }
+        return { ok: true, processed: 'payment_approved', externalReference: result.externalReference };
+
+      case 'payment_failed':
+        if (result.metadata?.purpose === 'leader_kit') {
+          await this.handleKitPaymentFailure(result.externalReference);
+        }
+        return { ok: true, processed: 'payment_failed', externalReference: result.externalReference, status: result.status };
+
+      case 'payment_pending':
+        strapi.log.info(`Pago pendiente kit líder: ${result.externalReference}, status: ${result.status}`);
+        return { ok: true, processed: 'payment_pending', externalReference: result.externalReference, status: result.status };
+
+      default:
+        strapi.log.info(`Evento MP líder no procesado: ${result.type}`);
+        return { ok: true, ignored: true };
+    }
+  },
+
+  /**
+   * Maneja pago exitoso de kit de líder
+   */
+  async handleKitPaymentSuccess(leaderId, paymentData) {
+    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
+    if (!leader) {
+      strapi.log.warn(`Líder no encontrado para kit payment: ${leaderId}`);
+      return;
+    }
+
+    if (leader.kit_purchased) {
+      strapi.log.info(`Kit ya comprado para líder: ${leaderId}`);
+      return;
+    }
+
+    const config = await this.getConfig();
+    const totalAmount = config.kitPrice + config.cardShippingFee;
+
+    // Verificar monto
+    if (Number(paymentData.amount) !== Number(totalAmount)) {
+      strapi.log.warn(`Monto de kit no coincide: esperado ${totalAmount}, recibido ${paymentData.amount}`);
+      return;
+    }
+
+    // Idempotencia
+    const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', paymentData.paymentId);
+    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
+    if (!isFirst) {
+      strapi.log.info(`Kit payment ya procesado (idempotente): leaderId=${leaderId}, paymentId=${paymentData.paymentId}`);
+      return { ok: true, duplicate: true };
+    }
+
+    // Crear envío via Skydropx
+    const shippingData = await this.createSkydropxShipment({
+      leader,
+      items: [{ description: 'Kit 5000 tarjetas QR', quantity: 1, value: config.kitPrice }],
+      shippingFee: config.cardShippingFee,
+    });
+
+    if (!shippingData) {
+      strapi.log.warn('No se pudo crear envío Skydropx para kit, pero el pago fue verificado');
+    }
+
+    const updateData = {
+      kit_purchased: true,
+      kit_purchase_date: new Date().toISOString(),
+      kit_cards_received: 5000,
+      mercado_pago_payment_id: paymentData.paymentId,
+      publishedAt: new Date().toISOString(),
+    };
+
+    await strapi.entityService.update('api::leader.leader', leaderId, {
+      data: updateData,
+    });
+
+    strapi.eventHub?.emit('leader_kit_purchased', {
+      leaderId,
+      kitPrice: config.kitPrice,
+      shippingId: shippingData?.id,
+      trackingNumber: shippingData?.tracking_number,
+      paymentId: paymentData.paymentId,
+      paymentMethod: paymentData.paymentMethod,
+      amount: paymentData.amount,
+    });
+
+    return { success: true, shipping: shippingData };
+  },
+
+  /**
+   * Maneja pago fallido de kit de líder
+   */
+  async handleKitPaymentFailure(leaderId) {
+    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
+    if (!leader) return;
+
+    strapi.eventHub?.emit('leader_kit_payment_failed', {
+      leaderId,
+      leaderStatus: leader.status,
+    });
   },
 
 }));

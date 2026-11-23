@@ -12,8 +12,74 @@
  */
 
 const { createCoreService } = require('@strapi/strapi').factories;
+const crypto = require('crypto');
 
 module.exports = createCoreService('api::driver-membership.driver-membership', ({ strapi }) => ({
+
+  /**
+   * Genera un ID de idempotencia único basado en membershipId + paymentId + timestamp
+   */
+  generateIdempotencyKey(membershipId, paymentId) {
+    const timestamp = Date.now().toString(36);
+    const hash = crypto.createHash('sha256')
+      .update(`${membershipId}:${paymentId}:${timestamp}`)
+      .digest('hex')
+      .slice(0, 16);
+    return `idem_${membershipId}_${hash}`;
+  },
+
+  /**
+   * Verifica y registra idempotencia para evitar procesamiento duplicado
+   * @returns {boolean} true si es la primera vez, false si ya se procesó
+   */
+  async checkAndRecordIdempotency(idempotencyKey, operationType) {
+    try {
+      // Intentar crear registro único (fallará si ya existe por constraint unique)
+      await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+        data: {
+          key: idempotencyKey,
+          operation_type: operationType,
+          processed_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
+      return true; // Primera vez
+    } catch (err) {
+      if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
+        strapi.log.warn(`Operación duplicada detectada: ${idempotencyKey} (${operationType})`);
+        return false; // Ya procesado
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * Valida que el recurso pertenezca al usuario autenticado
+   * @returns {Object|null} El recurso si pertenece al usuario, null si no
+   */
+  async authorizeDriverAccess(userId, driverId) {
+    const driver = await strapi.entityService.findOne('api::driver.driver', driverId, {
+      populate: ['user'],
+    });
+    if (!driver || driver.user?.id !== userId) {
+      return null;
+    }
+    return driver;
+  },
+
+  /**
+   * Valida que la membresía pertenezca al usuario autenticado
+   * @returns {Object|null} La membresía si pertenece al usuario, null si no
+   */
+  async authorizeMembershipAccess(userId, membershipId) {
+    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId, {
+      populate: ['driver.user'],
+    });
+    if (!membership || membership.driver?.user?.id !== userId) {
+      return null;
+    }
+    return membership;
+  },
 
   /**
    * Obtiene la configuración de membresía desde site-setting
@@ -60,9 +126,15 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Crea una nueva membresía para un conductor
+   * Crea una nueva membresía para un conductor (con autorización)
    */
   async createMembership(driverId, userId, { plan, activationMode, isPromoEligible, promoSource, referredByLeaderId, statePartnerId }) {
+    // Autorización: verificar que el driver pertenezca al usuario
+    const driver = await this.authorizeDriverAccess(userId, driverId);
+    if (!driver) {
+      throw new Error('No autorizado: el conductor no pertenece al usuario');
+    }
+
     const config = await this.getConfig();
     const price = this.calculatePrice(plan, isPromoEligible);
 
@@ -70,28 +142,24 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
     let currentPeriodStart, currentPeriodEnd, nextPaymentDate, freeTripsGranted = 0, physicalCardsGranted = 0;
 
     if (activationMode === 'pay_now') {
-      // Paga hoy: período empieza ahora, próxima pago en 1 mes
       currentPeriodStart = now;
       currentPeriodEnd = new Date(now);
       currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
       nextPaymentDate = new Date(currentPeriodEnd);
     } else {
-      // pay_later: período empieza en 1 mes, primera cobro en 1 mes
       currentPeriodStart = new Date(now);
       currentPeriodStart.setMonth(currentPeriodStart.getMonth() + 1);
       currentPeriodEnd = new Date(currentPeriodStart);
       currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
       nextPaymentDate = new Date(currentPeriodStart);
-      // Otorga 5 viajes gratis + 100 tarjetas QR
       freeTripsGranted = config.driverFreeTripsCount;
       physicalCardsGranted = 100;
     }
 
-    // Calcular expiración promo (si aplica)
     let promoExpiresAt = null;
     if (plan === 'promo' && isPromoEligible) {
       promoExpiresAt = new Date(now);
-      promoExpiresAt.setMonth(promoExpiresAt.getMonth() + 12); // Promo válida por 12 meses
+      promoExpiresAt.setMonth(promoExpiresAt.getMonth() + 12);
     }
 
     const membership = await strapi.entityService.create('api::driver-membership.driver-membership', {
@@ -116,12 +184,10 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       },
     });
 
-    // Si es pay_later, otorgar viajes gratis al conductor
     if (activationMode === 'pay_later' && freeTripsGranted > 0) {
       await this.grantFreeTripsToDriver(driverId, freeTripsGranted);
     }
 
-    // Emitir evento para comisiones
     strapi.eventHub?.emit('driver_membership_created', {
       membershipId: membership.id,
       driverId,
@@ -149,9 +215,17 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Procesa pago exitoso de Mercado Pago
+   * Procesa pago exitoso de Mercado Pago (con idempotencia)
    */
   async handlePaymentSuccess(membershipId, paymentData) {
+    // Generar clave de idempotencia
+    const idempotencyKey = this.generateIdempotencyKey(membershipId, paymentData.paymentId);
+    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
+    if (!isFirst) {
+      strapi.log.info(`Pago ya procesado (idempotente): membershipId=${membershipId}, paymentId=${paymentData.paymentId}`);
+      return { ok: true, duplicate: true };
+    }
+
     const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId, {
       populate: ['driver', 'referred_by_leader', 'state_partner'],
     });
@@ -173,10 +247,10 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       current_period_end: nextPeriodEnd.toISOString(),
       next_payment_date: nextPeriodEnd.toISOString(),
       failed_payments_count: 0,
+      last_processed_payment_id: paymentData.paymentId,
       publishedAt: new Date().toISOString(),
     };
 
-    // Si era pay_later y primer pago, activar membresía
     if (membership.activation_mode === 'pay_later' && membership.status === 'pending') {
       updateData.status = 'active';
     }
@@ -185,10 +259,8 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       data: updateData,
     });
 
-    // Calcular y registrar comisiones
     await this.processCommissions(membership, paymentData.amount);
 
-    // Emitir evento
     strapi.eventHub?.emit('driver_membership_payment_success', {
       membershipId,
       driverId: membership.driver?.id,
@@ -199,7 +271,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       },
     });
 
-    return updated;
+    return { ok: true, data: updated };
   },
 
   /**
@@ -208,7 +280,6 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   async processCommissions(membership, amount) {
     const config = await this.getConfig();
 
-    // Comisión para Líder Verificador (10%)
     if (membership.referred_by_leader) {
       const leaderCommission = (amount * config.leaderCommissionPct) / 100;
       await this.recordCommission({
@@ -221,7 +292,6 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       });
     }
 
-    // Comisión para Socio Estatal (5%)
     if (membership.state_partner) {
       const stateCommission = (amount * config.statePartnerCommissionPct) / 100;
       await this.recordCommission({
@@ -239,7 +309,6 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
    * Registra una comisión en la base de datos
    */
   async recordCommission({ membershipId, recipientType, recipientId, amount, percentage, concept }) {
-    // Usar entityService para crear registro en commission-payment (crear content-type si no existe)
     try {
       await strapi.entityService.create('api::commission-payment.commission-payment', {
         data: {
@@ -255,8 +324,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         },
       });
     } catch (err) {
-      // Si no existe el content-type, logear y continuar
-      strapi.log.warn('No se pudo registrar comisión (content-type commission-payment no existe):', err.message);
+      strapi.log.warn('No se pudo registrar comisión:', err.message);
     }
   },
 
@@ -294,15 +362,14 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Cancela una membresía
+   * Cancela una membresía (con autorización)
    */
-  async cancelMembership(membershipId, reason) {
-    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
+  async cancelMembership(userId, membershipId, reason) {
+    const membership = await this.authorizeMembershipAccess(userId, membershipId);
     if (!membership) {
-      throw new Error('Membresía no encontrada');
+      throw new Error('No autorizado: la membresía no pertenece al usuario');
     }
 
-    // Cancelar suscripción en Mercado Pago si existe
     if (membership.mercado_pago_preapproval_id) {
       await this.cancelMercadoPagoSubscription(membership.mercado_pago_preapproval_id);
     }
@@ -352,9 +419,12 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Obtiene la membresía activa de un conductor
+   * Obtiene la membresía activa de un conductor (con autorización)
    */
-  async getActiveMembership(driverId) {
+  async getActiveMembership(userId, driverId) {
+    const driver = await this.authorizeDriverAccess(userId, driverId);
+    if (!driver) return null;
+
     const memberships = await strapi.entityService.findMany('api::driver-membership.driver-membership', {
       filters: {
         driver: driverId,
@@ -368,28 +438,25 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Verifica si un conductor tiene membresía activa
+   * Verifica si un conductor tiene membresía activa (con autorización)
    */
-  async hasActiveMembership(driverId) {
-    const membership = await this.getActiveMembership(driverId);
+  async hasActiveMembership(userId, driverId) {
+    const membership = await this.getActiveMembership(userId, driverId);
     return membership && ['active', 'pending'].includes(membership.status);
   },
 
   /**
-   * Crea preferencia de pago en Mercado Pago para membresía
+   * Crea preferencia de pago en Mercado Pago para membresía (con autorización)
    */
-  async createMercadoPagoPreference(membershipId, payerEmail, backUrl) {
+  async createMercadoPagoPreference(userId, membershipId, payerEmail, backUrl) {
+    const membership = await this.authorizeMembershipAccess(userId, membershipId);
+    if (!membership) {
+      throw new Error('No autorizado: la membresía no pertenece al usuario');
+    }
+
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken) {
       throw new Error('MERCADO_PAGO_ACCESS_TOKEN no configurado');
-    }
-
-    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId, {
-      populate: ['driver'],
-    });
-
-    if (!membership) {
-      throw new Error('Membresía no encontrada');
     }
 
     const isFirstPayment = membership.activation_mode === 'pay_now' || membership.status === 'pending';
@@ -436,20 +503,17 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Crea suscripción recurrente (preapproval) en Mercado Pago
+   * Crea suscripción recurrente (preapproval) en Mercado Pago (con autorización)
    */
-  async createMercadoPagoPreapproval(membershipId, payerEmail, cardToken) {
+  async createMercadoPagoPreapproval(userId, membershipId, payerEmail, cardToken) {
+    const membership = await this.authorizeMembershipAccess(userId, membershipId);
+    if (!membership) {
+      throw new Error('No autorizado: la membresía no pertenece al usuario');
+    }
+
     const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken) {
       throw new Error('MERCADO_PAGO_ACCESS_TOKEN no configurado');
-    }
-
-    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId, {
-      populate: ['driver'],
-    });
-
-    if (!membership) {
-      throw new Error('Membresía no encontrada');
     }
 
     const preapprovalData = {
@@ -463,7 +527,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         transaction_amount: Number(membership.price_mxn),
         currency_id: 'MXN',
         start_date: membership.next_payment_date || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 año
+        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
       },
       back_url: `${process.env.FRONTEND_URL}/membership/success`,
       notification_url: `${process.env.STRAPI_URL}/api/driver-membership/webhook/mercadopago`,
@@ -485,7 +549,6 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
 
     const preapproval = await response.json();
 
-    // Actualizar membresía con IDs de Mercado Pago
     await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
       data: {
         mercado_pago_preapproval_id: preapproval.id,
@@ -498,14 +561,108 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Webhook de Mercado Pago
-   * @param {Object} ctx - Contexto de Koa (para validación de firma)
-   * @param {Object} payload - Payload del webhook
+   * Webhook de Mercado Pago - procesa resultados y ejecuta operaciones reales
    */
   async handleMercadoPagoWebhook(ctx, payload) {
-    // Usar el servicio compartido de Mercado Pago
     const mpService = strapi.service('api::mercado-pago.mercado-pago');
-    return mpService.handleWebhook(ctx, payload);
+    const result = await mpService.handleWebhook(ctx, payload);
+
+    if (!result.ok) {
+      return result;
+    }
+
+    // Procesar según el tipo de evento validado
+    switch (result.type) {
+      case 'payment_approved':
+        await this.handlePaymentSuccess(result.externalReference, {
+          amount: result.amount,
+          paymentId: result.paymentId,
+          payerEmail: result.payerEmail,
+          paymentMethod: result.paymentMethod,
+          paymentType: result.paymentType,
+        });
+        return { ok: true, processed: 'payment_approved', externalReference: result.externalReference };
+
+      case 'payment_failed':
+        await this.handlePaymentFailure(result.externalReference);
+        return { ok: true, processed: 'payment_failed', externalReference: result.externalReference, status: result.status };
+
+      case 'payment_pending':
+        strapi.log.info(`Pago pendiente: ${result.externalReference}, status: ${result.status}`);
+        return { ok: true, processed: 'payment_pending', externalReference: result.externalReference, status: result.status };
+
+      case 'preapproval_authorized':
+        await this.handlePreapprovalAuthorized(result.externalReference, {
+          preapprovalId: result.preapprovalId,
+          payerId: result.payerId,
+          nextPaymentDate: result.nextPaymentDate,
+        });
+        return { ok: true, processed: 'preapproval_authorized', externalReference: result.externalReference };
+
+      case 'preapproval_cancelled':
+      case 'preapproval_paused':
+        await this.handlePreapprovalStatusChange(result.externalReference, result.type);
+        return { ok: true, processed: result.type, externalReference: result.externalReference };
+
+      case 'preapproval_update':
+        strapi.log.info(`Actualización de preapproval: ${result.externalReference}, status: ${result.status}`);
+        return { ok: true, processed: 'preapproval_update', externalReference: result.externalReference };
+
+      default:
+        strapi.log.info(`Evento MP no procesado: ${result.type}`);
+        return { ok: true, ignored: true };
+    }
+  },
+
+  /**
+   * Maneja preapproval autorizada (suscripción activa)
+   */
+  async handlePreapprovalAuthorized(membershipId, data) {
+    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
+    if (!membership) {
+      strapi.log.warn(`Membresía no encontrada para preapproval: ${membershipId}`);
+      return;
+    }
+
+    await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
+      data: {
+        mercado_pago_subscription_id: data.preapprovalId,
+        mercado_pago_customer_id: data.payerId,
+        publishedAt: new Date().toISOString(),
+      },
+    });
+
+    strapi.eventHub?.emit('driver_membership_preapproval_authorized', {
+      membershipId,
+      driverId: membership.driver,
+      preapprovalId: data.preapprovalId,
+      nextPaymentDate: data.nextPaymentDate,
+    });
+  },
+
+  /**
+   * Maneja cambios de estado en preapproval (cancelled, paused)
+   */
+  async handlePreapprovalStatusChange(membershipId, type) {
+    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
+    if (!membership) return;
+
+    const newStatus = type === 'preapproval_cancelled' ? 'cancelled' : 'past_due';
+
+    await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
+      data: {
+        status: newStatus,
+        cancelled_at: type === 'preapproval_cancelled' ? new Date().toISOString() : null,
+        cancellation_reason: type === 'preapproval_cancelled' ? 'Suscripción cancelada en Mercado Pago' : null,
+        publishedAt: new Date().toISOString(),
+      },
+    });
+
+    strapi.eventHub?.emit('driver_membership_preapproval_status_change', {
+      membershipId,
+      driverId: membership.driver,
+      type,
+    });
   },
 
   async handlePaymentWebhook(paymentId) {
@@ -542,7 +699,6 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
     const preapproval = await response.json();
     const membershipId = preapproval.external_reference;
 
-    // Actualizar estado de la preapproval
     const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
     if (membership) {
       await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {

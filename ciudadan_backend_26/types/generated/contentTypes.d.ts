@@ -4821,6 +4821,61 @@ export interface ApiGenerationApplicationGenerationApplication
   };
 }
 
+export interface ApiIdempotencyKeyIdempotencyKey extends Schema.CollectionType {
+  collectionName: 'idempotency_keys';
+  info: {
+    singularName: 'idempotency-key';
+    pluralName: 'idempotency-keys';
+    displayName: 'Idempotency Key';
+    description: 'Claves de idempotencia para evitar procesamiento duplicado de webhooks y operaciones cr\u00EDticas';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    key: Attribute.String &
+      Attribute.Required &
+      Attribute.Unique &
+      Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    operation_type: Attribute.Enumeration<
+      [
+        'payment_success',
+        'payment_failure',
+        'preapproval_update',
+        'leader_commission',
+        'leader_kit_purchase',
+        'state_partner_entry_fee',
+        'state_partner_commission',
+        'driver_membership_payment'
+      ]
+    > &
+      Attribute.Required;
+    processed_at: Attribute.DateTime & Attribute.Required;
+    reference_id: Attribute.String &
+      Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    metadata: Attribute.JSON;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::idempotency-key.idempotency-key',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::idempotency-key.idempotency-key',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiInvitacionInvitacion extends Schema.CollectionType {
   collectionName: 'invitaciones';
   info: {
@@ -8224,6 +8279,7 @@ declare module '@strapi/types' {
       'api::free-trip-entitlement.free-trip-entitlement': ApiFreeTripEntitlementFreeTripEntitlement;
       'api::gen-wallet.gen-wallet': ApiGenWalletGenWallet;
       'api::generation-application.generation-application': ApiGenerationApplicationGenerationApplication;
+      'api::idempotency-key.idempotency-key': ApiIdempotencyKeyIdempotencyKey;
       'api::invitacion.invitacion': ApiInvitacionInvitacion;
       'api::kitjardinero.kitjardinero': ApiKitjardineroKitjardinero;
       'api::laborys-payment.laborys-payment': ApiLaborysPaymentLaborysPayment;

@@ -129,11 +129,13 @@ module.exports = createCoreController('api::mercado-pago.mercado-pago', ({ strap
   /**
    * POST /api/mercado-pago/webhook
    * Webhook genérico de Mercado Pago
+   * Valida firma HMAC según docs oficiales (data.id, x-request-id, ts)
    */
   async webhook(ctx) {
     try {
       const service = strapi.service('api::mercado-pago.mercado-pago');
-      const result = await service.handleWebhook(ctx.request.body);
+      // Pasar ctx (para headers) y body (para data.id en manifest)
+      const result = await service.handleWebhook(ctx, ctx.request.body);
       ctx.body = result;
     } catch (err) {
       strapi.log.error('Error en webhook MP:', err);
