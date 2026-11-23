@@ -9,37 +9,37 @@ module.exports = {
   routes: [
     {
       method: 'POST',
-      path: '/driver-membership/create',
+      path: '/create',
       handler: 'api::driver-membership.driver-membership.create',
       config: { policies: ['global::is-authenticated-auth0'] },
     },
     {
       method: 'GET',
-      path: '/driver-membership/me',
+      path: '/me',
       handler: 'api::driver-membership.driver-membership.me',
       config: { policies: ['global::is-authenticated-auth0'] },
     },
     {
       method: 'POST',
-      path: '/driver-membership/preference',
+      path: '/preference',
       handler: 'api::driver-membership.driver-membership.createPreference',
       config: { policies: ['global::is-authenticated-auth0'] },
     },
     {
       method: 'POST',
-      path: '/driver-membership/preapproval',
+      path: '/preapproval',
       handler: 'api::driver-membership.driver-membership.createPreapproval',
       config: { policies: ['global::is-authenticated-auth0'] },
     },
     {
       method: 'POST',
-      path: '/driver-membership/cancel',
+      path: '/cancel',
       handler: 'api::driver-membership.driver-membership.cancel',
       config: { policies: ['global::is-authenticated-auth0'] },
     },
     {
       method: 'POST',
-      path: '/driver-membership/webhook/mercadopago',
+      path: '/webhook/mercadopago',
       handler: 'api::driver-membership.driver-membership.mercadopagoWebhook',
       config: { auth: false },
     },

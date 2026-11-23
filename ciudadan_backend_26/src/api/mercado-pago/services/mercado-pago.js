@@ -261,22 +261,29 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
   },
 
   /**
-   * Valida la firma del webhook de Mercado Pago
+   * Valida la firma del webhook de Mercado Pago según docs oficiales
+   * @see https://www.mercadopago.com.mx/developers/es/docs/checkout-api/additional-content/your-integrations/webhooks
    * @param {Object} ctx - Contexto de Koa con headers y body
+   * @param {Object} payload - Payload del webhook (debe contener data.id)
    * @returns {boolean} true si la firma es válida
    */
-  validateWebhookSignature(ctx) {
+  validateWebhookSignature(ctx, payload) {
     const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
     if (!secret) {
-      strapi.log.warn('MERCADO_PAGO_WEBHOOK_SECRET no configurado, saltando validación de firma');
-      return true; // Permitir si no hay secret configurado (para desarrollo)
+      // En producción, fallar cerrado si no hay secreto
+      if (process.env.NODE_ENV === 'production') {
+        strapi.log.error('MERCADO_PAGO_WEBHOOK_SECRET no configurado en producción - rechazando webhook');
+        return false;
+      }
+      strapi.log.warn('MERCADO_PAGO_WEBHOOK_SECRET no configurado, saltando validación de firma (desarrollo)');
+      return true;
     }
 
     const signature = ctx.request.header['x-signature'];
     const requestId = ctx.request.header['x-request-id'];
 
     if (!signature || !requestId) {
-      strapi.log.warn('Webhook MP sin headers de firma');
+      strapi.log.warn('Webhook MP sin headers de firma (x-signature, x-request-id)');
       return false;
     }
 
@@ -291,19 +298,27 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
     }
 
     if (!ts || !v1) {
-      strapi.log.warn('Formato de firma MP inválido');
+      strapi.log.warn('Formato de firma MP inválido (falta ts o v1)');
       return false;
     }
 
     // Verificar que el timestamp no sea muy antiguo (5 min)
     const now = Math.floor(Date.now() / 1000);
-    if (Math.abs(now - parseInt(ts)) > 300) {
-      strapi.log.warn('Timestamp de webhook MP fuera de rango');
+    const tsInt = parseInt(ts, 10);
+    if (isNaN(tsInt) || Math.abs(now - tsInt) > 300) {
+      strapi.log.warn('Timestamp de webhook MP fuera de rango o inválido', { now, ts: tsInt, diff: Math.abs(now - tsInt) });
       return false;
     }
 
-    // Construir manifest para verificar
-    const manifest = `id:${requestId};request-id:${requestId};ts:${ts};`;
+    // Obtener data.id del payload (requerido por MP docs)
+    const dataId = payload?.data?.id;
+    if (!dataId) {
+      strapi.log.warn('Webhook MP sin data.id en payload');
+      return false;
+    }
+
+    // Construir manifest según docs oficiales: id:{data.id};request-id:{x-request-id};ts:{ts};
+    const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
     const crypto = require('crypto');
     const expectedHash = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
 
@@ -313,7 +328,7 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
 
     if (providedHash.length !== expectedHashBuf.length ||
         !crypto.timingSafeEqual(providedHash, expectedHashBuf)) {
-      strapi.log.warn('Firma de webhook MP inválida');
+      strapi.log.warn('Firma de webhook MP inválida', { dataId, requestId, ts });
       return false;
     }
 
@@ -323,16 +338,21 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
   /**
    * Procesa webhook de Mercado Pago con validación de firma
    * @param {Object} ctx - Contexto de Koa
-   * @param {Object} payload - Payload del webhook
+   * @param {Object} payload - Payload del webhook (requerido para validación)
    * @returns {Object} Resultado del procesamiento
    */
   async handleWebhook(ctx, payload) {
-    // Validar firma si viene del contexto
-    if (ctx && !this.validateWebhookSignature(ctx)) {
+    // Validar firma con payload (requerido para data.id)
+    if (ctx && !this.validateWebhookSignature(ctx, payload)) {
       return { ok: false, error: 'Firma inválida' };
     }
 
     const { type, data } = payload;
+
+    if (!type || !data?.id) {
+      strapi.log.warn('Webhook MP sin type o data.id', { type, data });
+      return { ok: false, error: 'Payload inválido' };
+    }
 
     switch (type) {
       case 'payment':

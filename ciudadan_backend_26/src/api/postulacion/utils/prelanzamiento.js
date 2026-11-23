@@ -1,7 +1,8 @@
 'use strict';
 
 const ESTADOS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
-const CIERRE = Date.parse('2026-12-13T23:59:59-06:00');
+// Corte promocional exacto a las 00:00 del 14 de diciembre de 2026, hora Ciudad de México (UTC-6)
+const CIERRE = Date.parse('2026-12-14T00:00:00-06:00');
 const normalizarTelefono = value => {
   let digits = String(value || '').replace(/\D/g, '');
   if (digits.length === 13 && digits.startsWith('521')) digits = digits.slice(3);
