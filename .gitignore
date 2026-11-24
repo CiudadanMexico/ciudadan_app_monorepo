@@ -1,7 +1,3 @@
-branch_structure.json
-temp_auto_push.bat
-temp_interactive_push.bat
-
 # Node.js / npm
 node_modules/
 package-lock.json
@@ -29,7 +25,7 @@ scripts/fleet-status.env
 
 # ── Higiene del repo (2026-10-28) ──
 # Solo se ignora el lockfile de la RAÍZ del monorepo. Los lockfiles de cada
-# subproyecto SÍ se versionan: CI usa `npm ci`, que los necesita.
+# subproyecto SÍ se versionan: CI usa `npm ci`, que los necesitan.
 /package-lock.json
 # ── Higiene del repo (2026-10-28) ──────────────────────────────────────────
 # Logs de ejecución y stack dumps de herramientas (nunca se versionan)
@@ -46,12 +42,42 @@ __pycache__/
 wikiseed/*.base
 # Artefactos de build empaquetados en la raíz del monorepo
 /build_artifacts*.zip
-# Salida de comandos suelta en la raíz (p. ej. `git log > main`)
+# Salida de comandos suelta en la raíz del monorepo (p. ej. `git log > main`)
 /main
 # Salidas de terminal volcadas a archivo en la raíz (netstat, avisos)
 /puertos.txt
 /anuncio.txt
 # Nota .md huérfana en la raíz de wikiseed (0 B, solo la referencia Obsidian).
-# Los .md publicables viven en wikiseed/{main,help,faq}/ y README.md sí se versiona.
+# Los .md publicables viven en wikiseed/{main,help,faq}/ y README.md sí se versionan.
 wikiseed/Como Usar Wikilinks.md
 config.bat
+
+# Ignore random JSON and image files in root (accidental commits)
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!*.config.json
+!*.jsonc
+!city.json
+!city*.json
+!/ciudadan_backend_26/**/*.json
+!/ciudadan_frontend/**/*.json
+!/.github/**/*.json
+!/middleware/**/*.json
+
+# Ignore random image files in root
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+!/ciudadan_backend_26/**/*.png
+!/ciudadan_frontend/**/*.png
+!/ciudadan_backend_26/**/*.jpg
+!/ciudadan_frontend/**/*.jpg
+!/ciudadan_backend_26/**/*.jpeg
+!/ciudadan_frontend/**/*.jpeg
+
+# Ignore inauguracion folder
+inauguracion/
