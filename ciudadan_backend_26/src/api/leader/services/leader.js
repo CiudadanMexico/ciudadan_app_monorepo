@@ -420,64 +420,122 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Crea envío en Skydropx (fix: usar config correcto)
+   * Crea envío en Skydropx usando el servicio centralizado
+   * Incluye idempotencia para evitar envíos duplicados
    */
   async createSkydropxShipment({ leader, items, shippingFee }) {
-    const apiKey = process.env.SKYDROPX_API_KEY;
-    if (!apiKey) {
-      strapi.log.warn('SKYDROPX_API_KEY no configurado');
-      return null;
+    const config = await this.getConfig();
+    const skydropxService = strapi.service('api::skydropx.skydropx');
+
+    // Idempotencia: clave única para esta compra de kit
+    const idempotencyKey = this.generateIdempotencyKey(leader.id, 'shipment', 'kit');
+    const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_shipment');
+    if (!isFirst) {
+      strapi.log.info(`Envío Skydropx ya creado (idempotente): leaderId=${leader.id}`);
+      // Buscar el envío existente
+      const existing = await strapi.entityService.findMany('api::shipment.shipment', {
+        filters: { metadata: { leader_id: leader.id, type: 'leader_kit' } },
+        limit: 1,
+      });
+      return existing[0] || { duplicate: true };
     }
 
-    const config = await this.getConfig(); // Fix: obtener config local
-
-    const shipmentData = {
-      shipment: {
-        address: {
-          street: leader.address || 'Por confirmar',
-          number: leader.address_number || '1',
-          colony: leader.colony || 'Centro',
-          city: leader.city,
-          state: leader.state,
-          zip_code: leader.zip_code || '00000',
-          country: 'MX',
-        },
-        parcel: {
-          weight: 2,
-          length: 30,
-          width: 20,
-          height: 10,
-        },
-        contents: items.map(item => ({
-          description: item.description,
-          quantity: item.quantity,
-          value: item.value,
-        })),
-        insurance_amount: config.kitPrice + shippingFee, // Fix: usar config.kitPrice
-        reference: `leader-kit-${leader.id}-${Date.now()}`,
-      },
-    };
-
     try {
-      const response = await fetch('https://api.skydropx.com/v1/shipments', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(shipmentData),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        strapi.log.error('Error creando envío Skydropx:', text);
-        return null;
+      // Validar dirección completa
+      if (!leader.address_street || !leader.address_number || !leader.address_colony || !leader.address_zip_code) {
+        throw new Error('Dirección incompleta para envío: calle, número, colonia y código postal son requeridos');
       }
 
-      return await response.json();
+      // Construir dirección origen (tienda/almacén central - usar configuración o valores por defecto)
+      const originAddress = {
+        direccion: {
+          street: process.env.SKYDROPX_ORIGIN_STREET || 'Av. Insurgentes Sur',
+          number: process.env.SKYDROPX_ORIGIN_NUMBER || '123',
+          neighborhood: process.env.SKYDROPX_ORIGIN_COLONY || 'Roma Norte',
+          city: process.env.SKYDROPX_ORIGIN_CITY || 'Ciudad de México',
+          state: process.env.SKYDROPX_ORIGIN_STATE || 'Ciudad de México',
+          postal_code: process.env.SKYDROPX_ORIGIN_ZIP || '06700',
+        },
+        nombre: 'Ciudadan Logística',
+        company: 'Ciudadan',
+        phone: process.env.SKYDROPX_ORIGIN_PHONE || '+525512345678',
+        email: process.env.SKYDROPX_ORIGIN_EMAIL || 'logistica@ciudadan.org',
+      };
+
+      // Construir dirección destino (líder)
+      const destAddress = {
+        direccion: {
+          street: leader.address_street,
+          number: leader.address_number,
+          neighborhood: leader.address_colony,
+          city: leader.city,
+          state: leader.state,
+          postal_code: leader.address_zip_code,
+        },
+        nombre: leader.full_name,
+        company: 'Líder Verificador',
+        phone: leader.phone,
+        email: leader.email,
+        observaciones: leader.address_reference,
+      };
+
+      const addressFrom = skydropxService.normalizeShipmentAddress(originAddress);
+      const addressTo = skydropxService.normalizeShipmentAddress(destAddress);
+
+      // Construir paquetes (kit de tarjetas: 1 paquete estándar)
+      const parcels = [{
+        length: 30,
+        width: 20,
+        height: 10,
+        weight: 2,
+        declared_value: config.kitPrice + shippingFee,
+      }];
+
+      // Crear cotización primero
+      const quotationPayload = {
+        address_from: addressFrom,
+        address_to: addressTo,
+        parcels,
+      };
+
+      const quotation = await skydropxService.createQuotation(quotationPayload);
+
+      if (!quotation?.rates?.length) {
+        throw new Error('No se obtuvieron tarifas de Skydropx');
+      }
+
+      // Seleccionar la tarifa más barata (o la primera)
+      const selectedRate = quotation.rates[0];
+      const rateId = selectedRate.id;
+
+      // Crear envío
+      const shipmentPayload = {
+        rate_id: rateId,
+        unique_shipment: true,
+        auto_advance: true,
+        printing_format: 'standard',
+        include_order_detail: false,
+        address_from: addressFrom,
+        address_to: addressTo,
+        packages: parcels.map((parcel, index) => ({
+          ...parcel,
+          package_number: String(index + 1),
+        })),
+      };
+
+      const shipment = await skydropxService.createShipment(shipmentPayload);
+
+      // Marcar idempotencia como completada
+      await this.markIdempotencyCompleted(idempotencyKey, {
+        leaderId: leader.id,
+        shipmentId: shipment?.id,
+        rateId
+      });
+
+      return shipment;
     } catch (err) {
-      strapi.log.error('Error en createSkydropxShipment:', err);
-      return null;
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
+      throw err;
     }
   },
 

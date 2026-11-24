@@ -118,6 +118,30 @@
     "mercado_pago_payment_id": {
       "type": "string",
       "comment": "ID de pago en Mercado Pago"
+    },
+    "address_street": {
+      "type": "string",
+      "comment": "Calle para envío de kit"
+    },
+    "address_number": {
+      "type": "string",
+      "comment": "Número exterior"
+    },
+    "address_interior": {
+      "type": "string",
+      "comment": "Número interior (opcional)"
+    },
+    "address_colony": {
+      "type": "string",
+      "comment": "Colonia para envío de kit"
+    },
+    "address_zip_code": {
+      "type": "string",
+      "comment": "Código postal para envío de kit"
+    },
+    "address_reference": {
+      "type": "string",
+      "comment": "Referencia adicional para entrega"
     }
   }
 }
