@@ -192,9 +192,12 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
 
   /**
    * Calcula el precio de la membresía según plan y elegibilidad promo
+   * Founders: primer mes GRATIS (0), luego 12 meses a $300
    */
-  calculatePrice(plan, isPromoEligible) {
+  calculatePrice(plan, isPromoEligible, isFirstMonth = false) {
     if (plan === 'promo' && isPromoEligible) {
+      // Primer mes gratis para fundadores
+      if (isFirstMonth) return 0;
       return 300;
     }
     return 500;
@@ -202,6 +205,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
 
   /**
    * Crea una nueva membresía para un conductor (con autorización)
+   * Founders: primer mes GRATIS, luego 12 meses a $300
    */
   async createMembership(driverId, userId, { plan, activationMode, isPromoEligible, promoSource, referredByLeaderId, statePartnerId }) {
     // Autorización: verificar que el driver pertenezca al usuario
@@ -211,16 +215,20 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
     }
 
     const config = await this.getConfig();
-    const price = this.calculatePrice(plan, isPromoEligible);
 
     const now = new Date();
     let currentPeriodStart, currentPeriodEnd, nextPaymentDate, freeTripsGranted = 0, physicalCardsGranted = 0;
+    let price, promoExpiresAt = null;
+    const isFoundersPromo = plan === 'promo' && isPromoEligible;
 
     if (activationMode === 'pay_now') {
       currentPeriodStart = now;
       currentPeriodEnd = new Date(now);
       currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
       nextPaymentDate = new Date(currentPeriodEnd);
+
+      // Founders: primer mes GRATIS
+      price = this.calculatePrice(plan, isPromoEligible, true); // isFirstMonth = true
     } else {
       currentPeriodStart = new Date(now);
       currentPeriodStart.setMonth(currentPeriodStart.getMonth() + 1);
@@ -229,10 +237,13 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       nextPaymentDate = new Date(currentPeriodStart);
       freeTripsGranted = config.driverFreeTripsCount;
       physicalCardsGranted = 100;
+
+      // pay_later: el primer pago será en 1 mes, también gratis para founders
+      price = this.calculatePrice(plan, isPromoEligible, true); // isFirstMonth = true
     }
 
-    let promoExpiresAt = null;
-    if (plan === 'promo' && isPromoEligible) {
+    // Configurar expiración de promo (12 meses para founders)
+    if (isFoundersPromo) {
       promoExpiresAt = new Date(now);
       promoExpiresAt.setMonth(promoExpiresAt.getMonth() + 12);
     }
@@ -244,7 +255,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         plan,
         activation_mode: activationMode,
         status: 'pending',
-        price_mxn: price,
+        price_mxn: price, // Primer mes: 0 para founders
         currency: 'MXN',
         billing_cycle: 'monthly',
         current_period_start: currentPeriodStart?.toISOString(),
@@ -290,7 +301,93 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
+   * Valida un código QR de tarjeta física contra el registro de líderes
+   * El QR contiene: ref={referralCode}&leader={leaderId}
+   * Retorna { valid: boolean, leaderId, referralCode, leader }
+   */
+  async validateQRCard(qrData) {
+    try {
+      // Extraer referralCode y leaderId del QR
+      const url = new URL(qrData, 'http://dummy.com'); // parse query params
+      const referralCode = url.searchParams.get('ref');
+      const leaderId = url.searchParams.get('leader');
+
+      if (!referralCode || !leaderId) {
+        return { valid: false, error: 'QR inválido: faltan parámetros ref o leader' };
+      }
+
+      // Buscar líder activo con ese referral_code
+      const leaders = await strapi.entityService.findMany('api::leader.leader', {
+        filters: { referral_code: referralCode, id: leaderId, status: 'active' },
+        limit: 1,
+        populate: ['user'],
+      });
+
+      if (leaders.length === 0) {
+        return { valid: false, error: 'Líder no encontrado o inactivo' };
+      }
+
+      const leader = leaders[0];
+
+      // Verificar que el líder tiene kit comprado y tarjetas disponibles
+      if (!leader.kit_purchased) {
+        return { valid: false, error: 'El líder no ha comprado el kit de tarjetas' };
+      }
+
+      if (leader.cards_distributed >= leader.kit_cards_received) {
+        return { valid: false, error: 'El líder ha distribuido todas sus tarjetas' };
+      }
+
+      return { valid: true, leaderId: leader.id, referralCode, leader };
+    } catch (err) {
+      strapi.log.error('Error validando QR:', err);
+      return { valid: false, error: 'Error validando tarjeta QR' };
+    }
+  },
+
+  /**
+   * Otorga viaje gratis por escaneo de tarjeta QR física
+   * Valida contra registro de tarjetas emitidas
+   */
+  async grantFreeTripByQR(driverId, qrData) {
+    const validation = await this.validateQRCard(qrData);
+    if (!validation.valid) {
+      throw new Error(validation.error);
+    }
+
+    // Verificar que el conductor no tenga ya un viaje gratis pendiente
+    const driver = await strapi.entityService.findOne('api::driver.driver', driverId);
+    if (!driver) {
+      throw new Error('Conductor no encontrado');
+    }
+
+    if ((driver.free_trips || 0) > 0) {
+      throw new Error('El conductor ya tiene un viaje gratis pendiente');
+    }
+
+    // Otorgar 1 viaje gratis
+    await this.grantFreeTripsToDriver(driverId, 1);
+
+    // Incrementar contador de tarjetas distribuidas del líder
+    await strapi.entityService.update('api::leader.leader', validation.leaderId, {
+      data: {
+        cards_distributed: (validation.leader.cards_distributed || 0) + 1,
+        publishedAt: new Date().toISOString(),
+      },
+    });
+
+    strapi.eventHub?.emit('free_trip_granted_by_qr', {
+      driverId,
+      leaderId: validation.leaderId,
+      referralCode: validation.referralCode,
+    });
+
+    return { success: true, message: 'Viaje gratis otorgado por tarjeta QR' };
+  },
+
+  /**
    * Procesa pago exitoso de Mercado Pago (con idempotencia)
+   * Founders: actualiza precio a $300 para meses 2-13 después del primer pago gratis
    */
   async handlePaymentSuccess(membershipId, paymentData) {
     const idempotencyKey = this.generateIdempotencyKey(membershipId, paymentData.paymentId);
@@ -314,6 +411,8 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       const nextPeriodEnd = new Date(nextPeriodStart);
       nextPeriodEnd.setMonth(nextPeriodEnd.getMonth() + 1);
 
+      const isFoundersPromo = membership.plan === 'promo' && membership.promo_expires_at && new Date(membership.promo_expires_at) > now;
+
       const updateData = {
         status: 'active',
         last_payment_date: now.toISOString(),
@@ -325,6 +424,11 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         last_processed_payment_id: paymentData.paymentId,
         publishedAt: new Date().toISOString(),
       };
+
+      // Founders: después del primer mes gratis, siguiente precio es $300
+      if (isFoundersPromo && membership.price_mxn === 0) {
+        updateData.price_mxn = 300;
+      }
 
       if (membership.activation_mode === 'pay_later' && membership.status === 'pending') {
         updateData.status = 'active';
@@ -357,50 +461,59 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
 
   /**
    * Procesa comisiones para líder y socio estatal
-   * Idempotencia por paymentId + recipientId + concept (permite renovaciones mensuales)
+   * Idempotencia por paymentId + recipientType + recipientUserId + concept (permite renovaciones mensuales)
    */
   async processCommissions(membership, amount, paymentId) {
     const config = await this.getConfig();
 
     if (membership.referred_by_leader) {
       const leaderCommission = (amount * config.leaderCommissionPct) / 100;
-      await this.recordCommission({
-        paymentId,
-        membershipId: membership.id,
-        recipientType: 'leader',
-        recipientId: membership.referred_by_leader.id,
-        amount: leaderCommission,
-        percentage: config.leaderCommissionPct,
-        concept: 'driver_membership',
-      });
+      // Usar user ID del líder, no entity ID
+      const leaderUserId = membership.referred_by_leader.user?.id;
+      if (leaderUserId) {
+        await this.recordCommission({
+          paymentId,
+          membershipId: membership.id,
+          recipientType: 'leader',
+          recipientId: leaderUserId,
+          amount: leaderCommission,
+          percentage: config.leaderCommissionPct,
+          concept: 'driver_membership',
+        });
+      }
     }
 
     if (membership.state_partner) {
       const stateCommission = (amount * config.statePartnerCommissionPct) / 100;
-      await this.recordCommission({
-        paymentId,
-        membershipId: membership.id,
-        recipientType: 'state_partner',
-        recipientId: membership.state_partner.id,
-        amount: stateCommission,
-        percentage: config.statePartnerCommissionPct,
-        concept: 'driver_membership',
-      });
+      // Usar user ID del socio, no entity ID
+      const partnerUserId = membership.state_partner.user?.id;
+      if (partnerUserId) {
+        await this.recordCommission({
+          paymentId,
+          membershipId: membership.id,
+          recipientType: 'state_partner',
+          recipientId: partnerUserId,
+          amount: stateCommission,
+          percentage: config.statePartnerCommissionPct,
+          concept: 'driver_membership',
+        });
+      }
     }
   },
 
   /**
    * Registra una comisión en la base de datos con idempotencia
+   * Idempotencia incluye recipientType para distinguir leader vs state_partner con mismo userId
    */
   async recordCommission({ paymentId, membershipId, recipientType, recipientId, amount, percentage, concept }) {
     const idempotencyKey = this.generateIdempotencyKey(
-      `${paymentId}:${recipientId}:${concept}`,
+      `${paymentId}:${recipientType}:${recipientId}:${concept}`,
       'commission',
       ''
     );
     const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'commission');
     if (!isFirst) {
-      strapi.log.info(`Comisión ya registrada (idempotente): paymentId=${paymentId}, recipient=${recipientId}, concept=${concept}`);
+      strapi.log.info(`Comisión ya registrada (idempotente): paymentId=${paymentId}, recipientType=${recipientType}, recipient=${recipientId}, concept=${concept}`);
       return { ok: true, duplicate: true };
     }
 
@@ -419,7 +532,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
           publishedAt: new Date().toISOString(),
         },
       });
-      await this.markIdempotencyCompleted(idempotencyKey, { paymentId, recipientId, concept });
+      await this.markIdempotencyCompleted(idempotencyKey, { paymentId, recipientType, recipientId, concept });
     } catch (err) {
       await this.markIdempotencyFailed(idempotencyKey, err.message);
       strapi.log.warn('No se pudo registrar comisión:', err.message);

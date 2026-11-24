@@ -259,10 +259,13 @@ module.exports = createCoreController('api::leader.leader', ({ strapi }) => ({
         const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
         if (leader && !leader.kit_purchased) {
           const service = strapi.service('api::leader.leader');
-          await service.purchaseCardKit(leaderId, {
-            payment_id: result.paymentId,
+          // Usar método interno (sin userId) que verifica con MP antes de activar
+          await service.handleKitPaymentSuccessInternal(leaderId, {
             amount: result.amount,
-            method: 'mercado_pago',
+            paymentId: result.paymentId,
+            payerEmail: result.payerEmail,
+            paymentMethod: result.paymentMethod,
+            paymentType: result.paymentType,
           });
         }
       }

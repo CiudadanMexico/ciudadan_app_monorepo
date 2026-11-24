@@ -26,6 +26,7 @@
         "preapproval_update",
         "leader_commission",
         "leader_kit_purchase",
+        "leader_shipment",
         "state_partner_entry_fee",
         "state_partner_commission",
         "driver_membership_payment",

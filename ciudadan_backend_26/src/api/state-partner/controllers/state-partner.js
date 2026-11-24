@@ -250,7 +250,7 @@ module.exports = createCoreController('api::state-partner.state-partner', ({ str
 
   /**
    * POST /api/state-partner/entry-fee/pay
-   * Registrar pago de cuota de ingreso (llamado desde webhook MP o manual)
+   * Registrar pago de cuota de ingreso (manual - solo registra intento, activación vía webhook)
    */
   async payEntryFee(ctx) {
     const user = ctx.state.strapiUser || ctx.state.user;
@@ -275,6 +275,7 @@ module.exports = createCoreController('api::state-partner.state-partner', ({ str
 
     try {
       const service = strapi.service('api::state-partner.state-partner');
+      // Usar método con autorización de usuario (solo registra, no activa)
       const result = await service.processEntryFeePayment(user.id, partnerId, {
         amount,
         method,
@@ -304,7 +305,8 @@ module.exports = createCoreController('api::state-partner.state-partner', ({ str
         const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId);
         if (partner && partner.status === 'pending_payment') {
           const service = strapi.service('api::state-partner.state-partner');
-          await service.processEntryFeePayment(partnerId, {
+          // Usar método interno que verifica con MP antes de activar
+          await service.processEntryFeePaymentInternal(partnerId, {
             amount: result.amount,
             method: 'mercado_pago',
             payment_id: result.paymentId,

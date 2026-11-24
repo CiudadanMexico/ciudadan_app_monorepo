@@ -649,7 +649,103 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Maneja pago exitoso de kit de líder
+   * Maneja pago exitoso de kit de líder (VERSIÓN INTERNA PARA WEBHOOK - sin autorización de usuario)
+   * Verifica el pago REAL con Mercado Pago antes de confirmar compra
+   */
+  async handleKitPaymentSuccessInternal(leaderId, paymentData) {
+    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
+    if (!leader) {
+      strapi.log.warn(`Líder no encontrado para kit payment: ${leaderId}`);
+      return;
+    }
+
+    if (leader.kit_purchased) {
+      strapi.log.info(`Kit ya comprado para líder: ${leaderId}`);
+      return;
+    }
+
+    const config = await this.getConfig();
+    const totalAmount = config.kitPrice + config.cardShippingFee;
+
+    // Verificar pago REAL con Mercado Pago
+    const mpService = strapi.service('api::mercado-pago.mercado-pago');
+    const payment = await mpService.getPayment(paymentData.paymentId);
+    if (!payment) {
+      throw new Error('Pago no encontrado en Mercado Pago');
+    }
+    if (payment.status !== 'approved') {
+      throw new Error(`Pago no aprobado: ${payment.status}`);
+    }
+    if (Number(payment.transaction_amount) !== Number(totalAmount)) {
+      throw new Error(`Monto incorrecto: esperado ${totalAmount}, recibido ${payment.transaction_amount}`);
+    }
+    if (payment.external_reference !== String(leaderId)) {
+      throw new Error('Referencia externa no coincide con el líder');
+    }
+    if (payment.currency_id !== 'MXN') {
+      throw new Error('Moneda incorrecta');
+    }
+
+    // Verificar monto del webhook también
+    if (Number(paymentData.amount) !== Number(totalAmount)) {
+      strapi.log.warn(`Monto de kit no coincide: esperado ${totalAmount}, recibido ${paymentData.amount}`);
+      return;
+    }
+
+    // Idempotencia
+    const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', paymentData.paymentId);
+    const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
+    if (!isFirst) {
+      strapi.log.info(`Kit payment ya procesado (idempotente): leaderId=${leaderId}, paymentId=${paymentData.paymentId}`);
+      return { ok: true, duplicate: true };
+    }
+
+    try {
+      // Crear envío via Skydropx
+      const shippingData = await this.createSkydropxShipment({
+        leader,
+        items: [{ description: 'Kit 5000 tarjetas QR', quantity: 1, value: config.kitPrice }],
+        shippingFee: config.cardShippingFee,
+      });
+
+      if (!shippingData) {
+        strapi.log.warn('No se pudo crear envío Skydropx para kit, pero el pago fue verificado');
+      }
+
+      const updateData = {
+        kit_purchased: true,
+        kit_purchase_date: new Date().toISOString(),
+        kit_cards_received: 5000,
+        mercado_pago_payment_id: paymentData.paymentId,
+        publishedAt: new Date().toISOString(),
+      };
+
+      await strapi.entityService.update('api::leader.leader', leaderId, {
+        data: updateData,
+      });
+
+      await this.markIdempotencyCompleted(idempotencyKey, { leaderId, paymentId: paymentData.paymentId });
+
+      strapi.eventHub?.emit('leader_kit_purchased', {
+        leaderId,
+        kitPrice: config.kitPrice,
+        shippingId: shippingData?.id,
+        trackingNumber: shippingData?.tracking_number,
+        paymentId: paymentData.paymentId,
+        paymentMethod: paymentData.paymentMethod,
+        amount: paymentData.amount,
+      });
+
+      return { success: true, shipping: shippingData };
+    } catch (err) {
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
+      throw err;
+    }
+  },
+
+  /**
+   * Maneja pago exitoso de kit de líder (CON AUTORIZACIÓN DE USUARIO - para confirmación manual)
+   * Solo verifica que el pago existe, la activación real ocurre vía webhook
    */
   async handleKitPaymentSuccess(leaderId, paymentData) {
     const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);

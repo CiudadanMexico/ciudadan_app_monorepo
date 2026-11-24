@@ -220,12 +220,13 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
   },
 
   /**
-   * Procesa pago de cuota de ingreso (con autorización e idempotencia)
+   * Procesa pago de cuota de ingreso (con autorización e idempotencia) - VERSIÓN INTERNA PARA WEBHOOK
+   * Verifica el pago REAL con Mercado Pago antes de activar
    */
-  async processEntryFeePayment(userId, partnerId, paymentData) {
-    const partner = await this.authorizePartnerAccess(userId, partnerId);
+  async processEntryFeePaymentInternal(partnerId, paymentData) {
+    const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId);
     if (!partner) {
-      throw new Error('No autorizado: el socio estatal no pertenece al usuario');
+      throw new Error('Socio Estatal no encontrado');
     }
 
     if (partner.status !== 'pending_payment') {
@@ -240,27 +241,43 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
         strapi.log.info(`Pago de cuota ya procesado (idempotente): partnerId=${partnerId}, paymentId=${paymentData.payment_id}`);
         return { ok: true, duplicate: true };
       }
+    } else {
+      throw new Error('payment_id requerido para verificar la cuota de ingreso');
     }
 
     try {
-      // Verificar monto
-      if (Number(paymentData.amount) !== Number(partner.entry_fee_mxn)) {
-        throw new Error('Monto de pago no coincide con la cuota de ingreso');
+      // Verificar pago REAL con Mercado Pago
+      const mpService = strapi.service('api::mercado-pago.mercado-pago');
+      const payment = await mpService.getPayment(paymentData.payment_id);
+      if (!payment) {
+        throw new Error('Pago no encontrado en Mercado Pago');
+      }
+      if (payment.status !== 'approved') {
+        throw new Error(`Pago no aprobado: ${payment.status}`);
+      }
+      if (Number(payment.transaction_amount) !== Number(partner.entry_fee_mxn)) {
+        throw new Error(`Monto incorrecto: esperado ${partner.entry_fee_mxn}, recibido ${payment.transaction_amount}`);
+      }
+      if (payment.external_reference !== String(partnerId)) {
+        throw new Error('Referencia externa no coincide con el socio');
+      }
+      if (payment.currency_id !== 'MXN') {
+        throw new Error('Moneda incorrecta');
       }
 
       await strapi.entityService.update('api::state-partner.state-partner', partnerId, {
         data: {
           status: 'active',
           entry_fee_paid_at: new Date().toISOString(),
-          entry_fee_payment_method: paymentData.method || 'mercado_pago',
-          mercado_pago_payment_id: paymentData.payment_id || null,
+          entry_fee_payment_method: 'mercado_pago',
+          mercado_pago_payment_id: payment.id,
           activated_at: new Date().toISOString(),
           publishedAt: new Date().toISOString(),
         },
       });
 
       if (idempotencyKey) {
-        await this.markIdempotencyCompleted(idempotencyKey, { partnerId, paymentId: paymentData.payment_id });
+        await this.markIdempotencyCompleted(idempotencyKey, { partnerId, paymentId: payment.id });
       }
 
       strapi.eventHub?.emit('state_partner_activated', {
@@ -276,6 +293,37 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
       }
       throw err;
     }
+  },
+
+  /**
+   * Procesa pago de cuota de ingreso (CON AUTORIZACIÓN DE USUARIO - para confirmación manual)
+   * Solo registra el intento, la activación real ocurre vía webhook
+   */
+  async processEntryFeePayment(userId, partnerId, paymentData) {
+    const partner = await this.authorizePartnerAccess(userId, partnerId);
+    if (!partner) {
+      throw new Error('No autorizado: el socio estatal no pertenece al usuario');
+    }
+
+    if (partner.status !== 'pending_payment') {
+      throw new Error('La cuota ya fue procesada');
+    }
+
+    // Validar monto pero NO activar - eso lo hace el webhook
+    if (Number(paymentData.amount) !== Number(partner.entry_fee_mxn)) {
+      throw new Error('Monto de pago no coincide con la cuota de ingreso');
+    }
+
+    // Solo registrar que se intentó el pago
+    await strapi.entityService.update('api::state-partner.state-partner', partnerId, {
+      data: {
+        entry_fee_payment_method: paymentData.method || 'mercado_pago',
+        mercado_pago_payment_id: paymentData.payment_id || null,
+        publishedAt: new Date().toISOString(),
+      },
+    });
+
+    return { success: true, message: 'Pago registrado. La activación se completará tras la confirmación de Mercado Pago.' };
   },
 
   /**

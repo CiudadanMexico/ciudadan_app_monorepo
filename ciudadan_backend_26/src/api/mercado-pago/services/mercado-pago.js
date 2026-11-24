@@ -490,6 +490,9 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
 
   /**
    * Crea preferencia para cuota de ingreso de Socio Estatal (con MSI opcional)
+   * NOTA: MSI requiere acuerdo comercial con Mercado Pago.
+   * Verificar en dashboard MP > Configuración > Acuerdos comerciales que MSI esté habilitado.
+   * El interés lo asuelve Mercado Pago, no se muestra al cliente final.
    */
   async createStatePartnerEntryFeePreference(statePartner, payerEmail, backUrl) {
     const msiMonths = statePartner.entry_fee_msi_months || 0;
