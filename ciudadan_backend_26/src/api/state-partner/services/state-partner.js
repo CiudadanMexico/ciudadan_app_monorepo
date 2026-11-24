@@ -169,6 +169,12 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
     const config = await this.getConfig();
     const { state, entry_fee_mxn, entry_fee_msi_months, ...rest } = userData;
 
+    // Validar estados reservados (ASIGNADOS)
+    const RESERVED_STATES = ['Ciudad de México', 'Estado de México'];
+    if (RESERVED_STATES.includes(state)) {
+      throw new Error(`El estado ${state} está reservado y no está disponible para nuevos Socios Estatales`);
+    }
+
     // Validar estado disponible
     const available = await this.isStateAvailable(state);
     if (!available) {

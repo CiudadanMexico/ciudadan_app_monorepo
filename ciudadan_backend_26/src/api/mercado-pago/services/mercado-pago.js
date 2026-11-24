@@ -489,24 +489,67 @@ module.exports = createCoreService('api::mercado-pago.mercado-pago', ({ strapi }
   },
 
   /**
-   * Crea preferencia para cuota de ingreso de Socio Estatal
+   * Crea preferencia para cuota de ingreso de Socio Estatal (con MSI opcional)
    */
   async createStatePartnerEntryFeePreference(statePartner, payerEmail, backUrl) {
-    return this.createPreference({
-      externalReference: statePartner.id,
-      title: `Cuota de ingreso Socio Estatal - ${statePartner.state}`,
-      description: `Cuota de ingreso para Socio Estatal de ${statePartner.state} (${statePartner.entry_fee_msi_months > 0 ? `${statePartner.entry_fee_msi_months} MSI` : 'pago único'})`,
-      amount: statePartner.entry_fee_mxn,
-      payerEmail,
-      backUrl,
-      notificationUrl: `${process.env.STRAPI_URL}/api/state-partner/webhook/mercadopago`,
-      purpose: 'state_partner_entry',
+    const msiMonths = statePartner.entry_fee_msi_months || 0;
+
+    const preferenceData = {
+      items: [{
+        id: statePartner.id,
+        title: `Cuota de ingreso Socio Estatal - ${statePartner.state}`,
+        description: `Cuota de ingreso para Socio Estatal de ${statePartner.state} (${msiMonths > 0 ? `${msiMonths} MSI` : 'pago único'})`,
+        quantity: 1,
+        unit_price: Number(statePartner.entry_fee_mxn),
+        currency_id: 'MXN',
+      }],
+      payer: { email: payerEmail },
+      back_urls: {
+        success: `${backUrl}/state-partner/entry-fee/success`,
+        failure: `${backUrl}/state-partner/entry-fee/failure`,
+        pending: `${backUrl}/state-partner/entry-fee/pending`,
+      },
+      auto_return: 'approved',
+      external_reference: statePartner.id,
+      notification_url: `${process.env.STRAPI_URL}/api/state-partner/webhook/mercadopago`,
+      expires: true,
+      expiration_date_from: new Date().toISOString(),
+      expiration_date_to: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       metadata: {
+        purpose: 'state_partner_entry',
         statePartnerId: statePartner.id,
         state: statePartner.state,
-        msiMonths: statePartner.entry_fee_msi_months,
+        msiMonths: msiMonths,
       },
+    };
+
+    // Agregar configuración de MSI si aplica
+    if (msiMonths > 0) {
+      preferenceData.payment_methods = {
+        default_installments: msiMonths,
+        // Excluir tipos de pago que no soportan MSI (ej. ticket, atm, etc.)
+        excluded_payment_types: [
+          { id: 'ticket' },
+          { id: 'atm' },
+          { id: 'bank_transfer' },
+        ],
+        // Solo permitir tarjetas de crédito/débito para MSI
+        // installments: msiMonths, // También se puede especificar aquí
+      };
+    }
+
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(preferenceData),
     });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Error creando preferencia MP: ${text}`);
+    }
+
+    return await response.json();
   },
 
   /**
