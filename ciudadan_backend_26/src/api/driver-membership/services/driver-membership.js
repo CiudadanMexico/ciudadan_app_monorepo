@@ -30,10 +30,91 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
 
   /**
    * Verifica y registra idempotencia con estados (processing/completed/failed)
+   * Usa operación atómica a nivel de BD para evitar race conditions
    * @returns {Object} { isFirst: boolean, record: Object|null }
    */
   async checkAndRecordIdempotency(idempotencyKey, operationType) {
-    // Buscar registro existente
+    const now = new Date().toISOString();
+
+    // Intentar operación atómica: INSERT ... ON CONFLICT (key) DO UPDATE
+    // Esto es atómico en PostgreSQL y SQLite (con ON CONFLICT)
+    try {
+      // Usar query builder para upsert atómico
+      const result = await strapi.db.connection.raw(`
+        INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
+        VALUES (?, ?, 'processing', ?, ?, ?, ?)
+        ON CONFLICT (key) DO UPDATE SET
+          status = CASE
+            WHEN idempotency_keys.status = 'completed' THEN 'completed'
+            WHEN idempotency_keys.status = 'processing' THEN 'processing'
+            ELSE 'processing'
+          END,
+          error_message = CASE
+            WHEN idempotency_keys.status = 'failed' THEN NULL
+            ELSE idempotency_keys.error_message
+          END,
+          processed_at = ?,
+          updated_at = ?,
+          published_at = CASE
+            WHEN idempotency_keys.published_at IS NULL THEN ?
+            ELSE idempotency_keys.published_at
+          END
+        RETURNING *;
+      `, [idempotencyKey, operationType, now, now, now, now, now, now]);
+
+      const record = result.rows?.[0] || result[0];
+      if (!record) {
+        // Fallback: buscar el registro existente
+        const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+          filters: { key: idempotencyKey },
+          limit: 1,
+        });
+        if (existing.length > 0) {
+          const rec = existing[0];
+          if (rec.status === 'completed') {
+            return { isFirst: false, record: rec };
+          }
+          if (rec.status === 'processing') {
+            return { isFirst: false, record: rec };
+          }
+          // failed -> actualizar a processing
+          await strapi.entityService.update('api::idempotency-key.idempotency-key', rec.id, {
+            data: { status: 'processing', error_message: null, processed_at: now, publishedAt: now },
+          });
+          return { isFirst: true, record: { ...rec, status: 'processing' } };
+        }
+        throw new Error('No se pudo crear ni encontrar registro de idempotencia');
+      }
+
+      const status = record.status;
+      if (status === 'completed') {
+        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      if (status === 'processing') {
+        // Verificar si fue insertado ahora o ya existía
+        const wasInserted = record.created_at === record.updated_at;
+        if (wasInserted) {
+          return { isFirst: true, record };
+        }
+        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      // status === 'failed' -> se actualizó a processing
+      return { isFirst: true, record: { ...record, status: 'processing' } };
+    } catch (err) {
+      // Fallback al método original si falla el raw query
+      strapi.log.warn(`Fallo en idempotencia atómica, usando fallback: ${err.message}`);
+      return this.checkAndRecordIdempotencyFallback(idempotencyKey, operationType);
+    }
+  },
+
+  /**
+   * Fallback al método original de check-and-create
+   */
+  async checkAndRecordIdempotencyFallback(idempotencyKey, operationType) {
+    const now = new Date().toISOString();
+
     const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
       filters: { key: idempotencyKey },
       limit: 1,
@@ -54,28 +135,26 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         data: {
           status: 'processing',
           error_message: null,
-          processed_at: new Date().toISOString(),
-          publishedAt: new Date().toISOString(),
+          processed_at: now,
+          publishedAt: now,
         },
       });
       return { isFirst: true, record: { ...record, status: 'processing' } };
     }
 
-    // Crear nuevo registro en estado processing
     try {
       const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
         data: {
           key: idempotencyKey,
           operation_type: operationType,
           status: 'processing',
-          processed_at: new Date().toISOString(),
-          publishedAt: new Date().toISOString(),
+          processed_at: now,
+          publishedAt: now,
         },
       });
       return { isFirst: true, record };
     } catch (err) {
       if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
-        // Race condition: otro proceso lo creó
         const existing2 = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
           filters: { key: idempotencyKey },
           limit: 1,

@@ -29,9 +29,77 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
 
   /**
    * Verifica y registra idempotencia con estados (processing/completed/failed)
+   * Usa operación atómica a nivel de BD para evitar race conditions
    * @returns {Object} { isFirst: boolean, record: Object|null }
    */
   async checkAndRecordIdempotency(idempotencyKey, operationType) {
+    const now = new Date().toISOString();
+
+    try {
+      const result = await strapi.db.connection.raw(`
+        INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
+        VALUES (?, ?, 'processing', ?, ?, ?, ?)
+        ON CONFLICT (key) DO UPDATE SET
+          status = CASE
+            WHEN idempotency_keys.status = 'completed' THEN 'completed'
+            WHEN idempotency_keys.status = 'processing' THEN 'processing'
+            ELSE 'processing'
+          END,
+          error_message = CASE
+            WHEN idempotency_keys.status = 'failed' THEN NULL
+            ELSE idempotency_keys.error_message
+          END,
+          processed_at = ?,
+          updated_at = ?,
+          published_at = CASE
+            WHEN idempotency_keys.published_at IS NULL THEN ?
+            ELSE idempotency_keys.published_at
+          END
+        RETURNING *;
+      `, [idempotencyKey, operationType, now, now, now, now, now, now, now]);
+
+      const record = result.rows?.[0] || result[0];
+      if (!record) {
+        const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+          filters: { key: idempotencyKey },
+          limit: 1,
+        });
+        if (existing.length > 0) {
+          const rec = existing[0];
+          if (rec.status === 'completed') return { isFirst: false, record: rec };
+          if (rec.status === 'processing') return { isFirst: false, record: rec };
+          await strapi.entityService.update('api::idempotency-key.idempotency-key', rec.id, {
+            data: { status: 'processing', error_message: null, processed_at: now, publishedAt: now },
+          });
+          return { isFirst: true, record: { ...rec, status: 'processing' } };
+        }
+        throw new Error('No se pudo crear ni encontrar registro de idempotencia');
+      }
+
+      const status = record.status;
+      if (status === 'completed') {
+        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      if (status === 'processing') {
+        const wasInserted = record.created_at === record.updated_at;
+        if (wasInserted) return { isFirst: true, record };
+        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      return { isFirst: true, record: { ...record, status: 'processing' } };
+    } catch (err) {
+      strapi.log.warn(`Fallo en idempotencia atómica, usando fallback: ${err.message}`);
+      return this.checkAndRecordIdempotencyFallback(idempotencyKey, operationType);
+    }
+  },
+
+  /**
+   * Fallback al método original de check-and-create
+   */
+  async checkAndRecordIdempotencyFallback(idempotencyKey, operationType) {
+    const now = new Date().toISOString();
+
     const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
       filters: { key: idempotencyKey },
       limit: 1,
@@ -48,25 +116,14 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
         return { isFirst: false, record };
       }
       await strapi.entityService.update('api::idempotency-key.idempotency-key', record.id, {
-        data: {
-          status: 'processing',
-          error_message: null,
-          processed_at: new Date().toISOString(),
-          publishedAt: new Date().toISOString(),
-        },
+        data: { status: 'processing', error_message: null, processed_at: now, publishedAt: now },
       });
       return { isFirst: true, record: { ...record, status: 'processing' } };
     }
 
     try {
       const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
-        data: {
-          key: idempotencyKey,
-          operation_type: operationType,
-          status: 'processing',
-          processed_at: new Date().toISOString(),
-          publishedAt: new Date().toISOString(),
-        },
+        data: { key: idempotencyKey, operation_type: operationType, status: 'processing', processed_at: now, publishedAt: now },
       });
       return { isFirst: true, record };
     } catch (err) {
@@ -446,38 +503,9 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
         throw new Error('Dirección incompleta para envío: calle, número, colonia y código postal son requeridos');
       }
 
-      // Construir dirección origen (tienda/almacén central - usar configuración o valores por defecto)
-      const originAddress = {
-        direccion: {
-          street: process.env.SKYDROPX_ORIGIN_STREET || 'Av. Insurgentes Sur',
-          number: process.env.SKYDROPX_ORIGIN_NUMBER || '123',
-          neighborhood: process.env.SKYDROPX_ORIGIN_COLONY || 'Roma Norte',
-          city: process.env.SKYDROPX_ORIGIN_CITY || 'Ciudad de México',
-          state: process.env.SKYDROPX_ORIGIN_STATE || 'Ciudad de México',
-          postal_code: process.env.SKYDROPX_ORIGIN_ZIP || '06700',
-        },
-        nombre: 'Ciudadan Logística',
-        company: 'Ciudadan',
-        phone: process.env.SKYDROPX_ORIGIN_PHONE || '+525512345678',
-        email: process.env.SKYDROPX_ORIGIN_EMAIL || 'logistica@ciudadan.org',
-      };
-
-      // Construir dirección destino (líder)
-      const destAddress = {
-        direccion: {
-          street: leader.address_street,
-          number: leader.address_number,
-          neighborhood: leader.address_colony,
-          city: leader.city,
-          state: leader.state,
-          postal_code: leader.address_zip_code,
-        },
-        nombre: leader.full_name,
-        company: 'Líder Verificador',
-        phone: leader.phone,
-        email: leader.email,
-        observaciones: leader.address_reference,
-      };
+      // Usar métodos helper del servicio Skydropx para direcciones
+      const originAddress = skydropxService.getOriginAddress();
+      const destAddress = skydropxService.buildLeaderDestinationAddress(leader);
 
       const addressFrom = skydropxService.normalizeShipmentAddress(originAddress);
       const addressTo = skydropxService.normalizeShipmentAddress(destAddress);
@@ -524,6 +552,33 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       };
 
       const shipment = await skydropxService.createShipment(shipmentPayload);
+
+      // Guardar envío en base de datos para tracking y idempotencia
+      try {
+        await strapi.entityService.create('api::shipment.shipment', {
+          data: {
+            leader: leader.id,
+            type: 'leader_kit',
+            skydropx_shipment_id: shipment?.id,
+            tracking_number: shipment?.tracking_number,
+            label_url: shipment?.label_url,
+            status: shipment?.status,
+            rate_id: rateId,
+            address_from: addressFrom,
+            address_to: addressTo,
+            packages: shipmentPayload.packages,
+            metadata: {
+              leader_id: leader.id,
+              type: 'leader_kit',
+              kit_price: config.kitPrice,
+              shipping_fee: config.cardShippingFee,
+            },
+            publishedAt: new Date().toISOString(),
+          },
+        });
+      } catch (saveErr) {
+        strapi.log.warn('No se pudo guardar envío en BD:', saveErr.message);
+      }
 
       // Marcar idempotencia como completada
       await this.markIdempotencyCompleted(idempotencyKey, {
