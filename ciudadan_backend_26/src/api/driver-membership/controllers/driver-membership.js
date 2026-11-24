@@ -53,7 +53,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
     }
 
     // Verificar si ya tiene membresía activa
-    const existingMembership = await strapi.service('api::driver-membership.driver-membership').getActiveMembership(driver.id);
+    const existingMembership = await strapi.service('api::driver-membership.driver-membership').getActiveMembership(user.id, driver.id);
     if (existingMembership) {
       return ctx.throw(409, 'El conductor ya tiene una membresía activa');
     }
@@ -155,7 +155,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
     }
 
     const service = strapi.service('api::driver-membership.driver-membership');
-    const membership = await service.getActiveMembership(driver.id);
+    const membership = await service.getActiveMembership(user.id, driver.id);
 
     if (!membership) {
       return ctx.body = { data: { hasMembership: false } };
@@ -202,7 +202,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
 
     try {
       const service = strapi.service('api::driver-membership.driver-membership');
-      const preference = await service.createMercadoPagoPreference(membershipId, user.email, backUrl || process.env.FRONTEND_URL);
+      const preference = await service.createMercadoPagoPreference(user.id, membershipId, user.email, backUrl || process.env.FRONTEND_URL);
 
       ctx.body = {
         data: {
@@ -238,7 +238,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
 
     try {
       const service = strapi.service('api::driver-membership.driver-membership');
-      const preapproval = await service.createMercadoPagoPreapproval(membershipId, user.email, cardToken);
+      const preapproval = await service.createMercadoPagoPreapproval(user.id, membershipId, user.email, cardToken);
 
       ctx.body = {
         data: {
@@ -280,7 +280,7 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
 
     try {
       const service = strapi.service('api::driver-membership.driver-membership');
-      await service.cancelMembership(membershipId, reason || 'Cancelada por el usuario');
+      await service.cancelMembership(user.id, membershipId, reason || 'Cancelada por el usuario');
 
       ctx.body = {
         data: {

@@ -17,39 +17,114 @@ const crypto = require('crypto');
 module.exports = createCoreService('api::driver-membership.driver-membership', ({ strapi }) => ({
 
   /**
-   * Genera un ID de idempotencia único basado en membershipId + paymentId + timestamp
+   * Genera un ID de idempotencia determinista basado en membershipId + paymentId
+   * Sin timestamp: misma transacción + operación = misma clave
    */
   generateIdempotencyKey(membershipId, paymentId) {
-    const timestamp = Date.now().toString(36);
     const hash = crypto.createHash('sha256')
-      .update(`${membershipId}:${paymentId}:${timestamp}`)
+      .update(`${membershipId}:${paymentId}`)
       .digest('hex')
       .slice(0, 16);
     return `idem_${membershipId}_${hash}`;
   },
 
   /**
-   * Verifica y registra idempotencia para evitar procesamiento duplicado
-   * @returns {boolean} true si es la primera vez, false si ya se procesó
+   * Verifica y registra idempotencia con estados (processing/completed/failed)
+   * @returns {Object} { isFirst: boolean, record: Object|null }
    */
   async checkAndRecordIdempotency(idempotencyKey, operationType) {
-    try {
-      // Intentar crear registro único (fallará si ya existe por constraint unique)
-      await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+    // Buscar registro existente
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+
+    if (existing.length > 0) {
+      const record = existing[0];
+      if (record.status === 'completed') {
+        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      if (record.status === 'processing') {
+        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      // Si está en 'failed', permitir reintento actualizando a processing
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', record.id, {
         data: {
-          key: idempotencyKey,
-          operation_type: operationType,
+          status: 'processing',
+          error_message: null,
           processed_at: new Date().toISOString(),
           publishedAt: new Date().toISOString(),
         },
       });
-      return true; // Primera vez
+      return { isFirst: true, record: { ...record, status: 'processing' } };
+    }
+
+    // Crear nuevo registro en estado processing
+    try {
+      const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+        data: {
+          key: idempotencyKey,
+          operation_type: operationType,
+          status: 'processing',
+          processed_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
+      return { isFirst: true, record };
     } catch (err) {
       if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
-        strapi.log.warn(`Operación duplicada detectada: ${idempotencyKey} (${operationType})`);
-        return false; // Ya procesado
+        // Race condition: otro proceso lo creó
+        const existing2 = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+          filters: { key: idempotencyKey },
+          limit: 1,
+        });
+        if (existing2.length > 0 && existing2[0].status === 'completed') {
+          return { isFirst: false, record: existing2[0] };
+        }
+        return { isFirst: true, record: existing2[0] };
       }
       throw err;
+    }
+  },
+
+  /**
+   * Marca una operación de idempotencia como completada
+   */
+  async markIdempotencyCompleted(idempotencyKey, metadata = {}) {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+    if (existing.length > 0) {
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', existing[0].id, {
+        data: {
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          metadata,
+          publishedAt: new Date().toISOString(),
+        },
+      });
+    }
+  },
+
+  /**
+   * Marca una operación de idempotencia como fallida
+   */
+  async markIdempotencyFailed(idempotencyKey, errorMessage) {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+    if (existing.length > 0) {
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', existing[0].id, {
+        data: {
+          status: 'failed',
+          error_message: errorMessage,
+          publishedAt: new Date().toISOString(),
+        },
+      });
     }
   },
 
@@ -168,7 +243,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         user: userId,
         plan,
         activation_mode: activationMode,
-        status: activationMode === 'pay_now' ? 'active' : 'pending',
+        status: 'pending',
         price_mxn: price,
         currency: 'MXN',
         billing_cycle: 'monthly',
@@ -218,71 +293,79 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
    * Procesa pago exitoso de Mercado Pago (con idempotencia)
    */
   async handlePaymentSuccess(membershipId, paymentData) {
-    // Generar clave de idempotencia
     const idempotencyKey = this.generateIdempotencyKey(membershipId, paymentData.paymentId);
-    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
+    const { isFirst, record } = await this.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
     if (!isFirst) {
       strapi.log.info(`Pago ya procesado (idempotente): membershipId=${membershipId}, paymentId=${paymentData.paymentId}`);
       return { ok: true, duplicate: true };
     }
 
-    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId, {
-      populate: ['driver', 'referred_by_leader', 'state_partner'],
-    });
+    try {
+      const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId, {
+        populate: ['driver', 'referred_by_leader', 'state_partner'],
+      });
 
-    if (!membership) {
-      throw new Error('Membresía no encontrada');
+      if (!membership) {
+        throw new Error('Membresía no encontrada');
+      }
+
+      const now = new Date();
+      const nextPeriodStart = new Date(membership.current_period_end);
+      const nextPeriodEnd = new Date(nextPeriodStart);
+      nextPeriodEnd.setMonth(nextPeriodEnd.getMonth() + 1);
+
+      const updateData = {
+        status: 'active',
+        last_payment_date: now.toISOString(),
+        last_payment_amount: paymentData.amount,
+        current_period_start: membership.current_period_end,
+        current_period_end: nextPeriodEnd.toISOString(),
+        next_payment_date: nextPeriodEnd.toISOString(),
+        failed_payments_count: 0,
+        last_processed_payment_id: paymentData.paymentId,
+        publishedAt: new Date().toISOString(),
+      };
+
+      if (membership.activation_mode === 'pay_later' && membership.status === 'pending') {
+        updateData.status = 'active';
+      }
+
+      const updated = await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
+        data: updateData,
+      });
+
+      await this.processCommissions(membership, paymentData.amount, paymentData.paymentId);
+
+      strapi.eventHub?.emit('driver_membership_payment_success', {
+        membershipId,
+        driverId: membership.driver?.id,
+        amount: paymentData.amount,
+        period: {
+          start: membership.current_period_end,
+          end: nextPeriodEnd.toISOString(),
+        },
+      });
+
+      await this.markIdempotencyCompleted(idempotencyKey, { membershipId, paymentId: paymentData.paymentId });
+
+      return { ok: true, data: updated };
+    } catch (err) {
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
+      throw err;
     }
-
-    const now = new Date();
-    const nextPeriodStart = new Date(membership.current_period_end);
-    const nextPeriodEnd = new Date(nextPeriodStart);
-    nextPeriodEnd.setMonth(nextPeriodEnd.getMonth() + 1);
-
-    const updateData = {
-      status: 'active',
-      last_payment_date: now.toISOString(),
-      last_payment_amount: paymentData.amount,
-      current_period_start: membership.current_period_end,
-      current_period_end: nextPeriodEnd.toISOString(),
-      next_payment_date: nextPeriodEnd.toISOString(),
-      failed_payments_count: 0,
-      last_processed_payment_id: paymentData.paymentId,
-      publishedAt: new Date().toISOString(),
-    };
-
-    if (membership.activation_mode === 'pay_later' && membership.status === 'pending') {
-      updateData.status = 'active';
-    }
-
-    const updated = await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
-      data: updateData,
-    });
-
-    await this.processCommissions(membership, paymentData.amount);
-
-    strapi.eventHub?.emit('driver_membership_payment_success', {
-      membershipId,
-      driverId: membership.driver?.id,
-      amount: paymentData.amount,
-      period: {
-        start: membership.current_period_end,
-        end: nextPeriodEnd.toISOString(),
-      },
-    });
-
-    return { ok: true, data: updated };
   },
 
   /**
    * Procesa comisiones para líder y socio estatal
+   * Idempotencia por paymentId + recipientId + concept (permite renovaciones mensuales)
    */
-  async processCommissions(membership, amount) {
+  async processCommissions(membership, amount, paymentId) {
     const config = await this.getConfig();
 
     if (membership.referred_by_leader) {
       const leaderCommission = (amount * config.leaderCommissionPct) / 100;
       await this.recordCommission({
+        paymentId,
         membershipId: membership.id,
         recipientType: 'leader',
         recipientId: membership.referred_by_leader.id,
@@ -295,6 +378,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
     if (membership.state_partner) {
       const stateCommission = (amount * config.statePartnerCommissionPct) / 100;
       await this.recordCommission({
+        paymentId,
         membershipId: membership.id,
         recipientType: 'state_partner',
         recipientId: membership.state_partner.id,
@@ -306,9 +390,20 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Registra una comisión en la base de datos
+   * Registra una comisión en la base de datos con idempotencia
    */
-  async recordCommission({ membershipId, recipientType, recipientId, amount, percentage, concept }) {
+  async recordCommission({ paymentId, membershipId, recipientType, recipientId, amount, percentage, concept }) {
+    const idempotencyKey = this.generateIdempotencyKey(
+      `${paymentId}:${recipientId}:${concept}`,
+      'commission',
+      ''
+    );
+    const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'commission');
+    if (!isFirst) {
+      strapi.log.info(`Comisión ya registrada (idempotente): paymentId=${paymentId}, recipient=${recipientId}, concept=${concept}`);
+      return { ok: true, duplicate: true };
+    }
+
     try {
       await strapi.entityService.create('api::commission-payment.commission-payment', {
         data: {
@@ -319,11 +414,14 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
           percentage,
           concept,
           status: 'pending',
+          payment_reference: paymentId,
           created_at: new Date().toISOString(),
           publishedAt: new Date().toISOString(),
         },
       });
+      await this.markIdempotencyCompleted(idempotencyKey, { paymentId, recipientId, concept });
     } catch (err) {
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
       strapi.log.warn('No se pudo registrar comisión:', err.message);
     }
   },
@@ -618,51 +716,81 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
    * Maneja preapproval autorizada (suscripción activa)
    */
   async handlePreapprovalAuthorized(membershipId, data) {
-    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
-    if (!membership) {
-      strapi.log.warn(`Membresía no encontrada para preapproval: ${membershipId}`);
-      return;
+    const idempotencyKey = this.generateIdempotencyKey(membershipId, data.preapprovalId);
+    const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'preapproval_update');
+    if (!isFirst) {
+      strapi.log.info(`Preapproval ya procesada (idempotente): membershipId=${membershipId}, preapprovalId=${data.preapprovalId}`);
+      return { ok: true, duplicate: true };
     }
 
-    await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
-      data: {
-        mercado_pago_subscription_id: data.preapprovalId,
-        mercado_pago_customer_id: data.payerId,
-        publishedAt: new Date().toISOString(),
-      },
-    });
+    try {
+      const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
+      if (!membership) {
+        strapi.log.warn(`Membresía no encontrada para preapproval: ${membershipId}`);
+        return;
+      }
 
-    strapi.eventHub?.emit('driver_membership_preapproval_authorized', {
-      membershipId,
-      driverId: membership.driver,
-      preapprovalId: data.preapprovalId,
-      nextPaymentDate: data.nextPaymentDate,
-    });
+      await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
+        data: {
+          mercado_pago_subscription_id: data.preapprovalId,
+          mercado_pago_customer_id: data.payerId,
+          publishedAt: new Date().toISOString(),
+        },
+      });
+
+      strapi.eventHub?.emit('driver_membership_preapproval_authorized', {
+        membershipId,
+        driverId: membership.driver,
+        preapprovalId: data.preapprovalId,
+        nextPaymentDate: data.nextPaymentDate,
+      });
+
+      await this.markIdempotencyCompleted(idempotencyKey, { membershipId, preapprovalId: data.preapprovalId });
+      return { ok: true };
+    } catch (err) {
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
+      throw err;
+    }
   },
 
   /**
    * Maneja cambios de estado en preapproval (cancelled, paused)
    */
   async handlePreapprovalStatusChange(membershipId, type) {
-    const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
-    if (!membership) return;
+    const idempotencyKey = this.generateIdempotencyKey(membershipId, `${type}_${Date.now()}`);
+    const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'preapproval_update');
+    if (!isFirst) {
+      strapi.log.info(`Cambio de estado preapproval ya procesado (idempotente): membershipId=${membershipId}, type=${type}`);
+      return { ok: true, duplicate: true };
+    }
 
-    const newStatus = type === 'preapproval_cancelled' ? 'cancelled' : 'past_due';
+    try {
+      const membership = await strapi.entityService.findOne('api::driver-membership.driver-membership', membershipId);
+      if (!membership) return;
 
-    await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
-      data: {
-        status: newStatus,
-        cancelled_at: type === 'preapproval_cancelled' ? new Date().toISOString() : null,
-        cancellation_reason: type === 'preapproval_cancelled' ? 'Suscripción cancelada en Mercado Pago' : null,
-        publishedAt: new Date().toISOString(),
-      },
-    });
+      const newStatus = type === 'preapproval_cancelled' ? 'cancelled' : 'past_due';
 
-    strapi.eventHub?.emit('driver_membership_preapproval_status_change', {
-      membershipId,
-      driverId: membership.driver,
-      type,
-    });
+      await strapi.entityService.update('api::driver-membership.driver-membership', membershipId, {
+        data: {
+          status: newStatus,
+          cancelled_at: type === 'preapproval_cancelled' ? new Date().toISOString() : null,
+          cancellation_reason: type === 'preapproval_cancelled' ? 'Suscripción cancelada en Mercado Pago' : null,
+          publishedAt: new Date().toISOString(),
+        },
+      });
+
+      strapi.eventHub?.emit('driver_membership_preapproval_status_change', {
+        membershipId,
+        driverId: membership.driver,
+        type,
+      });
+
+      await this.markIdempotencyCompleted(idempotencyKey, { membershipId, type });
+      return { ok: true };
+    } catch (err) {
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
+      throw err;
+    }
   },
 
   async handlePaymentWebhook(paymentId) {

@@ -28,13 +28,23 @@
         "leader_kit_purchase",
         "state_partner_entry_fee",
         "state_partner_commission",
-        "driver_membership_payment"
+        "driver_membership_payment",
+        "commission"
       ],
+      "required": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["processing", "completed", "failed"],
+      "default": "processing",
       "required": true
     },
     "processed_at": {
       "type": "datetime",
       "required": true
+    },
+    "completed_at": {
+      "type": "datetime"
     },
     "reference_id": {
       "type": "string",
@@ -42,6 +52,9 @@
     },
     "metadata": {
       "type": "json"
+    },
+    "error_message": {
+      "type": "text"
     }
   }
 }

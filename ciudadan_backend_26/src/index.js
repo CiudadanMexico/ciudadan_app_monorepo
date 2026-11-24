@@ -76,17 +76,8 @@ module.exports = {
       }
     });
 
-    // Event listener: cuando se paga una membresía, procesar comisión del líder
-    strapi.eventHub?.on('driver_membership_payment_success', async ({ membershipId, driverId, referredByLeaderId, amount, ...rest }) => {
-      if (referredByLeaderId && amount) {
-        try {
-          await strapi.service('api::leader.leader').processMembershipCommission(referredByLeaderId, membershipId, amount);
-          strapi.log.info(`[event] Comisión procesada para líder ${referredByLeaderId} por membresía ${membershipId}`);
-        } catch (err) {
-          strapi.log.error(`[event] Error procesando comisión de líder: ${err.message}`);
-        }
-      }
-    });
+    // Comisión de líder y socio estatal procesada directamente en driver-membership service (processCommissions)
+    // para evitar duplicados y asegurar idempotencia por paymentId + recipientId + concept
   },
 
   async destroy({ strapi }) {

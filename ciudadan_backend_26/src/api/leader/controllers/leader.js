@@ -88,7 +88,7 @@ module.exports = createCoreController('api::leader.leader', ({ strapi }) => ({
 
     try {
       const service = strapi.service('api::leader.leader');
-      const dashboard = await service.getDashboard(leader.id);
+      const dashboard = await service.getDashboard(user.id, leader.id);
 
       ctx.body = { data: { isLeader: true, ...dashboard } };
     } catch (err) {
@@ -195,7 +195,7 @@ module.exports = createCoreController('api::leader.leader', ({ strapi }) => ({
         return ctx.throw(400, 'Monto de pago no coincide con el precio del kit');
       }
 
-      const result = await service.purchaseCardKit(leader.id, { payment_id, amount, method });
+      const result = await service.purchaseCardKit(user.id, leader.id, { payment_id, amount, method });
 
       ctx.body = {
         data: {

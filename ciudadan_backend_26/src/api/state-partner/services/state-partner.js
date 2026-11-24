@@ -16,38 +16,104 @@ const crypto = require('crypto');
 module.exports = createCoreService('api::state-partner.state-partner', ({ strapi }) => ({
 
   /**
-   * Genera un ID de idempotencia único
+   * Genera un ID de idempotencia determinista
+   * Sin timestamp: misma transacción + operación = misma clave
    */
   generateIdempotencyKey(partnerId, operation, referenceId) {
-    const timestamp = Date.now().toString(36);
     const hash = crypto.createHash('sha256')
-      .update(`${partnerId}:${operation}:${referenceId}:${timestamp}`)
+      .update(`${partnerId}:${operation}:${referenceId}`)
       .digest('hex')
       .slice(0, 16);
     return `idem_${partnerId}_${operation}_${hash}`;
   },
 
   /**
-   * Verifica y registra idempotencia
-   * @returns {boolean} true si es la primera vez, false si ya se procesó
+   * Verifica y registra idempotencia con estados (processing/completed/failed)
+   * @returns {Object} { isFirst: boolean, record: Object|null }
    */
   async checkAndRecordIdempotency(idempotencyKey, operationType) {
-    try {
-      await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+
+    if (existing.length > 0) {
+      const record = existing[0];
+      if (record.status === 'completed') {
+        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      if (record.status === 'processing') {
+        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', record.id, {
         data: {
-          key: idempotencyKey,
-          operation_type: operationType,
+          status: 'processing',
+          error_message: null,
           processed_at: new Date().toISOString(),
           publishedAt: new Date().toISOString(),
         },
       });
-      return true;
+      return { isFirst: true, record: { ...record, status: 'processing' } };
+    }
+
+    try {
+      const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+        data: {
+          key: idempotencyKey,
+          operation_type: operationType,
+          status: 'processing',
+          processed_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
+      return { isFirst: true, record };
     } catch (err) {
       if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
-        strapi.log.warn(`Operación duplicada detectada: ${idempotencyKey} (${operationType})`);
-        return false;
+        const existing2 = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+          filters: { key: idempotencyKey },
+          limit: 1,
+        });
+        if (existing2.length > 0 && existing2[0].status === 'completed') {
+          return { isFirst: false, record: existing2[0] };
+        }
+        return { isFirst: true, record: existing2[0] };
       }
       throw err;
+    }
+  },
+
+  async markIdempotencyCompleted(idempotencyKey, metadata = {}) {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+    if (existing.length > 0) {
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', existing[0].id, {
+        data: {
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          metadata,
+          publishedAt: new Date().toISOString(),
+        },
+      });
+    }
+  },
+
+  async markIdempotencyFailed(idempotencyKey, errorMessage) {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+    if (existing.length > 0) {
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', existing[0].id, {
+        data: {
+          status: 'failed',
+          error_message: errorMessage,
+          publishedAt: new Date().toISOString(),
+        },
+      });
     }
   },
 
@@ -160,92 +226,50 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
       throw new Error('La cuota ya fue procesada');
     }
 
-    // Idempotencia por payment_id
+    let idempotencyKey = null;
     if (paymentData.payment_id) {
-      const idempotencyKey = this.generateIdempotencyKey(partnerId, 'entry_fee', paymentData.payment_id);
-      const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'state_partner_entry_fee');
+      idempotencyKey = this.generateIdempotencyKey(partnerId, 'entry_fee', paymentData.payment_id);
+      const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'state_partner_entry_fee');
       if (!isFirst) {
         strapi.log.info(`Pago de cuota ya procesado (idempotente): partnerId=${partnerId}, paymentId=${paymentData.payment_id}`);
         return { ok: true, duplicate: true };
       }
     }
 
-    // Verificar monto
-    if (Number(paymentData.amount) !== Number(partner.entry_fee_mxn)) {
-      throw new Error('Monto de pago no coincide con la cuota de ingreso');
-    }
-
-    await strapi.entityService.update('api::state-partner.state-partner', partnerId, {
-      data: {
-        status: 'active',
-        entry_fee_paid_at: new Date().toISOString(),
-        entry_fee_payment_method: paymentData.method || 'mercado_pago',
-        mercado_pago_payment_id: paymentData.payment_id || null,
-        activated_at: new Date().toISOString(),
-        publishedAt: new Date().toISOString(),
-      },
-    });
-
-    strapi.eventHub?.emit('state_partner_activated', {
-      partnerId,
-      state: partner.state,
-      entryFee: partner.entry_fee_mxn,
-    });
-
-    return { success: true, message: 'Socio Estatal activado correctamente' };
-  },
-
-  /**
-   * Procesa comisión por membresía en el estado (con idempotencia)
-   */
-  async processMembershipCommission(partnerId, membershipId, amount) {
-    // Idempotencia
-    const idempotencyKey = this.generateIdempotencyKey(partnerId, 'commission', membershipId);
-    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'state_partner_commission');
-    if (!isFirst) {
-      strapi.log.info(`Comisión ya procesada (idempotente): partnerId=${partnerId}, membershipId=${membershipId}`);
-      return { ok: true, duplicate: true };
-    }
-
-    const partner = await strapi.entityService.findOne('api::state-partner.state-partner', partnerId);
-    if (!partner || partner.status !== 'active') return;
-
-    const commission = (amount * (partner.commission_pct || 5)) / 100;
-
-    const newPending = (partner.pending_commissions || 0) + commission;
-    const newTotal = (partner.total_commissions_earned || 0) + commission;
-
-    await strapi.entityService.update('api::state-partner.state-partner', partnerId, {
-      data: {
-        pending_commissions: newPending,
-        total_commissions_earned: newTotal,
-        publishedAt: new Date().toISOString(),
-      },
-    });
-
     try {
-      await strapi.entityService.create('api::commission-payment.commission-payment', {
+      // Verificar monto
+      if (Number(paymentData.amount) !== Number(partner.entry_fee_mxn)) {
+        throw new Error('Monto de pago no coincide con la cuota de ingreso');
+      }
+
+      await strapi.entityService.update('api::state-partner.state-partner', partnerId, {
         data: {
-          membership: membershipId,
-          recipient_type: 'state_partner',
-          recipient: partner.user,
-          amount_mxn: commission,
-          percentage: partner.commission_pct,
-          concept: 'driver_membership',
-          status: 'pending',
+          status: 'active',
+          entry_fee_paid_at: new Date().toISOString(),
+          entry_fee_payment_method: paymentData.method || 'mercado_pago',
+          mercado_pago_payment_id: paymentData.payment_id || null,
+          activated_at: new Date().toISOString(),
           publishedAt: new Date().toISOString(),
         },
       });
-    } catch (err) {
-      strapi.log.warn('Error registrando comisión de socio estatal:', err.message);
-    }
 
-    strapi.eventHub?.emit('state_partner_commission_earned', {
-      partnerId,
-      membershipId,
-      commission,
-      totalEarned: newTotal,
-    });
+      if (idempotencyKey) {
+        await this.markIdempotencyCompleted(idempotencyKey, { partnerId, paymentId: paymentData.payment_id });
+      }
+
+      strapi.eventHub?.emit('state_partner_activated', {
+        partnerId,
+        state: partner.state,
+        entryFee: partner.entry_fee_mxn,
+      });
+
+      return { success: true, message: 'Socio Estatal activado correctamente' };
+    } catch (err) {
+      if (idempotencyKey) {
+        await this.markIdempotencyFailed(idempotencyKey, err.message);
+      }
+      throw err;
+    }
   },
 
   /**

@@ -96,7 +96,7 @@ module.exports = createCoreController('api::state-partner.state-partner', ({ str
 
     try {
       const service = strapi.service('api::state-partner.state-partner');
-      const dashboard = await service.getDashboard(partner.id);
+      const dashboard = await service.getDashboard(user.id, partner.id);
 
       ctx.body = { data: { isStatePartner: true, ...dashboard } };
     } catch (err) {
@@ -275,7 +275,7 @@ module.exports = createCoreController('api::state-partner.state-partner', ({ str
 
     try {
       const service = strapi.service('api::state-partner.state-partner');
-      const result = await service.processEntryFeePayment(partnerId, {
+      const result = await service.processEntryFeePayment(user.id, partnerId, {
         amount,
         method,
         payment_id,

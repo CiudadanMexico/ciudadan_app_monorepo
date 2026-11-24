@@ -16,38 +16,104 @@ const crypto = require('crypto');
 module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
 
   /**
-   * Genera un ID de idempotencia único
+   * Genera un ID de idempotencia determinista
+   * Sin timestamp: misma transacción + operación = misma clave
    */
   generateIdempotencyKey(leaderId, operation, referenceId) {
-    const timestamp = Date.now().toString(36);
     const hash = crypto.createHash('sha256')
-      .update(`${leaderId}:${operation}:${referenceId}:${timestamp}`)
+      .update(`${leaderId}:${operation}:${referenceId}`)
       .digest('hex')
       .slice(0, 16);
     return `idem_${leaderId}_${operation}_${hash}`;
   },
 
   /**
-   * Verifica y registra idempotencia
-   * @returns {boolean} true si es la primera vez, false si ya se procesó
+   * Verifica y registra idempotencia con estados (processing/completed/failed)
+   * @returns {Object} { isFirst: boolean, record: Object|null }
    */
   async checkAndRecordIdempotency(idempotencyKey, operationType) {
-    try {
-      await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+
+    if (existing.length > 0) {
+      const record = existing[0];
+      if (record.status === 'completed') {
+        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      if (record.status === 'processing') {
+        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
+        return { isFirst: false, record };
+      }
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', record.id, {
         data: {
-          key: idempotencyKey,
-          operation_type: operationType,
+          status: 'processing',
+          error_message: null,
           processed_at: new Date().toISOString(),
           publishedAt: new Date().toISOString(),
         },
       });
-      return true;
+      return { isFirst: true, record: { ...record, status: 'processing' } };
+    }
+
+    try {
+      const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
+        data: {
+          key: idempotencyKey,
+          operation_type: operationType,
+          status: 'processing',
+          processed_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        },
+      });
+      return { isFirst: true, record };
     } catch (err) {
       if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
-        strapi.log.warn(`Operación duplicada detectada: ${idempotencyKey} (${operationType})`);
-        return false;
+        const existing2 = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+          filters: { key: idempotencyKey },
+          limit: 1,
+        });
+        if (existing2.length > 0 && existing2[0].status === 'completed') {
+          return { isFirst: false, record: existing2[0] };
+        }
+        return { isFirst: true, record: existing2[0] };
       }
       throw err;
+    }
+  },
+
+  async markIdempotencyCompleted(idempotencyKey, metadata = {}) {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+    if (existing.length > 0) {
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', existing[0].id, {
+        data: {
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          metadata,
+          publishedAt: new Date().toISOString(),
+        },
+      });
+    }
+  },
+
+  async markIdempotencyFailed(idempotencyKey, errorMessage) {
+    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
+      filters: { key: idempotencyKey },
+      limit: 1,
+    });
+    if (existing.length > 0) {
+      await strapi.entityService.update('api::idempotency-key.idempotency-key', existing[0].id, {
+        data: {
+          status: 'failed',
+          error_message: errorMessage,
+          publishedAt: new Date().toISOString(),
+        },
+      });
     }
   },
 
@@ -257,60 +323,6 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
-   * Procesa comisión por membresía activada (con idempotencia)
-   */
-  async processMembershipCommission(leaderId, membershipId, amount) {
-    // Idempotencia: usar membershipId como referencia
-    const idempotencyKey = this.generateIdempotencyKey(leaderId, 'commission', membershipId);
-    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_commission');
-    if (!isFirst) {
-      strapi.log.info(`Comisión ya procesada (idempotente): leaderId=${leaderId}, membershipId=${membershipId}`);
-      return { ok: true, duplicate: true };
-    }
-
-    const config = await this.getConfig();
-    const commission = (amount * config.commissionPct) / 100;
-
-    const leader = await strapi.entityService.findOne('api::leader.leader', leaderId);
-    if (!leader) return;
-
-    const newPending = (leader.pending_commissions || 0) + commission;
-    const newTotal = (leader.total_commissions_earned || 0) + commission;
-
-    await strapi.entityService.update('api::leader.leader', leaderId, {
-      data: {
-        pending_commissions: newPending,
-        total_commissions_earned: newTotal,
-        publishedAt: new Date().toISOString(),
-      },
-    });
-
-    try {
-      await strapi.entityService.create('api::commission-payment.commission-payment', {
-        data: {
-          membership: membershipId,
-          recipient_type: 'leader',
-          recipient: leader.user,
-          amount_mxn: commission,
-          percentage: config.commissionPct,
-          concept: 'driver_membership',
-          status: 'pending',
-          publishedAt: new Date().toISOString(),
-        },
-      });
-    } catch (err) {
-      strapi.log.warn('Error registrando comisión:', err.message);
-    }
-
-    strapi.eventHub?.emit('leader_commission_earned', {
-      leaderId,
-      membershipId,
-      commission,
-      totalEarned: newTotal,
-    });
-  },
-
-  /**
    * Compra del kit de 5000 tarjetas (con autorización e idempotencia)
    * Verifica el pago con Mercado Pago antes de confirmar
    */
@@ -332,34 +344,38 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
     // Verificar pago con Mercado Pago si se proporciona payment_id
     let verifiedPayment = null;
     if (paymentData.payment_id) {
-      // Idempotencia por payment_id
       const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', paymentData.payment_id);
-      const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
+      const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
       if (!isFirst) {
         strapi.log.info(`Compra de kit ya procesada (idempotente): leaderId=${leaderId}, paymentId=${paymentData.payment_id}`);
         return { ok: true, duplicate: true };
       }
 
-      // Verificar pago real con MP
-      const mpService = strapi.service('api::mercado-pago.mercado-pago');
-      const payment = await mpService.getPayment(paymentData.payment_id);
-      if (!payment) {
-        throw new Error('Pago no encontrado en Mercado Pago');
-      }
-      if (payment.status !== 'approved') {
-        throw new Error(`Pago no aprobado: ${payment.status}`);
-      }
-      if (Number(payment.transaction_amount) !== Number(totalAmount)) {
-        throw new Error(`Monto incorrecto: esperado ${totalAmount}, recibido ${payment.transaction_amount}`);
-      }
-      if (payment.external_reference !== leaderId) {
-        throw new Error('Referencia externa no coincide con el líder');
-      }
-      if (payment.currency_id !== 'MXN') {
-        throw new Error('Moneda incorrecta');
-      }
+      try {
+        // Verificar pago real con MP
+        const mpService = strapi.service('api::mercado-pago.mercado-pago');
+        const payment = await mpService.getPayment(paymentData.payment_id);
+        if (!payment) {
+          throw new Error('Pago no encontrado en Mercado Pago');
+        }
+        if (payment.status !== 'approved') {
+          throw new Error(`Pago no aprobado: ${payment.status}`);
+        }
+        if (Number(payment.transaction_amount) !== Number(totalAmount)) {
+          throw new Error(`Monto incorrecto: esperado ${totalAmount}, recibido ${payment.transaction_amount}`);
+        }
+        if (payment.external_reference !== leaderId) {
+          throw new Error('Referencia externa no coincide con el líder');
+        }
+        if (payment.currency_id !== 'MXN') {
+          throw new Error('Moneda incorrecta');
+        }
 
-      verifiedPayment = payment;
+        verifiedPayment = payment;
+      } catch (err) {
+        await this.markIdempotencyFailed(idempotencyKey, err.message);
+        throw err;
+      }
     } else {
       throw new Error('payment_id requerido para verificar la compra del kit');
     }
@@ -386,6 +402,9 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
     await strapi.entityService.update('api::leader.leader', leaderId, {
       data: updateData,
     });
+
+    const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', verifiedPayment.id);
+    await this.markIdempotencyCompleted(idempotencyKey, { leaderId, paymentId: verifiedPayment.id });
 
     strapi.eventHub?.emit('leader_kit_purchased', {
       leaderId,
@@ -597,46 +616,53 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
 
     // Idempotencia
     const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', paymentData.paymentId);
-    const isFirst = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
+    const { isFirst } = await this.checkAndRecordIdempotency(idempotencyKey, 'leader_kit_purchase');
     if (!isFirst) {
       strapi.log.info(`Kit payment ya procesado (idempotente): leaderId=${leaderId}, paymentId=${paymentData.paymentId}`);
       return { ok: true, duplicate: true };
     }
 
-    // Crear envío via Skydropx
-    const shippingData = await this.createSkydropxShipment({
-      leader,
-      items: [{ description: 'Kit 5000 tarjetas QR', quantity: 1, value: config.kitPrice }],
-      shippingFee: config.cardShippingFee,
-    });
+    try {
+      // Crear envío via Skydropx
+      const shippingData = await this.createSkydropxShipment({
+        leader,
+        items: [{ description: 'Kit 5000 tarjetas QR', quantity: 1, value: config.kitPrice }],
+        shippingFee: config.cardShippingFee,
+      });
 
-    if (!shippingData) {
-      strapi.log.warn('No se pudo crear envío Skydropx para kit, pero el pago fue verificado');
+      if (!shippingData) {
+        strapi.log.warn('No se pudo crear envío Skydropx para kit, pero el pago fue verificado');
+      }
+
+      const updateData = {
+        kit_purchased: true,
+        kit_purchase_date: new Date().toISOString(),
+        kit_cards_received: 5000,
+        mercado_pago_payment_id: paymentData.paymentId,
+        publishedAt: new Date().toISOString(),
+      };
+
+      await strapi.entityService.update('api::leader.leader', leaderId, {
+        data: updateData,
+      });
+
+      await this.markIdempotencyCompleted(idempotencyKey, { leaderId, paymentId: paymentData.paymentId });
+
+      strapi.eventHub?.emit('leader_kit_purchased', {
+        leaderId,
+        kitPrice: config.kitPrice,
+        shippingId: shippingData?.id,
+        trackingNumber: shippingData?.tracking_number,
+        paymentId: paymentData.paymentId,
+        paymentMethod: paymentData.paymentMethod,
+        amount: paymentData.amount,
+      });
+
+      return { success: true, shipping: shippingData };
+    } catch (err) {
+      await this.markIdempotencyFailed(idempotencyKey, err.message);
+      throw err;
     }
-
-    const updateData = {
-      kit_purchased: true,
-      kit_purchase_date: new Date().toISOString(),
-      kit_cards_received: 5000,
-      mercado_pago_payment_id: paymentData.paymentId,
-      publishedAt: new Date().toISOString(),
-    };
-
-    await strapi.entityService.update('api::leader.leader', leaderId, {
-      data: updateData,
-    });
-
-    strapi.eventHub?.emit('leader_kit_purchased', {
-      leaderId,
-      kitPrice: config.kitPrice,
-      shippingId: shippingData?.id,
-      trackingNumber: shippingData?.tracking_number,
-      paymentId: paymentData.paymentId,
-      paymentMethod: paymentData.paymentMethod,
-      amount: paymentData.amount,
-    });
-
-    return { success: true, shipping: shippingData };
   },
 
   /**
