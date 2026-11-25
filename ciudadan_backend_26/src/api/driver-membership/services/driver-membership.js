@@ -60,7 +60,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, now, now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {
@@ -380,44 +380,86 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   },
 
   /**
-   * Valida un código QR de tarjeta física contra el registro de líderes
-   * El QR contiene: ref={referralCode}&leader={leaderId}
-   * Retorna { valid: boolean, leaderId, referralCode, leader }
+   * Valida un código QR de tarjeta física
+   * Soporta dos formatos:
+   * 1. Tarjeta física: card_id=UUID (valida contra qr-physical-card registry)
+   * 2. Referral líder: ref=X&leader=Y (valida contra leader.leader) - compatibilidad
+   * Retorna { valid: boolean, leaderId, cardId, leader, referralCode }
    */
   async validateQRCard(qrData) {
     try {
-      // Extraer referralCode y leaderId del QR
-      const url = new URL(qrData, 'http://dummy.com'); // parse query params
-      const referralCode = url.searchParams.get('ref');
-      const leaderId = url.searchParams.get('leader');
+      // Parsear QR (URL o card_id directo)
+      let cardId = null;
+      let referralCode = null;
+      let leaderId = null;
 
-      if (!referralCode || !leaderId) {
-        return { valid: false, error: 'QR inválido: faltan parámetros ref o leader' };
+      try {
+        const url = new URL(qrData, 'http://dummy.com');
+        cardId = url.searchParams.get('card_id') || url.searchParams.get('cardId');
+        referralCode = url.searchParams.get('ref');
+        leaderId = url.searchParams.get('leader');
+      } catch (e) {
+        // Si no es URL, asumir card_id directo
+        cardId = qrData;
       }
 
-      // Buscar líder activo con ese referral_code
-      const leaders = await strapi.entityService.findMany('api::leader.leader', {
-        filters: { referral_code: referralCode, id: leaderId, status: 'active' },
-        limit: 1,
-        populate: ['user'],
-      });
+      // Formato 1: Tarjeta física con card_id único (nuevo)
+      if (cardId) {
+        const physicalCard = await strapi.entityService.findMany('api::qr-physical-card.qr-physical-card', {
+          filters: { card_id: cardId },
+          limit: 1,
+          populate: ['leader', 'leader.user'],
+        });
 
-      if (leaders.length === 0) {
-        return { valid: false, error: 'Líder no encontrado o inactivo' };
+        if (physicalCard.length === 0) {
+          return { valid: false, error: 'Tarjeta física no registrada en el sistema' };
+        }
+
+        const card = physicalCard[0];
+
+        if (card.status !== 'issued') {
+          return { valid: false, error: `Esta tarjeta ya fue ${card.status === 'scanned' ? 'escaneada' : card.status === 'used' ? 'usada' : 'anulada'}` };
+        }
+
+        if (!card.leader || card.leader.status !== 'active') {
+          return { valid: false, error: 'El líder asociado no está activo' };
+        }
+        if (!card.leader.kit_purchased) {
+          return { valid: false, error: 'El líder no ha comprado el kit de tarjetas' };
+        }
+        if (card.leader.cards_distributed >= card.leader.kit_cards_received) {
+          return { valid: false, error: 'El líder ha distribuido todas sus tarjetas' };
+        }
+
+        return { valid: true, leaderId: card.leader.id, cardId: card.card_id, leader: card.leader, referralCode: card.leader.referral_code };
       }
 
-      const leader = leaders[0];
+      // Formato 2: Referral líder (compatibilidad - para registro de conductores)
+      if (referralCode && leaderId) {
+        const leaders = await strapi.entityService.findMany('api::leader.leader', {
+          filters: { referral_code: referralCode, id: leaderId, status: 'active' },
+          limit: 1,
+          populate: ['user'],
+        });
 
-      // Verificar que el líder tiene kit comprado y tarjetas disponibles
-      if (!leader.kit_purchased) {
-        return { valid: false, error: 'El líder no ha comprado el kit de tarjetas' };
+        if (leaders.length === 0) {
+          return { valid: false, error: 'Líder no encontrado o inactivo' };
+        }
+
+        const leader = leaders[0];
+
+        if (!leader.kit_purchased) {
+          return { valid: false, error: 'El líder no ha comprado el kit de tarjetas' };
+        }
+
+        if (leader.cards_distributed >= leader.kit_cards_received) {
+          return { valid: false, error: 'El líder ha distribuido todas sus tarjetas' };
+        }
+
+        return { valid: true, leaderId: leader.id, cardId: null, leader, referralCode };
       }
 
-      if (leader.cards_distributed >= leader.kit_cards_received) {
-        return { valid: false, error: 'El líder ha distribuido todas sus tarjetas' };
-      }
-
-      return { valid: true, leaderId: leader.id, referralCode, leader };
+      return { valid: false, error: 'QR inválido: debe contener card_id o (ref + leader)' };
     } catch (err) {
       strapi.log.error('Error validando QR:', err);
       return { valid: false, error: 'Error validando tarjeta QR' };
@@ -490,7 +532,10 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       const nextPeriodEnd = new Date(nextPeriodStart);
       nextPeriodEnd.setMonth(nextPeriodEnd.getMonth() + 1);
 
-      const isFoundersPromo = membership.plan === 'promo' && membership.promo_expires_at && new Date(membership.promo_expires_at) > now;
+      const promoExpiresAt = membership.promo_expires_at ? new Date(membership.promo_expires_at) : null;
+      const isFoundersPromo = membership.plan === 'promo' && promoExpiresAt && promoExpiresAt > now;
+      const nextPaymentDate = nextPeriodEnd;
+      const promoEnded = promoExpiresAt && nextPaymentDate > promoExpiresAt;
 
       const updateData = {
         status: 'active',
@@ -504,9 +549,21 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         publishedAt: new Date().toISOString(),
       };
 
-      // Founders: después del primer mes gratis, siguiente precio es $300
-      if (isFoundersPromo && membership.price_mxn === 0) {
-        updateData.price_mxn = 300;
+      // Founders campaign logic:
+      // - Primer mes: GRATIS (price_mxn = 0)
+      // - Meses 2-13 (12 pagos): $300 c/u
+      // - Mes 14+: $500 (precio regular)
+      if (isFoundersPromo) {
+        if (membership.price_mxn === 0) {
+          // Primer pago gratis → siguiente es $300
+          updateData.price_mxn = 300;
+        } else if (promoEnded) {
+          // Pasaron 12 meses de promo → precio regular $500
+          updateData.price_mxn = 500;
+        } else {
+          // Dentro de los 12 meses de promo → mantener $300
+          updateData.price_mxn = 300;
+        }
       }
 
       if (membership.activation_mode === 'pay_later' && membership.status === 'pending') {

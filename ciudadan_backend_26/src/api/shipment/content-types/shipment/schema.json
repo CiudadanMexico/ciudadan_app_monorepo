@@ -5,7 +5,7 @@
     "singularName": "shipment",
     "pluralName": "shipments",
     "displayName": "Shipment",
-    "description": "Envíos de Skydropx para kits de líderes y otros"
+    "description": "Envíos de Skydropx para kits de líderes, Marketplace y otros"
   },
   "options": {
     "draftAndPublish": true
@@ -17,9 +17,25 @@
       "relation": "manyToOne",
       "target": "api::leader.leader"
     },
+    "pedido": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::pedido.pedido"
+    },
+    "shipping_quote": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::shipping-quote.shipping-quote"
+    },
+    "shipment_packages": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::shipment-package.shipment-package",
+      "mappedBy": "shipment"
+    },
     "type": {
       "type": "enumeration",
-      "enum": ["leader_kit"],
+      "enum": ["leader_kit", "marketplace_order", "standard"],
       "required": true
     },
     "skydropx_shipment_id": {

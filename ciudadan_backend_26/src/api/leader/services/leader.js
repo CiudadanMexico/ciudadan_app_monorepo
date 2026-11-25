@@ -56,7 +56,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, now, now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {
@@ -380,6 +380,57 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   },
 
   /**
+   * Emite 5000 tarjetas físicas al registro al comprar kit
+   * Crea registros en qr-physical-card con card_id únicos
+   */
+  async issuePhysicalCards(leaderId, paymentId) {
+    const crypto = require('crypto');
+    const batchId = `KIT-${new Date().getFullYear()}-${String(paymentId).slice(-6)}`;
+    const cards = [];
+    const batchSize = 100; // Insertar en lotes para evitar timeout
+    const totalCards = 5000;
+
+    for (let i = 0; i < totalCards; i += batchSize) {
+      const currentBatch = [];
+      const remaining = Math.min(batchSize, totalCards - i);
+
+      for (let j = 0; j < remaining; j++) {
+        const cardId = crypto.randomBytes(12).toString('hex'); // 24 char hex
+        currentBatch.push({
+          card_id: cardId,
+          leader: leaderId,
+          kit_batch: batchId,
+          status: 'issued',
+          issued_at: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+        });
+      }
+
+      // Insertar lote
+      try {
+        await strapi.entityService.create('api::qr-physical-card.qr-physical-card', {
+          data: currentBatch,
+        });
+        cards.push(...currentBatch.map(c => c.card_id));
+      } catch (err) {
+        strapi.log.error(`Error insertando lote de tarjetas ${i}-${i + remaining}:`, err);
+        throw new Error(`Falló la emisión de tarjetas físicas en lote ${i}: ${err.message}`);
+      }
+    }
+
+    strapi.log.info(`Emitidas ${cards.length} tarjetas físicas para líder ${leaderId}, batch ${batchId}`);
+    return { count: cards.length, batchId, cardIds: cards };
+  },
+
+  /**
+   * Genera QR para tarjeta física (contiene card_id único)
+   */
+  generatePhysicalCardQR(cardId) {
+    const baseUrl = process.env.FRONTEND_URL || 'https://taxis.ciudadan.org';
+    return `${baseUrl}/scan-card?card_id=${cardId}`;
+  },
+
+  /**
    * Compra del kit de 5000 tarjetas (con autorización e idempotencia)
    * Verifica el pago con Mercado Pago antes de confirmar
    */
@@ -459,6 +510,9 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
     await strapi.entityService.update('api::leader.leader', leaderId, {
       data: updateData,
     });
+
+    // Emitir tarjetas físicas (5000) al registro
+    await this.issuePhysicalCards(leaderId, verifiedPayment.id);
 
     const idempotencyKey = this.generateIdempotencyKey(leaderId, 'kit_purchase', verifiedPayment.id);
     await this.markIdempotencyCompleted(idempotencyKey, { leaderId, paymentId: verifiedPayment.id });
@@ -779,6 +833,9 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
         data: updateData,
       });
 
+      // Emitir tarjetas físicas (5000) al registro
+      await this.issuePhysicalCards(leaderId, paymentData.paymentId);
+
       await this.markIdempotencyCompleted(idempotencyKey, { leaderId, paymentId: paymentData.paymentId });
 
       strapi.eventHub?.emit('leader_kit_purchased', {
@@ -854,6 +911,9 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       await strapi.entityService.update('api::leader.leader', leaderId, {
         data: updateData,
       });
+
+      // Emitir tarjetas físicas (5000) al registro
+      await this.issuePhysicalCards(leaderId, paymentData.paymentId);
 
       await this.markIdempotencyCompleted(idempotencyKey, { leaderId, paymentId: paymentData.paymentId });
 

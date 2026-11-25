@@ -92,7 +92,8 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
 
   /**
    * Concede un viaje gratis por escaneo de tarjeta QR física
-   * Se llama desde endpoint de escaneo QR (frontend pasajero o conductor)
+   * Valida contra el registro de tarjetas físicas emitidas (qr-physical-card)
+   * El QR debe contener: card_id (UUID único de la tarjeta)
    */
   async grantFreeTripByQR(userId, qrCode, cardId = null) {
     const config = await this.getConfig();
@@ -103,21 +104,55 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
       return { success: false, reason: 'USER_ALREADY_HAS_FREE_TRIP', message: 'El usuario ya tiene un viaje gratis pendiente o activo' };
     }
 
-    // Validar QR (formato básico: contiene ID de tarjeta)
-    if (!qrCode || typeof qrCode !== 'string') {
-      return { success: false, reason: 'INVALID_QR_CODE', message: 'Código QR inválido' };
+    // Extraer card_id del QR
+    // Formato esperado: URL con query param card_id=... o card_id directo
+    let extractedCardId = cardId;
+    if (!extractedCardId && qrCode) {
+      try {
+        const url = new URL(qrCode, 'http://dummy.com');
+        extractedCardId = url.searchParams.get('card_id') || url.searchParams.get('cardId');
+      } catch (e) {
+        // Si no es URL válida, asumir que es el card_id directo
+        extractedCardId = qrCode;
+      }
     }
 
-    // Verificar si la tarjeta ya fue usada
-    const existingCard = await strapi.entityService.findMany('api::free-trip-entitlement.free-trip-entitlement', {
-      filters: {
-        qr_card_id: cardId || qrCode,
-        estado: { $in: ['usado', 'activo', 'pendiente'] },
-      },
+    if (!extractedCardId) {
+      return { success: false, reason: 'INVALID_QR_CODE', message: 'Código QR inválido: no contiene card_id' };
+    }
+
+    // Validar contra registro de tarjetas físicas emitidas
+    const physicalCard = await strapi.entityService.findMany('api::qr-physical-card.qr-physical-card', {
+      filters: { card_id: extractedCardId },
       limit: 1,
+      populate: ['leader', 'leader.user'],
     });
-    if (existingCard.length > 0) {
-      return { success: false, reason: 'QR_CARD_ALREADY_USED', message: 'Esta tarjeta QR ya fue utilizada' };
+
+    if (physicalCard.length === 0) {
+      return { success: false, reason: 'CARD_NOT_FOUND', message: 'Tarjeta física no registrada en el sistema' };
+    }
+
+    const card = physicalCard[0];
+
+    // Verificar estado de la tarjeta
+    if (card.status !== 'issued') {
+      return { success: false, reason: 'CARD_ALREADY_USED', message: `Esta tarjeta ya fue ${card.status === 'scanned' ? 'escaneada' : card.status === 'used' ? 'usada' : 'anulada'}` };
+    }
+
+    // Verificar que el líder esté activo y tenga kit comprado
+    if (!card.leader || card.leader.status !== 'active') {
+      return { success: false, reason: 'LEADER_INACTIVE', message: 'El líder asociado no está activo' };
+    }
+    if (!card.leader.kit_purchased) {
+      return { success: false, reason: 'KIT_NOT_PURCHASED', message: 'El líder no ha comprado el kit de tarjetas' };
+    }
+    if (card.leader.cards_distributed >= card.leader.kit_cards_received) {
+      return { success: false, reason: 'CARDS_EXHAUSTED', message: 'El líder ha distribuido todas sus tarjetas' };
+    }
+
+    // Verificar si la tarjeta ya tiene un entitlement asociado
+    if (card.free_trip_entitlement) {
+      return { success: false, reason: 'CARD_ALREADY_LINKED', message: 'Esta tarjeta ya tiene un viaje gratis asociado' };
     }
 
     // Calcular expiración
@@ -131,10 +166,29 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
         fuente: 'qr',
         estado: 'pendiente',
         max_descuento_mxn: config.maxDiscountMxn,
-        qr_card_id: cardId || qrCode,
+        qr_card_id: extractedCardId,
         qr_scaneado_en: new Date().toISOString(),
         qr_expira_en: expiraEn.toISOString(),
         creado_en: new Date().toISOString(),
+        publishedAt: new Date().toISOString(),
+      },
+    });
+
+    // Actualizar tarjeta física: marcar como escaneada y vincular entitlement
+    await strapi.entityService.update('api::qr-physical-card.qr-physical-card', card.id, {
+      data: {
+        status: 'scanned',
+        scanned_at: new Date().toISOString(),
+        scanned_by_user: userId,
+        free_trip_entitlement: entitlement.id,
+        publishedAt: new Date().toISOString(),
+      },
+    });
+
+    // Incrementar contador de tarjetas distribuidas del líder
+    await strapi.entityService.update('api::leader.leader', card.leader.id, {
+      data: {
+        cards_distributed: (card.leader.cards_distributed || 0) + 1,
         publishedAt: new Date().toISOString(),
       },
     });
@@ -145,10 +199,11 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
       fuente: 'qr',
       entitlementId: entitlement.id,
       maxDiscountMxn: config.maxDiscountMxn,
-      qrCardId: cardId || qrCode,
+      qrCardId: extractedCardId,
+      leaderId: card.leader.id,
     });
 
-    return { success: true, entitlement };
+    return { success: true, entitlement, leaderId: card.leader.id };
   },
 
   /**

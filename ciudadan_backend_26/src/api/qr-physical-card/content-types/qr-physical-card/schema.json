@@ -1,0 +1,58 @@
+{
+  "kind": "collectionType",
+  "collectionName": "qr_physical_cards",
+  "info": {
+    "singularName": "qr-physical-card",
+    "pluralName": "qr-physical-cards",
+    "displayName": "QR Physical Card",
+    "description": "Registro de tarjetas físicas QR emitidas para líderes. Cada tarjeta tiene un card_id único."
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "card_id": {
+      "type": "string",
+      "unique": true,
+      "required": true,
+      "comment": "ID único de la tarjeta física (UUID o código alfanumérico)"
+    },
+    "leader": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::leader.leader",
+      "required": true
+    },
+    "kit_batch": {
+      "type": "string",
+      "comment": "Lote del kit (ej: KIT-2024-001)"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["issued", "scanned", "used", "expired", "voided"],
+      "default": "issued",
+      "required": true
+    },
+    "issued_at": {
+      "type": "datetime",
+      "required": true
+    },
+    "scanned_at": {
+      "type": "datetime"
+    },
+    "used_at": {
+      "type": "datetime"
+    },
+    "scanned_by_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "free_trip_entitlement": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::free-trip-entitlement.free-trip-entitlement"
+    }
+  }
+}

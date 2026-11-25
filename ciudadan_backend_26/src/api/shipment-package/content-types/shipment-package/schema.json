@@ -16,7 +16,7 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::shipment.shipment",
-      "inversedBy": "packages"
+      "inversedBy": "shipment_packages"
     },
     "package_number": {
       "type": "string"

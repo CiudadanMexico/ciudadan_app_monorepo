@@ -56,7 +56,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, now, now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {

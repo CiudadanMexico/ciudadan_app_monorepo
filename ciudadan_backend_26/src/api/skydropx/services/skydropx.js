@@ -12,8 +12,8 @@
 
 const { createCoreService } = require('@strapi/strapi').factories;
 
-// Importar el módulo existente de Skydropx
-const skydropxModule = require('../../../../utils/skydropx/skydropx');
+// Importar el motor Skydropx original desde utils
+const skydropxModule = require('../../../utils/skydropx/skydropx');
 
 module.exports = createCoreService('api::skydropx.skydropx', ({ strapi }) => ({
 
