@@ -5,7 +5,7 @@
  *
  * Gestiona el programa de Líderes Verificadores:
  * - 10% comisión sobre membresías de conductores referidos
- * - Kit de 5000 tarjetas físicas por $500 MXN + envío (Skydropx)
+ * - Kit de 5000 tarjetas físicas por $400 MXN + envío (Skydropx)
  * - QR personalizado para registro de conductores
  * - Período de prueba: 15 días para incorporar 10 conductores
  */
@@ -56,7 +56,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {
@@ -89,54 +89,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       }
       return { isFirst: true, record: { ...record, status: 'processing' } };
     } catch (err) {
-      strapi.log.warn(`Fallo en idempotencia atómica, usando fallback: ${err.message}`);
-      return this.checkAndRecordIdempotencyFallback(idempotencyKey, operationType);
-    }
-  },
-
-  /**
-   * Fallback al método original de check-and-create
-   */
-  async checkAndRecordIdempotencyFallback(idempotencyKey, operationType) {
-    const now = new Date().toISOString();
-
-    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
-      filters: { key: idempotencyKey },
-      limit: 1,
-    });
-
-    if (existing.length > 0) {
-      const record = existing[0];
-      if (record.status === 'completed') {
-        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
-        return { isFirst: false, record };
-      }
-      if (record.status === 'processing') {
-        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
-        return { isFirst: false, record };
-      }
-      await strapi.entityService.update('api::idempotency-key.idempotency-key', record.id, {
-        data: { status: 'processing', error_message: null, processed_at: now, publishedAt: now },
-      });
-      return { isFirst: true, record: { ...record, status: 'processing' } };
-    }
-
-    try {
-      const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
-        data: { key: idempotencyKey, operation_type: operationType, status: 'processing', processed_at: now, publishedAt: now },
-      });
-      return { isFirst: true, record };
-    } catch (err) {
-      if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
-        const existing2 = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
-          filters: { key: idempotencyKey },
-          limit: 1,
-        });
-        if (existing2.length > 0 && existing2[0].status === 'completed') {
-          return { isFirst: false, record: existing2[0] };
-        }
-        return { isFirst: true, record: existing2[0] };
-      }
+      strapi.log.error(`Error en idempotencia atómica: ${err.message}`);
       throw err;
     }
   },
@@ -208,7 +161,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
       requiredReferrals: siteSetting?.driver_verifier_required_referrals ?? 10,
       whatsappGroupUrl: siteSetting?.verifier_candidates_whatsapp_group_url || '',
       commissionPct: siteSetting?.taxi_free_trip_leader_commission_pct ?? 10,
-      kitPrice: siteSetting?.leader_card_kit_price_mxn ?? 500,
+      kitPrice: siteSetting?.leader_card_kit_price_mxn ?? 400,
       cardProductionFee: siteSetting?.taxi_card_production_fee_mxn ?? 5,
       cardShippingFee: siteSetting?.taxi_card_shipping_fee_mxn ?? 0,
     };

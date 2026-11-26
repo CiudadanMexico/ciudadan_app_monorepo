@@ -73,8 +73,8 @@
     },
     "leader_card_kit_price_mxn": {
       "type": "decimal",
-      "default": 500,
-      "comment": "Precio del kit de 5000 tarjetas físicas para Líder Verificador ($500 MXN + envío)"
+      "default": 400,
+      "comment": "Precio del kit de 5000 tarjetas físicas para Líder Verificador ($400 MXN + envío)"
     },
     "state_partner_entry_fee_min_mxn": {
       "type": "decimal",

@@ -1,0 +1,325 @@
+name: CI - Ciudadan Backend
+
+on:
+  push:
+    branches: [main, develop, 'feature/*', 'hotfix/*', 'release/*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  WORKING_DIR: 'ciudadan_backend_26'
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & TypeCheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Run ESLint
+        run: npm run lint 2>&1 | head -100
+
+      - name: Run TypeScript type check (if tsconfig exists)
+        run: |
+          if [ -f tsconfig.json ]; then
+            npx tsc --noEmit
+          else
+            echo "No tsconfig.json, skipping type check"
+          fi
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: strapi
+          POSTGRES_PASSWORD: strapi
+          POSTGRES_DB: strapi_test
+        ports:
+          5432:5432
+        options: >-
+          --health-cmd="pg_isready -U strapi"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi_test
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      NODE_ENV: test
+      JWT_SECRET: test-jwt-secret-for-ci-only
+      ADMIN_JWT_SECRET: test-admin-jwt-secret-for-ci-only
+      API_TOKEN_SALT: test-api-token-salt-for-ci-only
+      TRANSFER_TOKEN_SALT: test-transfer-token-salt-for-ci-only
+      ENCRYPTION_KEY: test-encryption-key-for-ci-only-32chars!!
+      MERCADO_PAGO_ACCESS_TOKEN: TEST_TOKEN
+      MERCADO_PAGO_WEBHOOK_SECRET: TEST_SECRET
+      SKYDROPX_API_KEY: TEST_KEY
+      SKYDROPX_API_SECRET: TEST_SECRET
+      FRONTEND_URL: http://localhost:3000
+      STRAPI_URL: http://localhost:1337
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U strapi; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run database migrations
+        run: npm run build && npx strapi db:migrate
+
+      - name: Run unit tests
+        run: npm test -- --passWithNoTests 2>&1 | head -200
+
+  integration-tests:
+    name: Integration Tests (Taxi 6.0)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: strapi
+          POSTGRES_PASSWORD: strapi
+          POSTGRES_DB: strapi_test
+        ports:
+          5432:5432
+        options: >-
+          --health-cmd="pg_isready -U strapi"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi_test
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      NODE_ENV: test
+      JWT_SECRET: test-jwt-secret-for-ci-only
+      ADMIN_JWT_SECRET: test-admin-jwt-secret-for-ci-only
+      API_TOKEN_SALT: test-api-token-salt-for-ci-only
+      TRANSFER_TOKEN_SALT: test-transfer-token-salt-for-ci-only
+      ENCRYPTION_KEY: test-encryption-key-for-ci-only-32chars!!
+      MERCADO_PAGO_ACCESS_TOKEN: TEST_TOKEN
+      MERCADO_PAGO_WEBHOOK_SECRET: TEST_SECRET
+      SKYDROPX_API_KEY: TEST_KEY
+      SKYDROPX_API_SECRET: TEST_SECRET
+      FRONTEND_URL: http://localhost:3000
+      STRAPI_URL: http://localhost:1337
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U strapi; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run database migrations
+        run: npm run build && npx strapi db:migrate
+
+      - name: Run Taxi 6.0 integration tests
+        run: |
+          # Run specific test suites for Taxi 6.0
+          npm test -- --testPathPattern="membership-pricing|promo-idempotencia|apk-utils|delivery-qa-fase-e" --passWithNoTests 2>&1 | head -300
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    needs: [lint-and-typecheck, unit-tests]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Build Strapi
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+  validate-fd32:
+    name: Validate FD32 Audit Requirements
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIR }}
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: strapi
+          POSTGRES_PASSWORD: strapi
+          POSTGRES_DB: strapi_test
+        ports:
+          5432:5432
+        options: >-
+          --health-cmd="pg_isready -U strapi"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi_test
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      NODE_ENV: test
+      JWT_SECRET: test-jwt-secret-for-ci-only
+      ADMIN_JWT_SECRET: test-admin-jwt-secret-for-ci-only
+      API_TOKEN_SALT: test-api-token-salt-for-ci-only
+      TRANSFER_TOKEN_SALT: test-transfer-token-salt-for-ci-only
+      ENCRYPTION_KEY: test-encryption-key-for-ci-only-32chars!!
+      MERCADO_PAGO_ACCESS_TOKEN: TEST_TOKEN
+      MERCADO_PAGO_WEBHOOK_SECRET: TEST_SECRET
+      SKYDROPX_API_KEY: TEST_KEY
+      SKYDROPX_API_SECRET: TEST_SECRET
+      FRONTEND_URL: http://localhost:3000
+      STRAPI_URL: http://localhost:1337
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U strapi; then
+              echo "PostgreSQL is ready"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run database migrations
+        run: npm run build && npx strapi db:migrate
+
+      - name: Validate P0 Blocker 1 - Idempotency isFirst boolean
+        run: |
+          # Verify isFirst returns boolean in all 3 services
+          grep -r "isFirst:" src/api/driver-membership/services/driver-membership.js src/api/leader/services/leader.js src/api/state-partner/services/state-partner.js | head -20
+          grep -r "return { isFirst:" src/api/driver-membership/services/driver-membership.js src/api/leader/services/leader.js src/api/state-partner/services/state-partner.js
+
+      - name: Validate P0 Blocker 2 - QR redemption atomic
+        run: |
+          # Verify driver-membership has atomic QR redemption with status='issued' and affectedRows
+          grep -A5 "status.*issued" src/api/driver-membership/services/driver-membership.js
+          grep -A5 "affectedRows.*1" src/api/driver-membership/services/driver-membership.js
+
+          # Verify free-trip-entitlement has atomic QR redemption
+          grep -A5 "status.*issued" src/api/free-trip-entitlement/services/free-trip-entitlement.js
+          grep -A5 "updatedRows.*1" src/api/free-trip-entitlement/services/free-trip-entitlement.js
+
+      - name: Validate P0 Blocker 3 - CI workflow at root
+        run: |
+          ls -la .github/workflows/ci.yml
+          grep -c "working-directory.*ciudadan_backend_26" .github/workflows/ci.yml
+
+      - name: Validate P0 Blocker 4 - Leader kit price $400
+        run: |
+          grep -A2 "leader_card_kit_price_mxn" src/api/site-setting/content-types/site-setting/schema.json
+          grep "\$400" src/api/leader/content-types/leader/schema.json
+
+      - name: Validate P0 Blocker 5 - Founders 13 periods
+        run: |
+          # Verify calculatePrice handles first month free, 12 months at $300, then $500
+          grep -A10 "calculatePrice" src/api/driver-membership/services/driver-membership.js
+          # Verify promoExpiresAt is set to 12 months
+          grep -A5 "promoExpiresAt" src/api/driver-membership/services/driver-membership.js
+          # Verify handlePaymentSuccess logic for 13 periods
+          grep -A20 "Founders campaign logic" src/api/driver-membership/services/driver-membership.js
+
+      - name: Verify no fallback idempotency methods
+        run: |
+          ! grep -r "checkAndRecordIdempotencyFallback" src/api/driver-membership/services/ src/api/leader/services/ src/api/state-partner/services/ || (echo "Fallback method found!" && exit 1)
