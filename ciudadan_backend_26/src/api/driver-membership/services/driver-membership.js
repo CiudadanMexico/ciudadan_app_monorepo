@@ -39,7 +39,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
     // Intentar operación atómica: INSERT ... ON CONFLICT (key) DO UPDATE
     // Esto es atómico en PostgreSQL y SQLite (con ON CONFLICT)
     try {
-      // Usar query builder para upsert atómico
+      // Usar query builder para upsert atómico - 10 placeholders: 7 INSERT + 3 UPDATE
       const result = await strapi.db.connection.raw(`
         INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -60,7 +60,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {
@@ -103,67 +103,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       // status === 'failed' -> se actualizó a processing
       return { isFirst: true, record: { ...record, status: 'processing' } };
     } catch (err) {
-      // Fallback al método original si falla el raw query
-      strapi.log.warn(`Fallo en idempotencia atómica, usando fallback: ${err.message}`);
-      return this.checkAndRecordIdempotencyFallback(idempotencyKey, operationType);
-    }
-  },
-
-  /**
-   * Fallback al método original de check-and-create
-   */
-  async checkAndRecordIdempotencyFallback(idempotencyKey, operationType) {
-    const now = new Date().toISOString();
-
-    const existing = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
-      filters: { key: idempotencyKey },
-      limit: 1,
-    });
-
-    if (existing.length > 0) {
-      const record = existing[0];
-      if (record.status === 'completed') {
-        strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
-        return { isFirst: false, record };
-      }
-      if (record.status === 'processing') {
-        strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
-        return { isFirst: false, record };
-      }
-      // Si está en 'failed', permitir reintento actualizando a processing
-      await strapi.entityService.update('api::idempotency-key.idempotency-key', record.id, {
-        data: {
-          status: 'processing',
-          error_message: null,
-          processed_at: now,
-          publishedAt: now,
-        },
-      });
-      return { isFirst: true, record: { ...record, status: 'processing' } };
-    }
-
-    try {
-      const record = await strapi.entityService.create('api::idempotency-key.idempotency-key', {
-        data: {
-          key: idempotencyKey,
-          operation_type: operationType,
-          status: 'processing',
-          processed_at: now,
-          publishedAt: now,
-        },
-      });
-      return { isFirst: true, record };
-    } catch (err) {
-      if (err.message?.includes('duplicate') || err.message?.includes('unique') || err.code === '23505') {
-        const existing2 = await strapi.entityService.findMany('api::idempotency-key.idempotency-key', {
-          filters: { key: idempotencyKey },
-          limit: 1,
-        });
-        if (existing2.length > 0 && existing2[0].status === 'completed') {
-          return { isFirst: false, record: existing2[0] };
-        }
-        return { isFirst: true, record: existing2[0] };
-      }
+      strapi.log.error(`Error en idempotencia atómica: ${err.message}`);
       throw err;
     }
   },
@@ -499,15 +439,21 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
         .where({ id: validation.leaderId })
         .increment('cards_distributed', 1);
 
-      // 3. Actualizar tarjeta física: marcar como escaneada
-      await trx('qr_physical_cards')
-        .where({ card_id: validation.cardId })
+      // 3. Actualizar tarjeta física: marcar como escaneada (atomic check with status='issued')
+      const now = new Date().toISOString();
+      const updatedRows = await trx('qr_physical_cards')
+        .where({ card_id: validation.cardId, status: 'issued' })
         .update({
           status: 'scanned',
-          scanned_at: new Date().toISOString(),
-          scanned_by_user: driver.user, // Asumiendo que driver tiene user
-          updated_at: new Date().toISOString(),
+          scanned_at: now,
+          scanned_by_user: driver.user,
+          updated_at: now,
         });
+
+      // Verificar que se actualizó exactamente 1 fila (evita race condition)
+      if (updatedRows !== 1) {
+        throw new Error('La tarjeta ya fue escaneada o ya no está disponible (concurrencia)');
+      }
     });
 
     strapi.eventHub?.emit('free_trip_granted_by_qr', {

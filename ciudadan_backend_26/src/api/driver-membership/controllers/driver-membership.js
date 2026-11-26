@@ -13,6 +13,7 @@
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
+const { sePuedeReclamarPromocion } = require('../../driver-membership-config/utils/precios');
 
 module.exports = createCoreController('api::driver-membership.driver-membership', ({ strapi }) => ({
 
@@ -62,6 +63,17 @@ module.exports = createCoreController('api::driver-membership.driver-membership'
     const isPromoEligible = driver.promo_eligible === true;
     if (plan === 'promo' && !isPromoEligible) {
       return ctx.throw(400, 'El conductor no es elegible para el plan promocional');
+    }
+
+    // Verificar fecha límite de la campaña promocional (Founders: 13 dic 2026)
+    if (plan === 'promo' && isPromoEligible) {
+      const config = await strapi.entityService.findOne('api::driver-membership-config.driver-membership-config', 1);
+      const promoCheck = sePuedeReclamarPromocion(config);
+      if (!promoCheck.permitido) {
+        return ctx.throw(400, promoCheck.razon === 'deadline_expired'
+          ? 'La campaña Founders ha finalizado (límite: 13 diciembre 2026)'
+          : 'La promoción no está activa');
+      }
     }
 
     // Determinar leader y state partner del conductor

@@ -182,9 +182,9 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
         .returning('id');
       entitlementId = entitlement.id;
 
-      // 2. Actualizar tarjeta física: marcar como escaneada y vincular entitlement
-      await trx('qr_physical_cards')
-        .where({ id: card.id })
+      // 2. Actualizar tarjeta física: marcar como escaneada y vincular entitlement (atomic check with status='issued')
+      const updatedRows = await trx('qr_physical_cards')
+        .where({ id: card.id, status: 'issued' })
         .update({
           status: 'scanned',
           scanned_at: now,
@@ -192,6 +192,11 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
           free_trip_entitlement: entitlementId,
           updated_at: now,
         });
+
+      // Verificar que se actualizó exactamente 1 fila (evita race condition)
+      if (updatedRows !== 1) {
+        throw new Error('La tarjeta ya fue escaneada o ya no está disponible (concurrencia)');
+      }
 
       // 3. Incrementar contador de tarjetas distribuidas del líder
       await trx('leaders')
