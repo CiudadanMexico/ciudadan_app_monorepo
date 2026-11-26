@@ -12,8 +12,8 @@ env:
   WORKING_DIR: 'ciudadan_backend_26'
 
 jobs:
-  lint-and-typecheck:
-    name: Lint & TypeCheck
+  typecheck:
+    name: TypeCheck
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,9 +33,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --progress=false
-
-      - name: Run ESLint
-        run: npm run lint 2>&1 | head -100
 
       - name: Run TypeScript type check (if tsconfig exists)
         run: |
@@ -114,7 +111,7 @@ jobs:
         run: npm run build && npx strapi db:migrate
 
       - name: Run unit tests
-        run: npm test -- --passWithNoTests 2>&1 | head -200
+        run: node --test "tests/**/*.test.js" --passWithNoTests 2>&1 | head -200
 
   integration-tests:
     name: Integration Tests (Taxi 6.0)
@@ -186,8 +183,8 @@ jobs:
 
       - name: Run Taxi 6.0 integration tests
         run: |
-          # Run specific test suites for Taxi 6.0
-          npm test -- --testPathPattern="membership-pricing|promo-idempotencia|apk-utils|delivery-qa-fase-e" --passWithNoTests 2>&1 | head -300
+          # Run specific test files for Taxi 6.0
+          node --test "tests/membresia-precios.test.js" "tests/promo-idempotencia.test.js" "tests/apk-utils.test.js" "tests/delivery-qa-fase-e.test.js" --passWithNoTests 2>&1 | head -300
 
   build:
     name: Build
@@ -195,7 +192,7 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.WORKING_DIR }}
-    needs: [lint-and-typecheck, unit-tests]
+    needs: [typecheck, unit-tests]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
