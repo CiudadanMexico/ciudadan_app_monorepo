@@ -87,7 +87,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
         strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
         return { isFirst: false, record };
       }
-      return { isFirst: true, record: { ...record, status: 'processing' } };
+      return { isFirst: 1, record: { ...record, status: 'processing' } };
     } catch (err) {
       strapi.log.error(`Error en idempotencia atómica: ${err.message}`);
       throw err;
