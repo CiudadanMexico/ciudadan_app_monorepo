@@ -30,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.2",
     "mysql": "2.18.1",
+    "node-fetch": "^2.7.0",
     "pg": "^8.16.3",
     "raw-body": "^3.0.0",
     "react": "^18.0.0",
@@ -56,7 +57,7 @@
     "uuid": "28a30c47-faa4-4e29-8c7a-127d035eea34"
   },
   "engines": {
-    "node": ">=18.0.0 <=20.x.x",
+    "node": ">=18.0.0 <=22.x.x",
     "npm": ">=6.0.0"
   },
   "license": "MIT",

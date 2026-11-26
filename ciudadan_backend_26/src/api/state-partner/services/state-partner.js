@@ -38,7 +38,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
     try {
       const result = await strapi.db.connection.raw(`
         INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
-        VALUES (?, ?, 'processing', ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (key) DO UPDATE SET
           status = CASE
             WHEN idempotency_keys.status = 'completed' THEN 'completed'
@@ -56,7 +56,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, now, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {

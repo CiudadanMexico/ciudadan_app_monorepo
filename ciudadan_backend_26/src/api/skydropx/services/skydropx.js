@@ -98,27 +98,14 @@ module.exports = createCoreService('api::skydropx.skydropx', ({ strapi }) => ({
    * Rastrea un envío por número de guía
    */
   async trackShipment(trackingNumber) {
-    // El módulo existente no tiene trackShipment, usar getShipment si tiene tracking
-    // O implementar endpoint de tracking si existe
-    const headers = await this.getHeaders();
-    const response = await fetch(`https://api.skydropx.com/v1/tracking/${trackingNumber}`, {
-      method: 'GET',
-      headers,
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Error rastreando envío Skydropx: ${text}`);
-    }
-
-    return await response.json();
+    return skydropxModule.trackShipment(trackingNumber);
   },
 
   /**
    * Cancela un envío
    */
   async cancelShipment(shipmentId) {
-    return skydropxModule.createPickup({ shipment_id: shipmentId }); // No hay cancel en el módulo, usar pickup como workaround
+    return skydropxModule.cancelShipment(shipmentId);
   },
 
   /**

@@ -42,7 +42,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       // Usar query builder para upsert atómico
       const result = await strapi.db.connection.raw(`
         INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
-        VALUES (?, ?, 'processing', ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (key) DO UPDATE SET
           status = CASE
             WHEN idempotency_keys.status = 'completed' THEN 'completed'
@@ -60,7 +60,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, now, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {
@@ -469,6 +469,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
   /**
    * Otorga viaje gratis por escaneo de tarjeta QR física
    * Valida contra registro de tarjetas emitidas
+   * Operación atómica: valida tarjeta, actualiza conductor, actualiza tarjeta, incrementa líder
    */
   async grantFreeTripByQR(driverId, qrData) {
     const validation = await this.validateQRCard(qrData);
@@ -486,15 +487,27 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       throw new Error('El conductor ya tiene un viaje gratis pendiente');
     }
 
-    // Otorgar 1 viaje gratis
-    await this.grantFreeTripsToDriver(driverId, 1);
+    // Operación atómica: actualizar conductor, tarjeta y líder en una sola transacción
+    await strapi.db.transaction(async (trx) => {
+      // 1. Otorgar 1 viaje gratis al conductor
+      await trx('drivers')
+        .where({ id: driverId })
+        .increment('free_trips', 1);
 
-    // Incrementar contador de tarjetas distribuidas del líder
-    await strapi.entityService.update('api::leader.leader', validation.leaderId, {
-      data: {
-        cards_distributed: (validation.leader.cards_distributed || 0) + 1,
-        publishedAt: new Date().toISOString(),
-      },
+      // 2. Incrementar contador de tarjetas distribuidas del líder
+      await trx('leaders')
+        .where({ id: validation.leaderId })
+        .increment('cards_distributed', 1);
+
+      // 3. Actualizar tarjeta física: marcar como escaneada
+      await trx('qr_physical_cards')
+        .where({ card_id: validation.cardId })
+        .update({
+          status: 'scanned',
+          scanned_at: new Date().toISOString(),
+          scanned_by_user: driver.user, // Asumiendo que driver tiene user
+          updated_at: new Date().toISOString(),
+        });
     });
 
     strapi.eventHub?.emit('free_trip_granted_by_qr', {

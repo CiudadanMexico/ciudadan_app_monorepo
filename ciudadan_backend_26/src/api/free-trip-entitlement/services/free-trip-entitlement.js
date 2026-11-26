@@ -94,6 +94,7 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
    * Concede un viaje gratis por escaneo de tarjeta QR física
    * Valida contra el registro de tarjetas físicas emitidas (qr-physical-card)
    * El QR debe contener: card_id (UUID único de la tarjeta)
+   * Operación atómica: valida tarjeta, crea entitlement, actualiza tarjeta e incrementa líder
    */
   async grantFreeTripByQR(userId, qrCode, cardId = null) {
     const config = await this.getConfig();
@@ -158,40 +159,47 @@ module.exports = createCoreService('api::free-trip-entitlement.free-trip-entitle
     // Calcular expiración
     const expiraEn = new Date();
     expiraEn.setDate(expiraEn.getDate() + config.qrValidityDays);
+    const now = new Date().toISOString();
 
-    // Crear el entitlement
-    const entitlement = await strapi.entityService.create('api::free-trip-entitlement.free-trip-entitlement', {
-      data: {
-        usuario: userId,
-        fuente: 'qr',
-        estado: 'pendiente',
-        max_descuento_mxn: config.maxDiscountMxn,
-        qr_card_id: extractedCardId,
-        qr_scaneado_en: new Date().toISOString(),
-        qr_expira_en: expiraEn.toISOString(),
-        creado_en: new Date().toISOString(),
-        publishedAt: new Date().toISOString(),
-      },
+    // Operación atómica: crear entitlement, actualizar tarjeta e incrementar líder
+    let entitlementId;
+    await strapi.db.transaction(async (trx) => {
+      // 1. Crear el entitlement
+      const [entitlement] = await trx('free_trip_entitlements')
+        .insert({
+          usuario: userId,
+          fuente: 'qr',
+          estado: 'pendiente',
+          max_descuento_mxn: config.maxDiscountMxn,
+          qr_card_id: extractedCardId,
+          qr_scaneado_en: now,
+          qr_expira_en: expiraEn.toISOString(),
+          creado_en: now,
+          published_at: now,
+          created_at: now,
+          updated_at: now,
+        })
+        .returning('id');
+      entitlementId = entitlement.id;
+
+      // 2. Actualizar tarjeta física: marcar como escaneada y vincular entitlement
+      await trx('qr_physical_cards')
+        .where({ id: card.id })
+        .update({
+          status: 'scanned',
+          scanned_at: now,
+          scanned_by_user: userId,
+          free_trip_entitlement: entitlementId,
+          updated_at: now,
+        });
+
+      // 3. Incrementar contador de tarjetas distribuidas del líder
+      await trx('leaders')
+        .where({ id: card.leader.id })
+        .increment('cards_distributed', 1);
     });
 
-    // Actualizar tarjeta física: marcar como escaneada y vincular entitlement
-    await strapi.entityService.update('api::qr-physical-card.qr-physical-card', card.id, {
-      data: {
-        status: 'scanned',
-        scanned_at: new Date().toISOString(),
-        scanned_by_user: userId,
-        free_trip_entitlement: entitlement.id,
-        publishedAt: new Date().toISOString(),
-      },
-    });
-
-    // Incrementar contador de tarjetas distribuidas del líder
-    await strapi.entityService.update('api::leader.leader', card.leader.id, {
-      data: {
-        cards_distributed: (card.leader.cards_distributed || 0) + 1,
-        publishedAt: new Date().toISOString(),
-      },
-    });
+    const entitlement = await strapi.entityService.findOne('api::free-trip-entitlement.free-trip-entitlement', entitlementId);
 
     // Emitir evento
     strapi.eventHub?.emit('free_trip_granted', {

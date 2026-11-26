@@ -38,7 +38,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
     try {
       const result = await strapi.db.connection.raw(`
         INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
-        VALUES (?, ?, 'processing', ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (key) DO UPDATE SET
           status = CASE
             WHEN idempotency_keys.status = 'completed' THEN 'completed'
@@ -56,7 +56,7 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
             ELSE idempotency_keys.published_at
           END
         RETURNING *;
-      `, [idempotencyKey, operationType, now, now, now, now, now, now, now, now]);
+      `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
       if (!record) {
@@ -382,41 +382,46 @@ module.exports = createCoreService('api::leader.leader', ({ strapi }) => ({
   /**
    * Emite 5000 tarjetas físicas al registro al comprar kit
    * Crea registros en qr-physical-card con card_id únicos
+   * Usa bulk insert con transacción para rendimiento y atomicidad
    */
   async issuePhysicalCards(leaderId, paymentId) {
     const crypto = require('crypto');
     const batchId = `KIT-${new Date().getFullYear()}-${String(paymentId).slice(-6)}`;
     const cards = [];
-    const batchSize = 100; // Insertar en lotes para evitar timeout
+    const batchSize = 500; // Lotes más grandes para bulk insert
     const totalCards = 5000;
+    const now = new Date().toISOString();
 
-    for (let i = 0; i < totalCards; i += batchSize) {
-      const currentBatch = [];
-      const remaining = Math.min(batchSize, totalCards - i);
+    // Usar transacción para atomicidad
+    await strapi.db.transaction(async (trx) => {
+      for (let i = 0; i < totalCards; i += batchSize) {
+        const currentBatch = [];
+        const remaining = Math.min(batchSize, totalCards - i);
 
-      for (let j = 0; j < remaining; j++) {
-        const cardId = crypto.randomBytes(12).toString('hex'); // 24 char hex
-        currentBatch.push({
-          card_id: cardId,
-          leader: leaderId,
-          kit_batch: batchId,
-          status: 'issued',
-          issued_at: new Date().toISOString(),
-          publishedAt: new Date().toISOString(),
-        });
+        for (let j = 0; j < remaining; j++) {
+          const cardId = crypto.randomBytes(12).toString('hex'); // 24 char hex
+          currentBatch.push({
+            card_id: cardId,
+            leader: leaderId,
+            kit_batch: batchId,
+            status: 'issued',
+            issued_at: now,
+            published_at: now,
+            created_at: now,
+            updated_at: now,
+          });
+          cards.push(cardId);
+        }
+
+        // Bulk insert usando query builder (knex) dentro de la transacción
+        try {
+          await trx('qr_physical_cards').insert(currentBatch);
+        } catch (err) {
+          strapi.log.error(`Error insertando lote de tarjetas ${i}-${i + remaining}:`, err);
+          throw new Error(`Falló la emisión de tarjetas físicas en lote ${i}: ${err.message}`);
+        }
       }
-
-      // Insertar lote
-      try {
-        await strapi.entityService.create('api::qr-physical-card.qr-physical-card', {
-          data: currentBatch,
-        });
-        cards.push(...currentBatch.map(c => c.card_id));
-      } catch (err) {
-        strapi.log.error(`Error insertando lote de tarjetas ${i}-${i + remaining}:`, err);
-        throw new Error(`Falló la emisión de tarjetas físicas en lote ${i}: ${err.message}`);
-      }
-    }
+    });
 
     strapi.log.info(`Emitidas ${cards.length} tarjetas físicas para líder ${leaderId}, batch ${batchId}`);
     return { count: cards.length, batchId, cardIds: cards };
