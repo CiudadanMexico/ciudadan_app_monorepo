@@ -56,17 +56,46 @@ async function destroyStrapi() {
 }
 
 /**
+ * Mapeo de UID a nombre de tabla real en PostgreSQL.
+ * Strapi usa snake_case plural para nombres de tablas.
+ */
+const UID_TO_TABLE = {
+  'api::driver-membership.driver-membership': 'driver_memberships',
+  'api::driver.driver': 'drivers',
+  'api::leader.leader': 'leaders',
+  'api::qr-physical-card.qr-physical-card': 'qr_physical_cards',
+  'api::free-trip-entitlement.free-trip-entitlement': 'free_trip_entitlements',
+  'api::idempotency-key.idempotency-key': 'idempotency_keys',
+  'api::commission-payment.commission-payment': 'commission_payments',
+  'api::site-setting.site-setting': 'site_settings',
+};
+
+/**
  * Limpia las tablas de prueba (truncate).
  * @param {Strapi} strapi - Instancia de Strapi.
  * @param {string[]} uids - UIDs de los content-types a limpiar.
+ * @throws {Error} Si la limpieza falla.
  */
 async function cleanTables(strapi, uids) {
+  const errors = [];
+
   for (const uid of uids) {
-    try {
-      await strapi.db.connection(uid).truncate();
-    } catch (e) {
-      // Tabla puede no existir aún, ignorar
+    const tableName = UID_TO_TABLE[uid];
+    if (!tableName) {
+      throw new Error(`No hay mapeo de tabla para UID: ${uid}. Agregar a UID_TO_TABLE en bootstrap.js`);
     }
+
+    try {
+      // Usar TRUNCATE CASCADE para limpiar tablas con FKs
+      await strapi.db.connection.raw(`TRUNCATE TABLE "${tableName}" RESTART IDENTITY CASCADE`);
+    } catch (e) {
+      // No silenciar errores - fallar explícitamente
+      errors.push(`Error truncando tabla ${tableName} (${uid}): ${e.message}`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Limpieza de tablas falló:\n${errors.join('\n')}`);
   }
 }
 

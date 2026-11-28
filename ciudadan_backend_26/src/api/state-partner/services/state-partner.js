@@ -55,7 +55,7 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
             WHEN idempotency_keys.published_at IS NULL THEN ?
             ELSE idempotency_keys.published_at
           END
-        RETURNING *;
+        RETURNING *, xmax;
       `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
@@ -77,12 +77,13 @@ module.exports = createCoreService('api::state-partner.state-partner', ({ strapi
       }
 
       const status = record.status;
+      const wasInserted = record.xmax === 0 || record.xmax === '0';
+
       if (status === 'completed') {
         strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
         return { isFirst: false, record };
       }
       if (status === 'processing') {
-        const wasInserted = record.created_at === record.updated_at;
         if (wasInserted) return { isFirst: true, record };
         strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
         return { isFirst: false, record };

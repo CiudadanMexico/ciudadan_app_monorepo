@@ -40,6 +40,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
     // Esto es atómico en PostgreSQL y SQLite (con ON CONFLICT)
     try {
       // Usar query builder para upsert atómico - 10 placeholders: 7 INSERT + 3 UPDATE
+      // xmax = 0 indica INSERT (nueva fila), xmax > 0 indica UPDATE (fila existente)
       const result = await strapi.db.connection.raw(`
         INSERT INTO idempotency_keys (key, operation_type, status, processed_at, published_at, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -59,7 +60,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
             WHEN idempotency_keys.published_at IS NULL THEN ?
             ELSE idempotency_keys.published_at
           END
-        RETURNING *;
+        RETURNING *, xmax;
       `, [idempotencyKey, operationType, 'processing', now, now, now, now, now, now, now]);
 
       const record = result.rows?.[0] || result[0];
@@ -87,20 +88,21 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       }
 
       const status = record.status;
+      // xmax = 0 significa que fue INSERT (nueva fila), xmax > 0 significa UPDATE (fila existente)
+      const wasInserted = record.xmax === 0 || record.xmax === '0';
+
       if (status === 'completed') {
         strapi.log.info(`Operación ya completada (idempotente): ${idempotencyKey} (${operationType})`);
         return { isFirst: false, record };
       }
       if (status === 'processing') {
-        // Verificar si fue insertado ahora o ya existía
-        const wasInserted = record.created_at === record.updated_at;
         if (wasInserted) {
           return { isFirst: true, record };
         }
         strapi.log.warn(`Operación en curso: ${idempotencyKey} (${operationType})`);
         return { isFirst: false, record };
       }
-      // status === 'failed' -> se actualizó a processing
+      // status === 'failed' -> se actualizó a processing (fila existente que estaba failed)
       return { isFirst: true, record: { ...record, status: 'processing' } };
     } catch (err) {
       strapi.log.error(`Error en idempotencia atómica: ${err.message}`);
@@ -202,7 +204,7 @@ module.exports = createCoreService('api::driver-membership.driver-membership', (
       cardShippingFee: siteSetting?.taxi_card_shipping_fee_mxn ?? 0,
       leaderCommissionPct: siteSetting?.taxi_free_trip_leader_commission_pct ?? 10,
       statePartnerCommissionPct: siteSetting?.taxi_free_trip_state_partner_commission_pct ?? 5,
-      leaderCardKitPrice: siteSetting?.leader_card_kit_price_mxn ?? 500,
+      leaderCardKitPrice: siteSetting?.leader_card_kit_price_mxn ?? 400,
       statePartnerEntryFeeMin: siteSetting?.state_partner_entry_fee_min_mxn ?? 10000,
       statePartnerEntryFeeMax: siteSetting?.state_partner_entry_fee_max_mxn ?? 20000,
       statePartnerMaxMsi: siteSetting?.state_partner_max_msi_months ?? 12,

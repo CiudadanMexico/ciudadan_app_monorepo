@@ -19,7 +19,7 @@ const {
 const TEST_UIDS = [
   'api::driver-membership.driver-membership',
   'api::driver.driver',
-  'api::idempotency-key.idempotency-key', // Assuming this exists
+  'api::idempotency-key.idempotency-key',
 ];
 
 let strapi = null;
@@ -63,34 +63,26 @@ test('Idempotencia: checkAndRecordIdempotency adquiere lock atómico (isFirst=tr
     .digest('hex');
 
   // Primera llamada -> isFirst = true
-  const result1 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-    membershipId: membership.id,
-    paymentId: 'pay-123',
-  });
+  const result1 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
 
   assert.equal(result1.isFirst, true, 'Primera llamada debe retornar isFirst=true');
-  assert.equal(result1.status, 'processing', 'Estado inicial = processing');
+  assert.ok(result1.record, 'Debe retornar record');
+  assert.equal(result1.record.status, 'processing', 'Estado inicial = processing');
 
   // Segunda llamada con misma clave -> isFirst = false
-  const result2 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-    membershipId: membership.id,
-    paymentId: 'pay-123',
-  });
+  const result2 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
 
   assert.equal(result2.isFirst, false, 'Segunda llamada debe retornar isFirst=false');
-  assert.equal(result2.status, 'processing', 'Estado = processing (primera en curso)');
+  assert.equal(result2.record.status, 'processing', 'Estado = processing (primera en curso)');
 
-  // Marcar como completed
-  await service.completeIdempotency(idempotencyKey, { success: true });
+  // Marcar como completed usando la API real
+  await service.markIdempotencyCompleted(idempotencyKey, { success: true });
 
-  // Tercera llamada después de completed -> isFirst = false, status = completed
-  const result3 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-    membershipId: membership.id,
-    paymentId: 'pay-123',
-  });
+  // Tercera llamada después de completed -> isFirst = false, record.status = completed
+  const result3 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
 
   assert.equal(result3.isFirst, false, 'Después de completed: isFirst=false');
-  assert.equal(result3.status, 'completed', 'Estado = completed');
+  assert.equal(result3.record.status, 'completed', 'Estado = completed');
 });
 
 test('Idempotencia: reintento tras fallo -> isFirst=true (permite reintento)', async () => {
@@ -117,23 +109,17 @@ test('Idempotencia: reintento tras fallo -> isFirst=true (permite reintento)', a
     .digest('hex');
 
   // Primera llamada
-  const result1 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-    membershipId: membership.id,
-    paymentId: 'pay-retry',
-  });
+  const result1 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
   assert.equal(result1.isFirst, true);
 
-  // Marcar como failed (simula error en procesamiento)
-  await service.completeIdempotency(idempotencyKey, { success: false, error: 'Timeout' });
+  // Marcar como failed (simula error en procesamiento) - API real
+  await service.markIdempotencyFailed(idempotencyKey, 'Timeout');
 
   // Reintento -> isFirst = true (permite reintento)
-  const result2 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-    membershipId: membership.id,
-    paymentId: 'pay-retry',
-  });
+  const result2 = await service.checkAndRecordIdempotency(idempotencyKey, 'payment_success');
 
   assert.equal(result2.isFirst, true, 'Reintento tras fallo debe permitir nueva ejecución');
-  assert.equal(result2.status, 'processing');
+  assert.equal(result2.record.status, 'processing');
 });
 
 test('CONCURRENCIA REAL: 10 llamadas simultáneas misma clave -> exactamente 1 isFirst=true', async () => {
@@ -161,10 +147,7 @@ test('CONCURRENCIA REAL: 10 llamadas simultáneas misma clave -> exactamente 1 i
 
   // 10 llamadas concurrentes con la MISMA clave
   const promises = Array(10).fill(null).map((_, i) =>
-    service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-      membershipId: membership.id,
-      paymentId: `pay-concurrent-${i}`,
-    })
+    service.checkAndRecordIdempotency(idempotencyKey, 'payment_success')
   );
 
   const results = await Promise.all(promises);
@@ -176,9 +159,9 @@ test('CONCURRENCIA REAL: 10 llamadas simultáneas misma clave -> exactamente 1 i
   assert.equal(notFirstCount, 9, 'Las otras 9 deben tener isFirst=false');
   assert.equal(results.length, 10);
 
-  // Verificar que todas tienen status válido
+  // Verificar que todas tienen status válido en record
   for (const r of results) {
-    assert.ok(['processing', 'completed', 'failed'].includes(r.status));
+    assert.ok(['processing', 'completed', 'failed'].includes(r.record.status));
   }
 });
 
@@ -206,10 +189,7 @@ test('CONCURRENCIA REAL: 50 llamadas simultáneas misma clave -> exactamente 1 i
     .digest('hex');
 
   const promises = Array(50).fill(null).map((_, i) =>
-    service.checkAndRecordIdempotency(idempotencyKey, 'payment_success', {
-      membershipId: membership.id,
-      paymentId: `pay-concurrent-50-${i}`,
-    })
+    service.checkAndRecordIdempotency(idempotencyKey, 'payment_success')
   );
 
   const results = await Promise.all(promises);
@@ -244,9 +224,9 @@ test('CONCURRENCIA: claves diferentes son independientes', async () => {
   const key3 = crypto.createHash('sha256').update(`${driver.id}:payment_success:${membership.id}:key3`).digest('hex');
 
   const promises = [
-    ...Array(5).fill(null).map((_, i) => service.checkAndRecordIdempotency(key1, 'payment_success', { membershipId: membership.id, paymentId: `pay-key1-${i}` })),
-    ...Array(5).fill(null).map((_, i) => service.checkAndRecordIdempotency(key2, 'payment_success', { membershipId: membership.id, paymentId: `pay-key2-${i}` })),
-    ...Array(5).fill(null).map((_, i) => service.checkAndRecordIdempotency(key3, 'payment_success', { membershipId: membership.id, paymentId: `pay-key3-${i}` })),
+    ...Array(5).fill(null).map((_, i) => service.checkAndRecordIdempotency(key1, 'payment_success')),
+    ...Array(5).fill(null).map((_, i) => service.checkAndRecordIdempotency(key2, 'payment_success')),
+    ...Array(5).fill(null).map((_, i) => service.checkAndRecordIdempotency(key3, 'payment_success')),
   ];
 
   const results = await Promise.all(promises);
@@ -288,9 +268,9 @@ test('Idempotencia: operaciones mixtas (payment_success, commission, preapproval
   const preapprovalKey = crypto.createHash('sha256').update(`${baseKey}:preapproval_update:pa-1`).digest('hex');
 
   const [paymentResult, commissionResult, preapprovalResult] = await Promise.all([
-    service.checkAndRecordIdempotency(paymentKey, 'payment_success', { membershipId: membership.id, paymentId: 'pay-1' }),
-    service.checkAndRecordIdempotency(commissionKey, 'commission', { membershipId: membership.id, paymentId: 'pay-1' }),
-    service.checkAndRecordIdempotency(preapprovalKey, 'preapproval_update', { membershipId: membership.id, paymentId: 'pay-1' }),
+    service.checkAndRecordIdempotency(paymentKey, 'payment_success'),
+    service.checkAndRecordIdempotency(commissionKey, 'commission'),
+    service.checkAndRecordIdempotency(preapprovalKey, 'preapproval_update'),
   ]);
 
   assert.equal(paymentResult.isFirst, true, 'payment_success: primera vez = isFirst=true');
@@ -299,9 +279,9 @@ test('Idempotencia: operaciones mixtas (payment_success, commission, preapproval
 
   // Segunda llamada a cada una debe dar isFirst=false
   const [paymentResult2, commissionResult2, preapprovalResult2] = await Promise.all([
-    service.checkAndRecordIdempotency(paymentKey, 'payment_success', { membershipId: membership.id, paymentId: 'pay-1' }),
-    service.checkAndRecordIdempotency(commissionKey, 'commission', { membershipId: membership.id, paymentId: 'pay-1' }),
-    service.checkAndRecordIdempotency(preapprovalKey, 'preapproval_update', { membershipId: membership.id, paymentId: 'pay-1' }),
+    service.checkAndRecordIdempotency(paymentKey, 'payment_success'),
+    service.checkAndRecordIdempotency(commissionKey, 'commission'),
+    service.checkAndRecordIdempotency(preapprovalKey, 'preapproval_update'),
   ]);
 
   assert.equal(paymentResult2.isFirst, false);
@@ -328,15 +308,15 @@ test('Idempotencia: clave incluye membershipId y paymentId, NO timestamp', async
   });
 
   // Generar claves con diferentes timestamps pero mismos IDs
-  const key1 = service.generateIdempotencyKey(driver.id, 'payment_success', membership.id, 'pay-1', Date.now());
-  const key2 = service.generateIdempotencyKey(driver.id, 'payment_success', membership.id, 'pay-1', Date.now() + 1000);
-  const key3 = service.generateIdempotencyKey(driver.id, 'payment_success', membership.id, 'pay-1', Date.now() + 2000);
+  const key1 = service.generateIdempotencyKey(membership.id, 'pay-1');
+  const key2 = service.generateIdempotencyKey(membership.id, 'pay-1');
+  const key3 = service.generateIdempotencyKey(membership.id, 'pay-1');
 
   // Deben ser IDÉNTICAS (determinista, sin timestamp)
   assert.equal(key1, key2, 'Claves con diferentes timestamps pero mismos IDs deben ser iguales');
   assert.equal(key2, key3, 'Claves con diferentes timestamps pero mismos IDs deben ser iguales');
 
   // Diferente paymentId debe dar clave diferente
-  const keyDiff = service.generateIdempotencyKey(driver.id, 'payment_success', membership.id, 'pay-2', Date.now());
+  const keyDiff = service.generateIdempotencyKey(membership.id, 'pay-2');
   assert.notEqual(key1, keyDiff, 'Diferente paymentId debe dar clave diferente');
 });

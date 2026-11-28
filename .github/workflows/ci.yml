@@ -111,7 +111,7 @@ jobs:
         run: npm run build && npx strapi db:migrate
 
       - name: Run unit tests
-        run: node --test tests/**/*.test.js --passWithNoTests
+        run: node --test tests/**/*.test.js
 
   integration-tests:
     name: Integration Tests (Taxi 6.0)
@@ -184,11 +184,11 @@ jobs:
       - name: Run Taxi 6.0 integration tests
         run: |
           # Run specific test files for Taxi 6.0
-          node --test tests/membresia-precios.test.js tests/promo-idempotencia.test.js tests/apk-utils.test.js tests/delivery-qa-fase-e.test.js --passWithNoTests
+          node --test tests/membresia-precios.test.js tests/promo-idempotencia.test.js tests/apk-utils.test.js tests/delivery-qa-fase-e.test.js
 
       - name: Run new integration tests (Founders calendar, Idempotency, QR anti-dup)
         run: |
-          node --test tests/integration/founders-calendar.test.js tests/integration/idempotency-postgres.test.js tests/integration/qr-anti-dup-postgres.test.js --passWithNoTests
+          node --test tests/integration/founders-calendar.test.js tests/integration/idempotency-postgres.test.js tests/integration/qr-anti-dup-postgres.test.js
 
   build:
     name: Build
@@ -287,13 +287,13 @@ jobs:
         run: npm run build && npx strapi db:migrate
 
       - name: Run idempotency concurrent tests (real PostgreSQL)
-        run: node --test tests/idempotency-concurrent.test.js --passWithNoTests
+        run: node --test tests/idempotency-concurrent.test.js
 
       - name: Run Founders QR anti-dup tests (real PostgreSQL)
-        run: node --test tests/founders-qr-anti-dup.test.js --passWithNoTests
+        run: node --test tests/founders-qr-anti-dup.test.js
 
       - name: Run new integration tests (Founders calendar, Idempotency PostgreSQL, QR anti-dup PostgreSQL)
-        run: node --test tests/integration/founders-calendar.test.js tests/integration/idempotency-postgres.test.js tests/integration/qr-anti-dup-postgres.test.js --passWithNoTests
+        run: node --test tests/integration/founders-calendar.test.js tests/integration/idempotency-postgres.test.js tests/integration/qr-anti-dup-postgres.test.js
 
       - name: Validate P0 Blocker 3 - CI workflow at root
         run: |
